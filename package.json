@@ -1,0 +1,23 @@
+{
+  "name": "dx-services",
+  "version": "0.0.1-SNAPSHOT",
+  "description": "",
+  "main": "src/main.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "DEBUG=dx-service:* node src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.gnosisdev.com:dx/dx-services.git"
+  },
+  "author": "Angel Rodriguez <anxolin@gmail.com> (https://github.com/anxolin)",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "debug": "^3.1.0"
+  }
+}
