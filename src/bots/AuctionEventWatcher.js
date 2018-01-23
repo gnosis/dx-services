@@ -24,13 +24,14 @@ TODO: Events: first draft.
 */
 
 class AuctionEventWatcher {
-  constructor ({ eventBus, auctionService }) {
+  constructor ({ eventBus, auctionService, markets }) {
     this._eventBus = eventBus
     this._auctionService = auctionService
+    this._markets = markets
   }
 
   startWatching () {
-    debug('Starting the auction watch...') // TODO: Conf markets
+    debug('Starting the the following auctions markets %o...', this._markets)
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         // TODO: Delegate service, try to detect certain

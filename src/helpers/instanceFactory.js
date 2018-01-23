@@ -1,19 +1,30 @@
-// import config from '../../conf/config.js'
+// const debug = require('debug')('dx-service:helpers:instanceFactory')
+const config = require('../../conf/config.js')
 
-const debug = require('debug')('dx-service:helpers:instanceFactory')
+// Auction Repo
+const AuctionRepoMock =
+  require('../repositories/AuctionRepo/AuctionRepoMock')
+const auctionRepo = new AuctionRepoMock()
 
-debug('Initialize instances')
+// Exchange repo
+const ExchangePriceRepoMock =
+  require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
+const exchangePriceRepo = new ExchangePriceRepoMock()
 
-// TODO:
-const auctionService = null
-const auctionRepo = null
-const exchangePriceRepo = null
+// Auction service
+const AuctionService = require('../services/AuctionService')
+const auctionService = new AuctionService({
+  // repos
+  auctionRepo,
+  exchangePriceRepo,
+
+  // conf
+  minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
+})
 
 module.exports = {
-  // services
-  auctionService,
+  config,
 
-  // Repositories
-  auctionRepo,
-  exchangePriceRepo
+  // services
+  auctionService
 }

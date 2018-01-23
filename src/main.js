@@ -5,6 +5,7 @@ const SellLiquidityBot = require('./bots/SellLiquidityBot')
 const AuctionEventWatcher = require('./bots/AuctionEventWatcher')
 const EventBus = require('./helpers/EventBus')
 const {
+  config,
   auctionService
 } = require('./helpers/instanceFactory')
 
@@ -12,7 +13,8 @@ const {
 const eventBus = new EventBus()
 const auctionEventWatcher = new AuctionEventWatcher({
   eventBus,
-  auctionService
+  auctionService,
+  markets: config.MARKETS
 })
 
 // Create bots
