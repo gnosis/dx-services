@@ -16,7 +16,6 @@ const BUY_THRESHOLDS = [{
   buyRatio: 1
 }]
 
-
 // TODO;
 //  * Instead of this config being static, Initialized the config
 //  * Rename the const and add the 'DEFAULT_' prefix

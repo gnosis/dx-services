@@ -1,53 +1,66 @@
 const debug = require('debug')('dx-service:main')
+const Promise = require('./helpers/Promise')
 
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
 const AuctionEventWatcher = require('./bots/AuctionEventWatcher')
-const AuctionEventsBus = require('./helpers/AuctionEventsBus')
+const EventBus = require('./helpers/EventBus')
 const {
   auctionService
 } = require('./helpers/instanceFactory')
 
-// Create the eventBus
-const auctionEventsBus = new AuctionEventsBus()
-
-// Create liquidity bot
-const sellLiquidityBot = new SellLiquidityBot({
-  auctionEventsBus,
-  auctionService
-})
-
+// Create the eventBus and event watcher
+const eventBus = new EventBus()
 const auctionEventWatcher = new AuctionEventWatcher({
-  auctionEventsBus,
+  eventBus,
   auctionService
 })
 
-// Watch market events
-debug('Watching market events...')
-auctionEventWatcher
-  .startWatching()
+// Create bots
+const bots = [
+  // Liquidity bot
+  new SellLiquidityBot({
+    eventBus,
+    auctionService
+  })
+]
+
+// Run all the bots
+Promise.all(
+  bots.map(bot => bot.run())
+)
   .then(() => {
-    // Run bots
-    debug('Starting liquidity bot...')
-    sellLiquidityBot.run()
+    // Watch auction events
+    debug('All bots are ready')
+    return auctionEventWatcher.startWatching()
   })
   .catch(error => {
     process.exitCode = 1
     console.error(`ERORR in dx-service main: ${error.message}`)
+    console.error(error)
+    debug('Something went wrong....')
     // Rethrow error
     throw error
   })
-  .finally(() => {
-    debug('End of the execution. Bye!')
-  })
+  .finally(() => debug('End of the execution. Bye!'))
 
 function closeGracefully (signal) {
   debug("I've gotten a %o signal! Closing gracefully", signal)
 
-  debug("I'm shutting down...")
-  auctionEventWatcher.stopWatching(() => {
-    debug('The app is ready to shutdown! Good bye! :)')
-    process.exit(0)
-  })
+  auctionEventWatcher
+    // Stop watching events
+    .stopWatching()
+    .then(() => {
+      // Stop all bots
+      return Promise.all([
+        bots.map(bot => bot.stop())
+      ])
+    })
+    .then(() => {
+      // Clear listerners
+      eventBus.clearAllListeners()
+      debug('The app is ready to shutdown! Good bye! :)')
+      process.exit(0)
+    })
 }
 
 ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {

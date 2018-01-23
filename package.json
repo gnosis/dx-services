@@ -7,7 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "start": "DEBUG=dx-service:* node src/main.js",
+    "start": "DEBUG=dx-service:*,,-*EventBus node src/main.js",
+    "dev": "DEBUG=dx-service:* node src/main.js",
+    "trace": "DEBUG=* node src/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

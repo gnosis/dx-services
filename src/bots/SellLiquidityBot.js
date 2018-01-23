@@ -2,15 +2,28 @@
 const debug = require('debug')('dx-service:bots:sellLiquidityBot')
 
 class SellLiquidityBot {
-  constructor ({ auctionEventsBus, auctionService }) {
-    this._auctionEventsBus = auctionEventsBus
+  constructor ({ eventBus, auctionService }) {
+    this._eventBus = eventBus
     this._auctionService = auctionService
   }
 
-  run () {
+  async run () {
     debug('Initialized bot')
     // TODO: Listen for events and delegate into the service layer
-    debug('TODO: Register to event')
+    this._eventBus.listenToEvents(
+      ['AUCTION_START', 'AUCTION_END'],
+      ({ eventName, data }) => {
+        this.sayHi(eventName)
+      }
+    )
+  }
+
+  async stop () {
+    debug('Bot stopped')
+  }
+
+  sayHi (eventName) {
+    debug('Hi, it seams the market is now %s', eventName)
   }
 }
 
