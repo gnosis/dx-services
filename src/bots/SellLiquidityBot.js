@@ -9,21 +9,16 @@ class SellLiquidityBot {
 
   async run () {
     debug('Initialized bot')
-    // TODO: Listen for events and delegate into the service layer
-    this._eventBus.listenToEvents(
-      ['AUCTION_START', 'AUCTION_END'],
-      ({ eventName, data }) => {
-        this.sayHi(eventName)
-      }
-    )
+
+    // Ensure the sell liquidity when an aunction has ended
+    this._eventBus.listenTo('AUCTION_END', ({ eventName, data }) => {
+      const { tokenA, tokenB } = data
+      this._auctionService.ensureSellLiquidity({ tokenA, tokenB })
+    })
   }
 
   async stop () {
     debug('Bot stopped')
-  }
-
-  sayHi (eventName) {
-    debug('Hi, it seams the market is now %s', eventName)
   }
 }
 
