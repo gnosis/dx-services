@@ -24,6 +24,7 @@
     "debug": "^3.1.0"
   },
   "devDependencies": {
-    "jest": "^22.1.4"
+    "jest": "^22.1.4",
+    "@gnosis.pm/dutch-exchange": "gnosis/dutch-exchange#contracts/DX-2.0-No-Frontend"
   }
 }
