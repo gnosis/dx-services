@@ -14,8 +14,7 @@ class AuctionService {
 
   ensureSellLiquidity ({ tokenA, tokenB }) {
     debug('Ensure that sell liquidity on %s-%s markets is over $%d',
-      tokenA,
-      tokenB,
+      tokenA, tokenB,
       this._minimumSellVolume
     )
 
