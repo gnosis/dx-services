@@ -118,7 +118,8 @@ class AuctionService {
       .sell({
         sellToken: tokenB,
         buyToken: tokenA,
-        amount: missingDifferenceInB
+        amount: missingDifferenceInB,
+        auctionIndex: 77 // TODO
       })
       .then(() => missingDifferenceInB)
   }

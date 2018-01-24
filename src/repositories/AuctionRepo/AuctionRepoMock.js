@@ -140,7 +140,8 @@ class AuctionRepoMock {
       auctionIndex
     )
     // postSellOrder
-    this._notImplementedYet()
+    //this._notImplementedYet()
+    return amount
   }
 
   async buy ({ sellToken, buyToken, auctionIndex, amount }) {
