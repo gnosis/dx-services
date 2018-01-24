@@ -67,12 +67,13 @@ class AuctionService {
         let soldTokensPromise
         if (sellVolumenInUSD < this._minimumSellVolume) {
           // Sell tokens to create liquidity
-          debug('Not enough sell volume for pair %s-%s: %o', tokenA, tokenB, {
-            sellVolumeTokenA,
-            sellVolumeTokenB,
-            sellVolumeInB,
+          debug(
+            'Not enough sell volume for pair %s-%s: %d %s + %d %s = $%d ',
+            tokenA, tokenB,
+            sellVolumeTokenA, tokenA,
+            sellVolumeTokenB, tokenB,
             sellVolumenInUSD
-          })
+          )
           soldTokensPromise = this._sellTokenToCreateLiquidity({
             tokenA,
             tokenB,
