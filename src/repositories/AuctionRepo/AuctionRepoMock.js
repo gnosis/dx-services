@@ -1,68 +1,78 @@
-const debug = require('debug')('dx-service:repositories:auction')
+const debug = require('debug')('dx-service:repositories:AuctionRepoMock')
 // RDN/ETH: 0.004079
 //  So 1 ETH = 243.891605 RDN
-//  https://walletinvestor.com/converter/usd/ethereum/290
-const auction = {
-  index: 77,
-  auctionStart: new Date(),
-  sellVolume: 81.255153,  // RDN. aprox $315
-  buyVolume: 0.304494,    // ETH. Aprox $290
-  tulTokens: 120,         // TUL. $120 in fees
-  closingPrice: 0.0041    // RDN/ETH // TODO: I think it's modeled as fraction.
+//
+// See contract functions in:
+//  https://docs.google.com/spreadsheets/d/1H-NXEvuxGKFW8azXtyQC26WQQuI5jmSxR7zK9tHDqSs/edit#gid=682667981
+const auctions = {
+  'RDN-ETH': {
+    index: 77,
+    auctionStart: new Date(),
+    // https://walletinvestor.com/converter/usd/raiden-network-token/315
+    sellVolume: 76.547844,  // RDN. aprox $315
+    buyVolume: 0            // ETH
+  },
+  'ETH-RDN': {
+    index: 77,
+    auctionStart: new Date(),
+    // https://walletinvestor.com/converter/usd/ethereum/290
+    sellVolume: 0.289432,  // ETH. aprox $290
+    buyVolume: 0           // RDN
+  }
 }
 
 class AuctionRepoMock {
-  async getCurrentAuctionIndex () {
-    debug('Get current auction index')
-    return auction.index
+  async getCurrentAuctionIndex ({ sellToken, buyToken }) {
+    debug('Get current auction index for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).index
   }
 
-  async gerSellVolume () {
-    debug('Get sell volume')
-    return auction.sellVolume
+  async gerSellVolume ({ sellToken, buyToken }) {
+    debug('Get sell volume for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).sellVolume
   }
 
-  async gerAuctionStart () {
-    debug('Get auction start')
-    return auction.auctionStart
+  async gerAuctionStart ({ sellToken, buyToken }) {
+    debug('Get auction start for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).auctionStart
   }
 
-  async gerSellVolumeNext () {
-    debug('Get sell volume next')
-    return auction.sellVolume
+  async gerSellVolumeNext ({ sellToken, buyToken }) {
+    debug('Get sell volume next for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).sellVolume
   }
 
-  async getTulTokens () {
-    debug('Get tul')
-    return auction.tulTokens
+  async getTulTokens ({ sellToken, buyToken }) {
+    debug('Get tul for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).tulTokens
   }
 
-  async getClosingPrice (auctionIndex) {
-    debug('Get sell volume')
-    return auction.closingPrice
+  async getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
+    debug('Get sell volume for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).closingPrice
   }
 
-  async gerBuyVolume () {
-    debug('Get sell volume')
-    return auction.buyVolume
+  async gerBuyVolume ({ sellToken, buyToken }) {
+    debug('Get buy volume for %s-%s', sellToken, buyToken)
+    return this._getAuction({ sellToken, buyToken }).buyVolume
   }
 
-  async getSellerBalance ({ buyToken, sellToken, address }) {
-    debug('Get seller (%s) balance', address)
+  async getSellerBalance ({ sellToken, buyToken, address }) {
+    debug('Get seller (%s) balance for %s-%s', address, sellToken, buyToken)
     return -1
   }
 
-  async getBuyerBalance ({ buyToken, sellToken, address }) {
-    debug('Get buyer (%s) balance', address)
+  async getBuyerBalance ({ sellToken, buyToken, address }) {
+    debug('Get buyer (%s) balance for %s-%s', address, sellToken, buyToken)
     return -1
   }
 
-  async getBuyerClaimedTokens ({ buyToken, sellToken, address }) {
-    debug('Get buyer (%s) clamed tokens', address)
+  async getBuyerClaimedTokens ({ sellToken, buyToken, address }) {
+    debug('Get buyer (%s) clamed tokens for %s-%s', address, sellToken, buyToken)
     return -1
   }
 
-  async buy ({ buyToken, sellToken, amount, auctionIndex }) {
+  async buy ({ sellToken, buyToken, amount, auctionIndex }) {
     debug(
       'Buy %d %s using %s for auction %d',
       amount,
@@ -73,7 +83,7 @@ class AuctionRepoMock {
     // TODO: postBuyOrder(amount)
   }
 
-  async buyAndClaim ({ buyToken, sellToken, amount, auctionIndex }) {
+  async buyAndClaim ({ sellToken, buyToken, amount, auctionIndex }) {
     debug(
       'Buy and claim %d %s using %s for auction %d',
       amount,
@@ -103,6 +113,10 @@ class AuctionRepoMock {
     debug('Get price for auction %d', auctionIndex)
     // TODO: IMPORTANT: This calculated for the onGoing (check SC)
     // TODO: getPrice(auctionIndex)
+  }
+
+  _getAuction ({ sellToken, buyToken }) {
+    return auctions[sellToken + '-' + buyToken]
   }
 }
 

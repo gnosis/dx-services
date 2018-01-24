@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:services:auction')
+const debug = require('debug')('dx-service:services:AuctionService')
 
 class AuctionService {
   constructor ({ auctionRepo, exchangePriceRepo, minimumSellVolume }) {
@@ -31,14 +31,14 @@ class AuctionService {
     ensureLiquidityPromise = Promise.all([
       // Get current market price
       this._exchangePriceRepo.getPrice({
-        sellToken: tokenA,
-        buyToken: tokenB
+        tokenA,
+        tokenB
       }),
 
       // Get current market price
       this._exchangePriceRepo.getPrice({
-        sellToken: tokenB,
-        buyToken: 'USD'
+        tokenA: tokenB,
+        tokenB: 'USD'
       }),
 
       // Get sellvolume for auction tokeA-tokenB
@@ -95,6 +95,8 @@ class AuctionService {
 
     // Create lock
     this.concurrencyCheck[lockName] = ensureLiquidityPromise
+
+    return ensureLiquidityPromise
   }
 
   _sellTokenToCreateLiquidity ({
