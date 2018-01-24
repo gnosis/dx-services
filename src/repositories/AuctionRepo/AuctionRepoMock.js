@@ -1,50 +1,86 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoMock')
-// RDN/ETH: 0.004079
-//  So 1 ETH = 243.891605 RDN
-//
-// See contract functions in:
-//  https://docs.google.com/spreadsheets/d/1H-NXEvuxGKFW8azXtyQC26WQQuI5jmSxR7zK9tHDqSs/edit#gid=682667981
 const auctions = {
   'RDN-ETH': {
+    // Aprox 0.004079 ETH/RDN
     index: 77,
     auctionStart: new Date(),
     // https://walletinvestor.com/converter/usd/raiden-network-token/315
-    sellVolume: 76.547844,  // RDN. aprox $315
-    buyVolume: 0            // ETH
+    sellVolume: 76.547844,      // RDN. aprox $315
+    sellVolumeNext: 12.547844,  // RDN
+    buyVolume: 0                // ETH
   },
   'ETH-RDN': {
     index: 77,
     auctionStart: new Date(),
     // https://walletinvestor.com/converter/usd/ethereum/290
-    sellVolume: 0.289432,  // ETH. aprox $290
-    buyVolume: 0           // RDN
+    sellVolume: 0.289432,       // ETH. aprox $290
+    sellVolumeNext: 12.547844,  // ETH
+    buyVolume: 0                // RDN
   }
 }
 
+const balances = {
+  'RDN': {
+    '0x424a46612794dbb8000194937834250Dc723fFa5': 267.345, // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 15.20,   // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 500.0,   // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 301.112  // Dani
+  },
+  'ETH': {
+    '0x424a46612794dbb8000194937834250Dc723fFa5': 1.44716, // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 0.23154, // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1.88130, // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 2.01234  // Dani
+  }
+}
+
+/*
+  There was also some elements not used:
+      * props
+          * claimedAmounts
+      * methods:
+          * addTokenPair, addTokenPair2
+      * events:
+          NewDeposit
+          NewWithdrawal
+          NewSellOrder
+          NewBuyOrder
+          NewSellerFundsClaim
+          NewBuyerFundsClaim
+          NewTokenPair
+          AuctionCleared
+          Log
+          LogOustandingVolume
+          LogNumber
+          ClaimBuyerFunds
+      * getBasicInfo:
+          * could be other info if it's interesting like ethAddress,
+            ethOracleAddress, some config minimus (maybe the USD
+            minimun could be gotten from here so it's more dynamic
+  TODO: Understand:
+    * what is extraTokens
+*/
+
 class AuctionRepoMock {
+  async getBasicInfo () {
+    debug('Get auction basic info')
+    return {
+      network: 'http://localhost:8545',
+      ownerAddress: '0x424a46612794dbb8000194937834250Dc723fFa5',
+      exchageAddress: '0x1223'
+    }
+  }
   async getCurrentAuctionIndex ({ sellToken, buyToken }) {
     debug('Get current auction index for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).index
-  }
 
-  async gerSellVolume ({ sellToken, buyToken }) {
-    debug('Get sell volume for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).sellVolume
+    // latestAuctionIndices
+    return this._getAuction({ sellToken, buyToken }).index
   }
 
   async gerAuctionStart ({ sellToken, buyToken }) {
     debug('Get auction start for %s-%s', sellToken, buyToken)
+    // auctionStarts
     return this._getAuction({ sellToken, buyToken }).auctionStart
-  }
-
-  async gerSellVolumeNext ({ sellToken, buyToken }) {
-    debug('Get sell volume next for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).sellVolume
-  }
-
-  async getTulTokens ({ sellToken, buyToken }) {
-    debug('Get tul for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).tulTokens
   }
 
   async getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
@@ -52,67 +88,103 @@ class AuctionRepoMock {
     return this._getAuction({ sellToken, buyToken }).closingPrice
   }
 
+  async gerSellVolume ({ sellToken, buyToken }) {
+    debug('Get sell volume for %s-%s', sellToken, buyToken)
+    // sellVolumesCurrent
+    return this._getAuction({ sellToken, buyToken }).sellVolume
+  }
+
+  async gerSellVolumeNext ({ sellToken, buyToken }) {
+    debug('Get sell volume next for %s-%s', sellToken, buyToken)
+    // sellVolumesNext
+    return this._getAuction({ sellToken, buyToken }).sellVolumeNext
+  }
+
   async gerBuyVolume ({ sellToken, buyToken }) {
     debug('Get buy volume for %s-%s', sellToken, buyToken)
     return this._getAuction({ sellToken, buyToken }).buyVolume
   }
 
+  async getBalance ({ token, address }) {
+    debug('Get balance of %s for %s', token, address)
+    // balances
+    return balances[token][address]
+  }
+
   async getSellerBalance ({ sellToken, buyToken, address }) {
     debug('Get seller (%s) balance for %s-%s', address, sellToken, buyToken)
-    return -1
+    // sellerBalances
+    this._notImplementedYet()
   }
 
   async getBuyerBalance ({ sellToken, buyToken, address }) {
     debug('Get buyer (%s) balance for %s-%s', address, sellToken, buyToken)
-    return -1
+    this._notImplementedYet()
   }
 
-  async getBuyerClaimedTokens ({ sellToken, buyToken, address }) {
-    debug('Get buyer (%s) clamed tokens for %s-%s', address, sellToken, buyToken)
-    return -1
+  async deposit ({ token, amount }) {
+    debug('Deposit %d %s', token, amount)
+    this._notImplementedYet()
   }
 
-  async buy ({ sellToken, buyToken, amount, auctionIndex }) {
+  async withdraw ({ token, amount }) {
+    debug('Withdraw %d %s', token, amount)
+    this._notImplementedYet()
+  }
+
+  async sell ({ sellToken, buyToken, auctionIndex, amount }) {
+    debug(
+      'Sell %d %s using %s for auction %d',
+      amount, buyToken,
+      sellToken,
+      auctionIndex
+    )
+    // postSellOrder
+    this._notImplementedYet()
+  }
+
+  async buy ({ sellToken, buyToken, auctionIndex, amount }) {
     debug(
       'Buy %d %s using %s for auction %d',
-      amount,
-      buyToken,
+      amount, buyToken,
       sellToken,
       auctionIndex
     )
-    // TODO: postBuyOrder(amount)
+    // postBuyOrder
+    this._notImplementedYet()
   }
 
-  async buyAndClaim ({ sellToken, buyToken, amount, auctionIndex }) {
-    debug(
-      'Buy and claim %d %s using %s for auction %d',
-      amount,
-      buyToken,
-      sellToken,
-      auctionIndex
-    )
-    // TODO: postBuyOrder(amount)
+  async claimSellerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+    debug('Claim seller (%s) funds for auction %s-%s (%d)',
+      address, sellToken, buyToken, auctionIndex)
+    // claimSellerFunds
+    this._notImplementedYet()
   }
 
-  async sell ({ sellToken, buyToken, amount }) {
-    debug('Sell %d %s to get %s', amount, sellToken, buyToken)
-    // TODO: postSellOrder(amount, index)
+  async claimBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+    debug('Claim buyer (%s) funds for auction %s-%s (%d)',
+      address, sellToken, buyToken, auctionIndex)
+    // claimBuyerFunds
+    this._notImplementedYet()
   }
 
-  async claimSellerFunds ({ auctionIndex }) {
-    debug('Claim sellet funds for auction %d', auctionIndex)
-    // TODO: claimSellerFunds(auctionIndex)
+  async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+    debug('Get unclaimed buyer (%s) funds for auction %s-%s (%d)',
+      address, sellToken, buyToken, auctionIndex)
+    // getUnclaimedBuyerFunds
+    this._notImplementedYet()
   }
 
-  async claimBuyerFunds ({ auctionIndex }) {
-    debug('Claim buyer funds for auction %d', auctionIndex)
-    // TODO: claimBuyerFunds(auctionIndex)
-  }
-
-  async getPrice ({ auctionIndex }) {
+  async getPrice ({ sellToken, buyToken, auctionIndex }) {
     debug('Get price for auction %d', auctionIndex)
     // TODO: IMPORTANT: This calculated for the onGoing (check SC)
-    // TODO: getPrice(auctionIndex)
+    // getPrice
+    // TODO: what is the getPriceForJS??
+    this._notImplementedYet()
+  }
+
+  _notImplementedYet () {
+    throw new Error('Not implemented yet!')
   }
 
   _getAuction ({ sellToken, buyToken }) {
@@ -120,13 +192,5 @@ class AuctionRepoMock {
   }
 }
 
-/*
-Events:
-  NewSellOrder
-  NewBuyOrder
-  NewSellerFundsClaim
-  NewBuyerFundsClaim
-  AuctionCleared
-*/
 
 module.exports = AuctionRepoMock
