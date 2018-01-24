@@ -43,7 +43,7 @@ class AuctionEventWatcher {
       setTimeout(() => {
         debug('TODO: Replace this with blockchain watch...')
         resolve()
-      }, 100000)
+      }, 10000)
     })
   }
 
