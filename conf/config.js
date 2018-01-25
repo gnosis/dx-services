@@ -42,6 +42,12 @@ const JSON_RPC_PROVIDER = 'ganache'
 const ETHEREUM_JSON_RPC_PROVIDER = JSON_RPC_PROVIDERS[JSON_RPC_PROVIDER]
 const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
+// Kraken custom config
+const KRAKEN = {
+  url: 'https://api.kraken.com',
+  version: '0'
+}
+
 /*
 TODO: Define the minimun config required to trade
 
@@ -58,5 +64,7 @@ module.exports = {
 
   // Ethereum config
   ETHEREUM_JSON_RPC_PROVIDER,
-  WALLET_MNEMONIC
+  WALLET_MNEMONIC,
+
+  KRAKEN
 }
