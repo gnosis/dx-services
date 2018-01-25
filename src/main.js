@@ -4,6 +4,8 @@ const Promise = require('./helpers/Promise')
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
 const AuctionEventWatcher = require('./bots/AuctionEventWatcher')
 const EventBus = require('./helpers/EventBus')
+const DxApiServer = require('./DxApiServer')
+
 const {
   config,
   auctionService
@@ -26,9 +28,15 @@ const bots = [
   })
 ]
 
-// Run all the bots
+// Create server
+const dxApiServer = new DxApiServer({
+  port: 8080 // todo: use config
+})
+
+// Run all the bots and start server
 Promise.all(
   bots.map(bot => bot.run())
+    .concat([ dxApiServer.start() ])
 )
   .then(() => {
     // Watch auction events
@@ -55,6 +63,7 @@ function closeGracefully (signal) {
       // Stop all bots
       return Promise.all([
         bots.map(bot => bot.stop())
+          .concat([ dxApiServer.stop() ])
       ])
     })
     .then(() => {
