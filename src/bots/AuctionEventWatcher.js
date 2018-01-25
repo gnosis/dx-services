@@ -31,7 +31,7 @@ class AuctionEventWatcher {
   }
 
   startWatching () {
-    debug('Starting the the following auctions markets %o...', this._markets)
+    debug('Starting the following auctions markets %o...', this._markets)
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         // TODO: Delegate service, try to detect certain
