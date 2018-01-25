@@ -7,7 +7,7 @@ const defaults = {
 	url: 'https://api.kraken.com',
 	version: 0,
 	timeout: 5000,
-};
+}
 
 // Send an API request
 const rawRequest = async (url, headers, data, timeout) => {
