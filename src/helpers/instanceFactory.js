@@ -1,30 +1,95 @@
 // const debug = require('debug')('dx-service:helpers:instanceFactory')
 const config = require('../../conf/config.js')
+let ethereumClient
 
-// Auction Repo
-const AuctionRepoMock =
-  require('../repositories/AuctionRepo/AuctionRepoMock')
-const auctionRepo = new AuctionRepoMock({})
+async function createInstances ({ test = false }) {
+  // Repos
+  const exchangePriceRepo = getExchangePriceRepo(config)
+  const auctionRepoPromise = getAuctionRepoPromise(config)
+  const auctionRepo = await auctionRepoPromise
 
-// Exchange repo
-const ExchangePriceRepoMock =
-  require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
-const exchangePriceRepo = new ExchangePriceRepoMock({})
+  // Services
+  const auctionService = getAuctionService({
+    config,
+    exchangePriceRepo,
+    auctionRepo
+  })
 
-// Auction service
-const AuctionService = require('../services/AuctionService')
-const auctionService = new AuctionService({
-  // repos
-  auctionRepo,
-  exchangePriceRepo,
+  let instances = {
+    config,
 
-  // conf
-  minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
-})
+    // services
+    auctionService
+  }
 
-module.exports = {
-  config,
+  if (test) {
+    // For testing is handy to return also the repos, client, etc
+    instances = Object.assign({}, instances, {
+      exchangePriceRepo,
+      auctionRepo,
+      ethereumClient
+    })
+  }
 
-  // services
-  auctionService
+  return instances
 }
+
+function getEhereumClient (config) {
+  if (!ethereumClient) {
+    const EthereumClient = require('./EthereumClient')
+    ethereumClient = new EthereumClient({
+      url: config.ETHEREUM_JSON_RPC_PROVIDER,
+      contractsBaseDir: config.CONTRACTS_BASE_DIR
+    })
+  }
+
+  return ethereumClient
+}
+
+function getAuctionRepoPromise (config) {
+  let auctionRepoPromise
+  switch (config.AUCTION_REPO_IMPL) {
+    case 'mock':
+      const AuctionRepoMock = require('../repositories/AuctionRepo/AuctionRepoMock')
+      auctionRepoPromise = Promise.resolve(new AuctionRepoMock({}))
+      break
+
+    case 'ethereum':
+      const ethereumClient = getEhereumClient(config)
+      const AuctionRepoEthereum = require('../repositories/AuctionRepo/AuctionRepoEthereum')
+      const auctionRepoEthereum = new AuctionRepoEthereum({
+        ethereumClient
+      })
+      // Return the repo when it's ready
+      auctionRepoPromise = auctionRepoEthereum
+        .ready
+        .then(() => auctionRepoEthereum)
+      break
+
+    default:
+      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO_IMPL)
+  }
+
+  return auctionRepoPromise
+}
+
+function getExchangePriceRepo (config) {
+  const ExchangePriceRepoMock =
+    require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
+
+  return new ExchangePriceRepoMock({})
+}
+
+function getAuctionService ({ config, auctionRepo, exchangePriceRepo }) {
+  const AuctionService = require('../services/AuctionService')
+  return new AuctionService({
+    // Repos
+    auctionRepo,
+    exchangePriceRepo,
+
+    // Config
+    minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
+  })
+}
+
+module.exports = createInstances
