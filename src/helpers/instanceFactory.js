@@ -1,22 +1,24 @@
 // const debug = require('debug')('dx-service:helpers:instanceFactory')
-const config = require('../../conf/config.js')
+const originalConfig = require('../../conf/config.js')
 let ethereumClient
 
-async function createInstances ({ test = false }) {
+async function createInstances ({ test = false, config = {} }) {
+  const mergedConfig = Object.assign({}, originalConfig, config)
+
   // Repos
-  const exchangePriceRepo = getExchangePriceRepo(config)
-  const auctionRepoPromise = getAuctionRepoPromise(config)
+  const exchangePriceRepo = getExchangePriceRepo(mergedConfig)
+  const auctionRepoPromise = getAuctionRepoPromise(mergedConfig)
   const auctionRepo = await auctionRepoPromise
 
   // Services
   const auctionService = getAuctionService({
-    config,
+    config: mergedConfig,
     exchangePriceRepo,
     auctionRepo
   })
 
   let instances = {
-    config,
+    config: mergedConfig,
 
     // services
     auctionService
