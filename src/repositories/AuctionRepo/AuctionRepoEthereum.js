@@ -1,48 +1,65 @@
-const debug = require('debug')('dx-service:repositories:AuctionRepoMock')
-const auctions = {
-  'RDN-ETH': {
-    // Aprox 0.004079 ETH/RDN
-    index: 77,
-    auctionStart: new Date(),
-    // https://walletinvestor.com/converter/usd/raiden-network-token/315
-    sellVolume: 76.547844,      // RDN. aprox $315
-    sellVolumeNext: 12.547844,  // RDN
-    buyVolume: 0                // ETH
-  },
-  'ETH-RDN': {
-    index: 77,
-    auctionStart: new Date(),
-    // https://walletinvestor.com/converter/usd/ethereum/290
-    sellVolume: 0.289432,       // ETH. aprox $290
-    sellVolumeNext: 12.547844,  // ETH
-    buyVolume: 0                // RDN
-  }
-}
+const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
+/*
+  There was also some elements not used:
+      * props
+          * claimedAmounts
+      * methods:
+          * addTokenPair, addTokenPair2
+      * events:
+          NewDeposit
+          NewWithdrawal
+          NewSellOrder
+          NewBuyOrder
+          NewSellerFundsClaim
+          NewBuyerFundsClaim
+          NewTokenPair
+          AuctionCleared
+          Log
+          LogOustandingVolume
+          LogNumber
+          ClaimBuyerFunds
+      * getBasicInfo:
+          * could be other info if it's interesting like ethAddress,
+            ethOracleAddress, some config minimus (maybe the USD
+            minimun could be gotten from here so it's more dynamic
+  TODO: Understand:
+    * what is extraTokens
+*/
 
-const balances = {
-  'RDN': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 267.345, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 15.20,   // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 500.0,   // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 301.112  // Dani
-  },
-  'ETH': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 1.44716, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 0.23154, // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1.88130, // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 2.01234  // Dani
-  }
-}
+const contractNames = ['DutchExchange', 'TokenOWL', 'TokenTUL']
 
-class AuctionRepoMock {
+class AuctionRepoEthereum {
+  constructor ({ ethereumClient }) {
+    this._ethereumClient = ethereumClient
+
+    this.ready = ethereumClient
+      .loadContracts({ contractNames })
+      .then(({ DutchExchange, TokenOWL, TokenTUL }) => {
+        debug('Loaded the contracts %o', {
+          DutchExchange: DutchExchange.address,
+          TokenOWL: TokenOWL.address,
+          TokenTUL: TokenTUL.address
+        })
+        this._DutchExchange = DutchExchange
+        this._TokenOWL = TokenOWL
+        this._TokenTUL = TokenTUL
+      })
+  }
+
   async getBasicInfo () {
     debug('Get auction basic info')
-    return {
-      network: 'http://localhost:8545',
-      ownerAddress: '0x424a46612794dbb8000194937834250Dc723fFa5',
-      exchageAddress: '0x1223'
-    }
+    return this._DutchExchange
+      .owner.call()
+      .then(ownerAddress => {
+        return {
+          network: this._ethereumClient.getUrl(),
+          ownerAddress: ownerAddress,
+          exchageAddress: this._DutchExchange.address
+        }
+      })
   }
+
+  /*
   async getCurrentAuctionIndex ({ sellToken, buyToken }) {
     debug('Get current auction index for %s-%s', sellToken, buyToken)
 
@@ -160,10 +177,7 @@ class AuctionRepoMock {
   _notImplementedYet () {
     throw new Error('Not implemented yet!')
   }
-
-  _getAuction ({ sellToken, buyToken }) {
-    return auctions[sellToken + '-' + buyToken]
-  }
+  */
 }
 
-module.exports = AuctionRepoMock
+module.exports = AuctionRepoEthereum

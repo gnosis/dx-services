@@ -1,30 +1,97 @@
 // const debug = require('debug')('dx-service:helpers:instanceFactory')
-const config = require('../../conf/config.js')
+const originalConfig = require('../../conf/config.js')
+let ethereumClient
 
-// Auction Repo
-const AuctionRepoMock =
-  require('../repositories/AuctionRepo/AuctionRepoMock')
-const auctionRepo = new AuctionRepoMock({})
+async function createInstances ({ test = false, config = {} }) {
+  const mergedConfig = Object.assign({}, originalConfig, config)
 
-// Exchange repo
-const ExchangePriceRepoMock =
-  require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
-const exchangePriceRepo = new ExchangePriceRepoMock({})
+  // Repos
+  const exchangePriceRepo = getExchangePriceRepo(mergedConfig)
+  const auctionRepoPromise = getAuctionRepoPromise(mergedConfig)
+  const auctionRepo = await auctionRepoPromise
 
-// Auction service
-const AuctionService = require('../services/AuctionService')
-const auctionService = new AuctionService({
-  // repos
-  auctionRepo,
-  exchangePriceRepo,
+  // Services
+  const auctionService = getAuctionService({
+    config: mergedConfig,
+    exchangePriceRepo,
+    auctionRepo
+  })
 
-  // conf
-  minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
-})
+  let instances = {
+    config: mergedConfig,
 
-module.exports = {
-  config,
+    // services
+    auctionService
+  }
 
-  // services
-  auctionService
+  if (test) {
+    // For testing is handy to return also the repos, client, etc
+    instances = Object.assign({}, instances, {
+      exchangePriceRepo,
+      auctionRepo,
+      ethereumClient
+    })
+  }
+
+  return instances
 }
+
+function getEhereumClient (config) {
+  if (!ethereumClient) {
+    const EthereumClient = require('./EthereumClient')
+    ethereumClient = new EthereumClient({
+      url: config.ETHEREUM_JSON_RPC_PROVIDER,
+      contractsBaseDir: config.CONTRACTS_BASE_DIR
+    })
+  }
+
+  return ethereumClient
+}
+
+function getAuctionRepoPromise (config) {
+  let auctionRepoPromise
+  switch (config.AUCTION_REPO_IMPL) {
+    case 'mock':
+      const AuctionRepoMock = require('../repositories/AuctionRepo/AuctionRepoMock')
+      auctionRepoPromise = Promise.resolve(new AuctionRepoMock({}))
+      break
+
+    case 'ethereum':
+      const ethereumClient = getEhereumClient(config)
+      const AuctionRepoEthereum = require('../repositories/AuctionRepo/AuctionRepoEthereum')
+      const auctionRepoEthereum = new AuctionRepoEthereum({
+        ethereumClient
+      })
+      // Return the repo when it's ready
+      auctionRepoPromise = auctionRepoEthereum
+        .ready
+        .then(() => auctionRepoEthereum)
+      break
+
+    default:
+      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO_IMPL)
+  }
+
+  return auctionRepoPromise
+}
+
+function getExchangePriceRepo (config) {
+  const ExchangePriceRepoMock =
+    require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
+
+  return new ExchangePriceRepoMock({})
+}
+
+function getAuctionService ({ config, auctionRepo, exchangePriceRepo }) {
+  const AuctionService = require('../services/AuctionService')
+  return new AuctionService({
+    // Repos
+    auctionRepo,
+    exchangePriceRepo,
+
+    // Config
+    minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
+  })
+}
+
+module.exports = createInstances

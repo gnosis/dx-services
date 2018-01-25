@@ -11,7 +11,9 @@
     "dev": "DEBUG=dx-service:* node src/main.js",
     "trace": "DEBUG=* node src/main.js",
     "test": "jest",
-    "test-debug": "DEBUG=* jest"
+    "test-debug": "DEBUG=* jest",
+    "contracts-compile": "cd node_modules/@gnosis.pm/dutch-exchange/; truffle compile",
+    "contracts-deploy": "cd node_modules/@gnosis.pm/dutch-exchange/; truffle deploy"
   },
   "repository": {
     "type": "git",

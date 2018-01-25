@@ -37,10 +37,13 @@ const JSON_RPC_PROVIDERS = {
   'parity': 'http://127.0.0.1:8545'
 
 }
-const JSON_RPC_PROVIDER = 'ganache'
+const JSON_RPC_PROVIDER = 'ganache-cli'
 
 const ETHEREUM_JSON_RPC_PROVIDER = JSON_RPC_PROVIDERS[JSON_RPC_PROVIDER]
 const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+
+const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
+const CONTRACTS_BASE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
 
 /*
 TODO: Define the minimun config required to trade
@@ -58,5 +61,9 @@ module.exports = {
 
   // Ethereum config
   ETHEREUM_JSON_RPC_PROVIDER,
-  WALLET_MNEMONIC
+  WALLET_MNEMONIC,
+
+  // REPO
+  AUCTION_REPO_IMPL,
+  CONTRACTS_BASE_DIR
 }
