@@ -12,6 +12,14 @@ class AuctionService {
     this.concurrencyCheck = {}
   }
 
+  async getBasicInfo () {
+    const auctionInfo = await this._auctionRepo.getBasicInfo()
+
+    return Object.assign({
+      minimumSellVolume: this._minimumSellVolume
+    }, auctionInfo)
+  }
+
   ensureSellLiquidity ({ tokenA, tokenB }) {
     debug('Ensure that sell liquidity on %s-%s markets is over $%d',
       tokenA,
