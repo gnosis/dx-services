@@ -65,7 +65,7 @@ class AuctionRepoEthereum {
   }
 
   async getBalance ({ token, address }) {
-    const tokenContract = this._tokens[token]
+    const tokenContract = this._getTokenContract(token)
     if (!tokenContract) {
       const knownTokens = Object.keys(this._tokens)
       throw new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
@@ -75,6 +75,7 @@ class AuctionRepoEthereum {
       'Get balance of the account %s for token %s (%s)',
       address, token, tokenContract.address
     )
+
     return this._dx.balances.call(tokenContract.address, address)
   }
 
@@ -90,6 +91,26 @@ class AuctionRepoEthereum {
         })
 
     return Promise.all(balancePromises)
+  }
+
+  async getPriceOracle ({ token }) {
+    const tokenContract = this._getTokenContract(token)
+    return this._dx
+      .getPriceOracleForJS
+      .call(tokenContract.address)
+      .then(priceTuple => ({
+        numerator: priceTuple[0],
+        denominator: priceTuple[1]
+      }))
+  }
+
+  _getTokenContract (token) {
+    const tokenContract = this._tokens[token]
+    if (!tokenContract) {
+      const knownTokens = Object.keys(this._tokens)
+      throw new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
+    }
+    return tokenContract
   }
 
   async _loadContracts () {
