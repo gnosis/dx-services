@@ -2,6 +2,8 @@ const debug = require('debug')('dx-service:repositories:EthereumClient')
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
 
+// TODO: Check eventWatcher in DX/test/utils.js
+
 class EthereumClient {
   constructor ({ url = 'http://127.0.0.1:8545', contractsBaseDir = 'build/contracts' }) {
     debug('Using %s RPC api to connect to Ethereum', url)
@@ -40,8 +42,20 @@ class EthereumClient {
     return this._url
   }
 
+  getBlock (block = 'latest') {
+    return this._web3.eth.getBlock(block)
+  }
+
   getCoinbase () {
     return this._web3.eth.coinbase
+  }
+
+  getBlockNumber () {
+    return this._web3.eth.blockNumber
+  }
+
+  getWeb3 () {
+    return this._web3
   }
 
   _loadContract (contractName) {
