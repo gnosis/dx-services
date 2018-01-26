@@ -1,4 +1,6 @@
 const debug = require('debug')('dx-service:services:AuctionService')
+const getGitInfo = require('../helpers/getGitInfo')
+const getVersion = require('../helpers/getVersion')
 
 class AuctionService {
   constructor ({ auctionRepo, exchangePriceRepo, minimumSellVolume }) {
@@ -10,14 +12,24 @@ class AuctionService {
 
     // Avoids concurrent calls that might endup buy/selling two times
     this.concurrencyCheck = {}
+
+    // About info
+    this._gitInfo = getGitInfo()
+    this._version = getVersion()
   }
 
-  async getBasicInfo () {
+  async getAbout () {
     const auctionInfo = await this._auctionRepo.getBasicInfo()
-
-    return Object.assign({
+    const config = Object.assign({
       minimumSellVolume: this._minimumSellVolume
     }, auctionInfo)
+
+    return {
+      name: 'Dutch Exchange - Services',
+      version: this._version,
+      config,
+      git: this._gitInfo
+    }
   }
 
   ensureSellLiquidity ({ tokenA, tokenB }) {

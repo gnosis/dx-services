@@ -6,9 +6,10 @@ const DEFAULT_PORT = 8080
 const DEFAULT_HOST = '0.0.0.0'
 
 class DxApiServer {
-  constructor ({ port = DEFAULT_PORT, host = DEFAULT_HOST }) {
+  constructor ({ port = DEFAULT_PORT, host = DEFAULT_HOST, auctionService }) {
     this._port = port
     this._host = host
+    this._auctionService = auctionService
   }
 
   async start () {
@@ -23,6 +24,11 @@ class DxApiServer {
     app.get('/ping', (req, res) => {
       res.status(204).send()
     })
+
+    // Version, About (getAboutInfo)
+
+
+
 
     app.listen(this._port, this._host, () => {
       debug(`Running API Servier on http://%s:%d`, this._host, this._port)

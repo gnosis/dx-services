@@ -25,7 +25,8 @@ function loadApp ({
 
   // Create server
   const dxApiServer = new DxApiServer({
-    port: 8080 // todo: use config
+    port: 8080, // todo: use config
+    auctionService: auctionService
   })
 
   // Create the eventBus and event watcher
