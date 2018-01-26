@@ -1,43 +1,12 @@
 const debug = require('debug')('dx-service:repositories:ExchangePriceRepoHuobi')
-const got = require('got')
-const qs = require('qs')
+const httpRequest = require('../../helpers/httpRequest')
+
 
 // Default options
 const defaults = {
 	url: 'https://api.huobi.pro',
 	version: 'v1',
 	timeout: 5000,
-}
-
-// Send an API request
-const rawRequest = async (url, headers, data, timeout) => {
-	// Set custom User-Agent string
-	headers['User-Agent'] = 'Huobi Javascript API Client'
-
-	const options = { headers, timeout }
-
-	Object.assign(options, {
-		method: 'GET',
-		body: qs.stringify(data),
-	})
-  debug('Huobi request options: ', options)
-	const { body } = await got(url, options);
-	const response = JSON.parse(body)
-  debug('Huobi response: ', response)
-
-	if(response.status === 'error') {
-		// const error = response.error
-		// 	.filter((e) => e.startsWith('E'))
-		// 	.map((e) => e.substr(1))
-
-		if(!response['err-msg']) {
-			throw new Error("Huobi API returned an unknown error")
-		}
-
-		throw new Error(response['err-msg'].join(', '))
-	}
-
-	return response
 }
 
 class ExchangePriceRepoHuobi {
@@ -51,7 +20,8 @@ class ExchangePriceRepoHuobi {
     const url = this._config.url + '/market/detail/merged?symbol=' + tokenA.toLowerCase() + tokenB.toLowerCase()
     debug('Huobi request url: ', url)
 
-    const response = await rawRequest(url, {}, {symbol: tokenA + tokenB}, this._config.timeout)
+		const request = {url, method: 'GET', data: {}, timeout: this._config.timeout }
+    const response = await httpRequest.rawRequest(request, {})
     debug('Huobi Response to ' + tokenA + tokenB + ': ', response.tick.close.toString())
     return response.tick.close.toString()
   }
