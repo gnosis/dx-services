@@ -26,37 +26,96 @@ const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
     * what is extraTokens
 */
 
-const contractNames = ['DutchExchange', 'TokenOWL', 'TokenTUL']
+const contractNames = [
+  'DutchExchange',
+  'PriceOracleInterface'
+]
+
+const tokens = {
+  'TokenGNO': 'GNO',
+  'TokenOWL': 'OWL',
+  'TokenTUL': 'TUL',
+  'EtherToken': 'ETH'
+}
 
 class AuctionRepoEthereum {
   constructor ({ ethereumClient }) {
     this._ethereumClient = ethereumClient
 
-    this.ready = ethereumClient
-      .loadContracts({ contractNames })
-      .then(({ DutchExchange, TokenOWL, TokenTUL }) => {
-        debug('Loaded the contracts %o', {
-          DutchExchange: DutchExchange.address,
-          TokenOWL: TokenOWL.address,
-          TokenTUL: TokenTUL.address
-        })
-        this._DutchExchange = DutchExchange
-        this._TokenOWL = TokenOWL
-        this._TokenTUL = TokenTUL
+    // Load contracts
+    this.ready = this._loadContracts()
+      .then(() => {
+        // keep an alias for the DX contract
+        this._dx = this._contracts.DutchExchange
       })
   }
 
   async getBasicInfo () {
     debug('Get auction basic info')
-    return this._DutchExchange
+    return this._dx
       .owner.call()
       .then(ownerAddress => {
         return {
           network: this._ethereumClient.getUrl(),
           ownerAddress: ownerAddress,
-          exchageAddress: this._DutchExchange.address
+          exchageAddress: this._dx.address,
+          blockNumber: this._ethereumClient.getBlockNumber()
         }
       })
+  }
+
+  async getBalance ({ token, address }) {
+    const tokenContract = this._tokens[token]
+    if (!tokenContract) {
+      const knownTokens = Object.keys(this._tokens)
+      throw new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
+    }
+
+    debug(
+      'Get balance of the account %s for token %s (%s)',
+      address, token, tokenContract.address
+    )
+    return this._dx.balances.call(tokenContract.address, address)
+  }
+
+  async getBalances ({ address }) {
+    debug('Get balances for %s', address)
+    const balancePromises =
+      // for every token
+      Object.keys(this._tokens)
+        // get it's balance
+        .map(async token => {
+          const balance = await this.getBalance({ token, address })
+          return { token, balance }
+        })
+
+    return Promise.all(balancePromises)
+  }
+
+  async _loadContracts () {
+    // Load main contracts (initialize this._contracts)
+    const loadMainContracts = this._ethereumClient.loadContracts({
+      contractNames
+    }).then(contracts => {
+      // save contracts internally
+      this._contracts = contracts
+    })
+
+    // Load token contracts (initialize this._tokens)
+    const tokenContractNames = Object.keys(tokens)
+    const loadTokenContracts = this._ethereumClient.loadContracts({
+      contractNames: tokenContractNames
+    }).then(tokenContracts => {
+      // save mapping (symbol => token_contract)
+      this._tokens = tokenContractNames
+        .reduce((tokensAccumulator, tokenContractName) => {
+          const symbol = tokens[tokenContractName]
+          tokensAccumulator[symbol] = tokenContracts[tokenContractName]
+          return tokensAccumulator
+        }, {})
+    })
+
+    return Promise.all([loadMainContracts, loadTokenContracts])
   }
 
   /*
@@ -93,12 +152,6 @@ class AuctionRepoEthereum {
   async gerBuyVolume ({ sellToken, buyToken }) {
     debug('Get buy volume for %s-%s', sellToken, buyToken)
     return this._getAuction({ sellToken, buyToken }).buyVolume
-  }
-
-  async getBalance ({ token, address }) {
-    debug('Get balance of %s for %s', token, address)
-    // balances
-    return balances[token][address]
   }
 
   async getSellerBalance ({ sellToken, buyToken, address }) {

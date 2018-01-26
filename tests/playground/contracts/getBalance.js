@@ -6,12 +6,12 @@ testSetup()
 function run ({
   address,
   DutchExchange,
-  TokenOWL
+  EtherToken
 }) {
   return DutchExchange
     .balances
-    .call(TokenOWL.address, address)
+    .call(EtherToken.address, address)
     .then(balance => {
-      console.log('The balance for ' + address + ': ' + balance)
+      console.log(`The balance of the account ${address} in EtherToken (${EtherToken.address}) is ${balance}`)
     })
 }

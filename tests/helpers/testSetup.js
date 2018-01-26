@@ -1,5 +1,13 @@
 const instanceFactory = require('../../src/helpers/instanceFactory')
-const contractNames = ['DutchExchange', 'TokenOWL', 'TokenTUL']
+const contractNames = [
+  'DutchExchange',
+  'TokenOWL',
+  'TokenTUL',
+  'TokenGNO',
+  'EtherToken',
+  'StandardToken'
+]
+
 const config = {
   AUCTION_REPO_IMPL: 'ethereum'
 }
