@@ -4,7 +4,7 @@ const Promise = require('./helpers/Promise')
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
 const AuctionEventWatcher = require('./bots/AuctionEventWatcher')
 const EventBus = require('./helpers/EventBus')
-const DxApiServer = require('./DxApiServer')
+const DxApiServer = require('./api/DxApiServer')
 
 const instanceFactory = require('./helpers/instanceFactory')
 
@@ -20,12 +20,13 @@ function loadApp ({
 }) {
   // Display some basic info
   auctionService
-    .getBasicInfo()
-    .then(basicInfo => debug('Loading app with %o ...', basicInfo))
+    .getAbout()
+    .then(about => debug('Loading app with %o ...', about))
 
   // Create server
   const dxApiServer = new DxApiServer({
-    port: 8080, // todo: use config
+    port: config.API_PORT,
+    host: config.API_HOST,
     auctionService: auctionService
   })
 

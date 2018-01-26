@@ -18,6 +18,10 @@ class AuctionService {
     this._version = getVersion()
   }
 
+  async getVersion () {
+    return this._version
+  }
+
   async getAbout () {
     const auctionInfo = await this._auctionRepo.getBasicInfo()
     const config = Object.assign({

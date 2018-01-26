@@ -17,19 +17,24 @@ class DxApiServer {
     const app = express()
     this._app = app
 
-    app.get('/', (req, res) => {
-      res.send('Dutch Exchange Bots - say Hi!')
+    app.get('/', async (req, res) => {
+      const version = await this._auctionService.getVersion()
+      res.send('Dutch Exchange Bots - version ' + version)
     })
 
     app.get('/ping', (req, res) => {
       res.status(204).send()
     })
 
+    app.get('/version', async (req, res) => {
+      res.send(await this._auctionService.getVersion())
+    })
+
+    app.get('/about', async (req, res) => {
+      res.send(await this._auctionService.getAbout())
+    })
+
     // Version, About (getAboutInfo)
-
-
-
-
     app.listen(this._port, this._host, () => {
       debug(`Running API Servier on http://%s:%d`, this._host, this._port)
       debug(`Try http://%s:%d/ping to check the service is onLine`,
