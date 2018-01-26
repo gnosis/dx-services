@@ -53,6 +53,9 @@ const CONTRACT_XXXXX_ADDRESS =
 const CONTRACT_YYYYY_ADDRESS =
 */
 
+const API_PORT = 8080
+const API_HOST = '0.0.0.0'
+
 module.exports = {
   // bot config
   MARKETS,
@@ -65,5 +68,9 @@ module.exports = {
 
   // REPO
   AUCTION_REPO_IMPL,
-  CONTRACTS_BASE_DIR
+  CONTRACTS_BASE_DIR,
+
+  // API
+  API_PORT,
+  API_HOST
 }

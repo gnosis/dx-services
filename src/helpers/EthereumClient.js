@@ -40,6 +40,10 @@ class EthereumClient {
     return this._url
   }
 
+  getCoinbase () {
+    return this._web3.eth.coinbase
+  }
+
   _loadContract (contractName) {
     const contractJson = require(`${this._contractsBaseDir}/${contractName}`)
     const contract = truffleContract(contractJson)

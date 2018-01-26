@@ -24,10 +24,12 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bluebird": "^3.5.1",
-    "debug": "^3.1.0"
+    "debug": "^3.1.0",
+    "express": "^4.16.2",
+    "git-rev-sync": "^1.9.1"
   },
   "devDependencies": {
-    "jest": "^22.1.4",
-    "@gnosis.pm/dutch-exchange": "gnosis/dutch-exchange#contracts/DX-2.0-No-Frontend"
+    "@gnosis.pm/dutch-exchange": "gnosis/dutch-exchange#contracts/DX-2.0-No-Frontend",
+    "jest": "^22.1.4"
   }
 }

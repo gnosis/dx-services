@@ -11,7 +11,9 @@ function testSetup () {
         .loadContracts({ contractNames })
         .then(contracts => {
           // Return contracts plus the test instances of the instance factory
-          return Object.assign({}, contracts, instances)
+          return Object.assign({
+            address: instances.ethereumClient.getCoinbase()
+          }, contracts, instances)
         })
     })
 }

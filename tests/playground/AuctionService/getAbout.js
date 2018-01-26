@@ -7,6 +7,6 @@ function run ({
   auctionService
 }) {
   return auctionService
-    .getBasicInfo()
+    .getAbout()
     .then(console.log)
 }
