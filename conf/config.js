@@ -45,6 +45,12 @@ const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth 
 const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
 const CONTRACTS_BASE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
 
+// Kraken custom config
+const KRAKEN = {
+  url: 'https://api.kraken.com',
+  version: '0'
+}
+
 /*
 TODO: Define the minimun config required to trade
 
@@ -73,4 +79,7 @@ module.exports = {
   // API
   API_PORT,
   API_HOST
+
+  // Exchanges
+  KRAKEN
 }
