@@ -106,7 +106,10 @@ class AuctionService {
         } else {
           // Not sell is required
           debug('No sell is required')
-          soldTokensPromise = Promise.resolve(0)
+          soldTokensPromise = Promise.resolve({
+            amount: 0,
+            token: tokenB
+          })
         }
 
         // Free lock
@@ -144,7 +147,10 @@ class AuctionService {
         amount: missingDifferenceInB,
         auctionIndex: 77 // TODO
       })
-      .then(() => missingDifferenceInB)
+      .then(() => ({
+        token: tokenB,
+        amount: missingDifferenceInB
+      }))
   }
 }
 

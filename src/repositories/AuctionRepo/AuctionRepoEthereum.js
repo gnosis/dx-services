@@ -1,27 +1,79 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
 /*
-  There was also some elements not used:
-      * props
-          * claimedAmounts
-      * methods:
-          * addTokenPair, addTokenPair2
-      * events:
-          NewDeposit
-          NewWithdrawal
-          NewSellOrder
-          NewBuyOrder
-          NewSellerFundsClaim
-          NewBuyerFundsClaim
-          NewTokenPair
-          AuctionCleared
-          Log
-          LogOustandingVolume
-          LogNumber
-          ClaimBuyerFunds
-      * getBasicInfo:
-          * could be other info if it's interesting like ethAddress,
-            ethOracleAddress, some config minimus (maybe the USD
-            minimun could be gotten from here so it's more dynamic
+            // TODO: Events
+            event NewDeposit(
+                 address indexed token,
+                 uint indexed amount
+            );
+
+            event NewWithdrawal(
+                address indexed token,
+                uint indexed amount
+            );
+
+            event NewSellOrder(
+                address indexed sellToken,
+                address indexed buyToken,
+                address indexed user,
+                uint auctionIndex,
+                uint amount
+            );
+
+            event NewBuyOrder(
+                address indexed sellToken,
+                address indexed buyToken,
+                address indexed user,
+                uint auctionIndex,
+                uint amount
+            );
+
+            event NewSellerFundsClaim(
+                address indexed sellToken,
+                address indexed buyToken,
+                address indexed user,
+                uint auctionIndex,
+                uint amount
+            );
+
+            event NewBuyerFundsClaim(
+                address indexed sellToken,
+                address indexed buyToken,
+                address indexed user,
+                uint auctionIndex,
+                uint amount
+            );
+
+            event NewTokenPair(
+                address sellToken,
+                address buyToken
+            );
+
+            event AuctionCleared(
+                address sellToken,
+                address buyToken,
+                uint sellVolume,
+                uint buyVolume,
+                uint auctionIndex
+            );
+
+            event Log(
+                string l
+            );
+
+            event LogOustandingVolume(
+                uint l
+            );
+
+            event LogNumber(
+                string l,
+                uint n
+            );
+
+            event ClaimBuyerFunds (
+                uint returned,
+                uint tulipsIssued
+            );
+
   TODO: Understand:
     * what is extraTokens
 */
@@ -52,31 +104,42 @@ class AuctionRepoEthereum {
 
   async getBasicInfo () {
     debug('Get auction basic info')
-    return this._dx
-      .owner.call()
-      .then(ownerAddress => {
-        return {
-          network: this._ethereumClient.getUrl(),
-          ownerAddress: ownerAddress,
-          exchageAddress: this._dx.address,
-          blockNumber: this._ethereumClient.getBlockNumber()
-        }
-      })
+    const ownerAddress = await this._dx.owner.call()
+
+    return {
+      network: this._ethereumClient.getUrl(),
+      ownerAddress: ownerAddress,
+      exchageAddress: this._dx.address,
+      blockNumber: this._ethereumClient.getBlockNumber()
+    }
+  }
+
+  async getCurrentAuctionIndex ({ tokenA, tokenB }) {
+    return this._callForPair('getAuctionIndex', tokenA, tokenB)
+  }
+
+  async getAuctionStart ({ tokenA, tokenB }) {
+    return this._callForPair('getAuctionStart', tokenA, tokenB)
+  }
+
+  async isAprovedToken ({ token }) {
+    return this._callForToken('approvedTokens', token)
+  }
+
+  async gerSellVolume ({ sellToken, buyToken }) {
+    return this._callForPair('sellVolumesCurrent', sellToken, buyToken)
+  }
+
+  async gerSellVolumeNext ({ sellToken, buyToken }) {
+    return this._callForPair('sellVolumesNext', sellToken, buyToken)
+  }
+
+  async gerBuyVolume ({ sellToken, buyToken }) {
+    return this._callForPair('buyVolumes', sellToken, buyToken)
   }
 
   async getBalance ({ token, address }) {
-    const tokenContract = this._getTokenContract(token)
-    if (!tokenContract) {
-      const knownTokens = Object.keys(this._tokens)
-      throw new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
-    }
-
-    debug(
-      'Get balance of the account %s for token %s (%s)',
-      address, token, tokenContract.address
-    )
-
-    return this._dx.balances.call(tokenContract.address, address)
+    return this._callForToken('balances', token, address)
   }
 
   async getBalances ({ address }) {
@@ -93,15 +156,137 @@ class AuctionRepoEthereum {
     return Promise.all(balancePromises)
   }
 
+  async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
+    return this._callForAuction('extraTokens',
+      sellToken, buyToken, auctionIndex
+    )
+  }
+
+  async getSellerBalance ({ sellToken, buyToken, auctionIndex, address }) {
+    return this._callForAuction('sellerBalances',
+      sellToken, buyToken, auctionIndex, address
+    )
+  }
+
+  async getBuyerBalance ({ sellToken, buyToken, auctionIndex, address }) {
+    return this._callForAuction('buyerBalances',
+      sellToken, buyToken, auctionIndex, address
+    )
+  }
+
+  async getClaimedAmounts ({ sellToken, buyToken, auctionIndex, address }) {
+    return this._callForAuction('claimedAmounts',
+      sellToken, buyToken, auctionIndex, address
+    )
+  }
+
+  async deposit ({ token, amount, address }) {
+    return this
+      ._transactionForToken('deposit', address, token, amount)
+      .then(toTransactionNumber)
+  }
+
+  async withdraw ({ token, amount, address }) {
+    return this
+      ._transactionForToken('withdraw', address, token, amount)
+      .then(toTransactionNumber)
+  }
+
+  async postSellOrder ({
+    sellToken, buyToken, auctionIndex = 0, address, amount
+  }) {
+    // TODO: Review validations for doing them before calling the DX
+
+    return this
+      ._transactionForAuction('postSellOrder',
+        address, sellToken, buyToken, auctionIndex, amount
+      )
+      .then(toTransactionNumber)
+  }
+
+  async postBuyOrder ({ sellToken, buyToken, auctionIndex, address, amount }) {
+    // TODO: Review validations for doing them before calling the DX
+    return this
+      ._transactionForAuction('postBuyOrder',
+        address, sellToken, buyToken, auctionIndex, amount
+      )
+      .then(toTransactionNumber)
+  }
+
+  async claimSellerFunds ({
+    sellToken, buyToken, address, auctionIndex
+  }) {
+    // TODO: Review why the transaction needs address as a param as well
+    return this
+      ._transactionForPair('claimSellerFunds',
+        address, sellToken, buyToken, address, auctionIndex
+      )
+      .then(toTransactionNumber)
+  }
+
+  async claimBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+    return this
+      ._transactionForPair('claimBuyerFunds',
+        address, sellToken, buyToken, address, auctionIndex
+      )
+      .then(toTransactionNumber)
+  }
+
+  async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+    return this._callForPair('getUnclaimedBuyerFunds',
+      sellToken, buyToken, address, auctionIndex
+    )
+  }
+
+  async addTokenPair ({
+    // address
+    address,
+    // Token A
+    tokenA, tokenAFunding,
+    // Token B
+    tokenB, tokenBFunding,
+    // Initial closing price
+    initialClosingPrice
+  }) {
+    // TODO: Validations. There are some restrictions. Try to make validations
+    // before sending the transactio to save GAS
+    //  - Tokens different
+    //  - if one token is ETH: We just use it for calculating the price
+    //      * NOTE: The price is set by the one using it's ETH as collateral
+    //  - if none is ETH, we make sure we have price for TOKENA-ETH and
+    //    TOKENB-ETH
+    //      * NOTE: The price is set by the market (previous auctions)
+    //  - Check we have enough funding (10.000 USD)
+    //  - addTokenPair2
+    debug('Add new token pair: %s (%d), %s (%d). Price: %o. Addres %s ',
+      tokenA, tokenAFunding,
+      tokenB, tokenBFunding,
+      initialClosingPrice,
+      address
+    )
+    const tokenAAddress = this._getTokenAddress(tokenA)
+    const tokenBAddress = this._getTokenAddress(tokenB)
+    const params = [
+      tokenAAddress, tokenBAddress,
+      tokenAFunding, tokenBFunding,
+      initialClosingPrice.numerator,
+      initialClosingPrice.denominator
+    ]
+    return this
+      ._doTransaction('addTokenPair', address, params)
+      .then(toTransactionNumber)
+  }
+
+  async getPrice ({ sellToken, buyToken, auctionIndex }) {
+    return this
+      ._callForAuction('getPriceForJS', sellToken, buyToken, auctionIndex)
+      .then(toFraction)
+  }
+
   async getPriceOracle ({ token }) {
-    const tokenContract = this._getTokenContract(token)
-    return this._dx
-      .getPriceOracleForJS
-      .call(tokenContract.address)
-      .then(priceTuple => ({
-        numerator: priceTuple[0],
-        denominator: priceTuple[1]
-      }))
+    return this
+      ._callForToken('getPriceOracleForJS', token)
+      .then(toFraction)
   }
 
   _getTokenContract (token) {
@@ -111,6 +296,10 @@ class AuctionRepoEthereum {
       throw new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
     }
     return tokenContract
+  }
+
+  _getTokenAddress (token) {
+    return this._getTokenContract(token).address
   }
 
   async _loadContracts () {
@@ -139,119 +328,99 @@ class AuctionRepoEthereum {
     return Promise.all([loadMainContracts, loadTokenContracts])
   }
 
-  /*
-  async getCurrentAuctionIndex ({ sellToken, buyToken }) {
-    debug('Get current auction index for %s-%s', sellToken, buyToken)
+  async _callForToken (callMethod, token, ...args) {
+    debug('Get %s for token %s', callMethod, token)
+    const tokenAddress = this._getTokenAddress(token)
 
-    // latestAuctionIndices
-    return this._getAuction({ sellToken, buyToken }).index
+    return this._dx[callMethod]
+      .call(tokenAddress, ...args)
   }
 
-  async gerAuctionStart ({ sellToken, buyToken }) {
-    debug('Get auction start for %s-%s', sellToken, buyToken)
-    // auctionStarts
-    return this._getAuction({ sellToken, buyToken }).auctionStart
+  async _callForPair (callMethod, sellToken, buyToken, ...args) {
+    debug('Get %s for pair %s-%s', callMethod, sellToken, buyToken)
+    const sellTokenAddress = this._getTokenAddress(sellToken)
+    const buyTokenAddress = this._getTokenAddress(buyToken)
+
+    return this._dx[callMethod]
+      .call(sellTokenAddress, buyTokenAddress, ...args)
   }
 
-  async getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
-    debug('Get sell volume for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).closingPrice
-  }
-
-  async gerSellVolume ({ sellToken, buyToken }) {
-    debug('Get sell volume for %s-%s', sellToken, buyToken)
-    // sellVolumesCurrent
-    return this._getAuction({ sellToken, buyToken }).sellVolume
-  }
-
-  async gerSellVolumeNext ({ sellToken, buyToken }) {
-    debug('Get sell volume next for %s-%s', sellToken, buyToken)
-    // sellVolumesNext
-    return this._getAuction({ sellToken, buyToken }).sellVolumeNext
-  }
-
-  async gerBuyVolume ({ sellToken, buyToken }) {
-    debug('Get buy volume for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).buyVolume
-  }
-
-  async getSellerBalance ({ sellToken, buyToken, address }) {
-    debug('Get seller (%s) balance for %s-%s', address, sellToken, buyToken)
-    // sellerBalances
-    this._notImplementedYet()
-  }
-
-  async getBuyerBalance ({ sellToken, buyToken, address }) {
-    debug('Get buyer (%s) balance for %s-%s', address, sellToken, buyToken)
-    this._notImplementedYet()
-  }
-
-  async deposit ({ token, amount }) {
-    debug('Deposit %d %s', token, amount)
-    this._notImplementedYet()
-  }
-
-  async withdraw ({ token, amount }) {
-    debug('Withdraw %d %s', token, amount)
-    this._notImplementedYet()
-  }
-
-  async sell ({ sellToken, buyToken, auctionIndex, amount }) {
-    debug(
-      'Sell %d %s using %s for auction %d',
-      amount, buyToken,
-      sellToken,
-      auctionIndex
+  async _callForAuction (callMethod, sellToken, buyToken, auctionIndex, ...args) {
+    debug('Get %s for auction %d of pair %s-%s',
+      callMethod, auctionIndex, sellToken, buyToken
     )
-    // postSellOrder
-    //this._notImplementedYet()
-    return amount
+    const sellTokenAddress = this._getTokenAddress(sellToken)
+    const buyTokenAddress = this._getTokenAddress(buyToken)
+
+    return this._dx[callMethod]
+      .call(sellTokenAddress, buyTokenAddress, auctionIndex, ...args)
   }
 
-  async buy ({ sellToken, buyToken, auctionIndex, amount }) {
-    debug(
-      'Buy %d %s using %s for auction %d',
-      amount, buyToken,
-      sellToken,
-      auctionIndex
+  async _transactionForToken (transactionMethod, address, token, ...args) {
+    debug('Execute transaction %s (address %s) for token %s',
+      transactionMethod, address, token
     )
-    // postBuyOrder
-    this._notImplementedYet()
+    const tokenAddress = this._getTokenAddress(token)
+
+    const params = [
+      tokenAddress,
+      ...args
+    ]
+    return this._doTransaction(transactionMethod, address, params)
   }
 
-  async claimSellerFunds ({ sellToken, buyToken, address, auctionIndex }) {
-    debug('Claim seller (%s) funds for auction %s-%s (%d)',
-      address, sellToken, buyToken, auctionIndex)
-    // claimSellerFunds
-    this._notImplementedYet()
+  async _transactionForPair (
+    transactionMethod, address, sellToken, buyToken, ...args
+  ) {
+    debug('Execute transaction %s (address %s) for pair %s-%s',
+      transactionMethod, address, sellToken, buyToken
+    )
+    const sellTokenAddress = this._getTokenAddress(sellToken)
+    const buyTokenAddress = this._getTokenAddress(buyToken)
+
+    const params = [
+      sellTokenAddress,
+      buyTokenAddress,
+      ...args
+    ]
+    return this._doTransaction(transactionMethod, address, params)
   }
 
-  async claimBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
-    debug('Claim buyer (%s) funds for auction %s-%s (%d)',
-      address, sellToken, buyToken, auctionIndex)
-    // claimBuyerFunds
-    this._notImplementedYet()
+  async _transactionForAuction (
+    transactionMethod, address, sellToken, buyToken, auctionIndex, ...args
+  ) {
+    debug('Execute transaction %s (address %s) for auction %d of the pair %s-%s',
+      transactionMethod, address, auctionIndex, sellToken, buyToken
+    )
+    const sellTokenAddress = this._getTokenAddress(sellToken)
+    const buyTokenAddress = this._getTokenAddress(buyToken)
+    const params = [
+      sellTokenAddress,
+      buyTokenAddress,
+      auctionIndex,
+      ...args
+    ]
+    return this._doTransaction(transactionMethod, address, params)
   }
 
-  async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
-    debug('Get unclaimed buyer (%s) funds for auction %s-%s (%d)',
-      address, sellToken, buyToken, auctionIndex)
-    // getUnclaimedBuyerFunds
-    this._notImplementedYet()
-  }
+  async _doTransaction (transactionMethod, address, params) {
+    const estimatedGas =
+      await this._dx[transactionMethod]
+      .estimateGas(...params)
 
-  async getPrice ({ sellToken, buyToken, auctionIndex }) {
-    debug('Get price for auction %d', auctionIndex)
-    // TODO: IMPORTANT: This calculated for the onGoing (check SC)
-    // getPrice
-    // TODO: what is the getPriceForJS??
-    this._notImplementedYet()
+    return this._dx[transactionMethod](...params, {
+      from: address,
+      gas: estimatedGas
+    })
   }
+}
 
-  _notImplementedYet () {
-    throw new Error('Not implemented yet!')
-  }
-  */
+function toFraction ([ numerator, denominator ]) {
+  return { numerator, denominator }
+}
+
+function toTransactionNumber (transactionResult) {
+  return transactionResult.tx
 }
 
 module.exports = AuctionRepoEthereum

@@ -16,15 +16,22 @@ class EthereumClient {
 
   loadContracts ({ contractNames }) {
     // Load contract as an array of objects (props: name, instance)
+    // TODO: Refactor to support also contract at an address? c..at("0x1234...")
+    // TODO: Interesting: MyContract.setNetwork(network_id)
     const contractPromises = Promise.all(
       contractNames.map(contractName => {
         const contract = this._contractCache[contractName]
         if (contract) {
           // The contract was preciously loaded
+          debug('Got contract %s from cache', contractName)
           return Promise.resolve(contract)
         } else {
           // Load contract
           return this._loadContract(contractName)
+            .then(contract => {
+              this._contractCache[contract.name] = contract.instance
+              return contract
+            })
         }
       })
     )
@@ -66,6 +73,7 @@ class EthereumClient {
     return contract
       .deployed()
       .then(contractInstance => {
+        debug('Loaded contract %s. Defaults: %o', contractName, contract.defaults())
         return {
           name: contractName,
           instance: contractInstance
