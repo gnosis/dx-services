@@ -1,5 +1,6 @@
 const debug = require('debug')('dx-service:DxApiServer')
 const express = require('express')
+const http = require('http')
 
 // Constants
 const DEFAULT_PORT = 8080
@@ -35,19 +36,25 @@ class DxApiServer {
     })
 
     // Version, About (getAboutInfo)
-    app.listen(this._port, this._host, () => {
-      debug(`Running API Servier on http://%s:%d`, this._host, this._port)
-      debug(`Try http://%s:%d/ping to check the service is onLine`,
-        this._host, this._port
-      )
+    this._server = http.createServer(app)
+    return new Promise((resolve, reject) => {
+      this._server.listen(this._port, this._host, () => {
+        debug(`Running API Servier on http://%s:%d`, this._host, this._port)
+        debug(`Try http://%s:%d/ping to check the service is onLine`,
+          this._host, this._port
+        )
+        resolve(this)
+      })
     })
   }
 
   async stop () {
-    debug('Stopping on http://%s:%d ...', this._host, this._port)
-    return this._app.close(() => {
-      debug('The API Server has been stopped')
-    })
+    if (this._server) {
+      debug('Stopping server on http://%s:%d ...', this._host, this._port)
+      await this._server.close()
+    }
+
+    debug('The API server has been stopped')
   }
 }
 

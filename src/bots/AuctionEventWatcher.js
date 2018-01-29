@@ -1,5 +1,5 @@
 const debug = require('debug')('dx-service:bots:AuctionEventWatcher')
-const Promise = require('../helpers/Promise')
+// const Promise = require('../helpers/Promise')
 
 /*
 TODO: Events: first draft.
@@ -30,7 +30,7 @@ class AuctionEventWatcher {
     this._markets = markets
   }
 
-  startWatching () {
+  async startWatching () {
     debug('Starting the following auctions markets %o...', this._markets)
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -38,16 +38,12 @@ class AuctionEventWatcher {
         // events and notify the eventBus
         debug('Auction markets are now being watched')
         this.fakeMockTest()
-      }, 1000)
-
-      setTimeout(() => {
-        debug('TODO: Replace this with blockchain watch...')
         resolve()
-      }, 10000)
+      }, 1000)
     })
   }
 
-  stopWatching () {
+  async stopWatching () {
     debug('Stopping the auction watch...')
     return new Promise((resolve, reject) => {
       setTimeout(() => {

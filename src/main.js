@@ -1,5 +1,5 @@
 const debug = require('debug')('dx-service:main')
-const Promise = require('./helpers/Promise')
+const gracefullShutdown = require('./helpers/gracefullShutdown')
 
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
 const AuctionEventWatcher = require('./bots/AuctionEventWatcher')
@@ -8,82 +8,92 @@ const DxApiServer = require('./api/DxApiServer')
 
 const instanceFactory = require('./helpers/instanceFactory')
 
-// Instanciate services and load config
+// Run app
 instanceFactory({})
-  // then, load App
-  .then(loadApp)
+  .then(instances => {
+    // Create and start app
+    const app = new App(instances)
+    app.start()
+
+    // shutdown app
+    gracefullShutdown.onShutdown(() => {
+      return app.stop()
+    })
+  })
   .catch(handleError)
 
-function loadApp ({
-  config,
-  auctionService
-}) {
-  // Display some basic info
-  auctionService
-    .getAbout()
-    .then(about => debug('Loading app with %o ...', about))
+class App {
+  constructor ({ config, auctionService }) {
+    this._config = config
+    this._auctionService = auctionService
 
-  // Create server
-  const dxApiServer = new DxApiServer({
-    port: config.API_PORT,
-    host: config.API_HOST,
-    auctionService: auctionService
-  })
-
-  // Create the eventBus and event watcher
-  const eventBus = new EventBus()
-  const auctionEventWatcher = new AuctionEventWatcher({
-    eventBus,
-    auctionService,
-    markets: config.MARKETS
-  })
-
-  // Create bots
-  const bots = [
-    // Liquidity bot
-    new SellLiquidityBot({
-      eventBus,
+    // Create server
+    this._dxApiServer = new DxApiServer({
+      port: config.API_PORT,
+      host: config.API_HOST,
       auctionService
     })
-  ]
 
-  // Run all the bots
-  Promise.all(
-    bots.map(bot => bot.run())
-      .concat([ dxApiServer.start() ])
-  )
-    .then(() => {
-      // Watch auction events
-      debug('All bots are ready')
-      return auctionEventWatcher.startWatching()
+    // Create the eventBus
+    this._eventBus = new EventBus()
+
+    // Create event watcher
+    this._auctionEventWatcher = new AuctionEventWatcher({
+      eventBus: this._eventBus,
+      auctionService,
+      markets: config.MARKETS
     })
-    .catch(handleError)
-    .finally(() => debug('End of the execution. Bye!'))
 
-  function closeGracefully (signal) {
-    debug("I've gotten a %o signal! Closing gracefully", signal)
-
-    auctionEventWatcher
-      // Stop watching events
-      .stopWatching()
-      .then(() => {
-        // Stop all bots
-        return Promise.all([
-          bots.map(bot => bot.stop())
-            .concat([ dxApiServer.stop() ])
-        ])
+    // Create bots
+    this._bots = [
+      // Liquidity bot
+      new SellLiquidityBot({
+        eventBus: this._eventBus,
+        auctionService
       })
-      .then(() => {
-        // Clear listerners
-        eventBus.clearAllListeners()
-        debug('The app is ready to shutdown! Good bye! :)')
-        process.exit(0)
-      })
+    ]
   }
 
-  ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
-    process.on(signal, () => closeGracefully(signal))
-  })
+  async start () {
+    // Display some basic info
+    this._auctionService
+      .getAbout()
+      .then(about => debug('Loading app with %o ...', about))
+      .catch(handleError)
+
+    // Run all the bots
+    await Promise.all(
+      this._bots.map(bot => bot.run())
+    )
+    debug('All bots are ready')
+
+    // Run Api server
+    await this._dxApiServer.start()
+
+    // Watch auction events
+    await this._auctionEventWatcher.startWatching()
+    debug('App ready!')
+  }
+
+  async stop () {
+    debug('Shut down App')
+    // Stop watching events
+    // Stop the API Server
+    await Promise.all([
+      // this._auctionEventWatcher.stopWatching(),
+      this._dxApiServer.stop()
+    ])
+
+    // Stop the bots
+    debug('Stopping the bots')
+    await Promise.all(
+      this._bots.map(async bot => bot.stop())
+    )
+
+    // Clear listerners
+    this._eventBus.clearAllListeners()
+    debug('App is ready to shutDown')
+  }
 }
 
 function handleError (error) {
