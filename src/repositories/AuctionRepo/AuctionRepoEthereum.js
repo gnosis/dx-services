@@ -1,81 +1,78 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
 /*
-            // TODO: Events
-            event NewDeposit(
-                 address indexed token,
-                 uint indexed amount
-            );
+  // TODO: Events
+  event NewDeposit(
+       address indexed token,
+       uint indexed amount
+  );
 
-            event NewWithdrawal(
-                address indexed token,
-                uint indexed amount
-            );
+  event NewWithdrawal(
+      address indexed token,
+      uint indexed amount
+  );
 
-            event NewSellOrder(
-                address indexed sellToken,
-                address indexed buyToken,
-                address indexed user,
-                uint auctionIndex,
-                uint amount
-            );
+  event NewSellOrder(
+      address indexed sellToken,
+      address indexed buyToken,
+      address indexed user,
+      uint auctionIndex,
+      uint amount
+  );
 
-            event NewBuyOrder(
-                address indexed sellToken,
-                address indexed buyToken,
-                address indexed user,
-                uint auctionIndex,
-                uint amount
-            );
+  event NewBuyOrder(
+      address indexed sellToken,
+      address indexed buyToken,
+      address indexed user,
+      uint auctionIndex,
+      uint amount
+  );
 
-            event NewSellerFundsClaim(
-                address indexed sellToken,
-                address indexed buyToken,
-                address indexed user,
-                uint auctionIndex,
-                uint amount
-            );
+  event NewSellerFundsClaim(
+      address indexed sellToken,
+      address indexed buyToken,
+      address indexed user,
+      uint auctionIndex,
+      uint amount
+  );
 
-            event NewBuyerFundsClaim(
-                address indexed sellToken,
-                address indexed buyToken,
-                address indexed user,
-                uint auctionIndex,
-                uint amount
-            );
+  event NewBuyerFundsClaim(
+      address indexed sellToken,
+      address indexed buyToken,
+      address indexed user,
+      uint auctionIndex,
+      uint amount
+  );
 
-            event NewTokenPair(
-                address sellToken,
-                address buyToken
-            );
+  event NewTokenPair(
+      address sellToken,
+      address buyToken
+  );
 
-            event AuctionCleared(
-                address sellToken,
-                address buyToken,
-                uint sellVolume,
-                uint buyVolume,
-                uint auctionIndex
-            );
+  event AuctionCleared(
+      address sellToken,
+      address buyToken,
+      uint sellVolume,
+      uint buyVolume,
+      uint auctionIndex
+  );
 
-            event Log(
-                string l
-            );
+  event Log(
+      string l
+  );
 
-            event LogOustandingVolume(
-                uint l
-            );
+  event LogOustandingVolume(
+      uint l
+  );
 
-            event LogNumber(
-                string l,
-                uint n
-            );
+  event LogNumber(
+      string l,
+      uint n
+  );
 
-            event ClaimBuyerFunds (
-                uint returned,
-                uint tulipsIssued
-            );
-
-  TODO: Understand:
-    * what is extraTokens
+  event ClaimBuyerFunds (
+      uint returned,
+      uint tulipsIssued
+  );
 */
 
 const contractNames = [
