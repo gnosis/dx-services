@@ -26,7 +26,9 @@
   "dependencies": {
     "debug": "^3.1.0",
     "express": "^4.16.2",
-    "git-rev-sync": "^1.9.1"
+    "git-rev-sync": "^1.9.1",
+    "got": "^8.0.3",
+    "qs": "^6.5.1"
   },
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "gnosis/dutch-exchange#contracts/DX-2.0-No-Frontend",
