@@ -1,5 +1,5 @@
 const ExchangePriceRepoKraken = require('../../../src/repositories/ExchangePriceRepo/ExchangePriceRepoKraken')
-const exchangePriceRepo = new ExchangePriceRepoKraken()
+const exchangePriceRepo = new ExchangePriceRepoKraken({})
 test('test known Crypto changes', async () => {
   expect.assertions(3)
   expect(await exchangePriceRepo.getPrice({tokenA: 'ETH', tokenB: 'XBT'})).toMatch(/\d*\.?\d+/)
