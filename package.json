@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "start": "DEBUG=dx-service:*,,-*EventBus node src/main.js",
+    "start": "DEBUG=dx-service:*,,-*EventBus,-*:EthereumClient node src/main.js",
     "dev": "DEBUG=dx-service:* node src/main.js",
     "trace": "DEBUG=* node src/main.js",
     "test": "jest",
@@ -24,7 +24,6 @@
   "author": "Angel Rodriguez <anxolin@gmail.com> (https://github.com/anxolin)",
   "license": "UNLICENSED",
   "dependencies": {
-    "bluebird": "^3.5.1",
     "debug": "^3.1.0",
     "express": "^4.16.2",
     "git-rev-sync": "^1.9.1"

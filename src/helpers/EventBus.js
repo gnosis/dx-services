@@ -1,4 +1,4 @@
-const Promise = require('../helpers/Promise')
+// const Promise = require('../helpers/Promise')
 const debug = require('debug')('dx-service:helpers:EventBus')
 
 class EventBus {
