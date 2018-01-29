@@ -20,11 +20,12 @@ class SellLiquidityBot {
       )
       this._auctionService
         .ensureSellLiquidity({ tokenA, tokenB })
-        .then(boughtTokens => {
-          if (boughtTokens > 0) {
+        .then(soldTokens => {
+          if (soldTokens.amount > 0) {
             debug(
-              "I've bought %d tokens to ensure liquidity on the market %s-%s",
-              boughtTokens,
+              "I've sold %d %s tokens to ensure liquidity on the market %s-%s",
+              soldTokens.amount,
+              soldTokens.token,
               tokenA,
               tokenB
             )
