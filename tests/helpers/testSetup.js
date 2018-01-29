@@ -4,8 +4,7 @@ const contractNames = [
   'TokenOWL',
   'TokenTUL',
   'TokenGNO',
-  'EtherToken',
-  'StandardToken'
+  'EtherToken'
 ]
 
 const config = {

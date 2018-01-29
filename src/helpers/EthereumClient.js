@@ -1,6 +1,7 @@
 const debug = require('debug')('dx-service:repositories:EthereumClient')
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
+const ROOT_DIR = '../../'
 
 // TODO: Check eventWatcher in DX/test/utils.js
 
@@ -11,10 +12,10 @@ class EthereumClient {
     this._provider = new Web3.providers.HttpProvider(url)
     this._web3 = new Web3(this._provider)
     this._contractCache = {}
-    this._contractsBaseDir = '../../' + contractsBaseDir
+    this._contractsBaseDir = contractsBaseDir
   }
 
-  loadContracts ({ contractNames }) {
+  loadContracts ({ contractNames, contractsBaseDir }) {
     // Load contract as an array of objects (props: name, instance)
     // TODO: Refactor to support also contract at an address? c..at("0x1234...")
     // TODO: Interesting: MyContract.setNetwork(network_id)
@@ -27,7 +28,7 @@ class EthereumClient {
           return Promise.resolve(contract)
         } else {
           // Load contract
-          return this._loadContract(contractName)
+          return this._loadContract(contractName, contractsBaseDir)
             .then(contract => {
               this._contractCache[contract.name] = contract.instance
               return contract
@@ -65,8 +66,9 @@ class EthereumClient {
     return this._web3
   }
 
-  _loadContract (contractName) {
-    const contractJson = require(`${this._contractsBaseDir}/${contractName}`)
+  _loadContract (contractName, contractsBaseDir) {
+    const contractsDir = ROOT_DIR + contractsBaseDir
+    const contractJson = require(`${contractsDir}/${contractName}`)
     const contract = truffleContract(contractJson)
     contract.setProvider(this._provider)
 

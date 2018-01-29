@@ -43,7 +43,8 @@ const ETHEREUM_JSON_RPC_PROVIDER = JSON_RPC_PROVIDERS[JSON_RPC_PROVIDER]
 const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
-const CONTRACTS_BASE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
+const CONTRACTS_BASE_DIR = 'build/contracts'
+const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
 
 // Kraken custom config
 const KRAKEN = {
@@ -75,10 +76,11 @@ module.exports = {
   // REPO
   AUCTION_REPO_IMPL,
   CONTRACTS_BASE_DIR,
+  CONTRACTS_DUTCH_EXCHANGE_DIR,
 
   // API
   API_PORT,
-  API_HOST
+  API_HOST,
 
   // Exchanges
   KRAKEN

@@ -80,22 +80,57 @@ const contractNames = [
   'PriceOracleInterface'
 ]
 
-const tokens = {
-  'TokenGNO': 'GNO',
-  'TokenOWL': 'OWL',
-  'TokenTUL': 'TUL',
-  'EtherToken': 'ETH'
-}
+const mainTokenSymbols = ['GNO', 'OWL', 'TUL', 'ETH']
+
+// TODO: Review. We coud instead of using adhoc tokens, work agais ERC20
+//  interface and provide a register method to add a new token (with address)
+const erc20tokensSymbols = ['OMG', 'RDN']
 
 class AuctionRepoEthereum {
-  constructor ({ ethereumClient }) {
+  constructor ({ ethereumClient, contractsBaseDir, contractsBaseDirDx }) {
     this._ethereumClient = ethereumClient
+    this._contractsBaseDir = contractsBaseDir
+    this._contractsBaseDirDx = contractsBaseDirDx
+
+    const toContractName = symbol => symbol === 'ETH' ? 'EtherToken' : `Token${symbol}`
+    const mainTokenContractNames = mainTokenSymbols.map(toContractName)
+    const erc20TokenContractNames = erc20tokensSymbols.map(toContractName)
 
     // Load contracts
-    this.ready = this._loadContracts()
-      .then(() => {
-        // keep an alias for the DX contract
-        this._dx = this._contracts.DutchExchange
+    this.ready = Promise.all([
+      // load contracts
+      this._ethereumClient.loadContracts({
+        contractNames: contractNames,
+        contractsBaseDir: contractsBaseDirDx
+      }),
+      // load main tokens
+      this._ethereumClient.loadContracts({
+        contractNames: mainTokenContractNames,
+        contractsBaseDir: contractsBaseDirDx
+      }),
+      // load ERC20 tokens
+      this._ethereumClient.loadContracts({
+        contractNames: erc20TokenContractNames,
+        contractsBaseDir: contractsBaseDir
+      })
+    ])
+      .then(([ contracts, mainTokensContracts, erc20TokensContracts ]) => {
+        const tokenSymbols =
+          mainTokenSymbols.concat(erc20tokensSymbols)
+        const tokenContracts = Object.assign({},
+          mainTokensContracts, erc20TokensContracts
+        )
+
+        const tokens = tokenSymbols
+          .reduce((tokensAccumulator, symbol) => {
+            tokensAccumulator[symbol] = tokenContracts[toContractName(symbol)]
+            return tokensAccumulator
+          }, {})
+
+        // Save contracts in a handy way for later use (_contracts, _tokens)
+        this._contracts = contracts
+        this._tokens = tokens
+        this._dx = this._contracts.DutchExchange // just a handy alias
       })
   }
 
@@ -299,32 +334,6 @@ class AuctionRepoEthereum {
     return this._getTokenContract(token).address
   }
 
-  async _loadContracts () {
-    // Load main contracts (initialize this._contracts)
-    const loadMainContracts = this._ethereumClient.loadContracts({
-      contractNames
-    }).then(contracts => {
-      // save contracts internally
-      this._contracts = contracts
-    })
-
-    // Load token contracts (initialize this._tokens)
-    const tokenContractNames = Object.keys(tokens)
-    const loadTokenContracts = this._ethereumClient.loadContracts({
-      contractNames: tokenContractNames
-    }).then(tokenContracts => {
-      // save mapping (symbol => token_contract)
-      this._tokens = tokenContractNames
-        .reduce((tokensAccumulator, tokenContractName) => {
-          const symbol = tokens[tokenContractName]
-          tokensAccumulator[symbol] = tokenContracts[tokenContractName]
-          return tokensAccumulator
-        }, {})
-    })
-
-    return Promise.all([loadMainContracts, loadTokenContracts])
-  }
-
   async _callForToken (callMethod, token, ...args) {
     debug('Get %s for token %s', callMethod, token)
     const tokenAddress = this._getTokenAddress(token)
@@ -409,6 +418,18 @@ class AuctionRepoEthereum {
       from: address,
       gas: estimatedGas
     })
+  }
+
+  async _loadContracts (contractNames, contractsBaseDir) {
+    return this._ethereumClient.loadContracts({
+      contractNames,
+      contractsBaseDir
+    })
+  }
+
+  async _loadTokensContracts (tokenSymbols, contractsBaseDir) {
+    const contractNames = tokenSymbols.map(symbol => 'Token' + symbol)
+    return this._loadContracts(contractNames, contractsBaseDir)
   }
 }
 

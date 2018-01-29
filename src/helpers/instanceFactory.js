@@ -60,7 +60,9 @@ function getAuctionRepoPromise (config) {
       const ethereumClient = getEhereumClient(config)
       const AuctionRepoEthereum = require('../repositories/AuctionRepo/AuctionRepoEthereum')
       const auctionRepoEthereum = new AuctionRepoEthereum({
-        ethereumClient
+        ethereumClient,
+        contractsBaseDir: config.CONTRACTS_BASE_DIR,
+        contractsBaseDirDx: config.CONTRACTS_DUTCH_EXCHANGE_DIR
       })
       // Return the repo when it's ready
       auctionRepoPromise = auctionRepoEthereum
