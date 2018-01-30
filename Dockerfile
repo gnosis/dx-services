@@ -20,6 +20,6 @@ RUN yarn install --pure-lockfile
 COPY . .
 
 # Expose container port
-# EXPOSE 8080
+EXPOSE 8080
 
 CMD [ "npm", "start" ]

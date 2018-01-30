@@ -3,6 +3,11 @@ version: '3.4'
 services:
   node:
     build:
-      context: .
+      context: '.'
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8080:8080"
 #    volumes::
 #      - .:/usr/src/app/
