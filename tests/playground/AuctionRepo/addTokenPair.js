@@ -12,13 +12,13 @@ async function run ({
   // Add GNO-ETH pair
   const txGNO_ETH = await auctionRepo.addTokenPair({
     address,
-    tokenA: 'GNO',
+    tokenA: 'RDN',
     tokenAFunding: 0,
     tokenB: 'ETH',
     tokenBFunding: 15.123,
     initialClosingPrice: {
-      numerator: 4079,
-      denominator: 1000000
+      numerator: 4079,     // ETH
+      denominator: 1000000 // RDN
     }
   })
   const txOMG_ETH = await auctionRepo.addTokenPair({
