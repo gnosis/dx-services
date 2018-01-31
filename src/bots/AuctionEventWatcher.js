@@ -24,9 +24,9 @@ TODO: Events: first draft.
 */
 
 class AuctionEventWatcher {
-  constructor ({ eventBus, auctionService, markets }) {
+  constructor ({ eventBus, botService, markets }) {
     this._eventBus = eventBus
-    this._auctionService = auctionService
+    this._botService = botService
     this._markets = markets
   }
 

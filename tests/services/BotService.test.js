@@ -1,10 +1,10 @@
 const {
-  auctionService
+  botService
 } = require('../../src/helpers/instanceFactory')
 
 test('ensureSellLiquidity throws not implemented', () => {
   expect(() => { // Wrap the code to catch the exception
-    auctionService.ensureSellLiquidity({
+    botService.ensureSellLiquidity({
       tokenA: 'RDN',
       tokenB: 'ETH'
     })

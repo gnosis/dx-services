@@ -23,15 +23,15 @@ instanceFactory({})
   .catch(handleError)
 
 class App {
-  constructor ({ config, auctionService }) {
+  constructor ({ config, botService }) {
     this._config = config
-    this._auctionService = auctionService
+    this._botService = botService
 
     // Create server
     this._dxApiServer = new DxApiServer({
       port: config.API_PORT,
       host: config.API_HOST,
-      auctionService
+      botService
     })
 
     // Create the eventBus
@@ -40,7 +40,7 @@ class App {
     // Create event watcher
     this._auctionEventWatcher = new AuctionEventWatcher({
       eventBus: this._eventBus,
-      auctionService,
+      botService,
       markets: config.MARKETS
     })
 
@@ -49,14 +49,14 @@ class App {
       // Liquidity bot
       new SellLiquidityBot({
         eventBus: this._eventBus,
-        auctionService
+        botService
       })
     ]
   }
 
   async start () {
     // Display some basic info
-    this._auctionService
+    this._botService
       .getAbout()
       .then(about => debug('Loading app with %o ...', about))
       .catch(handleError)

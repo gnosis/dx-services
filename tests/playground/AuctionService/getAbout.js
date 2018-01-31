@@ -4,9 +4,9 @@ testSetup()
   .catch(console.error)
 
 function run ({
-  auctionService
+  botService
 }) {
-  return auctionService
+  return botService
     .getAbout()
     .then(console.log)
 }

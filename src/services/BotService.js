@@ -1,8 +1,8 @@
-const debug = require('debug')('dx-service:services:AuctionService')
+const debug = require('debug')('dx-service:services:BotService')
 const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
-class AuctionService {
+class BotService {
   constructor ({ auctionRepo, exchangePriceRepo, minimumSellVolume }) {
     this._auctionRepo = auctionRepo
     this._exchangePriceRepo = exchangePriceRepo
@@ -154,4 +154,4 @@ class AuctionService {
   }
 }
 
-module.exports = AuctionService
+module.exports = BotService

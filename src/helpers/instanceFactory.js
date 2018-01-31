@@ -11,7 +11,7 @@ async function createInstances ({ test = false, config = {} }) {
   const auctionRepo = await auctionRepoPromise
 
   // Services
-  const auctionService = getAuctionService({
+  const botService = getBotService({
     config: mergedConfig,
     exchangePriceRepo,
     auctionRepo
@@ -21,7 +21,7 @@ async function createInstances ({ test = false, config = {} }) {
     config: mergedConfig,
 
     // services
-    auctionService
+    botService
   }
 
   if (test) {
@@ -84,9 +84,9 @@ function getExchangePriceRepo (config) {
   return new ExchangePriceRepoMock({})
 }
 
-function getAuctionService ({ config, auctionRepo, exchangePriceRepo }) {
-  const AuctionService = require('../services/AuctionService')
-  return new AuctionService({
+function getBotService ({ config, auctionRepo, exchangePriceRepo }) {
+  const BotService = require('../services/BotService')
+  return new BotService({
     // Repos
     auctionRepo,
     exchangePriceRepo,

@@ -7,10 +7,10 @@ const DEFAULT_PORT = 8080
 const DEFAULT_HOST = '0.0.0.0'
 
 class DxApiServer {
-  constructor ({ port = DEFAULT_PORT, host = DEFAULT_HOST, auctionService }) {
+  constructor ({ port = DEFAULT_PORT, host = DEFAULT_HOST, botService }) {
     this._port = port
     this._host = host
-    this._auctionService = auctionService
+    this._botService = botService
   }
 
   async start () {
@@ -19,7 +19,7 @@ class DxApiServer {
     this._app = app
 
     app.get('/', async (req, res) => {
-      const version = await this._auctionService.getVersion()
+      const version = await this._botService.getVersion()
       res.send('Dutch Exchange Bots - version ' + version)
     })
 
@@ -28,11 +28,11 @@ class DxApiServer {
     })
 
     app.get('/version', async (req, res) => {
-      res.send(await this._auctionService.getVersion())
+      res.send(await this._botService.getVersion())
     })
 
     app.get('/about', async (req, res) => {
-      res.send(await this._auctionService.getAbout())
+      res.send(await this._botService.getAbout())
     })
 
     // Version, About (getAboutInfo)

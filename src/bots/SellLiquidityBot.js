@@ -2,9 +2,9 @@
 const debug = require('debug')('dx-service:bots:SellLiquidityBot')
 
 class SellLiquidityBot {
-  constructor ({ eventBus, auctionService }) {
+  constructor ({ eventBus, botService }) {
     this._eventBus = eventBus
-    this._auctionService = auctionService
+    this._botService = botService
   }
 
   async run () {
@@ -18,7 +18,7 @@ class SellLiquidityBot {
         tokenA,
         tokenB
       )
-      this._auctionService
+      this._botService
         .ensureSellLiquidity({ tokenA, tokenB })
         .then(soldTokens => {
           if (soldTokens.amount > 0) {
