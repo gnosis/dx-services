@@ -314,7 +314,7 @@ class AuctionRepoEthereum {
         .mul(buyVolume)
       ).toNumber() === 0)
 
-    let closingPrice = await this._getClosingPrices({
+    let closingPrice = await this.getClosingPrices({
       sellToken, buyToken, auctionIndex
     })
     /*
@@ -528,7 +528,7 @@ class AuctionRepoEthereum {
       .then(toFraction)
   }
 
-  async _getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+  async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     return this
       ._callForAuction('closingPrices', sellToken, buyToken, auctionIndex)
       .then(toFraction)

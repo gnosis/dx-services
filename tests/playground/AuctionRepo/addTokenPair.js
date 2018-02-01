@@ -21,6 +21,7 @@ async function run ({
       denominator: 1000000 // RDN
     }
   })
+  
   const txOMG_ETH = await auctionRepo.addTokenPair({
     address,
     tokenA: 'OMG',

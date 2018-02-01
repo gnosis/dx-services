@@ -56,13 +56,45 @@ async function run ({
     console.log('\n**************************************\n\n')
   }
 
+  async function addTokens () {
+    await auctionRepo.addTokenPair({
+      address,
+      tokenA: 'RDN',
+      tokenAFunding: 0,
+      tokenB: 'ETH',
+      tokenBFunding: 15.123,
+      initialClosingPrice: {
+        numerator: 330027,
+        denominator: 100000000
+      }
+    })
+
+    console.log('The tokens were succesfully added')
+
+    /*
+    await auctionRepo.addTokenPair({
+      address,
+      tokenA: 'OMG',
+      tokenAFunding: 0,
+      tokenB: 'ETH',
+      tokenBFunding: 20.123,
+      initialClosingPrice: {
+        numerator: 1279820,
+        denominator: 100000000
+      }
+    })
+    */
+  }
+
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
-    .option('-x, --state "<sell-token>,<buy-token>"', 'Show current state', list)
+    .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
+    .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
+    .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
     .option('-t, --time <hours>', 'Increase time of the blockchain in hours', parseFloat)
     .option('-m, --mine', 'Mine one block')
-    .option('-b, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens. i.e.', list)
+    .option('-b, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens', list)
     //.option('-s, --sell <sell-token> <buy-token> <amount>', 'Sell tokens')
 
 
@@ -70,12 +102,14 @@ async function run ({
     console.log('\n\nExamples:');
     console.log('');
     console.log('\tbot-cli -n');
-    console.log('\tbot-cli -x RDN,ETH')
-    console.log('\tbot-cli -m');
-    console.log('\tbot-cli -t 0.5');
-    console.log('\tbot-cli -t 6');
-    console.log('\tbot-cli -b RDN,ETH,100');
-    console.log('\tbot-cli -s ETH,RDN,100');
+    console.log('\tbot-cli --state RDN,ETH')
+    console.log('\tbot-cli --add-tokens')
+    console.log('\tbot-cli --closing-price RDN,ETH,0');
+    console.log('\tbot-cli --mine');
+    console.log('\tbot-cli --time 0.5');
+    console.log('\tbot-cli --time 6');
+    console.log('\tbot-cli --buy RDN,ETH,100');
+    console.log('\tbot-cli --sell ETH,RDN,100');
     console.log('');
   })
 
@@ -83,29 +117,44 @@ async function run ({
 
   if (commander.now) {
     // now
-    printTime('Current time')
+    await printTime('Current time')
 
   } else if (commander.state) {
     // State
     const [buyToken, sellToken] = commander.state
     printState('State', { buyToken, sellToken})
+
+  } else if (commander.addTokens) {
+    // add tokens
+    await printState('State before add tokens', { buyToken: 'RDN', sellToken: 'ETH'})
+    await addTokens()
+    await printState('State after add tokens', { buyToken: 'RDN', sellToken: 'ETH'})
+
+  } else if (commander.closingPrice) {
+    // closing price
+    const [sellToken, buyToken, auctionIndex] = commander.closingPrice
+    const closingPrice = await auctionRepo.getClosingPrices({
+      sellToken, buyToken, auctionIndex
+    })
+    console.log('Closing price: ' + fractionFormatter(closingPrice))
+
   } else if (commander.time) {
     // time
-    printTime('Time before increase time')
+    await printTime('Time before increase time')
     await ethereumClient.increaseTime(commander.time * 60 * 60)
-    printTime(`Time after increase ${commander.time} hours`)
+    await printTime(`Time after increase ${commander.time} hours`)
 
   } else if (commander.mine) {
     // mine
-    printTime('Time before minining: ')
+    await printTime('Time before minining: ')
     await ethereumClient.mineBlock()
-    printTime('Time after minining: ')
+    await printTime('Time after minining: ')
 
   } else if (commander.buy) {
     // buy
     const [buyToken, sellToken, amountString] = commander.buy
     console.log(`Token:\n\t${sellToken}-${buyToken}`)
-    printState('State before buy', { buyToken, sellToken})
+    await printState('State before buy', { buyToken, sellToken})
     /*
     auctionRepo.buy({
       buyToken,
