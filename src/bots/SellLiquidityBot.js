@@ -11,6 +11,7 @@ class SellLiquidityBot {
     debug('Initialized bot')
 
     // Ensure the sell liquidity when an aunction has ended
+    // TODO: Make sure if it's the first or second market to end
     this._eventBus.listenTo('AUCTION_END', ({ eventName, data }) => {
       const { tokenA, tokenB } = data
       debug(

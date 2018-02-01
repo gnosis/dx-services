@@ -36,6 +36,10 @@ class BotService {
     }
   }
 
+  async testToDelete ({ tokenA, tokenB }) {
+    return this._auctionRepo.getPrice({ tokenA, tokenB })
+  }
+
   ensureSellLiquidity ({ tokenA, tokenB }) {
     debug('Ensure that sell liquidity on %s-%s markets is over $%d',
       tokenA, tokenB,

@@ -11,6 +11,27 @@ const config = {
   AUCTION_REPO_IMPL: 'ethereum'
 }
 
+function printProps (prefix, props, object, formatters) {
+  props.forEach(prop => {
+    let value = object[prop]
+    if (formatters && formatters[prop]) {
+      value = formatters[prop](value)
+    }
+
+    console.log(`${prefix}${prop}: ${value}`)
+  })
+}
+
+function fractionFormatter (fraction) {
+  if (fraction.numerator.isZero() && fraction.denominator.isZero()) {
+    return null // fraction.numerator.toNumber()
+  } else {
+    return fraction.numerator
+          .div(fraction.denominator)
+          .toNumber()
+  }
+}
+
 function testSetup () {
   return instanceFactory({ test: true, config })
     .then(instances => {
@@ -19,7 +40,9 @@ function testSetup () {
         .then(contracts => {
           // Return contracts plus the test instances of the instance factory
           return Object.assign({
-            address: instances.ethereumClient.getCoinbase()
+            address: instances.ethereumClient.getCoinbase(),
+            printProps,
+            fractionFormatter
           }, contracts, instances)
         })
     })
