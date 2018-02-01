@@ -50,8 +50,8 @@ class EthereumClient {
     return this._url
   }
 
-  getBlock (block = 'latest') {
-    return this._web3.eth.getBlock(block)
+  getBlock (blockNumber = this.getBlockNumber()) {
+    return this._promisify(this._web3.eth.getBlock, blockNumber)
   }
 
   getCoinbase () {
@@ -61,6 +61,77 @@ class EthereumClient {
   getBlockNumber () {
     return this._web3.eth.blockNumber
   }
+
+  async geLastBlockTime () {
+    //const blockNumber = this.getBlockNumber()
+    //return this._promisify(this._web3.eth.getBlock, blockNumber)
+    return this.getBlock()
+      .then(block => new Date(block.timestamp * 1000))
+  }
+
+  async balanceOf(account) {
+    return this._promisify(this._web3.eth.getBalance, account)
+  }
+
+  async mineBlock(id = new Date().getTime()) {
+    return this._sendAsync('evm_mine', { id })
+  }
+
+
+  async increaseTime(increaseMs) {
+    const id = Date.now()
+    return this
+      // Increase time
+      ._sendAsync('evm_increaseTime', {
+        id,
+        params: [ increaseMs ]
+      })
+      // then mine block
+      .then(() => {
+        return this.mineBlock(id + 1)
+      })
+  }
+
+  async _sendAsync(method, data) {
+    const params = Object.assign({
+      method,
+      jsonrpc: "2.0"
+    }, data)
+
+    return this._promisify((params, cb) => {
+      // wee nedd to curry the function
+      this._web3.currentProvider.sendAsync(params, cb)
+    }, params)
+  }
+
+  async _promisify (fn, param) {
+    return new Promise((resolve, reject) => {
+      fn(param, (error, ...data) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(...data)
+        }
+      })
+    })
+  }
+
+  /*
+
+
+
+
+  async function assertThrowsAsynchronously(test, error) {
+      try {
+          await test();
+      } catch(e) {
+          if (!error || e instanceof error)
+              return "everything is fine";
+      }
+      throw new Error("Missing rejection" + (error ? " with "+error.name : ""));
+  }
+  */
+
 
   getWeb3 () {
     return this._web3
