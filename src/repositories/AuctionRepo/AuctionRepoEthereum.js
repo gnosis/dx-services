@@ -147,9 +147,9 @@ class AuctionRepoEthereum {
     }
   }
 
-  async getStateInfo ({ tokenA, tokenB }) {
-    const auctionStart = await this.getAuctionStart({ tokenA, tokenB })
-    const auctionIndex = await this.getAuctionIndex({ tokenA, tokenB })
+  async getStateInfo ({ sellToken, buyToken }) {
+    const auctionStart = await this.getAuctionStart({ sellToken, buyToken})
+    const auctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
 
     // debug('Get state for %s-%s', tokenA, tokenB)
     // debug('Auction starts: %s', auctionStart)
@@ -160,38 +160,26 @@ class AuctionRepoEthereum {
 
       // auction: buyVolume, sellVolume, closingPrice, isClosed, isTheoreticalClosed,
       auction: await this._getAuctionState({
-        sellToken: tokenA,
-        buyToken: tokenB,
+        sellToken: sellToken,
+        buyToken: buyToken,
         auctionIndex
       }),
 
       // auctionOpp: buyVolume, sellVolume, closingPrice, isClosed, isTheoreticalClosed,
       auctionOpp: await this._getAuctionState({
-        sellToken: tokenB,
-        buyToken: tokenA,
+        sellToken: buyToken,
+        buyToken: sellToken,
         auctionIndex
       })
     }
   }
 
-  /*
-  async getStateInfo({ tokenA, tokenB }) {
-    const statusInfo = await this._getStateInfoAux({ tokenA, tokenB })
-
-    return Object.assign({}, statusInfo, {
-      auctionStartEpoch: undefined,
-      auctionStart: (statusInfo.auctionStart)
-    })
-  }
-  */
-
-
-  async getState({ tokenA, tokenB }) {
+  async getState({ sellToken, buyToken }) {
     const {
       auctionStart,
       auction,
       auctionOpp
-    } = await this.getStateInfo({ tokenA, tokenB })
+    } = await this.getStateInfo({ sellToken, buyToken })
 
 
     const {
@@ -225,12 +213,12 @@ class AuctionRepoEthereum {
 
 
   // TODO: Review this logic. This are the stares of the diagram
-  async getState2({ tokenA, tokenB }) {
+  async getState2({ sellToken, buyToken }) {
     const {
       auctionStart,
       auction,
       auctionOpp
-    } = await this.getStateInfo({ tokenA, tokenB })
+    } = await this.getStateInfo({ sellToken, buyToken })
 
 
     const {
@@ -353,13 +341,13 @@ class AuctionRepoEthereum {
   }
 
 
-  async getAuctionIndex ({ tokenA, tokenB }) {
-    return this._callForPair('getAuctionIndex', tokenA, tokenB)
+  async getAuctionIndex ({ sellToken, buyToken }) {
+    return this._callForPair('getAuctionIndex', sellToken, buyToken)
   }
 
-  async getAuctionStart ({ tokenA, tokenB }) {
-    const auctionStartEpoch = await this._callForPair('getAuctionStart', tokenA, tokenB)
-    console.log('auctionStartEpoch', auctionStartEpoch.toNumber())
+  async getAuctionStart ({ sellToken, buyToken }) {
+    const auctionStartEpoch = await this._callForPair('getAuctionStart', sellToken, buyToken)
+
     // The SC has 0 when the contract is initialized
     // 1 when looking for founding. For the repo, they both will be modeled as a
     // null state of the auctionStart
