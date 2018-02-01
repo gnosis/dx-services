@@ -86,6 +86,27 @@ async function run ({
     */
   }
 
+  async function buySell (operation, { buyToken, sellToken, amount }) {
+    // buy
+    const auctionIndex = await auctionRepo.getAuctionIndex({
+      buyToken,
+      sellToken
+    })
+    console.log(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`
+    console.log(`Auction:\n\t${auctionIndex}`)
+    await printState('State before buy', { buyToken, sellToken})
+
+    await auctionRepo[operation]({
+      address,
+      buyToken,
+      sellToken,
+      auctionIndex,
+      amount
+    })
+    console.log(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
+    await printState('State after buy', { buyToken, sellToken})
+  }
+
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
@@ -95,7 +116,7 @@ async function run ({
     .option('-t, --time <hours>', 'Increase time of the blockchain in hours', parseFloat)
     .option('-m, --mine', 'Mine one block')
     .option('-b, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens', list)
-    //.option('-s, --sell <sell-token> <buy-token> <amount>', 'Sell tokens')
+    .option('-s, --sell <sell-token> <buy-token> <amount>', 'Sell tokens', list)
 
 
   commander.on('--help', function(){
@@ -153,19 +174,20 @@ async function run ({
   } else if (commander.buy) {
     // buy
     const [buyToken, sellToken, amountString] = commander.buy
-    console.log(`Token:\n\t${sellToken}-${buyToken}`)
-    await printState('State before buy', { buyToken, sellToken})
-    /*
-    auctionRepo.buy({
-      buyToken,
+    await buySell('postBuyOrder', {
       sellToken,
+      buyToken,
       amount: parseInt(amountString)
     })
-    */
+
   } else if (commander.sell) {
     // sell
-    console.log('Sell ', commander.sell)
-
+    const [sellToken, buyToken, amountString] = commander.sell
+    await buySell('postSellOrder', {
+      sellToken,
+      buyToken,
+      amount: parseInt(amountString)
+    })
   } else {
     // help
     commander.help()

@@ -432,7 +432,7 @@ class AuctionRepoEthereum {
   }
 
   async postSellOrder ({
-    sellToken, buyToken, auctionIndex = 0, address, amount
+    sellToken, buyToken, auctionIndex, address, amount
   }) {
     // TODO: Review validations for doing them before calling the DX
 
