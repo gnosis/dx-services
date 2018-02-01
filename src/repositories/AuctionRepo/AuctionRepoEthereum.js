@@ -1,4 +1,5 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
+const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
 /*
   // TODO: Events
   event NewDeposit(
@@ -135,7 +136,7 @@ class AuctionRepoEthereum {
   }
 
   async getBasicInfo () {
-    debug('Get auction basic info')
+    // debug('Get auction basic info')
     const ownerAddress = await this._dx.owner.call()
 
     return {
@@ -146,27 +147,245 @@ class AuctionRepoEthereum {
     }
   }
 
-  async getCurrentAuctionIndex ({ tokenA, tokenB }) {
+  async getStateInfo ({ tokenA, tokenB }) {
+    const auctionStart = await this.getAuctionStart({ tokenA, tokenB })
+    const auctionIndex = await this.getAuctionIndex({ tokenA, tokenB })
+
+    // debug('Get state for %s-%s', tokenA, tokenB)
+    // debug('Auction starts: %s', auctionStart)
+
+    return {
+      auctionIndex,
+      auctionStart,
+
+      // auction: buyVolume, sellVolume, closingPrice, isClosed, isTheoreticalClosed,
+      auction: await this._getAuctionState({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        auctionIndex
+      }),
+
+      // auctionOpp: buyVolume, sellVolume, closingPrice, isClosed, isTheoreticalClosed,
+      auctionOpp: await this._getAuctionState({
+        sellToken: tokenB,
+        buyToken: tokenA,
+        auctionIndex
+      })
+    }
+  }
+
+  /*
+  async getStateInfo({ tokenA, tokenB }) {
+    const statusInfo = await this._getStateInfoAux({ tokenA, tokenB })
+
+    return Object.assign({}, statusInfo, {
+      auctionStartEpoch: undefined,
+      auctionStart: (statusInfo.auctionStart)
+    })
+  }
+  */
+
+
+  async getState({ tokenA, tokenB }) {
+    const {
+      auctionStart,
+      auction,
+      auctionOpp
+    } = await this.getStateInfo({ tokenA, tokenB })
+
+
+    const {
+      isClosed,
+      isTheoreticalClosed,
+      sellVolume
+    } = auction
+
+    const {
+      isClosed: isClosedOpp,
+      isTheoreticalClosed: isTheoreticalClosedOpp,
+      sellVolume: sellVolumeOpp
+    } = auctionOpp
+
+    const now = new Date()
+    if (auctionStart === null) {
+      // We havent surplus the threshold (or it's the first auction)
+      return 'WAITING_FOR_FUNDING'
+    } else if (auctionStart >= now){
+      return 'WAITING_FOR_AUCTION_TO_START'
+    } else if (isTheoreticalClosed || isTheoreticalClosedOpp) {
+      return 'PENDING_CLOSE_THEORETICAL'
+    } else if (
+        isClosed && !isClosedOpp ||
+        !isClosed && isClosedOpp) {
+      return 'ONE_AUCTION_HAS_CLOSED'
+    } else {
+      return 'RUNNING'
+    }
+  }
+
+
+  // TODO: Review this logic. This are the stares of the diagram
+  async getState2({ tokenA, tokenB }) {
+    const {
+      auctionStart,
+      auction,
+      auctionOpp
+    } = await this.getStateInfo({ tokenA, tokenB })
+
+
+    const {
+      isClosed,
+      isTheoreticalClosed,
+      sellVolume
+    } = auction
+
+    const {
+      isClosed: isClosedOpp,
+      isTheoreticalClosed: isTheoreticalClosedOpp,
+      sellVolume: sellVolumeOpp
+    } = auctionOpp
+
+    if (auctionStart === null) {
+      // We havent surplus the threshold
+      return 'WAITING_FOR_FUNDING' // S0
+    } else if (sellVolume === 0 || sellVolumeOpp === 0) {
+      // One of the auctions doesn't have sell volume
+
+      if (
+        (sellVolume === 0   && isTheoreticalClosedOpp) ||
+        (sellVolumeOp === 0 && isTheoreticalClosed)) {
+        // One has no SellVolume
+        // The other is theoretically closed
+        return 'ONE_THEORETICAL_CLOSED' // S7
+      } else {
+        // One of the auctions is running
+        // the other one has no sell volume
+        return 'RUNNING_ONE_NOT_SELL_VOLUME' // S1
+      }
+    } else {
+      // They both have volume
+
+      if (
+          isTheoreticalClosed && isTheoreticalClosedOpp &&
+          !isClosed && !isClosedOpp) {
+        // both are close theoretical
+        // and not closed yet
+        return 'BOTH_THEORETICAL_CLOSED' // S4
+      } else if (isClosedOpp || isClosed) {
+        // At least, one of the auctions is closed for real
+
+        if (
+          (isClosed && !isTheoreticalClosedOpp) ||
+          (isClosedOpp && !isTheoreticalClosed)
+        ) {
+          // One auction is closed
+          // The other one is still running
+          return 'ONE_CLEARED_AUCTION' // S2
+        } else if (
+          (isClosed && isTheoreticalClosedOpp) ||
+          (isClosedOpp && isTheoreticalClosed)) {
+          // One is closed for real
+          // The other is closed theoretical
+          return 'ONE_CLEARED_AUCTION_ONE_THEORETICAL_CLOSE' // S6
+        }
+      }
+
+      if (isTheoreticalClosedOpp || isTheoreticalClosed) {
+        // One theoretical close
+        // S3
+        return 'ONE_THEORETICAL_CLOSED'
+      }
+
+      // The only state left
+      return 'RUNNING' // S0
+    }
+  }
+
+
+  async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
+    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
+    let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+    let sellVolume = await this.getSellVolume({ sellToken, buyToken })
+
+    /*
+    debug('Auction index: %d, Price: %d/%d %s/%s',
+      auctionIndex, price.numerator, price.denominator,
+      sellToken, buyToken
+    )
+    debug('_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
+      sellToken, buyToken,
+      buyVolume, sellVolume
+    )
+    */
+    const isTheoreticalClosed = (
+      // (Pn x SV) / (Pd x BV)
+      price.numerator
+      .mul(sellVolume)
+      .sub(
+        price.denominator
+        .mul(buyVolume)
+      ).toNumber() === 0)
+
+    let closingPrice = await this._getClosingPrices({
+      sellToken, buyToken, auctionIndex
+    })
+    /*
+    debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
+      sellToken, buyToken,
+      closingPrice.numerator, closingPrice.denominator
+    )
+    */
+    const isClosed = (closingPrice.numerator.toNumber() > 0)
+    /*
+    debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
+      sellToken, buyToken,
+      isClosed, isTheoreticalClosed
+    )
+    */
+
+    return {
+      buyVolume,
+      sellVolume,
+      closingPrice,
+      isClosed,
+      isTheoreticalClosed,
+    }
+  }
+
+
+  async getAuctionIndex ({ tokenA, tokenB }) {
     return this._callForPair('getAuctionIndex', tokenA, tokenB)
   }
 
   async getAuctionStart ({ tokenA, tokenB }) {
-    return this._callForPair('getAuctionStart', tokenA, tokenB)
+    const auctionStartEpoch = await this._callForPair('getAuctionStart', tokenA, tokenB)
+    console.log('auctionStartEpoch', auctionStartEpoch.toNumber())
+    // The SC has 0 when the contract is initialized
+    // 1 when looking for founding. For the repo, they both will be modeled as a
+    // null state of the auctionStart
+
+    if (auctionStartEpoch <= AUCTION_START_FOR_WAITING_FOR_FUNDING) {
+      return null
+    } else {
+      return epochToDate(auctionStartEpoch)
+    }
   }
 
   async isAprovedToken ({ token }) {
     return this._callForToken('approvedTokens', token)
   }
 
-  async gerSellVolume ({ sellToken, buyToken }) {
+  // TODO: getCurrencies?
+
+  async getSellVolume ({ sellToken, buyToken }) {
     return this._callForPair('sellVolumesCurrent', sellToken, buyToken)
   }
 
-  async gerSellVolumeNext ({ sellToken, buyToken }) {
+  async getSellVolumeNext ({ sellToken, buyToken }) {
     return this._callForPair('sellVolumesNext', sellToken, buyToken)
   }
 
-  async gerBuyVolume ({ sellToken, buyToken }) {
+  async getBuyVolume ({ sellToken, buyToken }) {
     return this._callForPair('buyVolumes', sellToken, buyToken)
   }
 
@@ -321,6 +540,12 @@ class AuctionRepoEthereum {
       .then(toFraction)
   }
 
+  async _getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+    return this
+      ._callForAuction('closingPrices', sellToken, buyToken, auctionIndex)
+      .then(toFraction)
+  }
+
   _getTokenContract (token) {
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
@@ -335,7 +560,7 @@ class AuctionRepoEthereum {
   }
 
   async _callForToken (callMethod, token, ...args) {
-    debug('Get %s for token %s', callMethod, token)
+    // debug('Get %s for token %s', callMethod, token)
     const tokenAddress = this._getTokenAddress(token)
 
     return this._dx[callMethod]
@@ -343,7 +568,7 @@ class AuctionRepoEthereum {
   }
 
   async _callForPair (callMethod, sellToken, buyToken, ...args) {
-    debug('Get %s for pair %s-%s', callMethod, sellToken, buyToken)
+    // debug('Get %s for pair %s-%s', callMethod, sellToken, buyToken)
     const sellTokenAddress = this._getTokenAddress(sellToken)
     const buyTokenAddress = this._getTokenAddress(buyToken)
 
@@ -352,9 +577,11 @@ class AuctionRepoEthereum {
   }
 
   async _callForAuction (callMethod, sellToken, buyToken, auctionIndex, ...args) {
+    /*
     debug('Get %s for auction %d of pair %s-%s',
       callMethod, auctionIndex, sellToken, buyToken
     )
+    */
     const sellTokenAddress = this._getTokenAddress(sellToken)
     const buyTokenAddress = this._getTokenAddress(buyToken)
 
@@ -439,6 +666,10 @@ function toFraction ([ numerator, denominator ]) {
 
 function toTransactionNumber (transactionResult) {
   return transactionResult.tx
+}
+
+function epochToDate (epoch) {
+  return new Date(epoch * 1000)
 }
 
 module.exports = AuctionRepoEthereum
