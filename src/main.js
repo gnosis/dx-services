@@ -23,15 +23,16 @@ instanceFactory({})
   .catch(handleError)
 
 class App {
-  constructor ({ config, botService }) {
+  constructor ({ config, botService, apiService }) {
     this._config = config
     this._botService = botService
+    this._apiService = apiService
 
     // Create server
     this._dxApiServer = new DxApiServer({
       port: config.API_PORT,
       host: config.API_HOST,
-      botService
+      apiService
     })
 
     // Create the eventBus

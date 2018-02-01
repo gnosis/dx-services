@@ -17,11 +17,18 @@ async function createInstances ({ test = false, config = {} }) {
     auctionRepo
   })
 
+  const apiService = getApiService({
+    config: mergedConfig,
+    exchangePriceRepo,
+    auctionRepo
+  })
+
   let instances = {
     config: mergedConfig,
 
     // services
-    botService
+    botService,
+    apiService
   }
 
   if (test) {
@@ -93,6 +100,15 @@ function getBotService ({ config, auctionRepo, exchangePriceRepo }) {
 
     // Config
     minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
+  })
+}
+
+function getApiService ({ config, auctionRepo, exchangePriceRepo }) {
+  const ApiService = require('../services/ApiService')
+  return new ApiService({
+    // Repos
+    auctionRepo,
+    exchangePriceRepo
   })
 }
 
