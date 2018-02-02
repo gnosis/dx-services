@@ -24,7 +24,6 @@ async function run ({
   printProps,
   fractionFormatter
 }) {
-
   const formatters = {
     closingPrice: fractionFormatter
   }

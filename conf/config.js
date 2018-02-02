@@ -1,8 +1,26 @@
 // TODO;
 //  * Instead of this config being static, Initialized the config
 //  * Rename the const and add the 'DEFAULT_' prefix
-//  * Override defaults with arguments and environent vars
-//  * Add environent config
+//  * Add environent config: mock, local, rinkeby
+//      * npm run app --mock
+//      * npm run app --rinkeby
+//  * Override defaults with arguments and environent vars. I.e:
+//      * npm run app --ethereum-rpc-url=http://localhost:9545
+//      * ETHEREUM-RPC-URL=http://localhost:9545 npm run app
+//  * minimum, for the 1st iteration, let override:
+//      * url
+//      * contract addresses
+//      * botAddress and mnemonic
+//      * para nota MINIMUM_SELL_VOLUME_USD
+/*
+
+example: Run in PRE
+  ETHERUM_RPC_URL=<url> \
+  DX_CONTRACT_ADDRESS =<add>\
+  BOT_ACCOUNT_MNEMONIC=<menmonic>\
+  MINIMUN_SELL_VOLUME_USD=1000\
+  npm run app
+*/
 
 const MARKETS = {
   'RDN': 'ETH',

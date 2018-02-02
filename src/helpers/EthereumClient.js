@@ -116,23 +116,6 @@ class EthereumClient {
     })
   }
 
-  /*
-
-
-
-
-  async function assertThrowsAsynchronously(test, error) {
-      try {
-          await test();
-      } catch(e) {
-          if (!error || e instanceof error)
-              return "everything is fine";
-      }
-      throw new Error("Missing rejection" + (error ? " with "+error.name : ""));
-  }
-  */
-
-
   getWeb3 () {
     return this._web3
   }
@@ -145,6 +128,7 @@ class EthereumClient {
 
     return contract
       .deployed()
+      // TODO: Using at <address> depending on the config
       .then(contractInstance => {
         debug('Loaded contract %s. Defaults: %o', contractName, contract.defaults())
         return {
