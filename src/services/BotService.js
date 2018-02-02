@@ -69,13 +69,13 @@ class BotService {
       }),
 
       // Get sellvolume for auction tokeA-tokenB
-      this._auctionRepo.gerSellVolume({
+      this._auctionRepo.getSellVolume({
         sellToken: tokenA,
         buyToken: tokenB
       }),
 
       // Get sellvolume for auction tokeB-tokenA
-      this._auctionRepo.gerSellVolume({
+      this._auctionRepo.getSellVolume({
         sellToken: tokenB,
         buyToken: tokenA
       })

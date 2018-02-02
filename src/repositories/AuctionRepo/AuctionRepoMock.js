@@ -50,7 +50,7 @@ class AuctionRepoMock {
     return this._getAuction({ sellToken, buyToken }).index
   }
 
-  async gerAuctionStart ({ sellToken, buyToken }) {
+  async getAuctionStart ({ sellToken, buyToken }) {
     debug('Get auction start for %s-%s', sellToken, buyToken)
     // auctionStarts
     return this._getAuction({ sellToken, buyToken }).auctionStart
@@ -61,19 +61,19 @@ class AuctionRepoMock {
     return this._getAuction({ sellToken, buyToken }).closingPrice
   }
 
-  async gerSellVolume ({ sellToken, buyToken }) {
+  async getSellVolume ({ sellToken, buyToken }) {
     debug('Get sell volume for %s-%s', sellToken, buyToken)
     // sellVolumesCurrent
     return this._getAuction({ sellToken, buyToken }).sellVolume
   }
 
-  async gerSellVolumeNext ({ sellToken, buyToken }) {
+  async getSellVolumeNext ({ sellToken, buyToken }) {
     debug('Get sell volume next for %s-%s', sellToken, buyToken)
     // sellVolumesNext
     return this._getAuction({ sellToken, buyToken }).sellVolumeNext
   }
 
-  async gerBuyVolume ({ sellToken, buyToken }) {
+  async getBuyVolume ({ sellToken, buyToken }) {
     debug('Get buy volume for %s-%s', sellToken, buyToken)
     return this._getAuction({ sellToken, buyToken }).buyVolume
   }
