@@ -11,7 +11,6 @@ contract('DutchExchange', function (accounts) {
     })
   })
 
-
   it('should send coin correctly', function () {
     /*
     var meta
