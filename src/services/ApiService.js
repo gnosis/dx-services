@@ -3,7 +3,7 @@ const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
 class ApiService {
-  constructor ({ auctionRepo, exchangePriceRepo }) {
+  constructor ({ auctionRepo }) {
     this._auctionRepo = auctionRepo
 
     // Avoids concurrent calls that might endup buy/selling two times
@@ -38,27 +38,44 @@ class ApiService {
 
   async getAuctions ({ currencyA, currencyB }) {
     debug(`Passed tokens are %s,%s`, currencyA, currencyB)
-    const auctionInfo = await this._auctionRepo.getStateInfo({sellToken: currencyA, buyToken: currencyB})
-    const auctionIndex = await this._auctionRepo.getAuctionIndex({sellToken: currencyA, buyToken: currencyB})
-    const currentPrice = await this._auctionRepo.getPrice({sellToken: currencyA, buyToken: currencyB, auctionIndex})
-    const sellVolume = await this._auctionRepo.getSellVolume({sellToken: currencyA, buyToken: currencyB})
-    const buyVolume = await this._auctionRepo.getBuyVolume({sellToken: currencyA, buyToken: currencyB})
+    const auctionInfo = await this._auctionRepo.getStateInfo({
+      sellToken: currencyA, buyToken: currencyB
+    })
     const sellVolumeNext = await this._auctionRepo.getSellVolumeNext({sellToken: currencyA, buyToken: currencyB})
 
     return {
-      auctionIndex,
+      auctionInfo,
+      auctionIndex: auctionInfo.auctionIndex,
       currencyA,
       currencyB,
       // nextAuctionDate, TODO not in repo yet
-      // isAuctionRunning, TODO not implemented yet
-      currentPrice,
-      sellVolume,
-      buyVolume,
+      isAuctionRunning: this._isAuctionRunning(auctionInfo),
+      buyVolume: auctionInfo.auction.sellVolume,
+      sellVolume: auctionInfo.auction.sellVolume,
       sellVolumeNext
     }
   }
 
-  async getBalances (accountAddress) {}
+  _isAuctionRunning (auction) {
+    const now = new Date()
+    if (auction.auctionStart === null || auction.auctionStart >= now ||
+      auction.auction.isClosed || auction.auctionOpp.isClosed) {
+      return false
+    } else {
+      return true
+    }
+  }
+
+  async getCurrentPrice ({sellToken, buyToken}) {
+    debug(`Passed tokens are %s,%s`, sellToken, buyToken)
+
+    const auctionIndex = await this._auctionRepo.getAuctionIndex({sellToken, buyToken})
+    return this._auctionRepo.getPrice({sellToken, buyToken, auctionIndex})
+  }
+
+  async getBalances ({accountAddress}) {
+    return this._auctionRepo.getBalances({accountAddress})
+  }
 }
 
 module.exports = ApiService

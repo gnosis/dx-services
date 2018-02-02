@@ -36,7 +36,21 @@ class DxApiServer {
     })
 
     app.get('/auctions/:currencyA/:currencyB/current', async (req, res) => {
-      res.send(await this._apiService.getAuctions({currencyA: req.params.currencyA, currencyB: req.params.currencyB}))
+      res.send(await this._apiService.getAuctions({
+        currencyA: req.params.currencyA,
+        currencyB: req.params.currencyB
+      }))
+    })
+
+    app.get('/auctions/:sellToken/:buyToken/current-price', async (req, res) => {
+      res.send(await this._apiService.getCurrentPrice({
+        currencyA: req.params.currencyA,
+        currencyB: req.params.currencyB
+      }))
+    })
+
+    app.get('/balances/:address', async (req, res) => {
+      res.send(await this._apiService.getBalances({address: req.params.address}))
     })
 
     // Version, About (getAboutInfo)
