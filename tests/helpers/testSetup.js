@@ -11,6 +11,105 @@ const config = {
   AUCTION_REPO_IMPL: 'ethereum'
 }
 
+const stateInfoProps = ['auctionIndex', 'auctionStart']
+const auctionProps = [
+  'buyVolume',
+  'sellVolume',
+  'closingPrice',
+  'isClosed',
+  'isTheoreticalClosed'
+]
+
+function getHelpers ({ ethereumClient, auctionRepo }) {
+  const address = ethereumClient.getCoinbase()
+
+  // helpers
+  async function buySell (operation, { buyToken, sellToken, amount }) {
+    // buy
+    const auctionIndex = await auctionRepo.getAuctionIndex({
+      buyToken,
+      sellToken
+    })
+    console.log(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`)
+    console.log(`Auction:\n\t${auctionIndex}`)
+    await printState('State before buy', { buyToken, sellToken })
+
+    await auctionRepo[operation]({
+      address,
+      buyToken,
+      sellToken,
+      auctionIndex,
+      amount
+    })
+    console.log(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
+    await printState('State after buy', { buyToken, sellToken })
+  }
+
+  async function printTime (message) {
+    const time = await ethereumClient.geLastBlockTime()
+    console.log(message + ':\t', time.toUTCString())
+  }
+
+  async function printState (message, { sellToken, buyToken }) {
+    const state = await auctionRepo.getState({ sellToken, buyToken })
+    const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
+
+    console.log(`\n**********  ${message}  **********\n`)
+    console.log(`\tState: ${state}`)
+
+    console.log('\n\tState info:')
+    printProps('\t\t', stateInfoProps, stateInfo)
+
+    console.log(`\n\tAuction ${sellToken}-${buyToken}:`)
+    printProps('\t\t', auctionProps, stateInfo.auction, formatters)
+
+    console.log(`\n\tAuction ${buyToken}-${sellToken}:`)
+    printProps('\t\t', auctionProps, stateInfo.auctionOpp, formatters)
+    console.log('\n**************************************\n\n')
+  }
+
+  async function addTokens () {
+    await auctionRepo.addTokenPair({
+      address,
+      tokenA: 'RDN',
+      tokenAFunding: 0,
+      tokenB: 'ETH',
+      tokenBFunding: 15.123,
+      initialClosingPrice: {
+        numerator: 330027,
+        denominator: 100000000
+      }
+    })
+
+    console.log('The tokens were succesfully added')
+
+    /*
+    await auctionRepo.addTokenPair({
+      address,
+      tokenA: 'OMG',
+      tokenAFunding: 0,
+      tokenB: 'ETH',
+      tokenBFunding: 20.123,
+      initialClosingPrice: {
+        numerator: 1279820,
+        denominator: 100000000
+      }
+    })
+    */
+  }
+
+  return {
+    // debug utils
+    printProps,
+    fractionFormatter,
+
+    // interact with DX
+    printTime,
+    printState,
+    addTokens,
+    buySell
+  }
+}
 function printProps (prefix, props, object, formatters) {
   props.forEach(prop => {
     let value = object[prop]
@@ -26,10 +125,15 @@ function fractionFormatter (fraction) {
   if (fraction.numerator.isZero() && fraction.denominator.isZero()) {
     return null // fraction.numerator.toNumber()
   } else {
-    return fraction.numerator
-          .div(fraction.denominator)
-          .toNumber()
+    return fraction
+      .numerator
+      .div(fraction.denominator)
+      .toNumber()
   }
+}
+
+const formatters = {
+  closingPrice: fractionFormatter
 }
 
 function testSetup () {
@@ -38,47 +142,12 @@ function testSetup () {
       return instances.ethereumClient
         .loadContracts({ contractNames })
         .then(contracts => {
+          const helpers = getHelpers(instances)
+
           // Return contracts plus the test instances of the instance factory
-          return Object.assign({
-            address: instances.ethereumClient.getCoinbase(),
-            printProps,
-            fractionFormatter
-          }, contracts, instances)
+          return Object.assign({}, helpers, contracts, instances)
         })
     })
 }
 
 module.exports = testSetup
-/*
-const Web3 = require('web3')
-// const dutchExchangeJson = require('../../build/contracts/DutchExchange.json')
-
-const contractNames = ['DutchExchange', 'TokenOWL', 'TokenTUL']
-const contractsBaseDir = '../../node_modules/@gnosis.pm/dutch-exchange/build/contracts'
-
-function setup ({ url = 'http://127.0.0.1:8545' }) {
-  // Get usefull info
-  const provider = new Web3.providers.HttpProvider(url)
-  const web3 = new Web3(provider)
-  const address = web3.eth.coinbase
-
-  // Get contracts
-  return getContractPromises(provider)
-    .then(contracts => {
-      const setupResult = {
-        address,
-        web3
-      }
-      contracts.forEach(contract => {
-        setupResult[contract.name] = contract.instance
-      })
-
-      return setupResult
-    })
-}
-
-// Setup and returns a promise of:
-//  - all contracts (see contractNames)
-//  - address
-module.exports = setup
-*/
