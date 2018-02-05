@@ -22,6 +22,8 @@ example: Run in PRE
   npm run app
 */
 
+const ENVIRONMENT = 'DEV' // LOCAL, DEV, PRO
+
 const MARKETS = {
   'RDN': 'ETH',
   'OMG': 'ETH'
@@ -82,6 +84,8 @@ const API_PORT = 8080
 const API_HOST = '0.0.0.0'
 
 module.exports = {
+  ENVIRONMENT,
+
   // bot config
   MARKETS,
   MINIMUM_SELL_VOLUME_USD,

@@ -59,7 +59,12 @@ class App {
     // Display some basic info
     this._botService
       .getAbout()
-      .then(about => debug('Loading app with %o ...', about))
+      .then(about => {
+        debug('Loading app in %s environment with %o ...',
+          this._config.ENVIRONMENT,
+          about
+        )
+      })
       .catch(handleError)
 
     // Run all the bots
