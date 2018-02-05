@@ -3,7 +3,7 @@ const testSetup = require('../helpers/testSetup')
 test('Get current auction info for two tokens', async () => {
   const { apiService } = await testSetup()
 
-  expect(await apiService.getAuctions({currencyA: 'RDN', currencyB: 'ETH'})).toBe('')
+  expect(await apiService.getAuctions({currencyA: 'RDN', currencyB: 'ETH'}))// .toBe('')
 })
 
 // test('Get current auction price for two tokens', async () => {
