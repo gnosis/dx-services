@@ -14,11 +14,13 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@digix/tempo/-/tempo-0.2.0.tgz#5daf91ad788d6b596a19aad22e2e667e4ec808a8"
 
-"@gnosis.pm/dutch-exchange@gnosis/dutch-exchange#contracts/DX-2.0-No-Frontend":
+"@gnosis.pm/dutch-exchange@gnosis/dutch-exchange#ad0324b":
   version "0.1.0"
-  resolved "https://codeload.github.com/gnosis/dutch-exchange/tar.gz/f673ea89d11dc2386e3aa3256b8557776df31e3d"
+  resolved "https://codeload.github.com/gnosis/dutch-exchange/tar.gz/ad0324b"
   dependencies:
     "@digix/tempo" "^0.2.0"
+    "@gnosis.pm/gnosis-core-contracts" "^1.0.1"
+    "@gnosis.pm/owl-token" "^0.2.0"
     autobind-decorator "^2.1.0"
     await-delay "^1.0.0"
     babel-polyfill "^6.23.0"
@@ -59,6 +61,16 @@
     uuid "^3.1.0"
     web3 "^0.20.2"
     whatwg-fetch "^2.0.3"
+
+"@gnosis.pm/gnosis-core-contracts@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/gnosis-core-contracts/-/gnosis-core-contracts-1.0.1.tgz#70dfad77a9aabe278e44c5c2e8ebf3ddac80764b"
+
+"@gnosis.pm/owl-token@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-0.2.0.tgz#511bdb184e824491edd7b064e6979749d9bb22a7"
+  dependencies:
+    "@gnosis.pm/gnosis-core-contracts" "^1.0.1"
 
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
@@ -4229,6 +4241,20 @@ truffle-contract@^3.0.1:
     truffle-blockchain-utils "^0.0.3"
     truffle-contract-schema "^1.0.0"
     web3 "^0.20.1"
+
+truffle-contract@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/truffle-contract/-/truffle-contract-3.0.3.tgz#b14fb318f9a743db8b061046e24978d91f31dbfb"
+  dependencies:
+    ethjs-abi "0.1.8"
+    truffle-blockchain-utils "^0.0.3"
+    truffle-contract-schema "^1.0.0"
+    truffle-error "0.0.2"
+    web3 "^0.20.1"
+
+truffle-error@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/truffle-error/-/truffle-error-0.0.2.tgz#01b189b78505566ae1689c239c7ca2dd121cfe4c"
 
 truffle@^4.0.6:
   version "4.0.6"
