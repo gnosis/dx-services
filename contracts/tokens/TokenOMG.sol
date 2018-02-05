@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import "@gnosis.pm/dutch-exchange/contracts/Tokens/StandardToken.sol";
+import "@gnosis.pm/gnosis-core-contracts/contracts/Tokens/StandardToken.sol";
 
 contract TokenOMG is StandardToken {
     string public constant symbol = "OMG";
