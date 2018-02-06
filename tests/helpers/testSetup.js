@@ -20,6 +20,8 @@ const auctionProps = [
   'isTheoreticalClosed'
 ]
 
+const balanceProps = ['token', 'balance']
+
 function getHelpers ({ ethereumClient, auctionRepo }) {
   const address = ethereumClient.getCoinbase()
 
@@ -78,6 +80,15 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
     console.log('\n**************************************\n\n')
   }
 
+  async function printBalances (account = address) {
+    const balances = await auctionRepo.getBalances({ address: account })
+    console.log(`\n**********  Balance for: ${account}  **********\n`)
+    balances.forEach(balance => {
+      console.log('\t- %s: %d', balance.token, balance.amount)
+    })
+    console.log('\n**************************************\n\n')
+  }
+
   async function addTokens () {
     await auctionRepo.addTokenPair({
       address,
@@ -116,6 +127,7 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
     // interact with DX
     printTime,
     printState,
+    printBalances,
     addTokens,
     buySell
   }
@@ -142,12 +154,17 @@ function fractionFormatter (fraction) {
   }
 }
 
+function numberFormatter (number) {
+  return -1
+}
+
 function printBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
 
 const formatters = {
-  closingPrice: fractionFormatter
+  closingPrice: fractionFormatter,
+  balance: numberFormatter
 }
 
 function testSetup () {

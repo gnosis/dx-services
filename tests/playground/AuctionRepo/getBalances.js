@@ -12,7 +12,7 @@ function run ({
     .then(balances => {
       console.log(`The balance for account ${address} is:`)
       balances.forEach(balanceInfo => {
-        console.log(`\t${balanceInfo.token}: ${balanceInfo.balance}`)
+        console.log(`\t${balanceInfo.token}: ${balanceInfo.amount}`)
       })
     })
 }

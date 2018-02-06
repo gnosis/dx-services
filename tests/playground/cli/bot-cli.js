@@ -20,25 +20,28 @@ async function run ({
   fractionFormatter,
   printTime,
   printState,
+  printBalances,
   addTokens,
   buySell
 }) {
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
+    .option('-b, --balances', 'Balances for all known tokens')
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
     .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
     .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
     .option('-o --oracle <token>', 'Show oracle-price')
     .option('-t, --time <hours>', 'Increase time of the blockchain in hours', parseFloat)
     .option('-m, --mine', 'Mine one block')
-    .option('-b, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens', list)
-    .option('-s, --sell <sell-token> <buy-token> <amount>', 'Sell tokens', list)
+    .option('-B, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens', list)
+    .option('-S, --sell <sell-token> <buy-token> <amount>', 'Sell tokens', list)
 
   commander.on('--help', function () {
     console.log('\n\nExamples:')
     console.log('')
     console.log('\tbot-cli -n')
+    console.log('\tbot-cli --balances')
     console.log('\tbot-cli --state RDN,ETH')
     console.log('\tbot-cli --add-tokens')
     console.log('\tbot-cli --closing-price RDN,ETH,0')
@@ -56,6 +59,9 @@ async function run ({
   if (commander.now) {
     // now
     await printTime('Current time')
+  } else if (commander.balances) {
+    // Balances
+    printBalances()
   } else if (commander.state) {
     // State
     const [buyToken, sellToken] = commander.state

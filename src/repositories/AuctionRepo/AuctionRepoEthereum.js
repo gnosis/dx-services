@@ -389,8 +389,17 @@ class AuctionRepoEthereum {
       Object.keys(this._tokens)
         // get it's balance
         .map(async token => {
-          const balance = await this.getBalance({ token, address })
-          return { token, balance }
+          const amount = await this
+            .isApprovedToken({ token })
+            .then(isAproved => {
+              if (isAproved) {
+                this.getBalance({ token, address })
+              } else {
+                return 0
+              }
+            })
+
+          return { token, amount }
         })
 
     return Promise.all(balancePromises)
@@ -642,20 +651,22 @@ class AuctionRepoEthereum {
   }
 
   async _doTransaction (transactionMethod, address, params) {
+    /*
     const estimatedGas =
       await this._dx[transactionMethod]
         .estimateGas(...params)
+    */
 
     console.log({
       transactionMethod,
       address,
-      estimatedGas,
+      //estimatedGas,
       params
     })
 
     return this._dx[transactionMethod](...params, {
-      from: address,
-      gas: estimatedGas
+      from: address
+      // gas: estimatedGas
     })
   }
 
