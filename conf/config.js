@@ -42,29 +42,34 @@ const BUY_THRESHOLDS = [{
   buyRatio: 1
 }]
 
-const JSON_RPC_PROVIDERS = {
-  // ganache GUI
-  'ganache': 'http://127.0.0.1:7545',
-
-  // ganache-cli
-  'ganache-cli': 'http://127.0.0.1:8545',
-
-  // truffle develop
-  'truffle': 'http://127.0.0.1:9545',
-
-  // parity --chain dev
-  // parity --chain kovan --mode active
-  'parity': 'http://127.0.0.1:8545'
-
-}
-const JSON_RPC_PROVIDER = 'ganache-cli'
-
-const ETHEREUM_JSON_RPC_PROVIDER = JSON_RPC_PROVIDERS[JSON_RPC_PROVIDER]
+const ETHERUM_RPC_URL = 'http://127.0.0.1:8545'
 const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
+
+// contracts
 const CONTRACTS_BASE_DIR = 'build/contracts'
 const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
+const CONTRACT_DEFINITIONS = {
+  StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
+  DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',
+  PriceOracleInterface: CONTRACTS_DUTCH_EXCHANGE_DIR + '/PriceOracleInterface',
+  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/Proxy'
+}
+
+const DX_CONTRACT_ADDRESS = null // TODO: Override with ENV_VAR
+// TODO: Implement the aditional token config
+const ERC20_TOKEN_ADDRESSES = {
+  RDN: null,
+  OMG: null
+}
+
+/*
+ETHERUM_RPC_URL
+DX_CONTRACT_ADDRESS
+BOT_ACCOUNT_MNEMONIC
+MINIMUN_SELL_VOLUME_USD
+*/
 
 // Kraken custom config
 const KRAKEN = {
@@ -92,13 +97,17 @@ module.exports = {
   BUY_THRESHOLDS,
 
   // Ethereum config
-  ETHEREUM_JSON_RPC_PROVIDER,
+  ETHERUM_RPC_URL,
   WALLET_MNEMONIC,
 
   // REPO
   AUCTION_REPO_IMPL,
-  CONTRACTS_BASE_DIR,
-  CONTRACTS_DUTCH_EXCHANGE_DIR,
+
+  // CONTRACTS
+  CONTRACT_DEFINITIONS,
+  DX_CONTRACT_ADDRESS,
+  ERC20_TOKEN_ADDRESSES,
+  CONTRACTS_BASE_DIR, // Just used for development
 
   // API
   API_PORT,

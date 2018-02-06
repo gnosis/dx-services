@@ -15,6 +15,7 @@ class EthereumClient {
     this._contractsBaseDir = contractsBaseDir
   }
 
+  /*
   loadContracts ({ contractNames, contractsBaseDir }) {
     // Load contract as an array of objects (props: name, instance)
     // TODO: Refactor to support also contract at an address? c..at("0x1234...")
@@ -45,6 +46,7 @@ class EthereumClient {
       }, {})
     })
   }
+  */
 
   getUrl () {
     return this._url
@@ -119,6 +121,15 @@ class EthereumClient {
     return this._web3
   }
 
+  loadContract (contractDefinitionPath) {
+    const contractJson = require(ROOT_DIR + contractDefinitionPath)
+    const contract = truffleContract(contractJson)
+    contract.setProvider(this._provider)
+
+    return contract
+  }
+
+  /*
   _loadContract (contractName, contractsBaseDir) {
     const contractsDir = ROOT_DIR + contractsBaseDir
     const contractJson = require(`${contractsDir}/${contractName}`)
@@ -136,6 +147,7 @@ class EthereumClient {
         }
       })
   }
+  */
 }
 
 module.exports = EthereumClient

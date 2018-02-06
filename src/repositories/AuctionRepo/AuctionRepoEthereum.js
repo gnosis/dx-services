@@ -76,65 +76,48 @@ const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
   );
 */
 
-const contractNames = [
-  'DutchExchange',
-  'PriceOracleInterface'
-]
-
-const mainTokenSymbols = ['GNO', 'OWL', 'TUL', 'ETH']
-
-// TODO: Review. We coud instead of using adhoc tokens, work agais ERC20
-//  interface and provide a register method to add a new token (with address)
-const erc20tokensSymbols = ['OMG', 'RDN']
-
 class AuctionRepoEthereum {
-  constructor ({ ethereumClient, contractsBaseDir, contractsBaseDirDx }) {
+  constructor ({
+    ethereumClient,
+    contractDefinitions,
+    dxContractAddress = null,
+    erc20TokenAddresses = {},
+    devContractsBaseDir
+  }) {
     this._ethereumClient = ethereumClient
-    this._contractsBaseDir = contractsBaseDir
-    this._contractsBaseDirDx = contractsBaseDirDx
+    this._contractDefinitions = contractDefinitions
+    this._dxContractAddress = dxContractAddress
+    this._erc20TokenAddresses = erc20TokenAddresses
+    this._devContractsBaseDir = devContractsBaseDir
 
-    const toContractName = symbol => symbol === 'ETH' ? 'EtherToken' : `Token${symbol}`
-    const mainTokenContractNames = mainTokenSymbols.map(toContractName)
-    const erc20TokenContractNames = erc20tokensSymbols.map(toContractName)
+    // Load the contracts
+    this.ready = this._loadContracts()
+      .then(({ dx, priceOracle, eth, tul, owl, tokenContracts }) => {
+        this._dx = dx
+        this._priceOracle = priceOracle
 
-    // Load contracts
-    this.ready = Promise.all([
-      // load contracts
-      this._ethereumClient.loadContracts({
-        contractNames: contractNames,
-        contractsBaseDir: contractsBaseDirDx
-      }),
-      // load main tokens
-      this._ethereumClient.loadContracts({
-        contractNames: mainTokenContractNames,
-        contractsBaseDir: contractsBaseDirDx
-      }),
-      // load ERC20 tokens
-      this._ethereumClient.loadContracts({
-        contractNames: erc20TokenContractNames,
-        contractsBaseDir: contractsBaseDir
-      })
-    ])
-      .then(([ contracts, mainTokensContracts, erc20TokensContracts ]) => {
-        const tokenSymbols =
-          mainTokenSymbols.concat(erc20tokensSymbols)
-        const tokenContracts = Object.assign({},
-          mainTokensContracts, erc20TokensContracts
-        )
+        this._tokens = Object.assign({
+          ETH: eth,
+          TUL: tul,
+          OWL: owl
+        }, tokenContracts)
 
-        const tokens = tokenSymbols
-          .reduce((tokensAccumulator, symbol) => {
-            tokensAccumulator[symbol] = tokenContracts[toContractName(symbol)]
-            return tokensAccumulator
-          }, {})
-
-        // Save contracts in a handy way for later use (_contracts, _tokens)
-        // this._contracts = contracts
-        this._tokens = tokens
-        this._dx = contracts.DutchExchange // just a handy alias
-
-        // TODO: handle
-        // this._priceOracle = contracts.PriceOracleInterface
+        debug(`DX contract in address %s`, this._dx.address)
+        debug(`Price Oracle in address %s`, this._priceOracle.address)
+        Object
+          .keys(this._tokens)
+          .forEach(token => {
+            const contract = this._tokens[token]
+            debug(`Token %s in address %s`,
+              token,
+              contract.address
+            )
+          })
+        /*
+        this._eth = eth
+        this._tul = tul
+        this._owl = owl
+        */
       })
   }
 
@@ -647,9 +630,12 @@ class AuctionRepoEthereum {
   }
 
   async _callForToken ({ operation, token, args = [], checkToken = true }) {
-    // debug('Get %s for token %s', operation, token))
-    //  operation, token, args)
+    /*
+    debug('Get "%s" for token %s. Args: %s',
+      operation, token, args)
+    */
     const tokenAddress = await this._getTokenAddress(token, checkToken)
+    debug('tokenAddress: %s', tokenAddress)
 
     return this._dx[operation]
       .call(tokenAddress, ...args)
@@ -694,7 +680,6 @@ class AuctionRepoEthereum {
       tokenAddress,
       ...args
     ]
-    console.log(params)
     return this._doTransaction(operation, address, params)
   }
 
@@ -756,16 +741,88 @@ class AuctionRepoEthereum {
     })
   }
 
-  async _loadContracts (contractNames, contractsBaseDir) {
-    return this._ethereumClient.loadContracts({
-      contractNames,
-      contractsBaseDir
-    })
-  }
+  async _loadContracts () {
+    const dxContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.DutchExchange)
 
-  async _loadTokensContracts (tokenSymbols, contractsBaseDir) {
-    const contractNames = tokenSymbols.map(symbol => 'Token' + symbol)
-    return this._loadContracts(contractNames, contractsBaseDir)
+    const standardTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.StandardToken)
+
+    const priceOracleContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.PriceOracleInterface)
+
+    let dxDeployedPromise
+    if (this._dxContractAddress) {
+      dxDeployedPromise = dxContract.at(this._dxContractAddress)
+    } else {
+      // TODO: Raise error if not in development
+      const proxyContract = this._ethereumClient
+        .loadContract(this._contractDefinitions.DutchExchangeProxy)
+
+      dxDeployedPromise = proxyContract
+        .deployed()
+        .then(dxProxy => dxContract.at(dxProxy.address))
+
+      // dxDeployedPromise = dxContract.deployed()
+    }
+
+    const dx = await dxDeployedPromise
+    const tokenPromises = Object
+      .keys(this._erc20TokenAddresses)
+      .map(token => {
+        const address = this._erc20TokenAddresses[token]
+        let tokenPromise
+        if (address) {
+          // We are given the addresses
+          tokenPromise = standardTokenContract
+            .at(address)
+            .then(contract => ({ token, contract }))
+        } else {
+          // For development
+          // TODO: Rise error if not in development
+
+          /*
+          Problem: deployed returns always the same address. new doesen't work
+          tokenPromise = standardTokenContract
+            .deployed()
+            .then(contract => ({ token, contract }))
+          */
+          tokenPromise = this._ethereumClient
+            .loadContract(`${this._devContractsBaseDir}/Token${token}`)
+            .deployed()
+            .then(contract => ({ token, contract }))
+        }
+
+        return tokenPromise
+      })
+
+    // TODO: Review the proxy is working propertly
+    return Promise.all([
+      // load addresses
+      dx.ETHUSDOracle.call(),
+      dx.ETH.call(),
+      dx.TUL.call(),
+      dx.OWL.call()
+    ])
+      .then(([ ethAddress, priceOracleAddress, tulAddress, owlAddress ]) => {
+        // load instances of the contract
+        return Promise.all([
+          priceOracleContract.at(priceOracleAddress),
+          standardTokenContract.at(ethAddress),
+          standardTokenContract.at(tulAddress),
+          standardTokenContract.at(owlAddress),
+          Promise.all(tokenPromises)
+        ])
+      })
+      // return contracts
+      .then(([ priceOracle, eth, tul, owl, tokenContractList ]) => {
+        const tokenContracts = tokenContractList.reduce((tokenContractsAux, contractInfo) => {
+          tokenContractsAux[contractInfo.token] = contractInfo.contract
+          return tokenContractsAux
+        }, {})
+
+        return { dx, priceOracle, eth, tul, owl, tokenContracts }
+      })
   }
 }
 

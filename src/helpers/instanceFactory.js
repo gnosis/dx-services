@@ -39,7 +39,6 @@ async function createInstances ({ test = false, config = {} }) {
       ethereumClient
     })
   }
-
   return instances
 }
 
@@ -47,8 +46,7 @@ function getEhereumClient (config) {
   if (!ethereumClient) {
     const EthereumClient = require('./EthereumClient')
     ethereumClient = new EthereumClient({
-      url: config.ETHEREUM_JSON_RPC_PROVIDER,
-      contractsBaseDir: config.CONTRACTS_BASE_DIR
+      url: config.ETHERUM_RPC_URL
     })
   }
 
@@ -68,8 +66,10 @@ function getAuctionRepoPromise (config) {
       const AuctionRepoEthereum = require('../repositories/AuctionRepo/AuctionRepoEthereum')
       const auctionRepoEthereum = new AuctionRepoEthereum({
         ethereumClient,
-        contractsBaseDir: config.CONTRACTS_BASE_DIR,
-        contractsBaseDirDx: config.CONTRACTS_DUTCH_EXCHANGE_DIR
+        contractDefinitions: config.CONTRACT_DEFINITIONS,
+        dxContractAddress: config.DX_CONTRACT_ADDRESS,
+        erc20TokenAddresses: config.ERC20_TOKEN_ADDRESSES,
+        devContractsBaseDir: config.CONTRACTS_BASE_DIR // just for develop (TODO: improve)
       })
       // Return the repo when it's ready
       auctionRepoPromise = auctionRepoEthereum
