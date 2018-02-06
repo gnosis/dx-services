@@ -148,7 +148,7 @@ class AuctionRepoEthereum {
   }
 
   async getStateInfo ({ sellToken, buyToken }) {
-    const auctionStart = await this.getAuctionStart({ sellToken, buyToken})
+    const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
     const auctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
 
     // debug('Get state for %s-%s', tokenA, tokenB)
@@ -174,31 +174,30 @@ class AuctionRepoEthereum {
     }
   }
 
-  async getState({ sellToken, buyToken }) {
+  async getState ({ sellToken, buyToken }) {
     const {
       auctionStart,
       auction,
       auctionOpp
     } = await this.getStateInfo({ sellToken, buyToken })
 
-
     const {
       isClosed,
-      isTheoreticalClosed,
-      sellVolume
+      isTheoreticalClosed
+      // sellVolume
     } = auction
 
     const {
       isClosed: isClosedOpp,
-      isTheoreticalClosed: isTheoreticalClosedOpp,
-      sellVolume: sellVolumeOpp
+      isTheoreticalClosed: isTheoreticalClosedOpp
+      // sellVolume: sellVolumeOpp
     } = auctionOpp
 
     const now = new Date()
     if (auctionStart === null) {
       // We havent surplus the threshold (or it's the first auction)
       return 'WAITING_FOR_FUNDING'
-    } else if (auctionStart >= now){
+    } else if (auctionStart >= now) {
       return 'WAITING_FOR_AUCTION_TO_START'
     } else if (isTheoreticalClosed || isTheoreticalClosedOpp) {
       return 'PENDING_CLOSE_THEORETICAL'
@@ -212,15 +211,14 @@ class AuctionRepoEthereum {
   }
 
 
-  // TODO: Review this logic. This are the stares of the diagram
-  async getState2({ sellToken, buyToken }) {
+  // TODO: Review this logic. This are the states of the diagram
+  // (not used right now)
+  async getState2 ({ sellToken, buyToken }) {
     const {
       auctionStart,
       auction,
       auctionOpp
     } = await this.getStateInfo({ sellToken, buyToken })
-
-
     const {
       isClosed,
       isTheoreticalClosed,
@@ -254,8 +252,8 @@ class AuctionRepoEthereum {
       // They both have volume
 
       if (
-          isTheoreticalClosed && isTheoreticalClosedOpp &&
-          !isClosed && !isClosedOpp) {
+        isTheoreticalClosed && isTheoreticalClosedOpp &&
+        !isClosed && !isClosedOpp) {
         // both are close theoretical
         // and not closed yet
         return 'BOTH_THEORETICAL_CLOSED' // S4
@@ -336,17 +334,24 @@ class AuctionRepoEthereum {
       sellVolume,
       closingPrice,
       isClosed,
-      isTheoreticalClosed,
+      isTheoreticalClosed
     }
   }
 
-
   async getAuctionIndex ({ sellToken, buyToken }) {
-    return this._callForPair('getAuctionIndex', sellToken, buyToken)
+    return this._callForPair({
+      operation: 'getAuctionIndex',
+      sellToken,
+      buyToken
+    })
   }
 
   async getAuctionStart ({ sellToken, buyToken }) {
-    const auctionStartEpoch = await this._callForPair('getAuctionStart', sellToken, buyToken)
+    const auctionStartEpoch = await this._callForPair({
+      operation: 'getAuctionStart',
+      sellToken,
+      buyToken
+    })
 
     // The SC has 0 when the contract is initialized
     // 1 when looking for founding. For the repo, they both will be modeled as a
@@ -360,26 +365,46 @@ class AuctionRepoEthereum {
   }
 
   async isApprovedToken ({ token }) {
-    const tokenAddress = this._getTokenContract(token).address
-    return this._isAproved(tokenAddress)
+    return this._callForToken({
+      operation: 'approvedTokens',
+      token: token,
+      checkToken: false
+    })
   }
 
   // TODO: getCurrencies?
 
   async getSellVolume ({ sellToken, buyToken }) {
-    return this._callForPair('sellVolumesCurrent', sellToken, buyToken)
+    return this._callForPair({
+      operation: 'sellVolumesCurrent',
+      sellToken,
+      buyToken
+    })
   }
 
   async getSellVolumeNext ({ sellToken, buyToken }) {
-    return this._callForPair('sellVolumesNext', sellToken, buyToken)
+    return this._callForPair({
+      operation: 'sellVolumesNext',
+      sellToken,
+      buyToken
+    })
   }
 
   async getBuyVolume ({ sellToken, buyToken }) {
-    return this._callForPair('buyVolumes', sellToken, buyToken)
+    return this._callForPair({
+      operation: 'buyVolumes',
+      sellToken,
+      buyToken
+    })
   }
 
   async getBalance ({ token, address }) {
-    return this._callForToken('balances', token, address)
+    return this._callForToken({
+      operation: 'balances',
+      token,
+      args: [ address ],
+      checkToken: false
+    })
   }
 
   async getBalances ({ address }) {
@@ -389,16 +414,7 @@ class AuctionRepoEthereum {
       Object.keys(this._tokens)
         // get it's balance
         .map(async token => {
-          const amount = await this
-            .isApprovedToken({ token })
-            .then(isAproved => {
-              if (isAproved) {
-                this.getBalance({ token, address })
-              } else {
-                return 0
-              }
-            })
-
+          const amount = await this.getBalance({ token, address })
           return { token, amount }
         })
 
@@ -406,38 +422,63 @@ class AuctionRepoEthereum {
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
-    return this._callForAuction('extraTokens',
-      sellToken, buyToken, auctionIndex
-    )
+    return this._callForAuction({
+      operation: 'extraTokens',
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
   }
 
   async getSellerBalance ({ sellToken, buyToken, auctionIndex, address }) {
-    return this._callForAuction('sellerBalances',
-      sellToken, buyToken, auctionIndex, address
-    )
+    return this._callForAuction({
+      operation: 'sellerBalances',
+      sellToken,
+      buyToken,
+      auctionIndex,
+      args: [ address ]
+    })
   }
 
   async getBuyerBalance ({ sellToken, buyToken, auctionIndex, address }) {
-    return this._callForAuction('buyerBalances',
-      sellToken, buyToken, auctionIndex, address
-    )
+    return this._callForAuction({
+      operation: 'buyerBalances',
+      sellToken,
+      buyToken,
+      auctionIndex,
+      args: [ address ]
+    })
   }
 
   async getClaimedAmounts ({ sellToken, buyToken, auctionIndex, address }) {
-    return this._callForAuction('claimedAmounts',
-      sellToken, buyToken, auctionIndex, address
-    )
+    return this._callForAuction({
+      operation: 'claimedAmounts',
+      sellToken,
+      buyToken,
+      auctionIndex,
+      args: [ address ]
+    })
   }
 
   async deposit ({ token, amount, address }) {
     return this
-      ._transactionForToken('deposit', address, token, amount)
+      ._transactionForToken({
+        operation: 'deposit',
+        address,
+        token,
+        args: [ amount ]
+      })
       .then(toTransactionNumber)
   }
 
   async withdraw ({ token, amount, address }) {
     return this
-      ._transactionForToken('withdraw', address, token, amount)
+      ._transactionForToken({
+        operation: 'withdraw',
+        address,
+        token,
+        args: [ amount ]
+      })
       .then(toTransactionNumber)
   }
 
@@ -447,18 +488,28 @@ class AuctionRepoEthereum {
     // TODO: Review validations for doing them before calling the DX
 
     return this
-      ._transactionForAuction('postSellOrder',
-        address, sellToken, buyToken, auctionIndex, amount
-      )
+      ._transactionForAuction({
+        operation: 'postSellOrder',
+        address,
+        sellToken,
+        buyToken,
+        auctionIndex,
+        args: [ amount ]
+      })
       .then(toTransactionNumber)
   }
 
   async postBuyOrder ({ sellToken, buyToken, auctionIndex, address, amount }) {
     // TODO: Review validations for doing them before calling the DX
     return this
-      ._transactionForAuction('postBuyOrder',
-        address, sellToken, buyToken, auctionIndex, amount
-      )
+      ._transactionForAuction({
+        operation: 'postBuyOrder',
+        address,
+        sellToken,
+        buyToken,
+        auctionIndex,
+        args: [ amount ]
+      })
       .then(toTransactionNumber)
   }
 
@@ -467,24 +518,35 @@ class AuctionRepoEthereum {
   }) {
     // TODO: Review why the transaction needs address as a param as well
     return this
-      ._transactionForPair('claimSellerFunds',
-        address, sellToken, buyToken, address, auctionIndex
-      )
+      ._transactionForPair({
+        operation: 'claimSellerFunds',
+        address,
+        sellToken,
+        buyToken,
+        args: [ address, auctionIndex ]
+      })
       .then(toTransactionNumber)
   }
 
   async claimBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
     return this
-      ._transactionForPair('claimBuyerFunds',
-        address, sellToken, buyToken, address, auctionIndex
-      )
+      ._transactionForPair({
+        operation: 'claimBuyerFunds',
+        address,
+        sellToken,
+        buyToken,
+        args: [ address, auctionIndex ]
+      })
       .then(toTransactionNumber)
   }
 
   async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
-    return this._callForPair('getUnclaimedBuyerFunds',
-      sellToken, buyToken, address, auctionIndex
-    )
+    return this._callForPair({
+      operation: 'getUnclaimedBuyerFunds',
+      sellToken,
+      buyToken,
+      args: [address, auctionIndex]
+    })
   }
 
   async addTokenPair ({
@@ -528,19 +590,32 @@ class AuctionRepoEthereum {
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {
     return this
-      ._callForAuction('getPriceForJS', sellToken, buyToken, auctionIndex)
+      ._callForAuction({
+        operation: 'getPriceForJS',
+        sellToken,
+        buyToken,
+        auctionIndex
+      })
       .then(toFraction)
   }
 
   async getPriceOracle ({ token }) {
     return this
-      ._callForToken('getPriceOracleForJS', token)
+      ._callForToken({
+        operation: 'getPriceOracleForJS',
+        token
+      })
       .then(toFraction)
   }
 
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     return this
-      ._callForAuction('closingPrices', sellToken, buyToken, auctionIndex)
+      ._callForAuction({
+        operation: 'closingPrices',
+        sellToken,
+        buyToken,
+        auctionIndex
+      })
       .then(toFraction)
   }
 
@@ -553,16 +628,11 @@ class AuctionRepoEthereum {
     return tokenContract
   }
 
-  async _isAproved (tokenAddress) {
-    return this._dx
-      .approvedTokens
-      .call(tokenAddress)
-  }
 
   async _getTokenAddress (token, check = true) {
     const tokenAddress = this._getTokenContract(token).address
     if (check) {
-      const isApprovedToken = await this._isAproved(tokenAddress)
+      const isApprovedToken = await this.isApprovedToken(tokenAddress)
 
       if (!isApprovedToken) {
         throw Error(`${token} is not an approved token`)
@@ -572,58 +642,65 @@ class AuctionRepoEthereum {
     return tokenAddress
   }
 
-  async _callForToken (callMethod, token, ...args) {
-    // debug('Get %s for token %s', callMethod, token)
-    const tokenAddress = await this._getTokenAddress(token)
-    console.log('Get %s for token %s, %s', callMethod, token, tokenAddress)
+  async _callForToken ({ operation, token, args = [], checkToken = true }) {
+    // debug('Get %s for token %s', operation, token)
+    const tokenAddress = await this._getTokenAddress(token, checkToken)
+    console.log('Get %s for token %s, %s', operation, token, tokenAddress)
 
-    return this._dx[callMethod]
+    return this._dx[operation]
       .call(tokenAddress, ...args)
   }
 
-  async _callForPair (callMethod, sellToken, buyToken, ...args) {
-    // debug('Get %s for pair %s-%s', callMethod, sellToken, buyToken)
-    const sellTokenAddress = await this._getTokenAddress(sellToken)
-    const buyTokenAddress = await this._getTokenAddress(buyToken)
+  async _callForPair ({ operation, sellToken, buyToken, args, checkTokens = true }) {
+    // debug('Get %s for pair %s-%s', operation, sellToken, buyToken)
+    const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
+    const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
 
     return this._dx.approvedTokens
       .call(sellTokenAddress, buyTokenAddress, ...args)
   }
 
-  async _callForAuction (callMethod, sellToken, buyToken, auctionIndex, ...args) {
+  async _callForAuction ({
+    operation,
+    sellToken,
+    buyToken,
+    auctionIndex,
+    args,
+    checkTokens = true
+  }) {
     /*
     debug('Get %s for auction %d of pair %s-%s',
-      callMethod, auctionIndex, sellToken, buyToken
+      operation, auctionIndex, sellToken, buyToken
     )
     */
-    const sellTokenAddress = await this._getTokenAddress(sellToken)
-    const buyTokenAddress = await this._getTokenAddress(buyToken)
+    const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
+    const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
 
-    return this._dx[callMethod]
+    return this._dx[operation]
       .call(sellTokenAddress, buyTokenAddress, auctionIndex, ...args)
   }
 
-  async _transactionForToken (transactionMethod, address, token, ...args) {
+  async _transactionForToken ({ operation, address, token, args, checkToken }) {
     debug('Execute transaction %s (address %s) for token %s',
-      transactionMethod, address, token
+      operation, address, token
     )
-    const tokenAddress = await await this._getTokenAddress(token)
+    const tokenAddress = await await this._getTokenAddress(token, checkToken)
 
     const params = [
       tokenAddress,
       ...args
     ]
-    return this._doTransaction(transactionMethod, address, params)
+    return this._doTransaction(operation, address, params)
   }
 
-  async _transactionForPair (
-    transactionMethod, address, sellToken, buyToken, ...args
-  ) {
+  async _transactionForPair ({
+    transactionMethod, address, sellToken, buyToken, args, checkTokens
+  }) {
     debug('Execute transaction %s (address %s) for pair %s-%s',
       transactionMethod, address, sellToken, buyToken
     )
-    const sellTokenAddress = await this._getTokenAddress(sellToken)
-    const buyTokenAddress = await this._getTokenAddress(buyToken)
+    const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
+    const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
 
     const params = [
       sellTokenAddress,
@@ -633,14 +710,20 @@ class AuctionRepoEthereum {
     return this._doTransaction(transactionMethod, address, params)
   }
 
-  async _transactionForAuction (
-    transactionMethod, address, sellToken, buyToken, auctionIndex, ...args
-  ) {
+  async _transactionForAuction ({
+    transactionMethod,
+    address,
+    sellToken,
+    buyToken,
+    auctionIndex,
+    args,
+    checkTokens
+  }) {
     debug('Execute transaction %s (address %s) for auction %d of the pair %s-%s',
       transactionMethod, address, auctionIndex, sellToken, buyToken
     )
-    const sellTokenAddress = await this._getTokenAddress(sellToken)
-    const buyTokenAddress = await this._getTokenAddress(buyToken)
+    const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
+    const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [
       sellTokenAddress,
       buyTokenAddress,
@@ -652,21 +735,19 @@ class AuctionRepoEthereum {
 
   async _doTransaction (transactionMethod, address, params) {
     /*
-    const estimatedGas =
-      await this._dx[transactionMethod]
-        .estimateGas(...params)
-    */
-
     console.log({
       transactionMethod,
       address,
-      //estimatedGas,
       params
     })
+    */
+    const estimatedGas =
+      await this._dx[transactionMethod]
+        .estimateGas(...params)
 
     return this._dx[transactionMethod](...params, {
-      from: address
-      // gas: estimatedGas
+      from: address,
+      gas: estimatedGas
     })
   }
 
