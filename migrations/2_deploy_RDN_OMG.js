@@ -6,6 +6,6 @@ module.exports = function deploy (deployer) {
   deployer.deploy(Math)
   deployer.link(Math, [ TokenOMG, TokenRDN ])
 
-  deployer.deploy(TokenOMG)
-  deployer.deploy(TokenRDN)
+  deployer.deploy(TokenOMG, 100000 * (10 ** 18))
+  deployer.deploy(TokenRDN, 100000 * (10 ** 18))
 }
