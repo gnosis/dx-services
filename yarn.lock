@@ -14,9 +14,9 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@digix/tempo/-/tempo-0.2.0.tgz#5daf91ad788d6b596a19aad22e2e667e4ec808a8"
 
-"@gnosis.pm/dutch-exchange@gnosis/dutch-exchange#ad0324b":
+"@gnosis.pm/dutch-exchange@git+ssh://git@github.com:gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend":
   version "0.1.0"
-  resolved "https://codeload.github.com/gnosis/dutch-exchange/tar.gz/ad0324b"
+  resolved "git+ssh://git@github.com:gnosis/dutch-exchange.git#ad0324b2291d0aee1926ce3531e810efb27f3ca9"
   dependencies:
     "@digix/tempo" "^0.2.0"
     "@gnosis.pm/gnosis-core-contracts" "^1.0.1"

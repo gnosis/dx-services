@@ -34,7 +34,7 @@
     "truffle-contract": "^3.0.3"
   },
   "devDependencies": {
-    "@gnosis.pm/dutch-exchange": "gnosis/dutch-exchange#contracts/DX-2.0-No-Frontend",
+    "@gnosis.pm/dutch-exchange": "git+ssh://git@github.com:gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend",
     "eslint": "^4.16.0",
     "eslint-config-standard": "^11.0.0-beta.0",
     "eslint-plugin-import": "^2.8.0",
