@@ -129,9 +129,12 @@ class AuctionRepoEthereum {
           }, {})
 
         // Save contracts in a handy way for later use (_contracts, _tokens)
-        this._contracts = contracts
+        // this._contracts = contracts
         this._tokens = tokens
-        this._dx = this._contracts.DutchExchange // just a handy alias
+        this._dx = contracts.DutchExchange // just a handy alias
+
+        // TODO: handle
+        // this._priceOracle = contracts.PriceOracleInterface
       })
   }
 
@@ -577,6 +580,7 @@ class AuctionRepoEthereum {
     )
     const tokenAAddress = await this._getTokenAddress(tokenA, false)
     const tokenBAddress = await this._getTokenAddress(tokenB, false)
+
     const params = [
       tokenAAddress, tokenBAddress,
       tokenAFunding, tokenBFunding,
@@ -628,11 +632,10 @@ class AuctionRepoEthereum {
     return tokenContract
   }
 
-
   async _getTokenAddress (token, check = true) {
     const tokenAddress = this._getTokenContract(token).address
     if (check) {
-      const isApprovedToken = await this.isApprovedToken(tokenAddress)
+      const isApprovedToken = await this.isApprovedToken({ token })
 
       if (!isApprovedToken) {
         throw Error(`${token} is not an approved token`)
@@ -643,9 +646,9 @@ class AuctionRepoEthereum {
   }
 
   async _callForToken ({ operation, token, args = [], checkToken = true }) {
-    // debug('Get %s for token %s', operation, token)
+    // debug('Get %s for token %s', operation, token))
+    //  operation, token, args)
     const tokenAddress = await this._getTokenAddress(token, checkToken)
-    console.log('Get %s for token %s, %s', operation, token, tokenAddress)
 
     return this._dx[operation]
       .call(tokenAddress, ...args)

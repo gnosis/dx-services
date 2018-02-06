@@ -7,6 +7,8 @@ const contractNames = [
   'EtherToken'
 ]
 
+const BigNumber = require('bignumber.js')
+
 const config = {
   AUCTION_REPO_IMPL: 'ethereum'
 }
@@ -20,7 +22,7 @@ const auctionProps = [
   'isTheoreticalClosed'
 ]
 
-const balanceProps = ['token', 'balance']
+// const balanceProps = ['token', 'balance']
 
 function getHelpers ({ ethereumClient, auctionRepo }) {
   const address = ethereumClient.getCoinbase()
@@ -89,23 +91,65 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
     console.log('\n**************************************\n\n')
   }
 
+  async function printOraclePrice (message, { token }) {
+    const isApproved = await auctionRepo.isApprovedToken({ token })
+    if (isApproved) {
+      const priceToken = await auctionRepo.getPriceOracle({ token })
+      console.log('%s%s: %d ETH/%s',
+        message, token, fractionFormatter(token, priceToken), token)
+    } else {
+      console.log('\t\t- %s: No oracle price yet (not approved token)', token)
+    }
+  }
+
+  async function addTokenPair ({ address, tokenA, tokenB, tokenAFunding, tokenBFunding, initialClosingPrice }) {
+    const tokenABalance = await auctionRepo.getBalance({ token: tokenA, address })
+    const tokenBBalance = await auctionRepo.getBalance({ token: tokenB, address })
+    // const ethUsdPrice = await auctionRepo.getBalance({ token: tokenB })
+
+    console.log(`\n**********  Add new token pair for: ${tokenA}-${tokenB}  **********\n`)
+    console.log('\tMarket:')
+    console.log('\t\t- Account: %s', address)
+    console.log('\t\t- %d %s. The user has %d %s',
+      tokenAFunding, tokenA, tokenABalance, tokenA)
+    console.log('\t\t- %d %s. The user has %d %s',
+      tokenBFunding, tokenB, tokenBBalance, tokenB)
+    console.log('\t\t- Initial price: %d', fractionFormatter(initialClosingPrice))
+
+    console.log('\n\tPrice Oracle:')
+    await printOraclePrice('\t\t- ', { token: tokenA })
+    await printOraclePrice('\t\t- ', { token: tokenB })
+    console.log()
+
+    const result = await auctionRepo.addTokenPair({
+      address,
+      tokenA,
+      tokenAFunding,
+      tokenB,
+      tokenBFunding,
+      initialClosingPrice
+    })
+    console.log('\n\tResult:')
+    console.log('\t\t- TX: %s', result)
+
+    return result
+  }
+
   async function addTokens () {
-    await auctionRepo.addTokenPair({
+    return addTokenPair({
       address,
       tokenA: 'RDN',
       tokenAFunding: 0,
       tokenB: 'ETH',
       tokenBFunding: 15.123,
       initialClosingPrice: {
-        numerator: 330027,
-        denominator: 100000000
+        numerator: new BigNumber(330027),
+        denominator: new BigNumber(100000000)
       }
     })
 
-    console.log('The tokens were succesfully added')
-
     /*
-    await auctionRepo.addTokenPair({
+    await addTokenPair({
       address,
       tokenA: 'OMG',
       tokenAFunding: 0,
