@@ -31,7 +31,7 @@ async function run ({
     .option('-n, --now', 'Show current time')
     .option('-b, --balances', 'Balances for all known tokens')
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
-    .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens', list)
+    .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
     .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
     .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
     .option('-o --oracle <token>', 'Show oracle-price')
@@ -75,7 +75,7 @@ async function run ({
     const [token, amountString] = commander.deposit
     // const amount = new BigNumber(amountString)
     const amount = parseFloat(amountString)
-    deposit(token, amount)
+    deposit(token, amount * 10 ** 18)
   } else if (commander.addTokens) {
     // add tokens
     await printState('State before add tokens', {

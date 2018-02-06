@@ -4,12 +4,11 @@ testSetup()
   .catch(console.error)
 
 function run ({
-  DutchExchange
+  dx
 }) {
-  return DutchExchange
-    .owner
+  return dx.auctioneer
     .call()
-    .then(owner => {
-      console.log('The dutch exchange is owned by: ' + owner)
+    .then(auctioneer => {
+      console.log('The auctioner of DX is: ' + auctioneer)
     })
 }

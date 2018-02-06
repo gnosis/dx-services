@@ -5,13 +5,14 @@ testSetup()
 
 function run ({
   address,
-  DutchExchange,
-  EtherToken
+  dx,
+  tokens
 }) {
-  return DutchExchange
+  const eth = tokens.ETH
+  return dx
     .balances
-    .call(EtherToken.address, address)
+    .call(eth.address, address)
     .then(balance => {
-      console.log(`The balance of the account ${address} in EtherToken (${EtherToken.address}) is ${balance}`)
+      console.log(`The balance of the account ${address} in EtherToken (${eth.address}) is ${balance}`)
     })
 }

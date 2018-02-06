@@ -1,12 +1,4 @@
 const instanceFactory = require('../../src/helpers/instanceFactory')
-const contractNames = [
-  'DutchExchange',
-  'TokenOWL',
-  'TokenTUL',
-  'TokenGNO',
-  'EtherToken'
-]
-
 const BigNumber = require('bignumber.js')
 
 const config = {
@@ -23,6 +15,14 @@ const auctionProps = [
 ]
 
 // const balanceProps = ['token', 'balance']
+
+function getContracts ({ ethereumClient, auctionRepo }) {
+  return {
+    dx: auctionRepo._dx,
+    priceOracle: auctionRepo._priceOracle,
+    tokens: auctionRepo._tokens
+  }
+}
 
 function getHelpers ({ ethereumClient, auctionRepo }) {
   const address = ethereumClient.getCoinbase()
@@ -188,6 +188,8 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
   }
 
   return {
+    address,
+
     // debug utils
     printProps,
     fractionFormatter,
@@ -239,14 +241,9 @@ const formatters = {
 function testSetup () {
   return instanceFactory({ test: true, config })
     .then(instances => {
-      return instances.ethereumClient
-        .loadContracts({ contractNames })
-        .then(contracts => {
-          const helpers = getHelpers(instances)
-
-          // Return contracts plus the test instances of the instance factory
-          return Object.assign({}, helpers, contracts, instances)
-        })
+      const helpers = getHelpers(instances)
+      const contracts = getContracts(instances)
+      return Object.assign({}, helpers, contracts, instances)
     })
 }
 

@@ -4,11 +4,11 @@ testSetup()
   .catch(console.error)
 
 function run ({
-  DutchExchange,
-  TokenOWL,
-  TokenTUL
+  dx,
+  tokens
 }) {
-  console.log('DutchExchange: ', DutchExchange.address)
-  console.log('TokenOWL: ', TokenOWL.address)
-  console.log('TokenTUL: ', TokenTUL.address)
+  console.log('DutchExchange: ', dx.address)
+  Object.keys(tokens).forEach(token => {
+    console.log('Token %s: ', token, tokens[token].address)
+  })
 }

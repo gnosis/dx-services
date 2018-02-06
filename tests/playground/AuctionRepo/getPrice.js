@@ -7,10 +7,12 @@ function run ({
   auctionRepo,
   address
 }) {
-  const token = 'ETH'
+  const sellToken = 'RDN'
+  const buyToken = 'ETH'
+  const auctionIndex = 0
   return auctionRepo
-    .getPriceOracle({ token })
+    .getPrice({ sellToken, buyToken, auctionIndex })
     .then(price => {
-      console.log(`The price for ${token} is ${price.numerator}/${price.denominator}`)
+      console.log(`The price for auction ${auctionIndex} of ${sellToken}-${buyToken} pair is ${price.numerator}/${price.denominator}`)
     })
 }

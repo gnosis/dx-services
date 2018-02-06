@@ -3,7 +3,6 @@ testSetup()
   .then(run)
   .catch(console.error)
 
-
 const stateInfoProps = ['auctionIndex', 'auctionStart']
 
 const auctionProps = [
@@ -14,7 +13,6 @@ const auctionProps = [
   'isTheoreticalClosed'
 ]
 
-
 // Run:
 //    DEBUG=*:AuctionRepoEthereum node getState.js
 async function run ({
@@ -22,17 +20,16 @@ async function run ({
   printProps,
   fractionFormatter
 }) {
-  const tokenA = 'ETH'
-  const tokenB = 'RDN'
-  const state = await auctionRepo.getState({ tokenA, tokenB })
-  const stateInfo = await auctionRepo.getStateInfo({ tokenA, tokenB })
+  const sellToken = 'ETH'
+  const buyToken = 'RDN'
+  const state = await auctionRepo.getState({ sellToken, buyToken })
+  const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
 
   const formatters = {
     closingPrice: fractionFormatter
   }
 
-
-  console.log(`Token:\n\t${tokenA}-${tokenB}`)
+  console.log(`Token:\n\t${sellToken}-${buyToken}`)
   console.log(`State:\n\t${state}`)
 
   console.log('\nState info:')
