@@ -85,8 +85,13 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
   async function printBalances (account = address) {
     const balances = await auctionRepo.getBalances({ address: account })
     console.log(`\n**********  Balance for: ${account}  **********\n`)
+    console.log('\n\tBalance in Tokens')
+    const balance = await ethereumClient.balanceOf(account)
+    console.log('\t\t- ETH: %d', balance / 10 ** 18)
+
+    console.log('\n\tBalances in the DX:')
     balances.forEach(balance => {
-      console.log('\t- %s: %d', balance.token, balance.amount)
+      console.log('\t\t- %s: %d', balance.token, balance.amount)
     })
     console.log('\n**************************************\n\n')
   }
@@ -132,7 +137,26 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
     console.log('\n\tResult:')
     console.log('\t\t- TX: %s', result)
 
+    console.log('\n**************************************\n\n')
+
     return result
+  }
+
+  async function deposit (token, amount) {
+    console.log(`\n**********  Deposit ${amount} ${token} for ${address}  **********\n`)
+    let balance = await auctionRepo.getBalance({ token: token, address })
+
+    console.log('\n\tPrevious balance:')
+    console.log('\t\t- %s: %d', token, balance)
+
+    // do the deposit
+    await auctionRepo
+      .deposit({ token, amount, address })
+
+    balance = await auctionRepo.getBalance({ token: token, address })
+    console.log('\t\t- %s: %d', token, balance)
+
+    console.log('\n**************************************\n\n')
   }
 
   async function addTokens () {
@@ -173,7 +197,8 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
     printState,
     printBalances,
     addTokens,
-    buySell
+    buySell,
+    deposit
   }
 }
 function printProps (prefix, props, object, formatters) {

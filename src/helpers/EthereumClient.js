@@ -63,22 +63,21 @@ class EthereumClient {
   }
 
   async geLastBlockTime () {
-    //const blockNumber = this.getBlockNumber()
-    //return this._promisify(this._web3.eth.getBlock, blockNumber)
+    // const blockNumber = this.getBlockNumber()
+    // return this._promisify(this._web3.eth.getBlock, blockNumber)
     return this.getBlock()
       .then(block => new Date(block.timestamp * 1000))
   }
 
-  async balanceOf(account) {
+  async balanceOf (account) {
     return this._promisify(this._web3.eth.getBalance, account)
   }
 
-  async mineBlock(id = new Date().getTime()) {
+  async mineBlock (id = new Date().getTime()) {
     return this._sendAsync('evm_mine', { id })
   }
 
-
-  async increaseTime(increaseMs) {
+  async increaseTime (increaseMs) {
     const id = Date.now()
     return this
       // Increase time
@@ -92,10 +91,10 @@ class EthereumClient {
       })
   }
 
-  async _sendAsync(method, data) {
+  async _sendAsync (method, data) {
     const params = Object.assign({
       method,
-      jsonrpc: "2.0"
+      jsonrpc: '2.0'
     }, data)
 
     return this._promisify((params, cb) => {

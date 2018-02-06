@@ -469,7 +469,8 @@ class AuctionRepoEthereum {
         operation: 'deposit',
         address,
         token,
-        args: [ amount ]
+        args: [ amount ],
+        checkToken: false
       })
       .then(toTransactionNumber)
   }
@@ -684,7 +685,7 @@ class AuctionRepoEthereum {
   }
 
   async _transactionForToken ({ operation, address, token, args, checkToken }) {
-    debug('Execute transaction %s (address %s) for token %s',
+    debug('Execute transaction "%s" (address %s) for token %s',
       operation, address, token
     )
     const tokenAddress = await await this._getTokenAddress(token, checkToken)
@@ -693,13 +694,14 @@ class AuctionRepoEthereum {
       tokenAddress,
       ...args
     ]
+    console.log(params)
     return this._doTransaction(operation, address, params)
   }
 
   async _transactionForPair ({
     transactionMethod, address, sellToken, buyToken, args, checkTokens
   }) {
-    debug('Execute transaction %s (address %s) for pair %s-%s',
+    debug('Execute transaction "%s" (address %s) for pair %s-%s',
       transactionMethod, address, sellToken, buyToken
     )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)

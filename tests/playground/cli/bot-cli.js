@@ -3,6 +3,7 @@ const commander = require('commander')
 
 const getVersion = require('../../../src/helpers/getVersion')
 const testSetup = require('../../helpers/testSetup')
+const BigNumber = require('bignumber.js')
 
 testSetup()
   .then(run)
@@ -22,13 +23,15 @@ async function run ({
   printState,
   printBalances,
   addTokens,
-  buySell
+  buySell,
+  deposit
 }) {
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
     .option('-b, --balances', 'Balances for all known tokens')
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
+    .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens', list)
     .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
     .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
     .option('-o --oracle <token>', 'Show oracle-price')
@@ -43,6 +46,7 @@ async function run ({
     console.log('\tbot-cli -n')
     console.log('\tbot-cli --balances')
     console.log('\tbot-cli --state RDN,ETH')
+    console.log('\tbot-cli --deposit ETH,100')
     console.log('\tbot-cli --add-tokens')
     console.log('\tbot-cli --closing-price RDN,ETH,0')
     console.log('\tbot-cli --oracle ETH')
@@ -66,6 +70,12 @@ async function run ({
     // State
     const [buyToken, sellToken] = commander.state
     await printState('State', { buyToken, sellToken })
+  } else if (commander.deposit) {
+    // deposit
+    const [token, amountString] = commander.deposit
+    // const amount = new BigNumber(amountString)
+    const amount = parseFloat(amountString)
+    deposit(token, amount)
   } else if (commander.addTokens) {
     // add tokens
     await printState('State before add tokens', {
