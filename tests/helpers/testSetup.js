@@ -51,20 +51,30 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
   }
 
   async function printState (message, { sellToken, buyToken }) {
-    const state = await auctionRepo.getState({ sellToken, buyToken })
-    const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
-
+    const isSellTokenApproved = await auctionRepo.isApprovedToken({ token: sellToken })
+    const isBuyTokenApproved = await auctionRepo.isApprovedToken({ token: buyToken })
     console.log(`\n**********  ${message}  **********\n`)
-    console.log(`\tState: ${state}`)
 
-    console.log('\n\tState info:')
-    printProps('\t\t', stateInfoProps, stateInfo)
+    if (!isSellTokenApproved || !isBuyTokenApproved) {
+      console.log(`\tState: At least one of the tokens is not yet approved`)
+      console.log('\n\tState info:')
+      console.log('\n\t\tIs %s approved? %s', sellToken, printBoolean(isSellTokenApproved))
+      console.log('\n\t\tIs %s approved? %s', buyToken, printBoolean(isBuyTokenApproved))
+    } else {
+      const state = await auctionRepo.getState({ sellToken, buyToken })
+      const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
 
-    console.log(`\n\tAuction ${sellToken}-${buyToken}:`)
-    printProps('\t\t', auctionProps, stateInfo.auction, formatters)
+      console.log(`\tState: ${state}`)
 
-    console.log(`\n\tAuction ${buyToken}-${sellToken}:`)
-    printProps('\t\t', auctionProps, stateInfo.auctionOpp, formatters)
+      console.log('\n\tState info:')
+      printProps('\t\t', stateInfoProps, stateInfo)
+
+      console.log(`\n\tAuction ${sellToken}-${buyToken}:`)
+      printProps('\t\t', auctionProps, stateInfo.auction, formatters)
+
+      console.log(`\n\tAuction ${buyToken}-${sellToken}:`)
+      printProps('\t\t', auctionProps, stateInfo.auctionOpp, formatters)
+    }
     console.log('\n**************************************\n\n')
   }
 
@@ -130,6 +140,10 @@ function fractionFormatter (fraction) {
       .div(fraction.denominator)
       .toNumber()
   }
+}
+
+function printBoolean (flag) {
+  return flag ? 'Yes' : 'No'
 }
 
 const formatters = {

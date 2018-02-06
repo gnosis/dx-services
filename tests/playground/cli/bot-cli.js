@@ -59,7 +59,7 @@ async function run ({
   } else if (commander.state) {
     // State
     const [buyToken, sellToken] = commander.state
-    printState('State', { buyToken, sellToken })
+    await printState('State', { buyToken, sellToken })
   } else if (commander.addTokens) {
     // add tokens
     await printState('State before add tokens', {
