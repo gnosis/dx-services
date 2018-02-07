@@ -51,7 +51,7 @@ function getEhereumClient (config) {
   if (!ethereumClient) {
     const EthereumClient = require('./EthereumClient')
     ethereumClient = new EthereumClient({
-      url: config.ETHERUM_RPC_URL
+      url: config.ETHEREUM_RPC_URL
     })
   }
 

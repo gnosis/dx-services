@@ -15,21 +15,34 @@
 /*
 
 example: Run in PRE
-  ETHERUM_RPC_URL=<url> \
+  ETHEREUM_RPC_URL=<url> \
   DX_CONTRACT_ADDRESS =<add>\
   BOT_ACCOUNT_MNEMONIC=<menmonic>\
-  MINIMUN_SELL_VOLUME_USD=1000\
+  MINIMUM_SELL_VOLUME_USD=1000\
   npm run app
 */
 
-const ENVIRONMENT = 'DEV' // LOCAL, DEV, PRO
+const ENVIRONMENT = process.env.NODE_ENV || 'DEV' // LOCAL, DEV, PRO
+
+const MINIMUM_SELL_VOLUME_USD = 1000
+
+const DX_CONTRACT_ADDRESS = null // TODO: Override with ENV_VAR
+// TODO: Implement the aditional token config
+const ERC20_TOKEN_ADDRESSES = {
+  RDN: null,
+  OMG: null
+}
 
 const MARKETS = {
   'RDN': 'ETH',
   'OMG': 'ETH'
 }
 
-const MINIMUM_SELL_VOLUME_USD = 1000
+const RDN_TOKEN_ADDRESS = ''
+const OMG_TOKEN_ADDRESS = ''
+
+const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
+const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 const BUY_THRESHOLDS = [{
   marketPriceRatio: 1,
@@ -42,38 +55,8 @@ const BUY_THRESHOLDS = [{
   buyRatio: 1
 }]
 
-const ETHERUM_RPC_URL = 'http://127.0.0.1:8545'
-const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
-
 const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
 const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
-
-// contracts
-const CONTRACTS_BASE_DIR = 'build/contracts'
-const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
-const CONTRACT_DEFINITIONS = {
-  StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
-  DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',
-  PriceOracleInterface: CONTRACTS_DUTCH_EXCHANGE_DIR + '/PriceOracleInterface',
-  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/Proxy',
-  EtherToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/EtherToken',
-  TokenTUL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenTUL',
-  TokenOWL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWL'
-}
-
-const DX_CONTRACT_ADDRESS = null // TODO: Override with ENV_VAR
-// TODO: Implement the aditional token config
-const ERC20_TOKEN_ADDRESSES = {
-  RDN: null,
-  OMG: null
-}
-
-/*
-ETHERUM_RPC_URL
-DX_CONTRACT_ADDRESS
-BOT_ACCOUNT_MNEMONIC
-MINIMUN_SELL_VOLUME_USD
-*/
 
 // Kraken custom config
 const KRAKEN = {
@@ -92,27 +75,27 @@ const CONTRACT_YYYYY_ADDRESS =
 const API_PORT = 8080
 const API_HOST = '0.0.0.0'
 
-module.exports = {
+const defaultConf = {
   ENVIRONMENT,
 
   // bot config
-  MARKETS,
   MINIMUM_SELL_VOLUME_USD,
   BUY_THRESHOLDS,
+  MARKETS,
 
   // Ethereum config
-  ETHERUM_RPC_URL,
-  WALLET_MNEMONIC,
+  ETHEREUM_RPC_URL,
+  BOT_ACCOUNT_MNEMONIC,
 
   // REPO
   AUCTION_REPO_IMPL,
   ETHEREUM_REPO_IMPL,
 
   // CONTRACTS
-  CONTRACT_DEFINITIONS,
+  RDN_TOKEN_ADDRESS,
+  OMG_TOKEN_ADDRESS,
   DX_CONTRACT_ADDRESS,
   ERC20_TOKEN_ADDRESSES,
-  CONTRACTS_BASE_DIR, // Just used for development
 
   // API
   API_PORT,
@@ -121,3 +104,36 @@ module.exports = {
   // Exchanges
   KRAKEN
 }
+
+// Get conf by environment
+const envConf = require('./env/' + ENVIRONMENT.toLowerCase() + '-config')
+
+// Add conf by ENVIRONMENT params
+const argumentsConf = {}
+if (process.env.ETHEREUM_RPC_URL !== undefined) {
+  argumentsConf.ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL
+}
+if (process.env.DX_CONTRACT_ADDRESS !== undefined) {
+  argumentsConf.DX_CONTRACT_ADDRESS = process.env.DX_CONTRACT_ADDRESS
+}
+if (process.env.BOT_ACCOUNT_MNEMONIC !== undefined) {
+  argumentsConf.BOT_ACCOUNT_MNEMONIC = process.env.BOT_ACCOUNT_MNEMONIC
+}
+if (process.env.MINIMUM_SELL_VOLUME_USD !== undefined) {
+  argumentsConf.MINIMUM_SELL_VOLUME_USD = process.env.MINIMUM_SELL_VOLUME_USD
+}
+
+const TOKENS = Object.keys(MARKETS)
+
+TOKENS.map(token => {
+  if (process.env[token + '_TOKEN_ADDRESS']) {
+    argumentsConf[token + '_TOKEN_ADDRESS'] = process.env[token + '_TOKEN_ADDRESS']
+  }
+})
+
+// Merge three configs to get final config
+const config = Object.assign(defaultConf, envConf, argumentsConf)
+
+// console.log(config)
+
+module.exports = config

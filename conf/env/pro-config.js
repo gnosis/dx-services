@@ -1,0 +1,29 @@
+const ENVIRONMENT = 'PRO'
+
+const MINIMUM_SELL_VOLUME_USD = 1000
+
+const DX_CONTRACT_ADDRESS = ''
+
+const MARKETS = {
+  'RDN': 'ETH',
+  'OMG': 'ETH'
+}
+
+const RDN_TOKEN_ADDRESS = ''
+const OMG_TOKEN_ADDRESS = ''
+
+const ETHEREUM_RPC_URL = ''
+const BOT_ACCOUNT_MNEMONIC = ''
+
+module.exports = {
+  ENVIRONMENT,
+  MINIMUM_SELL_VOLUME_USD,
+  DX_CONTRACT_ADDRESS,
+  MARKETS,
+  RDN_TOKEN_ADDRESS,
+  OMG_TOKEN_ADDRESS,
+
+  // Ethereum config
+  ETHEREUM_RPC_URL,
+  BOT_ACCOUNT_MNEMONIC
+}
