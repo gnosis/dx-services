@@ -82,12 +82,7 @@ async function promisify (fn, ...params) {
         resolve(...data)
       }
     }
-    if (params) {
-      console.log(params)
-      fn(...params, callback)
-    } else {
-      fn(callback)
-    }
+    fn(...params, callback)
   })
 }
 

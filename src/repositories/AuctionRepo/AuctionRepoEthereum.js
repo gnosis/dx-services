@@ -826,7 +826,7 @@ class AuctionRepoEthereum {
       dx.TUL.call(),
       dx.OWL.call()
     ])
-      .then(([ ethAddress, priceOracleAddress, tulAddress, owlAddress ]) => {
+      .then(([ priceOracleAddress, ethAddress, tulAddress, owlAddress ]) => {
         // load instances of the contract
         return Promise.all([
           priceOracleContract.at(priceOracleAddress),

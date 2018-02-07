@@ -3,19 +3,25 @@ testSetup()
   .then(run)
   .catch(console.error)
 
-function run ({
+async function run ({
   ethereumRepo,
   tokens,
   address
 }) {
-  const eth = tokens.ETH
-  ethereumRepo
-    .tokenBalanceOf({
-      tokenAddress: '0xe94327d07fc17907b4db788e5adf2ed424addff6', // eth.address
-      account: address
+  Object
+    .keys(tokens)
+    .map(token => {
+      return ethereumRepo
+        .tokenBalanceOf({
+          tokenAddress: tokens[token].address,
+          account: address
+        })
+        .then(amount => {
+          console.log(`Balance for ${token}: ${amount}`)
+        })
+        .catch(error => {
+          console.log(`Error getting balance for ${token}: ${error}`)
+          console.error(error)
+        })
     })
-    .then(balance => {
-      console.log(`Balance for ETH: ${balance}`)
-    })
-    .catch(console.error)
 }
