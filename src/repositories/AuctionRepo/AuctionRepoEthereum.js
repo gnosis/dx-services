@@ -353,6 +353,16 @@ class AuctionRepoEthereum {
     }
   }
 
+  async approveToken ({ token, address, isApproved = true }) {
+    return this._transactionForToken({
+      operation: 'updateApprovalOfToken',
+      address,
+      token: token,
+      args: [ isApproved ? 1 : 0 ],
+      checkToken: false
+    })
+  }
+
   async isApprovedToken ({ token }) {
     return this._callForToken({
       operation: 'approvedTokens',
@@ -400,7 +410,7 @@ class AuctionRepoEthereum {
     return Object.keys(this._tokens)
   }
 
-  async getTokensAddress ({ token }) {
+  async getTokenAddress ({ token }) {
     return this._getTokenAddress(token, false)
   }
 
@@ -656,10 +666,9 @@ class AuctionRepoEthereum {
   }
 
   async _callForToken ({ operation, token, args = [], checkToken = true }) {
-    /*
     debug('Get "%s" for token %s. Args: %s',
       operation, token, args)
-    */
+
     const tokenAddress = await this._getTokenAddress(token, checkToken)
     debug('tokenAddress: %s', tokenAddress)
 
@@ -706,6 +715,8 @@ class AuctionRepoEthereum {
       tokenAddress,
       ...args
     ]
+
+    // debug('Params: %o', params)
     return this._doTransaction(operation, address, params)
   }
 
@@ -750,16 +761,17 @@ class AuctionRepoEthereum {
   }
 
   async _doTransaction (transactionMethod, address, params) {
-    /*
-    console.log({
+    debug('_doTransaction: %o', {
       transactionMethod,
       address,
       params
     })
-    */
     const estimatedGas =
-      await this._dx[transactionMethod]
-        .estimateGas(...params)
+      await this
+        ._dx[transactionMethod]
+        .call(...params)
+        .then(()=>true)
+        //.estimateGas(...params)
 
     return this._dx[transactionMethod](...params, {
       from: address,
@@ -773,6 +785,21 @@ class AuctionRepoEthereum {
 
     const standardTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.StandardToken)
+
+    const etherTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.EtherToken)
+
+    const tulTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.TokenTUL)
+
+    /* TODO: Get GNO from OWL address? ? */
+    const owlTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.TokenOWL)
+
+    /*
+    const gnoTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.TokenGNO)
+    */
 
     const priceOracleContract = this._ethereumClient
       .loadContract(this._contractDefinitions.PriceOracleInterface)
@@ -788,8 +815,6 @@ class AuctionRepoEthereum {
       dxDeployedPromise = proxyContract
         .deployed()
         .then(dxProxy => dxContract.at(dxProxy.address))
-
-      // dxDeployedPromise = dxContract.deployed()
     }
 
     const dx = await dxDeployedPromise
@@ -834,9 +859,9 @@ class AuctionRepoEthereum {
         // load instances of the contract
         return Promise.all([
           priceOracleContract.at(priceOracleAddress),
-          standardTokenContract.at(ethAddress),
-          standardTokenContract.at(tulAddress),
-          standardTokenContract.at(owlAddress),
+          etherTokenContract.at(ethAddress),
+          tulTokenContract.at(tulAddress),
+          owlTokenContract.at(owlAddress),
           Promise.all(tokenPromises)
         ])
       })

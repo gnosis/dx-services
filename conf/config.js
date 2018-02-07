@@ -55,7 +55,10 @@ const CONTRACT_DEFINITIONS = {
   StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
   DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',
   PriceOracleInterface: CONTRACTS_DUTCH_EXCHANGE_DIR + '/PriceOracleInterface',
-  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/Proxy'
+  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/Proxy',
+  EtherToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/EtherToken',
+  TokenTUL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenTUL',
+  TokenOWL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWL'
 }
 
 const DX_CONTRACT_ADDRESS = null // TODO: Override with ENV_VAR
