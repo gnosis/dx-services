@@ -24,8 +24,10 @@ function getContracts ({ ethereumClient, auctionRepo }) {
   }
 }
 
-function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }) {
+function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
   const address = ethereumClient.getCoinbase()
+  const web3 = ethereumClient.getWeb3()
+  const accounts = web3.eth.accounts
 
   // helpers
   async function buySell (operation, { buyToken, sellToken, amount }) {
@@ -89,30 +91,39 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }) {
 
     const tokens = await auctionRepo.getTokens()
     const balances = await Promise.all(
-      tokens.map(token => {
+      tokens.map(async token => {
+        const tokenAddress = await auctionRepo.getTokenAddress({ token })
+
         return Promise
           .all([
             // get token balance
-            auctionRepo
-              .getTokensAddress({ token })
-              .then(tokenAddress => {
-                return ethereumRepo.tokenBalanceOf({ tokenAddress, account })
-              }),
+            ethereumRepo.tokenBalanceOf({ tokenAddress, account }),
+            ethereumRepo.tokenAllowance({
+              tokenAddress,
+              owner: account,
+              spender: dx.address
+            }),
+            ethereumRepo.tokenTotalSupply({ tokenAddress }),
             // get token balance in DX
             auctionRepo.getBalance({ token, address: account })
           ])
-          .then(([ amount, amountInDx ]) => {
+          .then(([ amount, allowance, totalSupply, amountInDx ]) => {
             return {
               token,
               amount,
+              allowance,
+              totalSupply,
               amountInDx
             }
           })
       }))
 
-    console.log('\n\tBalances:')
     balances.forEach(balance => {
-      console.log('\t\t- %s: %d\t(%d in DX contract)', balance.token, balance.amount, balance.amountInDx)
+      console.log('\n\tBalances %s:', balance.token)
+      console.log('\t\t- Balance: ' + balance.amount)
+      console.log('\t\t- Alowance DX: ' + balance.allowance)
+      console.log('\t\t- Amount DX: ' + balance.amountInDx)
+      console.log('\t\t- Total Suply: ' + balance.totalSupply)
     })
     console.log('\n**************************************\n\n')
   }
@@ -209,7 +220,9 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }) {
   }
 
   return {
+    web3,
     address,
+    accounts,
 
     // debug utils
     printProps,
@@ -262,9 +275,9 @@ const formatters = {
 function testSetup () {
   return instanceFactory({ test: true, config })
     .then(instances => {
-      const helpers = getHelpers(instances)
       const contracts = getContracts(instances)
-      return Object.assign({}, helpers, contracts, instances)
+      const helpers = getHelpers(instances, contracts)
+      return Object.assign({}, contracts, helpers, instances)
     })
 }
 
