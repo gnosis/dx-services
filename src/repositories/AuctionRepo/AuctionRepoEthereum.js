@@ -1,5 +1,6 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
+const BigNumber = require('bignumber.js')
 
 /*
   // TODO: Events
@@ -482,13 +483,26 @@ class AuctionRepoEthereum {
     })
   }
 
+  async depositEther ({ address, amount }) {
+    const eth = this._tokens.ETH
+    // deposit ether
+    eth.deposit({
+      from: address,
+      value: amount
+    })
+    // Let DX use the ether
+    eth.approve(this._dx.address, amount, {
+      from: address
+    })
+  }
+
   async deposit ({ token, amount, address }) {
     return this
       ._transactionForToken({
         operation: 'deposit',
         address,
         token,
-        args: [ amount ],
+        args: [ amount ], // new BigNumber(amount)
         checkToken: false
       })
       .then(toTransactionNumber)
@@ -766,17 +780,16 @@ class AuctionRepoEthereum {
       address,
       params
     })
-    const estimatedGas =
-      await this
-        ._dx[transactionMethod]
-        .call(...params)
-        .then(()=>true)
-        //.estimateGas(...params)
+    const estimatedGas = await this
+      ._dx[transactionMethod]
+      .estimateGas(...params)
 
-    return this._dx[transactionMethod](...params, {
-      from: address,
-      gas: estimatedGas
-    })
+    debug('_doTransaction. Estimated gas for "%s": %d', transactionMethod, estimatedGas)
+    return this
+      ._dx[transactionMethod](...params, {
+        from: address,
+        gas: estimatedGas
+      })
   }
 
   async _loadContracts () {

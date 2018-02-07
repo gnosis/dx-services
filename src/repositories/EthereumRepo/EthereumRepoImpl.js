@@ -1,4 +1,6 @@
 const debug = require('debug')('dx-service:repositories:EthereumRepoImpl')
+
+// See: https://github.com/ethereum/eips/issues/20
 const ERC20_ABI = require('./ERC20Abi')
 
 const tokenContractsCache = {}

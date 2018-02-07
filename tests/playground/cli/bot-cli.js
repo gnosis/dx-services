@@ -16,20 +16,25 @@ function list (val) {
 async function run ({
   auctionRepo,
   ethereumClient,
-  address,
+  owner,
+  user1,
   printProps,
   fractionFormatter,
   printTime,
   printState,
   printBalances,
+  setupTestCases,
   addTokens,
   buySell,
-  deposit
+  deposit,
+  dx,
+  web3
 }) {
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
     .option('-b, --balances', 'Balances for all known tokens')
+    .option('-I, --setup', 'Basic setup for testing porpouses')
     .option('-A, --approve-token <token>', 'Approve token', list)
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
     .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
@@ -46,6 +51,7 @@ async function run ({
     console.log('')
     console.log('\tbot-cli -n')
     console.log('\tbot-cli --balances')
+    console.log('\tbot-cli --setup')
     console.log('\tbot-cli --approve-token RDN')
     console.log('\tbot-cli --state RDN,ETH')
     console.log('\tbot-cli --deposit ETH,100')
@@ -67,10 +73,15 @@ async function run ({
     await printTime('Current time')
   } else if (commander.balances) {
     // Balances
-    printBalances()
+    await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
+    await printBalances({ accountName: 'Owner', account: owner, verbose: false })
+    await printBalances({ accountName: 'User 1', account: user1, verbose: true })
+  } else if (commander.setup) {
+    // Setup for testing
+    setupTestCases()
   } else if (commander.approveToken) {
     const token = commander.approveToken
-    await auctionRepo.approveToken({ token, address })
+    await auctionRepo.approveToken({ token, owner })
     console.log('The token %s has been approved', token)
   } else if (commander.state) {
     // State
@@ -81,7 +92,12 @@ async function run ({
     const [token, amountString] = commander.deposit
     // const amount = new BigNumber(amountString)
     const amount = parseFloat(amountString)
-    deposit(token, amount * 10 ** 18)
+
+    deposit({
+      account: user1,
+      token,
+      amount: web3.toWei(amount, 'ether')
+    })
   } else if (commander.addTokens) {
     // add tokens
     await printState('State before add tokens', {

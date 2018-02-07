@@ -24,10 +24,11 @@ function getContracts ({ ethereumClient, auctionRepo }) {
   }
 }
 
-function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
+function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceOracle, tokens }) {
   const address = ethereumClient.getCoinbase()
   const web3 = ethereumClient.getWeb3()
   const accounts = web3.eth.accounts
+  const [ owner, user1, user2 ] = accounts
 
   // helpers
   async function buySell (operation, { buyToken, sellToken, amount }) {
@@ -49,6 +50,24 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
     })
     console.log(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
     await printState('State after buy', { buyToken, sellToken })
+  }
+
+  async function setupTestCases () {
+    // Deposit 50ETH in the ETH Token
+    const [, ...users] = accounts
+    const amountETH = 50
+    return Promise.all(
+      users.map(userAddress => {
+        return auctionRepo
+          .depositEther({
+            address: userAddress,
+            amount: web3.toWei(amountETH, 'ether')
+          })
+          .then(() => {
+            console.log('User %s deposits %d ETH into ETH token', userAddress, amountETH)
+          })
+      })
+    ).then(() => console.log('All users has deposited the ETH tokens'))
   }
 
   async function printTime (message) {
@@ -84,10 +103,15 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
     console.log('\n**************************************\n\n')
   }
 
-  async function printBalances (account = address) {
-    console.log(`\n**********  Balance for: ${account}  **********\n`)
+  async function printBalances ({
+    accountName = 'owner',
+    account = address,
+    verbose = true
+  }) {
+    console.log(`\n**********  Balance for ${accountName}  **********\n`)
     const balanceETH = await ethereumRepo.balanceOf({ account })
-    console.log('\tBALANCE: %d ETH', balanceETH / 10 ** 18)
+    console.log('\tACCOUNT: %s', account)
+    console.log('\tBALANCE: %d ETH', weiToEth(balanceETH))
 
     const tokens = await auctionRepo.getTokens()
     const balances = await Promise.all(
@@ -109,6 +133,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
           ])
           .then(([ amount, allowance, totalSupply, amountInDx ]) => {
             return {
+              tokenAddress,
               token,
               amount,
               allowance,
@@ -119,11 +144,14 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
       }))
 
     balances.forEach(balance => {
-      console.log('\n\tBalances %s:', balance.token)
-      console.log('\t\t- Balance: ' + balance.amount)
-      console.log('\t\t- Alowance DX: ' + balance.allowance)
-      console.log('\t\t- Amount DX: ' + balance.amountInDx)
-      console.log('\t\t- Total Suply: ' + balance.totalSupply)
+      console.log('\n\tBalances %s (in 10e18):', balance.token)
+      console.log('\t\t- Balance: ' + weiToEth(balance.amount))
+      if (verbose) {
+        console.log('\t\t- Alowance DX: ' + weiToEth(balance.allowance))
+        console.log('\t\t- Amount DX: ' + weiToEth(balance.amountInDx))
+        console.log('\t\t- Total Suply: ' + weiToEth(balance.totalSupply))
+        console.log('\t\t- Token address: ' + balance.tokenAddress)
+      }
     })
     console.log('\n**************************************\n\n')
   }
@@ -174,18 +202,23 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
     return result
   }
 
-  async function deposit (token, amount) {
-    console.log(`\n**********  Deposit ${amount} ${token} for ${address}  **********\n`)
-    let balance = await auctionRepo.getBalance({ token: token, address })
+  async function deposit ({ account, token, amount }) {
+    console.log(`\n**********  Deposit ${amount} ${token} for ${account}  **********\n`)
+    let balance = await auctionRepo.getBalance({
+      token,
+      address: account
+    })
 
     console.log('\n\tPrevious balance:')
     console.log('\t\t- %s: %d', token, balance)
 
-    // do the deposit
-    await auctionRepo
-      .deposit({ token, amount, address })
+    console.log('\n\tAmount to deposit:')
+    console.log('\t\t- %s: %d', token, amount)
 
-    balance = await auctionRepo.getBalance({ token: token, address })
+    // do the deposit
+    await auctionRepo.deposit({ token, amount, address: account })
+
+    balance = await auctionRepo.getBalance({ token: token, address: account })
     console.log('\t\t- %s: %d', token, balance)
 
     console.log('\n**************************************\n\n')
@@ -222,16 +255,20 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx }) {
   return {
     web3,
     address,
+    owner,
+    user1,
+    user2,
     accounts,
 
     // debug utils
     printProps,
-    fractionFormatter,
-
-    // interact with DX
     printTime,
     printState,
     printBalances,
+    fractionFormatter,
+
+    // interact with DX
+    setupTestCases,
     addTokens,
     buySell,
     deposit
@@ -265,6 +302,10 @@ function numberFormatter (number) {
 
 function printBoolean (flag) {
   return flag ? 'Yes' : 'No'
+}
+
+function weiToEth (wei) {
+  return new BigNumber(wei).div(10 ** 18)
 }
 
 const formatters = {
