@@ -400,6 +400,10 @@ class AuctionRepoEthereum {
     return Object.keys(this._tokens)
   }
 
+  async getTokensAddress ({ token }) {
+    return this._getTokenAddress(token, false)
+  }
+
   async getBalanceERC20Token ({ token, address }) {
     const tokenContract = this._getTokenContract(token)
     // console.log('Amount: ', amount, token)

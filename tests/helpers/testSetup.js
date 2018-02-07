@@ -24,7 +24,7 @@ function getContracts ({ ethereumClient, auctionRepo }) {
   }
 }
 
-function getHelpers ({ ethereumClient, auctionRepo }) {
+function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }) {
   const address = ethereumClient.getCoinbase()
 
   // helpers
@@ -83,15 +83,36 @@ function getHelpers ({ ethereumClient, auctionRepo }) {
   }
 
   async function printBalances (account = address) {
-    const balances = await auctionRepo.getBalances({ address: account })
     console.log(`\n**********  Balance for: ${account}  **********\n`)
-    console.log('\n\tBalance in Tokens')
-    const balance = await ethereumClient.balanceOf(account)
-    console.log('\t\t- ETH: %d', balance / 10 ** 18)
+    const balanceETH = await ethereumRepo.balanceOf({ account })
+    console.log('\tBALANCE: %d ETH', balanceETH / 10 ** 18)
 
-    console.log('\n\tBalances in the DX:')
+    const tokens = await auctionRepo.getTokens()
+    const balances = await Promise.all(
+      tokens.map(token => {
+        return Promise
+          .all([
+            // get token balance
+            auctionRepo
+              .getTokensAddress({ token })
+              .then(tokenAddress => {
+                return ethereumRepo.tokenBalanceOf({ tokenAddress, account })
+              }),
+            // get token balance in DX
+            auctionRepo.getBalance({ token, address: account })
+          ])
+          .then(([ amount, amountInDx ]) => {
+            return {
+              token,
+              amount,
+              amountInDx
+            }
+          })
+      }))
+
+    console.log('\n\tBalances:')
     balances.forEach(balance => {
-      console.log('\t\t- %s: %d', balance.token, balance.amount)
+      console.log('\t\t- %s: %d\t(%d in DX contract)', balance.token, balance.amount, balance.amountInDx)
     })
     console.log('\n**************************************\n\n')
   }

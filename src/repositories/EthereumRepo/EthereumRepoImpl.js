@@ -1,3 +1,4 @@
+const debug = require('debug')('dx-service:repositories:EthereumRepoImpl')
 const ERC20_ABI = require('./ERC20Abi')
 
 const tokenContractsCache = {}
@@ -29,7 +30,12 @@ class EthereumRepoImpl {
     }
   }
 
+  async balanceOf ({ account }) {
+    return this._ethereumClient.balanceOf(account)
+  }
+
   async tokenBalanceOf ({ tokenAddress, account }) {
+    debug('Get balance for token %s and account %s', tokenAddress, account)
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.balanceOf.call, account)
   }
