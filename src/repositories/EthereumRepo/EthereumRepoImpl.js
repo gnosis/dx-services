@@ -1,0 +1,94 @@
+const ERC20_ABI = require('./ERC20Abi')
+
+const tokenContractsCache = {}
+
+class EthereumRepoImpl {
+  constructor ({ ethereumClient }) {
+    this._ethereumClient = ethereumClient
+    this._web3 = ethereumClient.getWeb3()
+    this._erc20Contract = this._web3.eth.contract(ERC20_ABI)
+  }
+
+  async getAbout () {
+    const web3 = this._web3
+    const version = web3.version
+    return {
+      network: version.network,
+      ethereum: version.ethereum,
+      whisper: version.whisper,
+      node: version.node,
+      api: version.api,
+      isConnected: web3.isConnected(),
+      host: web3.currentProvider.host ? web3.currentProvider.host : null,
+      peerCount: web3.net.peerCount,
+      syncing: web3.eth.syncing,
+      isSyncing: web3.eth.isSyncing,
+      gasPrice: web3.eth.gasPrice.toNumber(),
+      // accouts: web3.eth.accounts,
+      blockNumber: web3.eth.blockNumber
+    }
+  }
+
+  async tokenBalanceOf ({ tokenAddress, account }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.balanceOf.call, account)
+  }
+
+  async tokenTransfer ({ tokenAddress, account, amount }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.transfer, account, amount)
+  }
+
+  /*
+  async tokenTransferFrom ({ tokenAddress, from, to }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.transferFrom, from, to, amount)
+  }
+
+  async tokenApprove ({ tokenAddress, spender, amount }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.approve, spender, amount)
+  }
+
+  async tokenAllowance ({ tokenAddress, owner, spender }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.allowance, owner, spender)
+  }
+
+  async tokenTotalSupply ({ tokenAddress }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.totalSupply)
+  }
+  */
+
+  _getTokenContract (address) {
+    let contract = tokenContractsCache[address]
+
+    if (!contract) {
+      contract = this._erc20Contract.at(address)
+      tokenContractsCache[address] = contract
+    }
+
+    return contract
+  }
+}
+
+async function promisify (fn, ...params) {
+  return new Promise((resolve, reject) => {
+    const callback = (error, ...data) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(...data)
+      }
+    }
+    if (params) {
+      console.log(params)
+      fn(...params, callback)
+    } else {
+      fn(callback)
+    }
+  })
+}
+
+module.exports = EthereumRepoImpl

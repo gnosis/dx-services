@@ -3,9 +3,10 @@ const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
 class BotService {
-  constructor ({ auctionRepo, exchangePriceRepo, minimumSellVolume }) {
+  constructor ({ auctionRepo, ethereumRepo, exchangePriceRepo, minimumSellVolume }) {
     this._auctionRepo = auctionRepo
     this._exchangePriceRepo = exchangePriceRepo
+    this._ethereumRepo = ethereumRepo
 
     // Config
     this._minimumSellVolume = minimumSellVolume

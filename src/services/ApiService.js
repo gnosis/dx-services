@@ -3,8 +3,9 @@ const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
 class ApiService {
-  constructor ({ auctionRepo }) {
+  constructor ({ auctionRepo, ethereumRepo }) {
     this._auctionRepo = auctionRepo
+    this._ethereumRepo = ethereumRepo
 
     // Avoids concurrent calls that might endup buy/selling two times
     this.concurrencyCheck = {}

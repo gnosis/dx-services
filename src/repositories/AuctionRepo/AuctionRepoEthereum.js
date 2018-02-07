@@ -1,5 +1,6 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
+
 /*
   // TODO: Events
   event NewDeposit(
@@ -291,12 +292,14 @@ class AuctionRepoEthereum {
     */
     const isTheoreticalClosed = (
       // (Pn x SV) / (Pd x BV)
-      price.numerator
-      .mul(sellVolume)
-      .sub(
-        price.denominator
-        .mul(buyVolume)
-      ).toNumber() === 0)
+      price
+        .numerator
+        .mul(sellVolume)
+        .sub(
+          price
+            .denominator
+            .mul(buyVolume)
+        ).toNumber() === 0)
 
     let closingPrice = await this.getClosingPrices({
       sellToken, buyToken, auctionIndex
@@ -391,6 +394,25 @@ class AuctionRepoEthereum {
       args: [ address ],
       checkToken: false
     })
+  }
+
+  async getTokens () {
+    return Object.keys(this._tokens)
+  }
+
+  async getBalanceERC20Token ({ token, address }) {
+    const tokenContract = this._getTokenContract(token)
+    // console.log('Amount: ', amount, token)
+    return tokenContract.address
+    // return tokenContract.balanceOf.call(address)
+    /*
+    return this._callForToken({
+      operation: 'balanceOf',
+      token,
+      args: [ address ],
+      checkToken: false
+    })
+    */
   }
 
   async getBalances ({ address }) {
@@ -607,7 +629,7 @@ class AuctionRepoEthereum {
       .then(toFraction)
   }
 
-  _getTokenContract (token, check = true) {
+  _getTokenContract (token) {
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
       const knownTokens = Object.keys(this._tokens)

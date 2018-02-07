@@ -46,6 +46,7 @@ const ETHERUM_RPC_URL = 'http://127.0.0.1:8545'
 const WALLET_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
+const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
 
 // contracts
 const CONTRACTS_BASE_DIR = 'build/contracts'
@@ -102,6 +103,7 @@ module.exports = {
 
   // REPO
   AUCTION_REPO_IMPL,
+  ETHEREUM_REPO_IMPL,
 
   // CONTRACTS
   CONTRACT_DEFINITIONS,

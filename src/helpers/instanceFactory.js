@@ -8,19 +8,23 @@ async function createInstances ({ test = false, config = {} }) {
   // Repos
   const exchangePriceRepo = getExchangePriceRepo(mergedConfig)
   const auctionRepoPromise = getAuctionRepoPromise(mergedConfig)
+  const ethereumRepoPromise = getEthereumRepoPromise(mergedConfig)
   const auctionRepo = await auctionRepoPromise
+  const ethereumRepo = await ethereumRepoPromise
 
   // Services
   const botService = getBotService({
     config: mergedConfig,
     exchangePriceRepo,
-    auctionRepo
+    auctionRepo,
+    ethereumRepo
   })
 
   const apiService = getApiService({
     config: mergedConfig,
     exchangePriceRepo,
-    auctionRepo
+    auctionRepo,
+    ethereumRepo
   })
 
   let instances = {
@@ -36,6 +40,7 @@ async function createInstances ({ test = false, config = {} }) {
     instances = Object.assign({}, instances, {
       exchangePriceRepo,
       auctionRepo,
+      ethereumRepo,
       ethereumClient
     })
   }
@@ -51,6 +56,24 @@ function getEhereumClient (config) {
   }
 
   return ethereumClient
+}
+
+async function getEthereumRepoPromise (config) {
+  switch (config.ETHEREUM_REPO_IMPL) {
+    case 'mock':
+      const EthereumRepoMock = require('../repositories/EthereumRepo/EthereumRepoMock')
+      return new EthereumRepoMock({})
+
+    case 'impl':
+      const ethereumClient = getEhereumClient(config)
+      const EthereumRepoImpl = require('../repositories/EthereumRepo/EthereumRepoImpl')
+      return new EthereumRepoImpl({
+        ethereumClient
+      })
+
+    default:
+      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO_IMPL)
+  }
 }
 
 function getAuctionRepoPromise (config) {
