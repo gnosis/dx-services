@@ -45,8 +45,7 @@ class EthereumRepoImpl {
     return promisify(tokenContract.transfer, account, amount)
   }
 
-  /*
-  async tokenTransferFrom ({ tokenAddress, from, to }) {
+  async tokenTransferFrom ({ tokenAddress, from, to, amount }) {
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.transferFrom, from, to, amount)
   }
@@ -65,7 +64,6 @@ class EthereumRepoImpl {
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.totalSupply)
   }
-  */
 
   _getTokenContract (address) {
     let contract = tokenContractsCache[address]

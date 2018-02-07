@@ -3,7 +3,7 @@ const commander = require('commander')
 
 const getVersion = require('../../../src/helpers/getVersion')
 const testSetup = require('../../helpers/testSetup')
-const BigNumber = require('bignumber.js')
+// const BigNumber = require('bignumber.js')
 
 testSetup()
   .then(run)
@@ -30,6 +30,7 @@ async function run ({
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
     .option('-b, --balances', 'Balances for all known tokens')
+    .option('-A, --approve-token <token>', 'Approve token', list)
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
     .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
     .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
@@ -45,6 +46,7 @@ async function run ({
     console.log('')
     console.log('\tbot-cli -n')
     console.log('\tbot-cli --balances')
+    console.log('\tbot-cli --approve-token RDN')
     console.log('\tbot-cli --state RDN,ETH')
     console.log('\tbot-cli --deposit ETH,100')
     console.log('\tbot-cli --add-tokens')
@@ -66,6 +68,10 @@ async function run ({
   } else if (commander.balances) {
     // Balances
     printBalances()
+  } else if (commander.approveToken) {
+    const token = commander.approveToken
+    await auctionRepo.approveToken({ token, address })
+    console.log('The token %s has been approved', token)
   } else if (commander.state) {
     // State
     const [buyToken, sellToken] = commander.state
