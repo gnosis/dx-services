@@ -2,15 +2,14 @@ const ENVIRONMENT = 'PRO'
 
 const MINIMUM_SELL_VOLUME_USD = 1000
 
-const DX_CONTRACT_ADDRESS = ''
+const DX_CONTRACT_ADDRESS = null
 
-const MARKETS = {
-  'RDN': 'ETH',
-  'OMG': 'ETH'
-}
-
-const RDN_TOKEN_ADDRESS = ''
-const OMG_TOKEN_ADDRESS = ''
+const MARKETS = [
+  {tokenA: 'ETH', tokenB: 'RDN'},
+  {tokenA: 'ETH', tokenB: 'OMG'}
+]
+const RDN_TOKEN_ADDRESS = null
+const OMG_TOKEN_ADDRESS = null
 
 const ETHEREUM_RPC_URL = ''
 const BOT_ACCOUNT_MNEMONIC = ''
@@ -20,6 +19,8 @@ module.exports = {
   MINIMUM_SELL_VOLUME_USD,
   DX_CONTRACT_ADDRESS,
   MARKETS,
+
+  // CONTRACTS
   RDN_TOKEN_ADDRESS,
   OMG_TOKEN_ADDRESS,
 

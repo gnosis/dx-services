@@ -22,24 +22,24 @@ example: Run in PRE
   npm run app
 */
 
-const ENVIRONMENT = process.env.NODE_ENV || 'DEV' // LOCAL, DEV, PRO
+const ENVIRONMENT = 'LOCAL'
 
 const MINIMUM_SELL_VOLUME_USD = 1000
 
-const DX_CONTRACT_ADDRESS = null // TODO: Override with ENV_VAR
+const DX_CONTRACT_ADDRESS = null
 // TODO: Implement the aditional token config
 const ERC20_TOKEN_ADDRESSES = {
   RDN: null,
   OMG: null
 }
 
-const MARKETS = {
-  'RDN': 'ETH',
-  'OMG': 'ETH'
-}
+const MARKETS = [
+  {tokenA: 'ETH', tokenB: 'RDN'},
+  {tokenA: 'ETH', tokenB: 'OMG'}
+]
 
-const RDN_TOKEN_ADDRESS = ''
-const OMG_TOKEN_ADDRESS = ''
+const RDN_TOKEN_ADDRESS = null
+const OMG_TOKEN_ADDRESS = null
 
 const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
 const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
@@ -75,7 +75,7 @@ const CONTRACT_YYYYY_ADDRESS =
 const API_PORT = 8080
 const API_HOST = '0.0.0.0'
 
-const defaultConf = {
+module.exports = {
   ENVIRONMENT,
 
   // bot config
@@ -104,36 +104,3 @@ const defaultConf = {
   // Exchanges
   KRAKEN
 }
-
-// Get conf by environment
-const envConf = require('./env/' + ENVIRONMENT.toLowerCase() + '-config')
-
-// Add conf by ENVIRONMENT params
-const argumentsConf = {}
-if (process.env.ETHEREUM_RPC_URL !== undefined) {
-  argumentsConf.ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL
-}
-if (process.env.DX_CONTRACT_ADDRESS !== undefined) {
-  argumentsConf.DX_CONTRACT_ADDRESS = process.env.DX_CONTRACT_ADDRESS
-}
-if (process.env.BOT_ACCOUNT_MNEMONIC !== undefined) {
-  argumentsConf.BOT_ACCOUNT_MNEMONIC = process.env.BOT_ACCOUNT_MNEMONIC
-}
-if (process.env.MINIMUM_SELL_VOLUME_USD !== undefined) {
-  argumentsConf.MINIMUM_SELL_VOLUME_USD = process.env.MINIMUM_SELL_VOLUME_USD
-}
-
-const TOKENS = Object.keys(MARKETS)
-
-TOKENS.map(token => {
-  if (process.env[token + '_TOKEN_ADDRESS']) {
-    argumentsConf[token + '_TOKEN_ADDRESS'] = process.env[token + '_TOKEN_ADDRESS']
-  }
-})
-
-// Merge three configs to get final config
-const config = Object.assign(defaultConf, envConf, argumentsConf)
-
-// console.log(config)
-
-module.exports = config

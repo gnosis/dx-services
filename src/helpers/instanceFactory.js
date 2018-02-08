@@ -1,5 +1,5 @@
 // const debug = require('debug')('dx-service:helpers:instanceFactory')
-const originalConfig = require('../../conf/config.js')
+const originalConfig = require('../../conf/')
 let ethereumClient
 
 async function createInstances ({ test = false, config = {} }) {
