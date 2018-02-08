@@ -1,15 +1,20 @@
 const debug = require('debug')('dx-service:repositories:EthereumClient')
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
+const HDWalletProvider = require('truffle-hdwallet-provider')
 const ROOT_DIR = '../../'
 
 // TODO: Check eventWatcher in DX/test/utils.js
 
 class EthereumClient {
-  constructor ({ url = 'http://127.0.0.1:8545', contractsBaseDir = 'build/contracts' }) {
+  constructor ({ url = 'http://127.0.0.1:8545', mnemonic = null, contractsBaseDir = 'build/contracts' }) {
     debug('Using %s RPC api to connect to Ethereum', url)
     this._url = url
-    this._provider = new Web3.providers.HttpProvider(url)
+    if (mnemonic) {
+      this._provider = new HDWalletProvider(mnemonic, url)
+    } else {
+      this._provider = new Web3.providers.HttpProvider(url)
+    }
     this._web3 = new Web3(this._provider)
     this._contractCache = {}
     this._contractsBaseDir = contractsBaseDir

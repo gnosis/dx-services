@@ -12,7 +12,7 @@ const RDN_TOKEN_ADDRESS = null
 const OMG_TOKEN_ADDRESS = null
 
 const ETHEREUM_RPC_URL = ''
-const BOT_ACCOUNT_MNEMONIC = ''
+const BOT_ACCOUNT_MNEMONIC = null
 
 module.exports = {
   ENVIRONMENT,

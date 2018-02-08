@@ -36,7 +36,8 @@
     "git-rev-sync": "^1.9.1",
     "got": "^8.0.3",
     "qs": "^6.5.1",
-    "truffle-contract": "^3.0.3"
+    "truffle-contract": "^3.0.3",
+    "truffle-hdwallet-provider": "^0.0.3"
   },
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend",
@@ -47,7 +48,7 @@
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
-    "truffle": "^4.0.6",
-    "jest": "^22.1.4"
+    "jest": "^22.1.4",
+    "truffle": "^4.0.6"
   }
 }
