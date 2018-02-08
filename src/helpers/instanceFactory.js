@@ -91,6 +91,7 @@ function getAuctionRepoPromise (config) {
         ethereumClient,
         contractDefinitions: config.CONTRACT_DEFINITIONS,
         dxContractAddress: config.DX_CONTRACT_ADDRESS,
+        gnoTokenAddress: config.GNO_TOKEN_ADDRESS,
         erc20TokenAddresses: config.ERC20_TOKEN_ADDRESSES,
         devContractsBaseDir: config.CONTRACTS_BASE_DIR // just for develop (TODO: improve)
       })

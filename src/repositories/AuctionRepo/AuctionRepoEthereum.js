@@ -83,22 +83,25 @@ class AuctionRepoEthereum {
     ethereumClient,
     contractDefinitions,
     dxContractAddress = null,
+    gnoTokenAddress = null,
     erc20TokenAddresses = {},
     devContractsBaseDir
   }) {
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
     this._dxContractAddress = dxContractAddress
+    this._gnoTokenAddress = gnoTokenAddress
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = devContractsBaseDir
 
     // Load the contracts
     this.ready = this._loadContracts()
-      .then(({ dx, priceOracle, eth, tul, owl, erc20TokenContracts }) => {
+      .then(({ dx, priceOracle, gno, eth, tul, owl, erc20TokenContracts }) => {
         this._dx = dx
         this._priceOracle = priceOracle
 
         this._tokens = Object.assign({
+          GNO: gno,
           ETH: eth,
           TUL: tul,
           OWL: owl
@@ -806,6 +809,9 @@ class AuctionRepoEthereum {
 
       const dxProxy = await proxyContract.deployed()
       dxContractAddress = dxProxy.address
+
+      this._dx_address_original = (await dxContract.deployed()).address
+      this._dx_address_proxy = dxProxy.address
     }
     return dxContract.at(dxContractAddress)
   }
@@ -823,6 +829,23 @@ class AuctionRepoEthereum {
       token,
       contract: tokenContract.at(address)
     }
+  }
+
+  async _loadGnoContract () {
+    const gnoTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.TokenGNO)
+
+    // GNO can be pulled from the OWLAirdrop (the minter of the OWLToken)
+    // For now, we jsut assume we get the address in the config file
+    let address = this._gnoTokenAddress
+    if (!address) {
+      // TODO: Rise error if not in development
+      address = await gnoTokenContract
+        .deployed()
+        .then(contract => contract.address)
+    }
+
+    return gnoTokenContract.at(address)
   }
 
   async _loadTokenContracts () {
@@ -862,28 +885,30 @@ class AuctionRepoEthereum {
     const priceOracleContract = this._ethereumClient
       .loadContract(this._contractDefinitions.PriceOracleInterface)
 
-    return Promise.all([
+    const [ priceOracle, eth, tul, owl, gno ] = await Promise.all([
       // load addresses from DX
       dx.ETHUSDOracle.call(),
       dx.ETH.call(),
       dx.TUL.call(),
-      dx.OWL.call()
+      dx.OWL.call() // TODO: Is this the PROXY??
     ])
-      .then(([ priceOracleAddress, ethAddress, tulAddress, owlAddress ]) => {
-        // load instances of the contract
-        return Promise.all([
+      // load instances of the contract
+      .then(([ priceOracleAddress, ethAddress, tulAddress, owlAddress ]) => (
+        Promise.all([
           priceOracleContract.at(priceOracleAddress),
           etherTokenContract.at(ethAddress),
           tulTokenContract.at(tulAddress),
-          owlTokenContract.at(owlAddress)
-        ])
-      })
-      .then(([ priceOracle, eth, tul, owl ]) => ({
-        priceOracle,
-        eth,
-        tul,
-        owl
-      }))
+          owlTokenContract.at(owlAddress),
+          this._loadGnoContract()
+        ]))
+      )
+    return {
+      priceOracle,
+      eth,
+      tul,
+      owl,
+      gno
+    }
   }
 
   async _loadContracts () {
