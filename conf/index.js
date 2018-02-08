@@ -1,49 +1,65 @@
-// *** Index to load config based in params ***
-
-const ENVIRONMENT = process.env.NODE_ENV || 'LOCAL' // LOCAL, DEV, PRO
-
-const defaultConf = require('./config')
-
-// Get conf by environment
-const envConf = require('./env/' + ENVIRONMENT.toLowerCase() + '-config')
-
-// Add conf by ENVIRONMENT params
-const argumentsConf = {}
-if (process.env.ETHEREUM_RPC_URL !== undefined) {
-  argumentsConf.ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL
-}
-if (process.env.DX_CONTRACT_ADDRESS !== undefined) {
-  argumentsConf.DX_CONTRACT_ADDRESS = process.env.DX_CONTRACT_ADDRESS
-}
-if (process.env.BOT_ACCOUNT_MNEMONIC !== undefined) {
-  argumentsConf.BOT_ACCOUNT_MNEMONIC = process.env.BOT_ACCOUNT_MNEMONIC
-}
-if (process.env.MINIMUM_SELL_VOLUME_USD !== undefined) {
-  argumentsConf.MINIMUM_SELL_VOLUME_USD = process.env.MINIMUM_SELL_VOLUME_USD
-}
-
+const debug = require('debug')('dx-service:conf')
+const ENV_VAR_LIST = [
+  'ETHEREUM_RPC_URL',
+  'DX_CONTRACT_ADDRESS',
+  'BOT_ACCOUNT_MNEMONIC',
+  'MINIMUM_SELL_VOLUME_USD'
+  // also: <token>_TOKEN_ADDRESS
+]
 const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
-const MARKETS = envConf.MARKETS || defaultConf.MARKETS
 
-let tokens = MARKETS.reduce((acc, {tokenA, tokenB}) => {
-  if (acc.indexOf(tokenA) === -1 && SPECIAL_TOKENS.indexOf(tokenA) === -1) {
-    acc.push(tokenA)
-  }
-  if (acc.indexOf(tokenB) === -1 && SPECIAL_TOKENS.indexOf(tokenB) === -1) {
-    acc.push(tokenB)
-  }
-  return acc
-}, [])
+// Load conf
+const environment = process.env.NODE_ENV || 'LOCAL' // LOCAL, DEV, PRO
+const defaultConf = require('./config')
+const envConf = require('./env/' + environment.toLowerCase() + '-config')
+const markets = envConf.MARKETS || defaultConf.MARKETS
 
-tokens.map(token => {
-  console.log('Detected tokens in market: ', token)
-  if (process.env[token + '_TOKEN_ADDRESS']) {
-    argumentsConf[token + '_TOKEN_ADDRESS'] = process.env[token + '_TOKEN_ADDRESS']
-  }
-})
+// Get token list and env vars
+const tokens = getTokenList(markets)
+const envVars = getEnvVars(tokens)
+// debug('markets: %o', markets)
+// debug('tokens: %o', tokens)
+// debug('envVars: %o', envVars)
 
 // Merge three configs to get final config
-const config = Object.assign(defaultConf, envConf, argumentsConf)
+const config = Object.assign({}, defaultConf, envConf, envVars)
+
+function getTokenList (markets) {
+  const result = []
+
+  function isSpecialToken (token) {
+    return SPECIAL_TOKENS.indexOf(token) !== -1
+  }
+
+  function addToken (token) {
+    if (!result.includes(token) && !isSpecialToken(token)) {
+      result.push(token)
+    }
+  }
+
+  markets.forEach(({ tokenA, tokenB }) => {
+    addToken(tokenA)
+    addToken(tokenB)
+  })
+
+  return result
+}
+
+function getEnvVars (tokens) {
+  const envVarList = ENV_VAR_LIST.concat(
+    // Token addresses env vars
+    tokens.map(token => `${token}_TOKEN_ADDRESS`)
+  )
+
+  return envVarList.reduce((envVars, envVar) => {
+    const value = process.env[envVar]
+    if (value !== undefined) {
+      envVars[envVar] = value
+    }
+
+    return envVars
+  }, {})
+}
 
 // console.log(config)
 
