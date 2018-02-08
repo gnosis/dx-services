@@ -22,6 +22,7 @@ async function run ({
   fractionFormatter,
   printTime,
   printState,
+  printAddresses,
   printBalances,
   setupTestCases,
   addTokens,
@@ -33,6 +34,7 @@ async function run ({
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
+    .option('-a, --addresses', 'Addresses for main contracts and tokens')
     .option('-b, --balances', 'Balances for all known tokens')
     .option('-I, --setup', 'Basic setup for testing porpouses')
     .option('-A, --approve-token <token>', 'Approve token', list)
@@ -49,7 +51,8 @@ async function run ({
   commander.on('--help', function () {
     console.log('\n\nExamples:')
     console.log('')
-    console.log('\tbot-cli -n')
+    console.log('\tbot-cli --now')
+    console.log('\tbot-cli --addresses')
     console.log('\tbot-cli --balances')
     console.log('\tbot-cli --setup')
     console.log('\tbot-cli --approve-token RDN')
@@ -71,6 +74,9 @@ async function run ({
   if (commander.now) {
     // now
     await printTime('Current time')
+  } else if (commander.addresses) {
+    // Addresses
+    await printAddresses()
   } else if (commander.balances) {
     // Balances
     await printBalances({ accountName: 'DX', account: dx.address, verbose: false })

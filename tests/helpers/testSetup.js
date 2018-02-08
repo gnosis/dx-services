@@ -20,11 +20,14 @@ function getContracts ({ ethereumClient, auctionRepo }) {
   return {
     dx: auctionRepo._dx,
     priceOracle: auctionRepo._priceOracle,
-    tokens: auctionRepo._tokens
+    tokens: auctionRepo._tokens,
+    // the following address are just for debuging porpouses
+    dx_address_original: auctionRepo._dx_address_original,
+    dx_address_proxy: auctionRepo._dx_address_proxy
   }
 }
 
-function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceOracle, tokens }) {
+function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceOracle, tokens, dx_address_original, dx_address_proxy }) {
   const address = ethereumClient.getCoinbase()
   const web3 = ethereumClient.getWeb3()
   const accounts = web3.eth.accounts
@@ -100,6 +103,32 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
       console.log(`\n\tAuction ${buyToken}-${sellToken}:`)
       printProps('\t\t', auctionProps, stateInfo.auctionOpp, formatters)
     }
+    console.log('\n**************************************\n\n')
+  }
+
+  async function printAddresses () {
+    console.log(`\n**********  Addresses  **********\n`)
+    // Print token addresses
+    console.log('\tToken Addresses:')
+    const tokens = await auctionRepo.getTokens()
+    await Promise.all(
+      tokens.map(async token => {
+        const tokenAddress = await auctionRepo.getTokenAddress({ token })
+        console.log('\t\t- %s: %s', token, tokenAddress)
+      })
+    )
+
+    console.log('\n\tContract Addresses:')
+    const contracts = {
+      'DX (actual)': dx.address,
+      'DX (proxy)': dx_address_proxy,
+      'DX (master)': dx_address_original,
+      'Price Oracle': priceOracle.address
+    }
+    Object.keys(contracts).forEach(name => {
+      console.log('\t\t- %s: \t%s', name, contracts[name])
+    })
+
     console.log('\n**************************************\n\n')
   }
 
@@ -265,6 +294,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
     printTime,
     printState,
     printBalances,
+    printAddresses,
     fractionFormatter,
 
     // interact with DX
