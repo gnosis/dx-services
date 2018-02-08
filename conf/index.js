@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:conf')
+// const debug = require('debug')('dx-service:conf')
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
   'DX_CONTRACT_ADDRESS',
@@ -23,6 +23,8 @@ const envVars = getEnvVars(tokens)
 
 // Merge three configs to get final config
 const config = Object.assign({}, defaultConf, envConf, envVars)
+config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
+// debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)
 
 function getTokenList (markets) {
   const result = []
@@ -45,10 +47,14 @@ function getTokenList (markets) {
   return result
 }
 
+function getTokenAddresParamName (token) {
+  return `${token}_TOKEN_ADDRESS`
+}
+
 function getEnvVars (tokens) {
   const envVarList = ENV_VAR_LIST.concat(
     // Token addresses env vars
-    tokens.map(token => `${token}_TOKEN_ADDRESS`)
+    tokens.map(token => getTokenAddresParamName(token))
   )
 
   return envVarList.reduce((envVars, envVar) => {
@@ -58,6 +64,17 @@ function getEnvVars (tokens) {
     }
 
     return envVars
+  }, {})
+}
+
+function getTokenAddresses (tokens, config) {
+  return tokens.reduce((tokenAddresses, token) => {
+    const paramName = getTokenAddresParamName(token)
+    const address = config[paramName]
+    if (address) {
+      tokenAddresses[token] = address
+    }
+    return tokenAddresses
   }, {})
 }
 

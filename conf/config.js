@@ -1,48 +1,19 @@
-// TODO;
-//  * Instead of this config being static, Initialized the config
-//  * Rename the const and add the 'DEFAULT_' prefix
-//  * Add environent config: mock, local, rinkeby
-//      * npm run app --mock
-//      * npm run app --rinkeby
-//  * Override defaults with arguments and environent vars. I.e:
-//      * npm run app --ethereum-rpc-url=http://localhost:9545
-//      * ETHEREUM-RPC-URL=http://localhost:9545 npm run app
-//  * minimum, for the 1st iteration, let override:
-//      * url
-//      * contract addresses
-//      * botAddress and mnemonic
-//      * para nota MINIMUM_SELL_VOLUME_USD
-/*
-
-example: Run in PRE
-  ETHEREUM_RPC_URL=<url> \
-  DX_CONTRACT_ADDRESS =<add>\
-  BOT_ACCOUNT_MNEMONIC=<menmonic>\
-  MINIMUM_SELL_VOLUME_USD=1000\
-  npm run app
-*/
-
 const ENVIRONMENT = 'LOCAL'
 
 const MINIMUM_SELL_VOLUME_USD = 1000
 
 const DX_CONTRACT_ADDRESS = null
-// TODO: Implement the aditional token config
-const ERC20_TOKEN_ADDRESSES = {
-  RDN: null,
-  OMG: null
-}
 
 const MARKETS = [
-  {tokenA: 'ETH', tokenB: 'RDN'},
-  {tokenA: 'ETH', tokenB: 'OMG'}
+  { tokenA: 'ETH', tokenB: 'RDN' },
+  { tokenA: 'ETH', tokenB: 'OMG' }
 ]
 
 const RDN_TOKEN_ADDRESS = null
 const OMG_TOKEN_ADDRESS = null
 
 const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
-const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+const BOT_ACCOUNT_MNEMONIC = null
 
 const BUY_THRESHOLDS = [{
   marketPriceRatio: 1,
@@ -95,7 +66,6 @@ module.exports = {
   RDN_TOKEN_ADDRESS,
   OMG_TOKEN_ADDRESS,
   DX_CONTRACT_ADDRESS,
-  ERC20_TOKEN_ADDRESSES,
 
   // API
   API_PORT,

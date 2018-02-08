@@ -1,9 +1,10 @@
-// const debug = require('debug')('dx-service:helpers:instanceFactory')
+const debug = require('debug')('dx-service:helpers:instanceFactory')
 const originalConfig = require('../../conf/')
 let ethereumClient
 
 async function createInstances ({ test = false, config = {} }) {
   const mergedConfig = Object.assign({}, originalConfig, config)
+  debug('Initializing app for %s environment...', mergedConfig.ENVIRONMENT)
 
   // Repos
   const exchangePriceRepo = getExchangePriceRepo(mergedConfig)

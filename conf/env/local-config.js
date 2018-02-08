@@ -1,8 +1,5 @@
 const ENVIRONMENT = 'LOCAL'
 
-const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
-const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
-
 // *** Specific Develop config ***
 // contracts
 const CONTRACTS_BASE_DIR = 'build/contracts'
@@ -21,11 +18,6 @@ const CONTRACT_DEFINITIONS = {
 
 module.exports = {
   ENVIRONMENT,
-
   CONTRACT_DEFINITIONS,
-  CONTRACTS_BASE_DIR, // Just used for development
-
-  // Ethereum config
-  ETHEREUM_RPC_URL,
-  BOT_ACCOUNT_MNEMONIC
+  CONTRACTS_BASE_DIR
 }
