@@ -29,6 +29,7 @@ async function run ({
   buySell,
   deposit,
   dx,
+  dxMaster,
   web3
 }) {
   commander
@@ -79,12 +80,13 @@ async function run ({
     await printAddresses()
   } else if (commander.balances) {
     // Balances
-    await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
+    await printBalances({ accountName: 'DX (proxy)', account: dx.address, verbose: false })
+    await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
     await printBalances({ accountName: 'Owner', account: owner, verbose: false })
     await printBalances({ accountName: 'User 1', account: user1, verbose: true })
   } else if (commander.setup) {
     // Setup for testing
-    setupTestCases()
+    await setupTestCases()
   } else if (commander.approveToken) {
     const token = commander.approveToken
     await auctionRepo.approveToken({ token, owner })
@@ -99,10 +101,10 @@ async function run ({
     // const amount = new BigNumber(amountString)
     const amount = parseFloat(amountString)
 
-    deposit({
+    await deposit({
       account: user1,
       token,
-      amount: web3.toWei(amount, 'ether')
+      amount
     })
   } else if (commander.addTokens) {
     // add tokens

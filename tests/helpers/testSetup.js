@@ -22,12 +22,11 @@ function getContracts ({ ethereumClient, auctionRepo }) {
     priceOracle: auctionRepo._priceOracle,
     tokens: auctionRepo._tokens,
     // the following address are just for debuging porpouses
-    dx_address_original: auctionRepo._dx_address_original,
-    dx_address_proxy: auctionRepo._dx_address_proxy
+    dxMaster: auctionRepo._dxMaster
   }
 }
 
-function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceOracle, tokens, dx_address_original, dx_address_proxy }) {
+function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMaster, priceOracle, tokens }) {
   const address = ethereumClient.getCoinbase()
   const web3 = ethereumClient.getWeb3()
   const accounts = web3.eth.accounts
@@ -63,7 +62,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
       users.map(userAddress => {
         return auctionRepo
           .depositEther({
-            address: userAddress,
+            from: userAddress,
             amount: web3.toWei(amountETH, 'ether')
           })
           .then(() => {
@@ -108,26 +107,67 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
 
   async function printAddresses () {
     console.log(`\n**********  Addresses  **********\n`)
+    // console.log('\n\tUsers:')
+    const users = {
+      /*
+      'Owner': owner,
+      'User 1': user1,
+      'User 2': user2
+      */
+      'owner': owner,
+      'user1': user1,
+      'user2': user2
+    }
+    Object.keys(users).forEach(name => {
+      // console.log('\t\t-%s: %s', name, users[name])
+      console.log("var %s = '%s'", name, users[name])
+    })
+
     // Print token addresses
-    console.log('\tToken Addresses:')
+    // console.log('\n\tToken Addresses:')
     const tokens = await auctionRepo.getTokens()
     await Promise.all(
       tokens.map(async token => {
         const tokenAddress = await auctionRepo.getTokenAddress({ token })
-        console.log('\t\t- %s: %s', token, tokenAddress)
+        // console.log('var %s: %s', token.toLowerCase(), tokenAddress)
+        console.log("var %sAddress = '%s'", token.toLowerCase(), tokenAddress)
       })
     )
 
-    console.log('\n\tContract Addresses:')
+    // console.log('\n\tContract Addresses:')
     const contracts = {
-      'DX (actual)': dx.address,
-      'DX (proxy)': dx_address_proxy,
-      'DX (master)': dx_address_original,
+      /*
+      'DX (proxy)': dx.address,
+      'DX (master)': dxMaster.address,
       'Price Oracle': priceOracle.address
+      */
+      'dxAddress': dx.address,
+      'dxMasterAddress': dxMaster.address,
+      'priceOracleAddress': priceOracle.address
     }
     Object.keys(contracts).forEach(name => {
-      console.log('\t\t- %s: \t%s', name, contracts[name])
+      // console.log('\t\t- %s: \t%s', name, contracts[name])
+      console.log("var %s = '%s'", name, contracts[name])
     })
+
+    console.log(`
+var formatFromWei = n => web3.fromWei(n, 'ether').toNumber()
+
+var dx = DutchExchange.at(dxAddress)
+var dxMaster = DutchExchange.at(dxMasterAddress)
+var priceOracleAddress = PriceOracleInterface.at(priceOracleAddress)
+
+var eth = EtherToken.at(ethAddress)
+var rdn = Token.at(rdnAddress)
+var omg = Token.at(omgAddress)
+
+
+eth.balanceOf(user1).then(formatFromWei)
+eth.allowance(user1, dxAddress).then(formatFromWei)
+dx.deposit(ethAddress, web3.toWei(1, 'ether'), { from: user1 })
+dx.balances(ethAddress, user1).then(formatFromWei)
+
+      `)
 
     console.log('\n**************************************\n\n')
   }
@@ -140,7 +180,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
     console.log(`\n**********  Balance for ${accountName}  **********\n`)
     const balanceETH = await ethereumRepo.balanceOf({ account })
     console.log('\tACCOUNT: %s', account)
-    console.log('\tBALANCE: %d ETH', weiToEth(balanceETH))
+    console.log('\tBALANCE: %d ETH', formatFromWei(balanceETH))
 
     const tokens = await auctionRepo.getTokens()
     const balances = await Promise.all(
@@ -156,16 +196,22 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
               owner: account,
               spender: dx.address
             }),
+            ethereumRepo.tokenAllowance({
+              tokenAddress,
+              owner: account,
+              spender: dxMaster.address
+            }),
             ethereumRepo.tokenTotalSupply({ tokenAddress }),
             // get token balance in DX
             auctionRepo.getBalance({ token, address: account })
           ])
-          .then(([ amount, allowance, totalSupply, amountInDx ]) => {
+          .then(([ amount, allowance, allowanceMaster, totalSupply, amountInDx ]) => {
             return {
               tokenAddress,
               token,
               amount,
               allowance,
+              allowanceMaster,
               totalSupply,
               amountInDx
             }
@@ -174,15 +220,20 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
 
     balances.forEach(balance => {
       console.log('\n\tBalances %s (in 10e18):', balance.token)
-      console.log('\t\t- Balance: ' + weiToEth(balance.amount))
+      console.log('\t\t- Balance: ' + formatFromWei(balance.amount))
       if (verbose) {
-        console.log('\t\t- Alowance DX: ' + weiToEth(balance.allowance))
-        console.log('\t\t- Amount DX: ' + weiToEth(balance.amountInDx))
-        console.log('\t\t- Total Suply: ' + weiToEth(balance.totalSupply))
+        console.log('\t\t- Alowance DX (proxy): ' + formatFromWei(balance.allowance))
+        console.log('\t\t- Alowance DX (master): ' + formatFromWei(balance.allowanceMaster))
+        console.log('\t\t- Amount DX: ' + formatFromWei(balance.amountInDx))
+        console.log('\t\t- Total Suply: ' + formatFromWei(balance.totalSupply))
         console.log('\t\t- Token address: ' + balance.tokenAddress)
       }
     })
     console.log('\n**************************************\n\n')
+  }
+
+  function formatFromWei (wei) {
+    return web3.fromWei(wei, 'ether').toNumber()
   }
 
   async function printOraclePrice (message, { token }) {
@@ -232,23 +283,28 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, priceO
   }
 
   async function deposit ({ account, token, amount }) {
-    console.log(`\n**********  Deposit ${amount} ${token} for ${account}  **********\n`)
+    console.log(`\n**********  Deposit ${token} for ${account}  **********\n`)
     let balance = await auctionRepo.getBalance({
       token,
       address: account
     })
 
     console.log('\n\tPrevious balance:')
-    console.log('\t\t- %s: %d', token, balance)
+    console.log('\t\t- %s: %d', token, formatFromWei(balance))
 
     console.log('\n\tAmount to deposit:')
     console.log('\t\t- %s: %d', token, amount)
 
     // do the deposit
-    await auctionRepo.deposit({ token, amount, address: account })
+    await auctionRepo.deposit({
+      token,
+      amount: web3.toWei(amount, 'ether'),
+      from: account
+    })
 
+    console.log('\n\tNew balance:')
     balance = await auctionRepo.getBalance({ token: token, address: account })
-    console.log('\t\t- %s: %d', token, balance)
+    console.log('\t\t- %s: %d', token, formatFromWei(balance))
 
     console.log('\n**************************************\n\n')
   }
@@ -334,9 +390,11 @@ function printBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
 
+/*
 function weiToEth (wei) {
   return new BigNumber(wei).div(10 ** 18)
 }
+*/
 
 const formatters = {
   closingPrice: fractionFormatter,

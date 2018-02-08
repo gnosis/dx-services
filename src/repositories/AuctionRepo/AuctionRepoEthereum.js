@@ -1,6 +1,6 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
-const BigNumber = require('bignumber.js')
+// const BigNumber = require('bignumber.js')
 
 /*
   // TODO: Events
@@ -357,10 +357,10 @@ class AuctionRepoEthereum {
     }
   }
 
-  async approveToken ({ token, address, isApproved = true }) {
+  async approveToken ({ token, from, isApproved = true }) {
     return this._transactionForToken({
       operation: 'updateApprovalOfToken',
-      address,
+      from,
       token: token,
       args: [ isApproved ? 1 : 0 ],
       checkToken: false
@@ -486,24 +486,20 @@ class AuctionRepoEthereum {
     })
   }
 
-  async depositEther ({ address, amount }) {
+  async depositEther ({ from, amount }) {
     const eth = this._tokens.ETH
     // deposit ether
-    eth.deposit({
-      from: address,
-      value: amount
-    })
+    eth.deposit({ from, value: amount })
+
     // Let DX use the ether
-    eth.approve(this._dx.address, amount, {
-      from: address
-    })
+    eth.approve(this._dx.address, amount, { from })
   }
 
-  async deposit ({ token, amount, address }) {
+  async deposit ({ token, amount, from }) {
     return this
       ._transactionForToken({
         operation: 'deposit',
-        address,
+        from,
         token,
         args: [ amount ], // new BigNumber(amount)
         checkToken: false
@@ -511,11 +507,11 @@ class AuctionRepoEthereum {
       .then(toTransactionNumber)
   }
 
-  async withdraw ({ token, amount, address }) {
+  async withdraw ({ token, amount, from }) {
     return this
       ._transactionForToken({
         operation: 'withdraw',
-        address,
+        from,
         token,
         args: [ amount ]
       })
@@ -523,14 +519,14 @@ class AuctionRepoEthereum {
   }
 
   async postSellOrder ({
-    sellToken, buyToken, auctionIndex, address, amount
+    sellToken, buyToken, auctionIndex, from, amount
   }) {
     // TODO: Review validations for doing them before calling the DX
 
     return this
       ._transactionForAuction({
         operation: 'postSellOrder',
-        address,
+        from,
         sellToken,
         buyToken,
         auctionIndex,
@@ -539,12 +535,12 @@ class AuctionRepoEthereum {
       .then(toTransactionNumber)
   }
 
-  async postBuyOrder ({ sellToken, buyToken, auctionIndex, address, amount }) {
+  async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
     // TODO: Review validations for doing them before calling the DX
     return this
       ._transactionForAuction({
         operation: 'postBuyOrder',
-        address,
+        from,
         sellToken,
         buyToken,
         auctionIndex,
@@ -554,28 +550,28 @@ class AuctionRepoEthereum {
   }
 
   async claimSellerFunds ({
-    sellToken, buyToken, address, auctionIndex
+    sellToken, buyToken, from, auctionIndex
   }) {
     // TODO: Review why the transaction needs address as a param as well
     return this
       ._transactionForPair({
         operation: 'claimSellerFunds',
-        address,
+        from,
         sellToken,
         buyToken,
-        args: [ address, auctionIndex ]
+        args: [ from, auctionIndex ]
       })
       .then(toTransactionNumber)
   }
 
-  async claimBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+  async claimBuyerFunds ({ sellToken, buyToken, from, auctionIndex }) {
     return this
       ._transactionForPair({
         operation: 'claimBuyerFunds',
-        address,
+        from,
         sellToken,
         buyToken,
-        args: [ address, auctionIndex ]
+        args: [ from, auctionIndex ]
       })
       .then(toTransactionNumber)
   }
@@ -722,9 +718,9 @@ class AuctionRepoEthereum {
       .call(sellTokenAddress, buyTokenAddress, auctionIndex, ...args)
   }
 
-  async _transactionForToken ({ operation, address, token, args, checkToken }) {
-    debug('Execute transaction "%s" (address %s) for token %s',
-      operation, address, token
+  async _transactionForToken ({ operation, from, token, args, checkToken }) {
+    debug('Execute transaction "%s" (from %s) for token %s',
+      operation, from, token
     )
     const tokenAddress = await await this._getTokenAddress(token, checkToken)
 
@@ -734,14 +730,14 @@ class AuctionRepoEthereum {
     ]
 
     // debug('Params: %o', params)
-    return this._doTransaction(operation, address, params)
+    return this._doTransaction(operation, from, params)
   }
 
   async _transactionForPair ({
-    transactionMethod, address, sellToken, buyToken, args, checkTokens
+    transactionMethod, from, sellToken, buyToken, args, checkTokens
   }) {
-    debug('Execute transaction "%s" (address %s) for pair %s-%s',
-      transactionMethod, address, sellToken, buyToken
+    debug('Execute transaction "%s" (from %s) for pair %s-%s',
+      transactionMethod, from, sellToken, buyToken
     )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
@@ -751,12 +747,12 @@ class AuctionRepoEthereum {
       buyTokenAddress,
       ...args
     ]
-    return this._doTransaction(transactionMethod, address, params)
+    return this._doTransaction(transactionMethod, from, params)
   }
 
   async _transactionForAuction ({
     transactionMethod,
-    address,
+    from,
     sellToken,
     buyToken,
     auctionIndex,
@@ -764,7 +760,7 @@ class AuctionRepoEthereum {
     checkTokens
   }) {
     debug('Execute transaction %s (address %s) for auction %d of the pair %s-%s',
-      transactionMethod, address, auctionIndex, sellToken, buyToken
+      transactionMethod, from, auctionIndex, sellToken, buyToken
     )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
@@ -774,24 +770,26 @@ class AuctionRepoEthereum {
       auctionIndex,
       ...args
     ]
-    return this._doTransaction(transactionMethod, address, params)
+    return this._doTransaction(transactionMethod, from, params)
   }
 
-  async _doTransaction (transactionMethod, address, params) {
+  async _doTransaction (transactionMethod, from, params) {
     debug('_doTransaction: %o', {
       transactionMethod,
-      address,
+      from,
       params
     })
     const estimatedGas = await this
       ._dx[transactionMethod]
-      .estimateGas(...params)
+      .estimateGas(...params, {
+        from
+      })
 
     debug('_doTransaction. Estimated gas for "%s": %d', transactionMethod, estimatedGas)
     return this
       ._dx[transactionMethod](...params, {
-        from: address,
-        gas: estimatedGas
+        from,
+        gas: estimatedGas * 1.5
       })
   }
 
@@ -810,8 +808,7 @@ class AuctionRepoEthereum {
       const dxProxy = await proxyContract.deployed()
       dxContractAddress = dxProxy.address
 
-      this._dx_address_original = (await dxContract.deployed()).address
-      this._dx_address_proxy = dxProxy.address
+      this._dxMaster = await dxContract.deployed()
     }
     return dxContract.at(dxContractAddress)
   }
