@@ -503,19 +503,19 @@ class AuctionRepoEthereum {
   async depositEther ({ from, amount }) {
     // deposit ether
     const eth = this._tokens.ETH
-    eth.deposit({ from, value: amount })
+    return eth.deposit({ from, value: amount })
   }
 
   async approveERC20Token ({ token, from, amount }) {
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
-    tokenContract.approve(this._dx.address, amount, { from })
+    return tokenContract.approve(this._dx.address, amount, { from })
   }
 
   async transferERC20Token ({ token, from, to, amount }) {
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
-    tokenContract.transfer(to, amount, { from })
+    return tokenContract.transfer(to, amount, { from })
   }
 
   async deposit ({ token, amount, from }) {

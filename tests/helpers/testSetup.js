@@ -123,7 +123,9 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
       console.log('\t\t- "user%d" deposits %d ETH into ETH token', userId, amountETH)
 
       // Deposit initial amounts
-      await Promise.all(initialAmounts.map(({ token, amount }) => {
+      await Promise.all(initialAmounts.map(({ token }) => {
+        const amount = getAmount(token)
+
         const amountInWei = web3.toWei(amount, 'ether')
         return auctionRepo.approveERC20Token({
           from: userAddress,
@@ -135,11 +137,6 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
       }))
 
       await Promise.all(initialAmounts.map(({ token, amount }) => {
-        /*
-        if (token === 'GNO') {
-          return Promise.resolve()
-        }
-        */
         const amountInWei = web3.toWei(amount, 'ether')
         // console.log('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
         return auctionRepo.deposit({
@@ -154,7 +151,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
 
     // Do funding
     await Promise.all(userSetupPromises)
-    console.log('\t\t- All users has deposited the ETH, %s tokens in the DX\n',
+    console.log('\t\t- All users has deposited the %s tokens in the DX\n',
       depositERC20Tokens.join(', '))
 
     console.log('\n**************************************\n\n')
