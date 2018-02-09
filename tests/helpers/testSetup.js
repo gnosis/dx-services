@@ -60,14 +60,15 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
     // Deposit 50ETH in the ETH Token
     // const [, ...users] = accounts
     const users = accounts.slice(1, 1 + NUM_TEST_USERS)
-    const amountETH = 50
     const initialAmounts = [
-      { token: 'ETH', amount: amountETH },
-      { token: 'GNO', amount: 70 },
-      { token: 'RDN', amount: 60 },
-      { token: 'OMG', amount: 40 }
+      { token: 'ETH', amount: 15 },
+      { token: 'GNO', amount: 5 },
+      { token: 'OWL', amount: 6 },
+      // { token: 'TUL', amount: 2 },
+      { token: 'RDN', amount: 10 },
+      { token: 'OMG', amount: 20 }
     ]
-    const approveERC20Tokens = ['ETH', 'RDN', 'OMG']
+    const approveERC20Tokens = ['ETH', 'OWL', 'RDN', 'OMG']
     const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
 
     function getAmount (token) {
@@ -116,6 +117,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
       )
 
       // User deposits ETH
+      const amountETH = getAmount('ETH')
       await auctionRepo.depositEther({
         from: userAddress,
         amount: web3.toWei(amountETH, 'ether')
@@ -305,11 +307,12 @@ dx.balances(ethAddress, user1).then(formatFromWei)
 
     balances.forEach(balance => {
       console.log('\n\tBalances %s:', balance.token)
+      console.log('\t\t- Balance in DX: ' + formatFromWei(balance.amountInDx))
       console.log('\t\t- Balance of user: ' + formatFromWei(balance.amount))
+
       if (verbose) {
         console.log('\t\t- Approved for DX: ' + formatFromWei(balance.allowance))
         // console.log('\t\t- Alowance DX (master): ' + formatFromWei(balance.allowanceMaster))
-        console.log('\t\t- Balance in DX: ' + formatFromWei(balance.amountInDx))
         console.log('\t\t- Token Supply: ' + formatFromWei(balance.totalSupply))
         // console.log('\t\t- Token address: ' + balance.tokenAddress)
       }
@@ -318,33 +321,48 @@ dx.balances(ethAddress, user1).then(formatFromWei)
   }
 
   function formatFromWei (wei) {
-    return web3.fromWei(wei, 'ether').toNumber()
+    return web3.fromWei(wei, 'ether') // .toNumber()
   }
 
   async function printOraclePrice (message, { token }) {
     const isApproved = await auctionRepo.isApprovedToken({ token })
+
     if (isApproved) {
-      const priceToken = await auctionRepo.getPriceOracle({ token })
-      console.log('%s%s: %d ETH/%s',
-        message, token, fractionFormatter(token, priceToken), token)
+      const hasPrice = await auctionRepo.hasPrice({ token })
+
+      if (hasPrice) {
+        const priceToken = await auctionRepo.getPriceOracle({ token })
+        console.log('%s%s: %d ETH/%s',
+          message, token, fractionFormatter(token, priceToken), token)
+      } else {
+        console.log(`\t\t- %s: The token has no price because the market %s-ETH\
+ doesn't exist yet`, token, token)
+      }
     } else {
-      console.log('\t\t- %s: No oracle price yet (not approved token)', token)
+      console.log('\t\t- %s: The token is not approved yet, so it cannot have price', token)
     }
   }
 
-  async function addTokenPair ({ address, tokenA, tokenB, tokenAFunding, tokenBFunding, initialClosingPrice }) {
-    const tokenABalance = await auctionRepo.getBalance({ token: tokenA, address })
-    const tokenBBalance = await auctionRepo.getBalance({ token: tokenB, address })
+  async function addTokenPair ({ accountName, from, tokenA, tokenB, tokenAFunding, tokenBFunding, initialClosingPrice }) {
+    const tokenABalance = await auctionRepo.getBalance({
+      token: tokenA,
+      address: from
+    })
+    const tokenBBalance = await auctionRepo.getBalance({
+      token: tokenB,
+      address: from
+    })
     // const ethUsdPrice = await auctionRepo.getBalance({ token: tokenB })
 
-    console.log(`\n**********  Add new token pair for: ${tokenA}-${tokenB}  **********\n`)
-    console.log('\tMarket:')
-    console.log('\t\t- Account: %s', address)
-    console.log('\t\t- %d %s. The user has %d %s',
-      tokenAFunding, tokenA, tokenABalance, tokenA)
-    console.log('\t\t- %d %s. The user has %d %s',
-      tokenBFunding, tokenB, tokenBBalance, tokenB)
+    console.log(`\n**********  "${accountName}" ads a new token pair  **********\n`)
+    console.log('\tMarket to add:')
+    console.log('\t\t- Market: %s-%s', tokenA, tokenB)
+    console.log('\t\t- %d %s. The user has a balance of %d %s',
+      formatFromWei(tokenAFunding), tokenA, formatFromWei(tokenABalance), tokenA)
+    console.log('\t\t- %d %s. The user has a balance of %d %s',
+      formatFromWei(tokenBFunding), tokenB, formatFromWei(tokenBBalance), tokenB)
     console.log('\t\t- Initial price: %d', fractionFormatter(initialClosingPrice))
+    console.log('\t\t- From: %s (%s)', accountName, from)
 
     console.log('\n\tPrice Oracle:')
     await printOraclePrice('\t\t- ', { token: tokenA })
@@ -352,7 +370,7 @@ dx.balances(ethAddress, user1).then(formatFromWei)
     console.log()
 
     const result = await auctionRepo.addTokenPair({
-      address,
+      from,
       tokenA,
       tokenAFunding,
       tokenB,
@@ -396,11 +414,12 @@ dx.balances(ethAddress, user1).then(formatFromWei)
 
   async function addTokens () {
     return addTokenPair({
-      address,
+      accountName: 'user1',
+      from: user1,
       tokenA: 'RDN',
-      tokenAFunding: 0,
+      tokenAFunding: web3.toWei(0, 'ether'),
       tokenB: 'ETH',
-      tokenBFunding: 15.123,
+      tokenBFunding: web3.toWei(15.123, 'ether'),
       initialClosingPrice: {
         numerator: new BigNumber(330027),
         denominator: new BigNumber(100000000)
@@ -409,7 +428,6 @@ dx.balances(ethAddress, user1).then(formatFromWei)
 
     /*
     await addTokenPair({
-      address,
       tokenA: 'OMG',
       tokenAFunding: 0,
       tokenB: 'ETH',

@@ -1,5 +1,13 @@
 const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
+const assert = require('assert')
+
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
+const MAXIMUM_FUNDING = 10 ** 30
+
+// TODO load thresfolds from contract
+const THRESHOLD_NEW_TOKEN_PAIR = 10000
+const BigNumber = require('bignumber.js')
+
 // const BigNumber = require('bignumber.js')
 
 /*
@@ -389,6 +397,22 @@ class AuctionRepoEthereum {
     })
   }
 
+  async isApprovedMarket ({ tokenA, tokenB }) {
+    const auctionIndex = this.getAuctionIndex({
+      sellToken: tokenA,
+      buyToken: tokenB
+    })
+
+    return auctionIndex > 0
+  }
+
+  async hasPrice ({ token }) {
+    return this.isApprovedMarket({
+      tokenA: token,
+      tokenB: 'ETH'
+    })
+  }
+
   // TODO: getCurrencies?
 
   async getSellVolume ({ sellToken, buyToken }) {
@@ -506,6 +530,12 @@ class AuctionRepoEthereum {
     return eth.deposit({ from, value: amount })
   }
 
+  async getEthUsdPrice () {
+    return this._priceOracle
+      .getUSDETHPrice
+      .call()
+  }
+
   async approveERC20Token ({ token, from, amount }) {
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
@@ -610,7 +640,7 @@ class AuctionRepoEthereum {
 
   async addTokenPair ({
     // address
-    address,
+    from,
     // Token A
     tokenA, tokenAFunding,
     // Token B
@@ -618,33 +648,81 @@ class AuctionRepoEthereum {
     // Initial closing price
     initialClosingPrice
   }) {
-    // TODO: Validations. There are some restrictions. Try to make validations
-    // before sending the transactio to save GAS
-    //  - Tokens different
-    //  - if one token is ETH: We just use it for calculating the price
-    //      * NOTE: The price is set by the one using it's ETH as collateral
-    //  - if none is ETH, we make sure we have price for TOKENA-ETH and
-    //    TOKENB-ETH
-    //      * NOTE: The price is set by the market (previous auctions)
-    //  - Check we have enough funding (10.000 USD)
-    //  - addTokenPair2
-    debug('Add new token pair: %s (%d), %s (%d). Price: %o. Addres %s ',
+    debug('Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
       tokenA, tokenAFunding,
       tokenB, tokenBFunding,
       initialClosingPrice,
-      address
+      from
     )
+
+    const actualAFounding = await this._getMaxAmountAvaliable({
+      token: tokenA,
+      address: from,
+      maxAmount: tokenAFunding
+    })
+
+    const actualBFounding = await this._getMaxAmountAvaliable({
+      token: tokenB,
+      address: from,
+      maxAmount: tokenBFunding
+    })
+    console.log(tokenB, actualBFounding.toNumber())
+
+    assert.notEqual(tokenA, tokenB)
+    assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
+    assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
+    assert(actualAFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
+    assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
+
+    const isApprovedMarket = await this.isApprovedMarket({ tokenA, tokenB })
+    assert(!isApprovedMarket, 'The pair was previouslly added')
+
+    const ethUsdPrice = await this.getEthUsdPrice()
+    let fundedValueUSD
+    if (tokenA === 'ETH') {
+      fundedValueUSD = actualAFounding * ethUsdPrice
+    } else if (tokenB === 'ETH') {
+      fundedValueUSD = actualBFounding * ethUsdPrice
+    } else {
+      // If none of the tokens are ETH, then:
+      //  TOKENA-ETH must be an aproved market
+      //  TOKENB-ETH must be an aproved market
+      const tokenAMarketExists = await this.isApprovedMarket({
+        tokenA,
+        tokenB: 'ETH'
+      })
+      const tokenBMarketExists = await this.isApprovedMarket({
+        tokenA: tokenB,
+        tokenB: 'ETH'
+      })
+      assert(tokenAMarketExists, `The market ${tokenA}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
+      assert(tokenBMarketExists, `The market ${tokenB}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
+      const priceTokenA = this.getPrice({ token: tokenA })
+      const priceTokenB = this.getPrice({ token: tokenA })
+      fundedValueUSD = (
+        actualAFounding * priceTokenA.numerator / priceTokenA.denominator +
+        actualBFounding * priceTokenB.numerator / priceTokenB.denominator
+      ) * ethUsdPrice
+    }
+
+    debug('Price in USD for the initial funding', fundedValueUSD)
+    assert(fundedValueUSD > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
+Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_PAIR}`)
+
     const tokenAAddress = await this._getTokenAddress(tokenA, false)
     const tokenBAddress = await this._getTokenAddress(tokenB, false)
 
     const params = [
       tokenAAddress, tokenBAddress,
+      // we don't use the actual on porpuse (let the contract do that)
       tokenAFunding, tokenBFunding,
       initialClosingPrice.numerator,
       initialClosingPrice.denominator
     ]
+
+    // debug('Add tokens with params: %o', params)
     return this
-      ._doTransaction('addTokenPair', address, params)
+      ._doTransaction('addTokenPair', from, params)
       .then(toTransactionNumber)
   }
 
@@ -677,6 +755,12 @@ class AuctionRepoEthereum {
         auctionIndex
       })
       .then(toFraction)
+  }
+
+  async _getMaxAmountAvaliable ({ token, address, maxAmount }) {
+    const balance = await this.getBalance({ token, address })
+    // console.log('MIN', balance.toNumber(), maxAmount)
+    return BigNumber.min(balance, maxAmount)
   }
 
   _getTokenContract (token) {

@@ -7,23 +7,23 @@ testSetup()
 
 async function run ({
   auctionRepo,
-  address
+  owner
 }) {
   // Add GNO-ETH pair
   const txGNO_ETH = await auctionRepo.addTokenPair({
-    address,
+    from: owner,
     tokenA: 'RDN',
     tokenAFunding: 0,
     tokenB: 'ETH',
     tokenBFunding: 15.123,
     initialClosingPrice: {
-      numerator: 4079,     // ETH
+      numerator: 4079, // ETH
       denominator: 1000000 // RDN
     }
   })
-  
+
   const txOMG_ETH = await auctionRepo.addTokenPair({
-    address,
+    from: owner,
     tokenA: 'OMG',
     tokenAFunding: 0,
     tokenB: 'ETH',
@@ -36,7 +36,7 @@ async function run ({
 
   // https://walletinvestor.com/converter/raiden-network-token/omisego/1
   const txRDN_OMG = await auctionRepo.addTokenPair({
-    address,
+    from: owner,
     tokenA: 'OMG',
     tokenAFunding: 700,
     tokenB: 'RDN',
