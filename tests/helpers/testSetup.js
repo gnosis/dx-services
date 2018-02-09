@@ -1,5 +1,6 @@
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
+const NUM_TEST_USERS = 1
 
 const config = {
   AUCTION_REPO_IMPL: 'ethereum'
@@ -57,14 +58,28 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
   async function setupTestCases () {
     console.log(`\n**********  Setup DX: Founding, and aproved tokens  **********\n`)
     // Deposit 50ETH in the ETH Token
-    const [, ...users] = accounts
+    // const [, ...users] = accounts
+    const users = accounts.slice(1, 1 + NUM_TEST_USERS)
     const amountETH = 50
-    const amountGNO = 50
     const initialAmounts = [
       { token: 'ETH', amount: amountETH },
-      { token: 'GNO', amount: amountGNO }
+      { token: 'GNO', amount: 70 },
+      { token: 'RDN', amount: 60 },
+      { token: 'OMG', amount: 40 }
     ]
-    const approveERC20Tokens = ['RDN', 'OMG']
+    const approveERC20Tokens = ['ETH', 'RDN', 'OMG']
+    const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
+
+    function getAmount (token) {
+      const amount = initialAmounts
+        .find(initialAmount => initialAmount.token === token)
+        .amount
+      if (!amount) {
+        throw new Error('Initial amount is not declared for token ' + token)
+      }
+
+      return amount
+    }
 
     // Aprove tokens
     console.log('\tAprove tokens:')
@@ -81,14 +96,24 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
     const userSetupPromises = users.map(async userAddress => {
       const userId = users.indexOf(userAddress) + 1
 
-      // The owner gives some GNO to the users
-      await auctionRepo.transferERC20Token({
-        from: owner,
-        to: userAddress,
-        token: 'GNO',
-        amount: web3.toWei(amountGNO, 'ether')
-      })
-      console.log('\t\t- "owner" gives "user%d" %d %s as a present', userId, amountGNO, 'GNO')
+      // The owner gives some tokens to the users
+      await Promise.all(
+        depositERC20Tokens
+          // We don't need to give ETH to the users (they deposit it)
+          .filter(t => t !== 'ETH')
+          .map(token => {
+            const amount = getAmount(token)
+
+            return auctionRepo.transferERC20Token({
+              from: owner,
+              to: userAddress,
+              token,
+              amount: web3.toWei(amount, 'ether')
+            }).then(() => {
+              console.log('\t\t- "owner" gives "user%d" %d %s as a present', userId, amount, token)
+            })
+          })
+      )
 
       // User deposits ETH
       await auctionRepo.depositEther({
@@ -116,7 +141,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
         }
         */
         const amountInWei = web3.toWei(amount, 'ether')
-        console.log('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
+        // console.log('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
         return auctionRepo.deposit({
           from: userAddress,
           token,
@@ -129,7 +154,8 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
 
     // Do funding
     await Promise.all(userSetupPromises)
-    console.log('\t\t- All users has deposited the ETH and GNO tokens in the DX\n')
+    console.log('\t\t- All users has deposited the ETH, %s tokens in the DX\n',
+      depositERC20Tokens.join(', '))
 
     console.log('\n**************************************\n\n')
   }
@@ -142,25 +168,25 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
   async function printState (message, { sellToken, buyToken }) {
     const isSellTokenApproved = await auctionRepo.isApprovedToken({ token: sellToken })
     const isBuyTokenApproved = await auctionRepo.isApprovedToken({ token: buyToken })
+    const state = await auctionRepo.getState({ sellToken, buyToken })
+    const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
+
     console.log(`\n**********  ${message}  **********\n`)
+    console.log(`\tState: ${state}`)
 
-    if (!isSellTokenApproved || !isBuyTokenApproved) {
-      console.log(`\tState: At least one of the tokens is not yet approved`)
-      console.log('\n\tState info:')
-      console.log('\n\t\tIs %s approved? %s', sellToken, printBoolean(isSellTokenApproved))
-      console.log('\n\t\tIs %s approved? %s', buyToken, printBoolean(isBuyTokenApproved))
-    } else {
-      const state = await auctionRepo.getState({ sellToken, buyToken })
-      const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
+    console.log(`\n\tAre tokens Approved?`)
+    console.log('\t\t- %s: %s', sellToken, printBoolean(isSellTokenApproved))
+    console.log('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
 
-      console.log(`\tState: ${state}`)
+    console.log('\n\tState info:')
+    printProps('\t\t', stateInfoProps, stateInfo)
 
-      console.log('\n\tState info:')
-      printProps('\t\t', stateInfoProps, stateInfo)
-
+    if (stateInfo.auction) {
       console.log(`\n\tAuction ${sellToken}-${buyToken}:`)
       printProps('\t\t', auctionProps, stateInfo.auction, formatters)
+    }
 
+    if (stateInfo.auctionOpp) {
       console.log(`\n\tAuction ${buyToken}-${sellToken}:`)
       printProps('\t\t', auctionProps, stateInfo.auctionOpp, formatters)
     }
@@ -423,14 +449,18 @@ dx.balances(ethAddress, user1).then(formatFromWei)
   }
 }
 function printProps (prefix, props, object, formatters) {
-  props.forEach(prop => {
-    let value = object[prop]
-    if (formatters && formatters[prop]) {
-      value = formatters[prop](value)
-    }
+  if (object) {
+    props.forEach(prop => {
+      let value = object[prop]
+      if (formatters && formatters[prop]) {
+        value = formatters[prop](value)
+      }
 
-    console.log(`${prefix}${prop}: ${value}`)
-  })
+      console.log(`${prefix}${prop}: ${value}`)
+    })
+  } else {
+    console.log(`${prefix}${object}`)
+  }
 }
 
 function fractionFormatter (fraction) {
