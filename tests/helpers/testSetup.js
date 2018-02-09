@@ -55,6 +55,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
   }
 
   async function setupTestCases () {
+    console.log(`\n**********  Setup DX: Founding, and aproved tokens  **********\n`)
     // Deposit 50ETH in the ETH Token
     const [, ...users] = accounts
     const amountETH = 50
@@ -63,7 +64,20 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
       { token: 'ETH', amount: amountETH },
       { token: 'GNO', amount: amountGNO }
     ]
+    const approveERC20Tokens = ['RDN', 'OMG']
 
+    // Aprove tokens
+    console.log('\tAprove tokens:')
+    await Promise.all(
+      approveERC20Tokens.map(token => {
+        return auctionRepo
+          .approveToken({ token, from: owner })
+          .then(() => console.log(`\t\t- The "owner" has approved the token "${token}"`))
+      })
+    )
+    console.log('\t\t- All tokens has been approved')
+
+    console.log('\n\tFounding DX:')
     const userSetupPromises = users.map(async userAddress => {
       const userId = users.indexOf(userAddress) + 1
 
@@ -74,14 +88,14 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
         token: 'GNO',
         amount: web3.toWei(amountGNO, 'ether')
       })
-      console.log('"owner" gives "user%d" %d %s as a present', userId, amountGNO, 'GNO')
+      console.log('\t\t- "owner" gives "user%d" %d %s as a present', userId, amountGNO, 'GNO')
 
       // User deposits ETH
       await auctionRepo.depositEther({
         from: userAddress,
         amount: web3.toWei(amountETH, 'ether')
       })
-      console.log('"user%d" deposits %d ETH into ETH token', userId, amountETH)
+      console.log('\t\t- "user%d" deposits %d ETH into ETH token', userId, amountETH)
 
       // Deposit initial amounts
       await Promise.all(initialAmounts.map(({ token, amount }) => {
@@ -91,7 +105,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
           token,
           amount: amountInWei
         }).then(() => {
-          console.log('"user%d" aproves DX to take %d %s on his behalf', userId, amount, token)
+          console.log('\t\t- "user%d" aproves DX to take %d %s on his behalf', userId, amount, token)
         })
       }))
 
@@ -102,19 +116,22 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
         }
         */
         const amountInWei = web3.toWei(amount, 'ether')
-        console.log('"user%d" is about to deposits %d %s in the DX', userId, amount, token)
+        console.log('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
         return auctionRepo.deposit({
           from: userAddress,
           token,
           amount: amountInWei
         }).then(() => {
-          console.log('"user%d" deposits %d %s in the DX', userId, amount, token)
+          console.log('\t\t- "user%d" deposits %d %s in the DX', userId, amount, token)
         })
       }))
     })
 
+    // Do funding
     await Promise.all(userSetupPromises)
-    console.log('All users has deposited the ETH and GNO tokens in the DX')
+    console.log('\t\t- All users has deposited the ETH and GNO tokens in the DX\n')
+
+    console.log('\n**************************************\n\n')
   }
 
   async function printTime (message) {

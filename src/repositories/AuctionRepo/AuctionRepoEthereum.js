@@ -798,23 +798,16 @@ class AuctionRepoEthereum {
     debug('_doTransaction. Estimated gas for "%s": %d', transactionMethod, estimatedGas)
     const gas = estimatedGas * 1.5
     */
-    try {
-      const result = this
-        ._dx[transactionMethod](...params, {
-          from
-          // gas
-        })
-      debug('The transaction was Succesfull: %o', result)
-
-      return result.catch(error => {
-        console.error('Error transaction', error)
+    return this
+      ._dx[transactionMethod](...params, {
+        from
+        // gas
+      }).catch(error => {
+        console.error('Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
+          transactionMethod, from, params, error
+        )
+        throw error
       })
-    } catch (error) {
-      console.error('Error on transaction "%s", from %s using. Params: ',
-        transactionMethod, from, error, params
-      )
-      throw error
-    }
   }
 
   async _loadDx () {
@@ -872,6 +865,8 @@ class AuctionRepoEthereum {
   async _loadTokenContracts () {
     const standardTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.StandardToken)
+
+    debug('this._erc20TokenAddresses: ', this._erc20TokenAddresses)
 
     const tokenContractList = await Promise.all(
       Object

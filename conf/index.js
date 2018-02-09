@@ -1,4 +1,4 @@
-// const debug = require('debug')('dx-service:conf')
+const debug = require('debug')('dx-service:conf')
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
   'DX_CONTRACT_ADDRESS',
@@ -24,6 +24,9 @@ const envVars = getEnvVars(tokens)
 // Merge three configs to get final config
 const config = Object.assign({}, defaultConf, envConf, envVars)
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
+
+debug('tokens', tokens)
+debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
 // debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)
 
 function getTokenList (markets) {
@@ -73,6 +76,11 @@ function getTokenAddresses (tokens, config) {
     const address = config[paramName]
     if (address) {
       tokenAddresses[token] = address
+    } else if (config.ENVIRONMENT === 'LOCAL') {
+      tokenAddresses[token] = null
+    } else {
+      throw new Error(`The token ${token} is declared in the market, but no \
+param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
     }
     return tokenAddresses
   }, {})

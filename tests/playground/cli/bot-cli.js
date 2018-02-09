@@ -89,7 +89,7 @@ async function run ({
     await setupTestCases()
   } else if (commander.approveToken) {
     const token = commander.approveToken
-    await auctionRepo.approveToken({ token, owner })
+    await auctionRepo.approveToken({ token, from: owner })
     console.log('The token %s has been approved', token)
   } else if (commander.state) {
     // State
