@@ -487,12 +487,21 @@ class AuctionRepoEthereum {
   }
 
   async depositEther ({ from, amount }) {
-    const eth = this._tokens.ETH
     // deposit ether
+    const eth = this._tokens.ETH
     eth.deposit({ from, value: amount })
+  }
 
+  async approveERC20Token ({ token, from, amount }) {
     // Let DX use the ether
-    eth.approve(this._dx.address, amount, { from })
+    const tokenContract = this._getTokenContract(token)
+    tokenContract.approve(this._dx.address, amount, { from })
+  }
+
+  async transferERC20Token ({ token, from, to, amount }) {
+    // Let DX use the ether
+    const tokenContract = this._getTokenContract(token)
+    tokenContract.transfer(to, amount, { from })
   }
 
   async deposit ({ token, amount, from }) {
@@ -722,7 +731,7 @@ class AuctionRepoEthereum {
     debug('Execute transaction "%s" (from %s) for token %s',
       operation, from, token
     )
-    const tokenAddress = await await this._getTokenAddress(token, checkToken)
+    const tokenAddress = await this._getTokenAddress(token, checkToken)
 
     const params = [
       tokenAddress,
@@ -779,6 +788,7 @@ class AuctionRepoEthereum {
       from,
       params
     })
+    /*
     const estimatedGas = await this
       ._dx[transactionMethod]
       .estimateGas(...params, {
@@ -786,11 +796,25 @@ class AuctionRepoEthereum {
       })
 
     debug('_doTransaction. Estimated gas for "%s": %d', transactionMethod, estimatedGas)
-    return this
-      ._dx[transactionMethod](...params, {
-        from,
-        gas: estimatedGas * 1.5
+    const gas = estimatedGas * 1.5
+    */
+    try {
+      const result = this
+        ._dx[transactionMethod](...params, {
+          from
+          // gas
+        })
+      debug('The transaction was Succesfull: %o', result)
+
+      return result.catch(error => {
+        console.error('Error transaction', error)
       })
+    } catch (error) {
+      console.error('Error on transaction "%s", from %s using. Params: ',
+        transactionMethod, from, error, params
+      )
+      throw error
+    }
   }
 
   async _loadDx () {

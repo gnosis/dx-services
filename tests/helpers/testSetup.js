@@ -58,18 +58,63 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
     // Deposit 50ETH in the ETH Token
     const [, ...users] = accounts
     const amountETH = 50
-    return Promise.all(
-      users.map(userAddress => {
-        return auctionRepo
-          .depositEther({
-            from: userAddress,
-            amount: web3.toWei(amountETH, 'ether')
-          })
-          .then(() => {
-            console.log('User %s deposits %d ETH into ETH token', userAddress, amountETH)
-          })
+    const amountGNO = 50
+    const initialAmounts = [
+      { token: 'ETH', amount: amountETH },
+      { token: 'GNO', amount: amountGNO }
+    ]
+
+    const userSetupPromises = users.map(async userAddress => {
+      const userId = users.indexOf(userAddress) + 1
+
+      // The owner gives some GNO to the users
+      await auctionRepo.transferERC20Token({
+        from: owner,
+        to: userAddress,
+        token: 'GNO',
+        amount: web3.toWei(amountGNO, 'ether')
       })
-    ).then(() => console.log('All users has deposited the ETH tokens'))
+      console.log('"owner" gives "user%d" %d %s as a present', userId, amountGNO, 'GNO')
+
+      // User deposits ETH
+      await auctionRepo.depositEther({
+        from: userAddress,
+        amount: web3.toWei(amountETH, 'ether')
+      })
+      console.log('"user%d" deposits %d ETH into ETH token', userId, amountETH)
+
+      // Deposit initial amounts
+      await Promise.all(initialAmounts.map(({ token, amount }) => {
+        const amountInWei = web3.toWei(amount, 'ether')
+        return auctionRepo.approveERC20Token({
+          from: userAddress,
+          token,
+          amount: amountInWei
+        }).then(() => {
+          console.log('"user%d" aproves DX to take %d %s on his behalf', userId, amount, token)
+        })
+      }))
+
+      await Promise.all(initialAmounts.map(({ token, amount }) => {
+        /*
+        if (token === 'GNO') {
+          return Promise.resolve()
+        }
+        */
+        const amountInWei = web3.toWei(amount, 'ether')
+        console.log('"user%d" is about to deposits %d %s in the DX', userId, amount, token)
+        return auctionRepo.deposit({
+          from: userAddress,
+          token,
+          amount: amountInWei
+        }).then(() => {
+          console.log('"user%d" deposits %d %s in the DX', userId, amount, token)
+        })
+      }))
+    })
+
+    await Promise.all(userSetupPromises)
+    console.log('All users has deposited the ETH and GNO tokens in the DX')
   }
 
   async function printTime (message) {
@@ -219,14 +264,14 @@ dx.balances(ethAddress, user1).then(formatFromWei)
       }))
 
     balances.forEach(balance => {
-      console.log('\n\tBalances %s (in 10e18):', balance.token)
-      console.log('\t\t- Balance: ' + formatFromWei(balance.amount))
+      console.log('\n\tBalances %s:', balance.token)
+      console.log('\t\t- Balance of user: ' + formatFromWei(balance.amount))
       if (verbose) {
-        console.log('\t\t- Alowance DX (proxy): ' + formatFromWei(balance.allowance))
-        console.log('\t\t- Alowance DX (master): ' + formatFromWei(balance.allowanceMaster))
-        console.log('\t\t- Amount DX: ' + formatFromWei(balance.amountInDx))
-        console.log('\t\t- Total Suply: ' + formatFromWei(balance.totalSupply))
-        console.log('\t\t- Token address: ' + balance.tokenAddress)
+        console.log('\t\t- Approved for DX: ' + formatFromWei(balance.allowance))
+        // console.log('\t\t- Alowance DX (master): ' + formatFromWei(balance.allowanceMaster))
+        console.log('\t\t- Balance in DX: ' + formatFromWei(balance.amountInDx))
+        console.log('\t\t- Token Supply: ' + formatFromWei(balance.totalSupply))
+        // console.log('\t\t- Token address: ' + balance.tokenAddress)
       }
     })
     console.log('\n**************************************\n\n')
