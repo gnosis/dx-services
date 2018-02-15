@@ -13,7 +13,8 @@ const RDN_TOKEN_ADDRESS = null
 const OMG_TOKEN_ADDRESS = null
 
 const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
-const BOT_ACCOUNT_MNEMONIC = null
+const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+// const BOT_ACCOUNT_MNEMONIC = null
 
 const BUY_THRESHOLDS = [{
   marketPriceRatio: 1,
