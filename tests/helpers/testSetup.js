@@ -56,7 +56,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
   }
 
   async function setupTestCases () {
-    console.log(`\n**********  Setup DX: Founding, and aproved tokens  **********\n`)
+    console.log(`\n**********  Setup DX: Founding, and aproved tokens and Oracle  **********\n`)
     // Deposit 50ETH in the ETH Token
     // const [, ...users] = accounts
     const users = accounts.slice(1, 1 + NUM_TEST_USERS)
@@ -70,6 +70,7 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
     ]
     const approveERC20Tokens = ['ETH', 'OWL', 'RDN', 'OMG']
     const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
+    const ethUsdPrice = 1100.0
 
     function getAmount (token) {
       const amount = initialAmounts
@@ -155,6 +156,19 @@ function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMast
     await Promise.all(userSetupPromises)
     console.log('\t\t- All users has deposited the %s tokens in the DX\n',
       depositERC20Tokens.join(', '))
+
+    // I don't understand why we need this
+    // TODO: Revview "testFunction" in DX
+    /*
+    console.log('\n\tFounding DX:')
+    const priceFeedSource = await priceOracle.priceFeedSource.call()
+    await priceFeed.post(
+      web3.toWei(ethUsdPrice),
+      1516168838 * 2,
+      priceFeedSource,
+      { from: owner }
+    )
+    */
 
     console.log('\n**************************************\n\n')
   }

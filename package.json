@@ -11,7 +11,7 @@
     "dev": "DEBUG=dx-service:* node src/main.js",
     "pro": "NODE_ENV=PRO node src/main.js",
     "trace": "DEBUG=* node src/main.js",
-    "test": "jest",
+    "test": "NODE_ENV=LOCAL jest",
     "tdd": "jest --watch",
     "test-debug": "DEBUG=* jest",
     "cli": "node tests/playground/cli/bot-cli.js",
