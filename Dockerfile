@@ -3,8 +3,14 @@ FROM node:8.9.4-alpine
 RUN apk update && \
 apk add --no-cache bash git openssh
 
+RUN apk add --no-cache --virtual .gyp \
+  python \
+  make \
+  g++
+
 # Create app directory
 WORKDIR /usr/src/app/
+
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
