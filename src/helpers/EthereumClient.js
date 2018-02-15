@@ -57,16 +57,23 @@ class EthereumClient {
     return this._url
   }
 
-  getBlock (blockNumber = this.getBlockNumber()) {
+  async getBlock (blockNumber) {
+    if (!blockNumber) {
+      blockNumber = await this.getBlockNumber()
+    }
     return this._promisify(this._web3.eth.getBlock, blockNumber)
   }
 
-  getCoinbase () {
-    return this._web3.eth.coinbase
+  async getCoinbase () {
+    return this._promisify(this._web3.eth.getCoinbase)
   }
 
-  getBlockNumber () {
-    return this._web3.eth.blockNumber
+  async getAccounts () {
+    return this._promisify(this._web3.eth.getAccounts)
+  }
+
+  async getBlockNumber () {
+    return this._promisify(this._web3.eth.getBlockNumber)
   }
 
   async geLastBlockTime () {
@@ -112,13 +119,19 @@ class EthereumClient {
 
   async _promisify (fn, param) {
     return new Promise((resolve, reject) => {
-      fn(param, (error, ...data) => {
+      const callback = (error, ...data) => {
         if (error) {
           reject(error)
         } else {
           resolve(...data)
         }
-      })
+      }
+
+      if (param) {
+        fn(param, callback)
+      } else {
+        fn(callback)
+      }
     })
   }
 

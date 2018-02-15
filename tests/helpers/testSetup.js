@@ -17,7 +17,7 @@ const auctionProps = [
 
 // const balanceProps = ['token', 'balance']
 
-function getContracts ({ ethereumClient, auctionRepo }) {
+async function getContracts ({ ethereumClient, auctionRepo }) {
   return {
     dx: auctionRepo._dx,
     priceOracle: auctionRepo._priceOracle,
@@ -27,10 +27,10 @@ function getContracts ({ ethereumClient, auctionRepo }) {
   }
 }
 
-function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMaster, priceOracle, tokens }) {
-  const address = ethereumClient.getCoinbase()
+async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMaster, priceOracle, tokens }) {
+  const address = await ethereumClient.getCoinbase()
+  const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
-  const accounts = web3.eth.accounts
   const [ owner, user1, user2 ] = accounts
 
   // helpers
@@ -524,9 +524,9 @@ const formatters = {
 
 function testSetup () {
   return instanceFactory({ test: true, config })
-    .then(instances => {
-      const contracts = getContracts(instances)
-      const helpers = getHelpers(instances, contracts)
+    .then(async instances => {
+      const contracts = await getContracts(instances)
+      const helpers = await getHelpers(instances, contracts)
       return Object.assign({}, contracts, helpers, instances)
     })
 }
