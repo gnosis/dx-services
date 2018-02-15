@@ -8,5 +8,5 @@ node_js:
 install:
   - yarn install --pure-lockfile
   - npm run contracts-compile
-script:
-  - npm test
+#script:
+  #- npm test
