@@ -12,14 +12,13 @@ install:
 #script:
   #- npm test
 after_success:
-  # docker build -t dx-services .;
-  echo "Login with $DOCKER_USERNAME"
-  # docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  #
-  # if [ "$TRAVIS_BRANCH" == "master" ]; then
-  #   docker tag dx-services gnosispm/dx-services:$TRAVIS_BRANCH;
-  #   docker push gnosispm/dx-services:$TRAVIS_BRANCH;
-  # elif [ "$TRAVIS_BRANCH" == "development" ]; then
-  #   docker tag dx-services gnosispm/dx-services:development;
-  #   docker push gnosispm/dx-services:development;
-  # fi
+  docker build -t dx-services .;
+  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+
+  if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker tag dx-services gnosispm/dx-services:$TRAVIS_BRANCH;
+    docker push gnosispm/dx-services:$TRAVIS_BRANCH;
+  elif [ "$TRAVIS_BRANCH" == "development" ]; then
+    docker tag dx-services gnosispm/dx-services:development;
+    docker push gnosispm/dx-services:development;
+  fi
