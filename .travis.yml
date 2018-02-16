@@ -1,24 +1,13 @@
 language: node_js
 node_js:
-  - "8"
-
-#cache:
-  #directories:
-  #  - node_modules
-  #yarn: true
+- '8'
 install:
-  - yarn install --pure-lockfile
-  - npm run contracts-compile
-#script:
-  #- npm test
-after_success:
-  docker build -t dx-services .;
-  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-
-  if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker tag dx-services gnosispm/dx-services:$TRAVIS_BRANCH;
-    docker push gnosispm/dx-services:$TRAVIS_BRANCH;
-  elif [ "$TRAVIS_BRANCH" == "development" ]; then
-    docker tag dx-services gnosispm/dx-services:development;
-    docker push gnosispm/dx-services:development;
-  fi
+- yarn install --pure-lockfile
+- npm run contracts-compile
+after_success: |-
+  docker build -t dx-services .; docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  if [ "$TRAVIS_BRANCH" == "master" ]; then docker tag dx-services gnosispm/dx-services:staging; docker push gnosispm/dx-services:staging; elif [ "$TRAVIS_BRANCH" == "development" ]; then docker tag dx-services gnosispm/dx-services:development; docker push gnosispm/dx-services:development; fi
+env:
+  global:
+  - secure: fGVPbpeufvWEAwv60pg1lM6mkcutSmCS30gfQ0LOcIWiCp0KmZXgQvavM8+Vmgb64oWRYWG2wPkYpoAHDBhZdht88DHfM6d8o6oLT4GQQxQOYnEN/J2JcrdLemF7gAPptyidSsdHfjXp4FdUHVyec49ZHz8v51Gpdq1T9EU99ITEsWHGcA8fQICaGpQMM5c4fBprBSxNladEJEtffzBT1L/SEoVdsL1mVKpIRF3+uGmibHIoowjsXImRa4E+Cz7LIR1mDsFMHlJHc+qoQnky9mNuy/NCMAWsCKYsMU8411DBvl0Isfjre0Rnb75LnBwwiebh/Xbh7cpLAfMVIUkG7j5jfo3N+BrUSTcyFbYVXyAH8E+u5zwvK0RzrGK4bABDn/t5/w+/7LAbElgY3UTQDejhsJwc5zX5KjTsBlXlJdhQECkj6zOifbq7y0vqPRL3TcfRkW4zRbzEaInz5w0uFatI3b1lylQqDddYZnlDtWWa5sTu8PHriw9KARbuSs2Ycwz8vcwR7On7jfzvU90Qfp43fnrBM1kPMKySlfv+Pxgn90/wVSUSyBBqE5EcL6TRQxfvlyin2N/tKQmAjK4njK+nLpBXKbmpDXA+JxsQuWmyxW5G3rkL96ggE+5lY9IY0W4R92Dw6ncVe0P+S2zYbaRESZxuYjSkndELHJvQzR4=
+  - secure: ba7BLi2HGgzwCdiqB1oBuwsJiESnWt7QOCVdAhompykL4lBNkguGrfuv1MJD2D5KHiMQq5lX6KxNCEVY7JXLGURASmcPgwc38Y7oDs8k7APTiCJq6Rt9oEr1kzm+gZdRDA+HlbzuXckj7/USovISkxBAV9Xs80T287lAy3vB5mH2BPXxjZB8i09JY+iJ+fZhn1VIU/oXvx2B0nGdSTBs2a5A3QHNW6AcOHM7aVnV3rNkUHZhMjTK7tgR5pvU0nYXFoqMCP0zsFdffj5J/n9wlH/WkEXa0IMqjQGh8P6IPLFlavNl+ZWRRoVnMaSph1MBPMReMgEojjCtGgjqoyuK776eqMnE8nxSYMcs4yO0vr7Lc2xh1x9xv87ZkZTTYgYNoiOnyAw1rfDa8Pi/u/uZFWa6byxFfixn3UQ7Dj4SL+BEC5BfdQj5qDL4FtbKGf70b0T4XUIqZZdMSz5jfzJHYH9I4ZZp6R8Ica/qicG5DqQljir8MRAqenkH/LjoVB+yabBwuzCgjbbcwwHZKZCdypvPJxc6lihydC+ovMa+xIrwuonwgAAhRLZHZmDJw7ZbhhQxXneoXN0TsR7C8Uoj9YKbKKCJDyBV1t7437DWzKogStTYVDWNvAea8o0C0MOnaV5JxU0cA8L8avMqNy9CkSxbXBDrdADt5EnOdISzlwA=
