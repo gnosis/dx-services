@@ -11,7 +11,7 @@ class EthereumClient {
     debug('Using %s RPC api to connect to Ethereum', url)
     this._url = url
     if (mnemonic) {
-      this._provider = new HDWalletProvider(mnemonic, url)
+      this._provider = new HDWalletProvider(mnemonic, url, 0, 5)
     } else {
       this._provider = new Web3.providers.HttpProvider(url)
     }
@@ -119,11 +119,11 @@ class EthereumClient {
 
   async _promisify (fn, param) {
     return new Promise((resolve, reject) => {
-      const callback = (error, ...data) => {
+      const callback = (error, data) => {
         if (error) {
           reject(error)
         } else {
-          resolve(...data)
+          resolve(data)
         }
       }
 

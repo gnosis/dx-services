@@ -15,7 +15,7 @@
     "tdd": "jest --watch",
     "test-debug": "DEBUG=* jest",
     "cli": "node tests/playground/cli/bot-cli.js",
-    "rpc": "ganache-cli -d -e 50000000000000000000000 --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'",
+    "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '50000000000000000000000'",
     "contracts-compile-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; yarn install; truffle compile;",
     "contracts-compile-project": "truffle compile",
     "contracts-compile": "npm run contracts-compile-dx; npm run contracts-compile-project",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@gitlab.gnosisdev.com:dx/dx-services.git"
+    "url": "git@github.com:gnosis/dx-services.git"
   },
   "author": "Angel Rodriguez <anxolin@gmail.com> (https://github.com/anxolin)",
   "license": "UNLICENSED",
@@ -40,7 +40,7 @@
     "got": "^8.0.3",
     "qs": "^6.5.1",
     "truffle-contract": "^3.0.3",
-    "truffle-hdwallet-provider": "^0.0.3"
+    "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2"
   },
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend",
