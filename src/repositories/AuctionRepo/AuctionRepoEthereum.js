@@ -3,6 +3,8 @@ const assert = require('assert')
 
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
 const MAXIMUM_FUNDING = 10 ** 30
+const DEFAULT_GAS = 6700000
+const DEFAULT_GAS_PRICE = 100000000000
 
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
@@ -398,10 +400,11 @@ class AuctionRepoEthereum {
   }
 
   async isApprovedMarket ({ tokenA, tokenB }) {
-    const auctionIndex = this.getAuctionIndex({
+    const auctionIndex = await this.getAuctionIndex({
       sellToken: tokenA,
       buyToken: tokenB
     })
+    debug('isApprovedMarket? auctionIndex=%s', auctionIndex)
 
     return auctionIndex > 0
   }
@@ -574,6 +577,9 @@ class AuctionRepoEthereum {
   async postSellOrder ({
     sellToken, buyToken, auctionIndex, from, amount
   }) {
+    debug('postSellOrder: %o', {
+      sellToken, buyToken, auctionIndex, from, amount
+    })
     // TODO: Review validations for doing them before calling the DX
 
     return this
@@ -673,11 +679,16 @@ class AuctionRepoEthereum {
     assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
     assert(actualAFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
     assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
+    debug('actual A Founding: %s', actualAFounding)
+    debug('actual B Founding: %s', actualBFounding)
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA, tokenB })
+    debug('Was %s-%s pair previouslly approved? %s',
+      tokenA, tokenB, isApprovedMarket)
     assert(!isApprovedMarket, 'The pair was previouslly added')
 
     const ethUsdPrice = await this.getEthUsdPrice()
+    debug('ethUsdPrice: %d', ethUsdPrice)
     let fundedValueUSD
     if (tokenA === 'ETH') {
       fundedValueUSD = actualAFounding * ethUsdPrice
@@ -723,6 +734,17 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     // debug('Add tokens with params: %o', params)
     return this
       ._doTransaction('addTokenPair', from, params)
+      /*
+      .then(result => {
+        debug('SUCCESS: Add token pair from %s. Params: %s.\n%O',
+          from, params.join(', '), result)
+        result.logs.forEach(log => debug('Log "%s". Args: %o. number=%d',
+          log.event, log.args, log.args.n.toNumber()))
+        debug('LOGS: . Params: %s.\n%O',
+          from, params.join(', '), result)
+        return result
+      })
+      */
       .then(toTransactionNumber)
   }
 
@@ -794,7 +816,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     const tokenAddress = await this._getTokenAddress(token, checkToken)
     const params = [tokenAddress, ...args]
 
-    debug('Call %s with params: [%s]', operation, params.join(', '))
+    // debug('Call "%s" with params: [%s]', operation, params.join(', '))
 
     // return this._dx[operation].call(...params)
     return this._debugOperation({ operation, params })
@@ -850,10 +872,10 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   }
 
   async _transactionForPair ({
-    transactionMethod, from, sellToken, buyToken, args = [], checkTokens
+    operation, from, sellToken, buyToken, args = [], checkTokens
   }) {
     debug('Execute transaction "%s" (from %s) for pair %s-%s',
-      transactionMethod, from, sellToken, buyToken
+      operation, from, sellToken, buyToken
     )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
@@ -863,26 +885,27 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       buyTokenAddress,
       ...args
     ]
-    return this._doTransaction(transactionMethod, from, params)
+    return this._doTransaction(operation, from, params)
   }
 
   async _debugOperation ({ operation, params }) {
     return this._dx[operation]
       .call(...params)
       /*
-      .then(e => {
-        debug('SUCCESS: Call %s with params: %s', operation, params.join(', '))
-        return e
+      .then(result => {
+        debug('SUCCESS: Call %s with params: %s. \n%O',
+          operation, params.join(', '), result)
+        return result
       })
       */
       .catch(e => {
-        debug('ERROR: Call %s with params: [%s]', operation, params.join(', '))
+        console.error('ERROR: Call %s with params: [%s]', operation, params.join(', '))
         throw e
       })
   }
 
   async _transactionForAuction ({
-    transactionMethod,
+    operation,
     from,
     sellToken,
     buyToken,
@@ -891,7 +914,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     checkTokens
   }) {
     debug('Execute transaction %s (address %s) for auction %d of the pair %s-%s',
-      transactionMethod, from, auctionIndex, sellToken, buyToken
+      operation, from, auctionIndex, sellToken, buyToken
     )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
@@ -901,32 +924,34 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       auctionIndex,
       ...args
     ]
-    return this._doTransaction(transactionMethod, from, params)
+    return this._doTransaction(operation, from, params)
   }
 
-  async _doTransaction (transactionMethod, from, params) {
+  async _doTransaction (operation, from, params) {
     debug('_doTransaction: %o', {
-      transactionMethod,
+      operation,
       from,
       params
     })
     /*
     const estimatedGas = await this
-      ._dx[transactionMethod]
+      ._dx[operation]
       .estimateGas(...params, {
         from
       })
 
-    debug('_doTransaction. Estimated gas for "%s": %d', transactionMethod, estimatedGas)
-    const gas = estimatedGas * 1.5
+    debug('_doTransaction. Estimated gas for "%s": %d', operation, estimatedGas)
+    // const gas = estimatedGas // * 1.15
     */
+
     return this
-      ._dx[transactionMethod](...params, {
-        from
-        // gas
+      ._dx[operation](...params, {
+        from,
+        gas: DEFAULT_GAS,
+        gasPrice: DEFAULT_GAS_PRICE
       }).catch(error => {
         console.error('Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
-          transactionMethod, from, params, error
+          operation, from, params, error
         )
         throw error
       })

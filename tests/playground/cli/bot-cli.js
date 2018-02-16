@@ -108,15 +108,19 @@ async function run ({
     })
   } else if (commander.addTokens) {
     // add tokens
+    /*
     await printState('State before add tokens', {
       buyToken: 'RDN',
       sellToken: 'ETH'
     })
+    */
     await addTokens()
+    /*
     await printState('State after add tokens', {
       buyToken: 'RDN',
       sellToken: 'ETH'
     })
+    */
   } else if (commander.closingPrice) {
     // closing price
     const [sellToken, buyToken, auctionIndex] = commander.closingPrice
@@ -144,6 +148,7 @@ async function run ({
     // buy
     const [buyToken, sellToken, amountString] = commander.buy
     await buySell('postBuyOrder', {
+      from: user1,
       sellToken,
       buyToken,
       amount: parseInt(amountString)
@@ -152,6 +157,7 @@ async function run ({
     // sell
     const [sellToken, buyToken, amountString] = commander.sell
     await buySell('postSellOrder', {
+      from: user1,
       sellToken,
       buyToken,
       amount: parseInt(amountString)

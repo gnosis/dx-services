@@ -34,7 +34,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
   const [ owner, user1, user2 ] = accounts
 
   // helpers
-  async function buySell (operation, { buyToken, sellToken, amount }) {
+  async function buySell (operation, { from, buyToken, sellToken, amount }) {
     // buy
     const auctionIndex = await auctionRepo.getAuctionIndex({
       buyToken,
@@ -42,10 +42,11 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     })
     console.log(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`)
     console.log(`Auction:\n\t${auctionIndex}`)
-    await printState('State before buy', { buyToken, sellToken })
+
+    // await printState('State before buy', { buyToken, sellToken })
 
     await auctionRepo[operation]({
-      address,
+      from,
       buyToken,
       sellToken,
       auctionIndex,
@@ -181,10 +182,14 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
   async function printState (message, { sellToken, buyToken }) {
     const isSellTokenApproved = await auctionRepo.isApprovedToken({ token: sellToken })
     const isBuyTokenApproved = await auctionRepo.isApprovedToken({ token: buyToken })
-    const state = await auctionRepo.getState({ sellToken, buyToken })
+
     const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
+    const state = await auctionRepo.getState({ sellToken, buyToken })
+    const isApprovedMarket = await auctionRepo.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
 
     console.log(`\n**********  ${message}  **********\n`)
+    console.log(`\tToken pair: ${sellToken}-${buyToken}`)
+    console.log('\n\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
     console.log(`\tState: ${state}`)
 
     console.log(`\n\tAre tokens Approved?`)
@@ -193,7 +198,6 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
 
     console.log('\n\tState info:')
     printProps('\t\t', stateInfoProps, stateInfo)
-
     if (stateInfo.auction) {
       console.log(`\n\tAuction ${sellToken}-${buyToken}:`)
       printProps('\t\t', auctionProps, stateInfo.auction, formatters)
@@ -396,7 +400,7 @@ dx.balances(ethAddress, user1).then(formatFromWei)
 
     console.log('\n**************************************\n\n')
 
-    return result
+    // return result
   }
 
   async function deposit ({ account, token, amount }) {
@@ -430,15 +434,30 @@ dx.balances(ethAddress, user1).then(formatFromWei)
     return addTokenPair({
       accountName: 'user1',
       from: user1,
+      tokenA: 'ETH',
+      tokenAFunding: web3.toWei(13.123, 'ether'),
+      tokenB: 'RDN',
+      tokenBFunding: web3.toWei(0, 'ether'),
+      initialClosingPrice: {
+        numerator: 1000000, // 100000000
+        denominator: 4079 // 330027
+      }
+    })
+
+    /*
+    return addTokenPair({
+      accountName: 'user1',
+      from: user1,
       tokenA: 'RDN',
       tokenAFunding: web3.toWei(0, 'ether'),
       tokenB: 'ETH',
-      tokenBFunding: web3.toWei(15.123, 'ether'),
+      tokenBFunding: web3.toWei(13.123, 'ether'),
       initialClosingPrice: {
-        numerator: new BigNumber(330027),
-        denominator: new BigNumber(100000000)
+        numerator: 4079, // 330027,
+        denominator: 1000000 // 100000000
       }
     })
+    */
 
     /*
     await addTokenPair({
@@ -492,9 +511,14 @@ function printProps (prefix, props, object, formatters) {
   }
 }
 
-function fractionFormatter (fraction) {
+function fractionFormatter ({ numerator, denominator }) {
+  const fraction = {
+    numerator: new BigNumber(numerator),
+    denominator: new BigNumber(denominator)
+  }
+
   if (fraction.numerator.isZero() && fraction.denominator.isZero()) {
-    return null // fraction.numerator.toNumber()
+    return 0
   } else {
     return fraction
       .numerator

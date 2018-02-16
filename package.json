@@ -21,7 +21,10 @@
     "contracts-compile": "npm run contracts-compile-dx; npm run contracts-compile-project",
     "contracts-deploy-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; yarn install; truffle deploy",
     "contracts-deploy-project": "truffle deploy",
-    "contracts-deploy": "npm run contracts-deploy-dx; npm run contracts-deploy-project"
+    "contracts-deploy": "npm run contracts-deploy-dx; npm run contracts-deploy-project",
+    "contracts-clean": "rm -rf build; rm -rf node_modules/@gnosis.pm/dutch-exchange/build",
+    "contracts-setup": "node tests/playground/cli/bot-cli.js --setup; node tests/playground/cli/bot-cli.js --add-tokens",
+    "contracts": "npm run contracts-clean; npm run contracts-deploy; npm run contracts-setup"
   },
   "repository": {
     "type": "git",
