@@ -9,7 +9,10 @@ const ENV_VAR_LIST = [
 const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
 
 // Load conf
-const environment = process.env.NODE_ENV || 'LOCAL' // LOCAL, DEV, PRO
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'LOCAL'
+}
+const environment = process.env.NODE_ENV // LOCAL, DEV, PRO
 const defaultConf = require('./config')
 const envConf = require('./env/' + environment.toLowerCase() + '-config')
 const markets = envConf.MARKETS || defaultConf.MARKETS

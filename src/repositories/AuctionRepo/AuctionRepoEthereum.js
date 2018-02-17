@@ -9,6 +9,7 @@ const DEFAULT_GAS_PRICE = 100000000000
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
+const isLocal = process.env.NODE_ENV === 'LOCAL'
 
 // const BigNumber = require('bignumber.js')
 
@@ -189,6 +190,12 @@ class AuctionRepoEthereum {
       auction,
       auctionOpp
     } = await this.getStateInfo({ sellToken, buyToken })
+    debug('getState for %O', {
+      auctionIndex,
+      auctionStart,
+      auction,
+      auctionOpp
+    })
 
     if (auctionIndex === 0) {
       return 'UNKNOWN_TOKEN_PAIR'
@@ -205,7 +212,7 @@ class AuctionRepoEthereum {
         // sellVolume: sellVolumeOpp
       } = auctionOpp
 
-      const now = new Date()
+      const now = await this._getTime()
       if (auctionStart === null) {
         // We havent surplus the threshold (or it's the first auction)
         return 'WAITING_FOR_FUNDING'
@@ -250,8 +257,8 @@ class AuctionRepoEthereum {
       // One of the auctions doesn't have sell volume
 
       if (
-        (sellVolume === 0   && isTheoreticalClosedOpp) ||
-        (sellVolumeOp === 0 && isTheoreticalClosed)) {
+        (sellVolume === 0 && isTheoreticalClosedOpp) ||
+        (sellVolumeOpp === 0 && isTheoreticalClosed)) {
         // One has no SellVolume
         // The other is theoretically closed
         return 'ONE_THEORETICAL_CLOSED' // S7
@@ -305,7 +312,6 @@ class AuctionRepoEthereum {
     let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     let sellVolume = await this.getSellVolume({ sellToken, buyToken })
 
-    /*
     debug('Auction index: %d, Price: %d/%d %s/%s',
       auctionIndex, price.numerator, price.denominator,
       sellToken, buyToken
@@ -314,9 +320,9 @@ class AuctionRepoEthereum {
       sellToken, buyToken,
       buyVolume, sellVolume
     )
-    */
     const isTheoreticalClosed = (
       // (Pn x SV) / (Pd x BV)
+      // example:
       price
         .numerator
         .mul(sellVolume)
@@ -580,7 +586,45 @@ class AuctionRepoEthereum {
     debug('postSellOrder: %o', {
       sellToken, buyToken, auctionIndex, from, amount
     })
-    // TODO: Review validations for doing them before calling the DX
+
+    assert(amount > 0, 'The amount must be a positive number')
+
+    const isApprovedMarket = await this.isApprovedMarket({ sellToken, buyToken })
+    assert(isApprovedMarket, 'The token pair has not been approved')
+
+    const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
+    const now = await this._getTime()
+
+    const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
+    if (auctionStart !== null && auctionStart <= now) {
+      // The auction is running
+      assert.equal(auctionIndex, lastAuctionIndex + 1,
+        'The auction index show be set for the next auction (the auction is running)'
+      )
+    } else {
+      // We are waiting (to start or for funding
+      assert.equal(auctionIndex, lastAuctionIndex,
+        'The auction index show be set to the current auction (we are in a waiting period)'
+      )
+    }
+
+    // const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
+    // assert(auctionHasCleared, 'The auction has cleared')
+    //
+    //
+    // assert(auctionStart != null, 'The auction is in a waiting period')
+    //
+    //
+    // assert(auctionStart <= now, "The auction hasn't started yet")
+    //
+    //
+    // assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+    //
+    // const sellVolume = await this.getSellVolume({ sellToken, buyToken })
+    // assert(sellVolume > 0, "There's not selling volume")
+    //
+    // const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+    // assert(buyVolume + amount < MAXIMUM_FUNDING, 'The buyVolume plus the amount cannot be greater than ' + MAXIMUM_FUNDING)
 
     return this
       ._transactionForAuction({
@@ -594,8 +638,31 @@ class AuctionRepoEthereum {
       .then(toTransactionNumber)
   }
 
+  _auctionHasCleared ({ sellToken, buyToken, auctionIndex }) {
+    const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
+
+    return closingPrice.denominator !== 0
+  }
+
   async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
-    // TODO: Review validations for doing them before calling the DX
+    const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
+    assert(auctionHasCleared, 'The auction has cleared')
+
+    const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
+    assert(auctionStart != null, 'The auction is in a waiting period')
+
+    const now = await this._getTime()
+    assert(auctionStart <= now, "The auction hasn't started yet")
+
+    const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
+    assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+
+    const sellVolume = await this.getSellVolume({ sellToken, buyToken })
+    assert(sellVolume > 0, "There's not selling volume")
+
+    const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+    assert(buyVolume + amount < MAXIMUM_FUNDING, 'The buyVolume plus the amount cannot be greater than ' + MAXIMUM_FUNDING)
+
     return this
       ._transactionForAuction({
         operation: 'postBuyOrder',
@@ -1083,6 +1150,17 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     const dxContracts = await this._loadDxContracts(dx)
 
     return { dx, ...dxContracts, erc20TokenContracts }
+  }
+
+  async _getTime () {
+    let now
+    if (isLocal) {
+      now = await this._ethereumClient.geLastBlockTime()
+    } else {
+      now = new Date()
+    }
+
+    return now
   }
 }
 

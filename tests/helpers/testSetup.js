@@ -43,7 +43,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     console.log(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`)
     console.log(`Auction:\n\t${auctionIndex}`)
 
-    // await printState('State before buy', { buyToken, sellToken })
+    await printState('State before buy', { buyToken, sellToken })
 
     await auctionRepo[operation]({
       from,
@@ -434,30 +434,15 @@ dx.balances(ethAddress, user1).then(formatFromWei)
     return addTokenPair({
       accountName: 'user1',
       from: user1,
-      tokenA: 'ETH',
-      tokenAFunding: web3.toWei(13.123, 'ether'),
-      tokenB: 'RDN',
-      tokenBFunding: web3.toWei(0, 'ether'),
-      initialClosingPrice: {
-        numerator: 1000000, // 100000000
-        denominator: 4079 // 330027
-      }
-    })
-
-    /*
-    return addTokenPair({
-      accountName: 'user1',
-      from: user1,
       tokenA: 'RDN',
       tokenAFunding: web3.toWei(0, 'ether'),
       tokenB: 'ETH',
       tokenBFunding: web3.toWei(13.123, 'ether'),
       initialClosingPrice: {
-        numerator: 4079, // 330027,
-        denominator: 1000000 // 100000000
+        numerator: 4079,
+        denominator: 1000000
       }
     })
-    */
 
     /*
     await addTokenPair({
