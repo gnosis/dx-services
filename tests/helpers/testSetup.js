@@ -33,6 +33,13 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts
 
+  const formatters = {
+    closingPrice: fractionFormatter,
+    sellVolume: formatFromWei,
+    buyVolume: formatFromWei,
+    balance: formatFromWei
+  }
+
   // helpers
   async function buySell (operation, { from, buyToken, sellToken, amount }) {
     // buy
@@ -50,7 +57,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       buyToken,
       sellToken,
       auctionIndex,
-      amount
+      amount: web3.toWei(amount, 'ether')
     })
     console.log(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
     await printState('State after buy', { buyToken, sellToken })
@@ -71,7 +78,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     ]
     const approveERC20Tokens = ['ETH', 'OWL', 'RDN', 'OMG']
     const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
-    const ethUsdPrice = 1100.0
+    // const ethUsdPrice = 1100.0
 
     function getAmount (token) {
       const amount = initialAmounts
@@ -351,7 +358,7 @@ dx.balances(ethAddress, user1).then(formatFromWei)
       if (hasPrice) {
         const priceToken = await auctionRepo.getPriceOracle({ token })
         console.log('%s%s: %d ETH/%s',
-          message, token, fractionFormatter(token, priceToken), token)
+          message, token, fractionFormatter(priceToken), token)
       } else {
         console.log(`\t\t- %s: The token has no price because the market %s-ETH\
  doesn't exist yet`, token, token)
@@ -396,7 +403,7 @@ dx.balances(ethAddress, user1).then(formatFromWei)
       initialClosingPrice
     })
     console.log('\n\tResult:')
-    console.log('\t\t- TX: %s', result)
+    console.log('\t\t- Successfully added the token pair. Transaction : %s', result)
 
     console.log('\n**************************************\n\n')
 
@@ -496,6 +503,17 @@ function printProps (prefix, props, object, formatters) {
   }
 }
 
+function fractionFormatter (fraction) {
+  if (fraction === null) {
+    return null
+  } else {
+    return fraction
+      .numerator
+      .div(fraction.denominator)
+      .toNumber()
+  }
+}
+/*
 function fractionFormatter ({ numerator, denominator }) {
   const fraction = {
     numerator: new BigNumber(numerator),
@@ -511,10 +529,7 @@ function fractionFormatter ({ numerator, denominator }) {
       .toNumber()
   }
 }
-
-function numberFormatter (number) {
-  return -1
-}
+*/
 
 function printBoolean (flag) {
   return flag ? 'Yes' : 'No'
@@ -525,11 +540,6 @@ function weiToEth (wei) {
   return new BigNumber(wei).div(10 ** 18)
 }
 */
-
-const formatters = {
-  closingPrice: fractionFormatter,
-  balance: numberFormatter
-}
 
 function testSetup () {
   return instanceFactory({ test: true, config })

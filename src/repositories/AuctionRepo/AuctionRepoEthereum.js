@@ -222,7 +222,9 @@ class AuctionRepoEthereum {
         return 'WAITING_FOR_FUNDING'
       } else if (auctionStart >= now) {
         return 'WAITING_FOR_AUCTION_TO_START'
-      } else if (isTheoreticalClosed || isTheoreticalClosedOpp) {
+      } else if (
+        (isTheoreticalClosed && !isClosed) ||
+        (isTheoreticalClosedOpp && !isClosedOpp)) {
         return 'PENDING_CLOSE_THEORETICAL'
       } else if (
         (isClosed && !isClosedOpp) ||
@@ -605,7 +607,7 @@ class AuctionRepoEthereum {
 
     assert(amount > 0, 'The amount must be a positive number')
 
-    const isApprovedMarket = await this.isApprovedMarket({ sellToken, buyToken })
+    const isApprovedMarket = await this.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
     assert(isApprovedMarket, 'The token pair has not been approved')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
@@ -925,7 +927,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       closingPrice.numerator, closingPrice.denominator
     )
     */
-    const isClosed = (closingPrice.numerator.toNumber() > 0)
+    const isClosed = closingPrice !== null
     /*
     debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
       sellToken, buyToken,
@@ -1261,7 +1263,12 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
 }
 
 function toFraction ([ numerator, denominator ]) {
-  return { numerator, denominator }
+  // the contract return 0/0 when something is undetermined
+  if (numerator.isZero() && denominator.isZero()) {
+    return null
+  } else {
+    return { numerator, denominator }
+  }
 }
 
 function toTransactionNumber (transactionResult) {

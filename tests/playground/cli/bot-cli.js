@@ -43,6 +43,7 @@ async function run ({
     .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
     .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
     .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
+    .option('-p --price "<sell-token>,<buy-token>,<auctionIndez>"', 'Show the closing price for an auction', list)
     .option('-o --oracle <token>', 'Show oracle-price')
     .option('-t, --time <hours>', 'Increase time of the blockchain in hours', parseFloat)
     .option('-m, --mine', 'Mine one block')
@@ -61,6 +62,7 @@ async function run ({
     console.log('\tbot-cli --deposit ETH,100')
     console.log('\tbot-cli --add-tokens')
     console.log('\tbot-cli --closing-price RDN,ETH,0')
+    console.log('\tbot-cli --price RDN,ETH,1')
     console.log('\tbot-cli --oracle ETH')
     console.log('\tbot-cli --mine')
     console.log('\tbot-cli --time 0.5')
@@ -108,19 +110,15 @@ async function run ({
     })
   } else if (commander.addTokens) {
     // add tokens
-    /*
     await printState('State before add tokens', {
       buyToken: 'RDN',
       sellToken: 'ETH'
     })
-    */
     await addTokens()
-    /*
     await printState('State after add tokens', {
       buyToken: 'RDN',
       sellToken: 'ETH'
     })
-    */
   } else if (commander.closingPrice) {
     // closing price
     const [sellToken, buyToken, auctionIndex] = commander.closingPrice
@@ -128,6 +126,11 @@ async function run ({
       sellToken, buyToken, auctionIndex
     })
     console.log('Closing price: ' + fractionFormatter(closingPrice))
+  } else if (commander.price) {
+    // Price
+    const [sellToken, buyToken, auctionIndex] = commander.price
+    const price = await auctionRepo.getPrice({ sellToken, buyToken, auctionIndex })
+    console.log(`Price for ${sellToken}-${buyToken} (${auctionIndex}): ${fractionFormatter(price)}`)
   } else if (commander.oracle) {
     // Oracle price
     const token = commander.oracle
