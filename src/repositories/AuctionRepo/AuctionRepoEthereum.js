@@ -150,6 +150,8 @@ class AuctionRepoEthereum {
   }
 
   async getStateInfo ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     debug('Get state for %s-%s', sellToken, buyToken)
     const auctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
     debug('Auction index: %d', auctionIndex)
@@ -184,6 +186,8 @@ class AuctionRepoEthereum {
   }
 
   async getState ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     const {
       auctionIndex,
       auctionStart,
@@ -233,6 +237,8 @@ class AuctionRepoEthereum {
   // TODO: Review this logic. This are the states of the diagram
   // (not used right now)
   async getState2 ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     const {
       auctionStart,
       auction,
@@ -306,59 +312,9 @@ class AuctionRepoEthereum {
     }
   }
 
-  async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
-    debug('_getAuctionState: %d', auctionIndex)
-    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
-    let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
-    let sellVolume = await this.getSellVolume({ sellToken, buyToken })
-
-    debug('Auction index: %d, Price: %d/%d %s/%s',
-      auctionIndex, price.numerator, price.denominator,
-      sellToken, buyToken
-    )
-    debug('_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
-      sellToken, buyToken,
-      buyVolume, sellVolume
-    )
-    const isTheoreticalClosed = (
-      // (Pn x SV) / (Pd x BV)
-      // example:
-      price
-        .numerator
-        .mul(sellVolume)
-        .sub(
-          price
-            .denominator
-            .mul(buyVolume)
-        ).toNumber() === 0)
-
-    let closingPrice = await this.getClosingPrices({
-      sellToken, buyToken, auctionIndex
-    })
-    /*
-    debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
-      sellToken, buyToken,
-      closingPrice.numerator, closingPrice.denominator
-    )
-    */
-    const isClosed = (closingPrice.numerator.toNumber() > 0)
-    /*
-    debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
-      sellToken, buyToken,
-      isClosed, isTheoreticalClosed
-    )
-    */
-
-    return {
-      buyVolume,
-      sellVolume,
-      closingPrice,
-      isClosed,
-      isTheoreticalClosed
-    }
-  }
-
   async getAuctionIndex ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     return this
       ._callForPair({
         operation: 'getAuctionIndex',
@@ -370,6 +326,8 @@ class AuctionRepoEthereum {
   }
 
   async getAuctionStart ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     const auctionStartEpoch = await this._callForPair({
       operation: 'getAuctionStart',
       sellToken,
@@ -388,6 +346,9 @@ class AuctionRepoEthereum {
   }
 
   async approveToken ({ token, from, isApproved = true }) {
+    assert(token, 'The token is required')
+    assert(from, 'The from is required')
+
     return this._transactionForToken({
       operation: 'updateApprovalOfToken',
       from,
@@ -398,6 +359,8 @@ class AuctionRepoEthereum {
   }
 
   async isApprovedToken ({ token }) {
+    assert(token, 'The token is required')
+
     return this._callForToken({
       operation: 'approvedTokens',
       token: token,
@@ -406,6 +369,8 @@ class AuctionRepoEthereum {
   }
 
   async isApprovedMarket ({ tokenA, tokenB }) {
+    assertPair(tokenA, tokenB)
+
     const auctionIndex = await this.getAuctionIndex({
       sellToken: tokenA,
       buyToken: tokenB
@@ -416,6 +381,8 @@ class AuctionRepoEthereum {
   }
 
   async hasPrice ({ token }) {
+    assert(token, 'The token is required')
+
     return this.isApprovedMarket({
       tokenA: token,
       tokenB: 'ETH'
@@ -425,6 +392,8 @@ class AuctionRepoEthereum {
   // TODO: getCurrencies?
 
   async getSellVolume ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     return this._callForPair({
       operation: 'sellVolumesCurrent',
       sellToken,
@@ -433,6 +402,8 @@ class AuctionRepoEthereum {
   }
 
   async getSellVolumeNext ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     return this._callForPair({
       operation: 'sellVolumesNext',
       sellToken,
@@ -441,6 +412,8 @@ class AuctionRepoEthereum {
   }
 
   async getBuyVolume ({ sellToken, buyToken }) {
+    assertPair(sellToken, buyToken)
+
     return this._callForPair({
       operation: 'buyVolumes',
       sellToken,
@@ -449,6 +422,9 @@ class AuctionRepoEthereum {
   }
 
   async getBalance ({ token, address }) {
+    assert(token, 'The token is required')
+    assert(address, 'The address is required')
+
     return this._callForToken({
       operation: 'balances',
       token,
@@ -466,6 +442,9 @@ class AuctionRepoEthereum {
   }
 
   async getBalanceERC20Token ({ token, address }) {
+    assert(token, 'The token is required')
+    assert(address, 'The address is required')
+
     const tokenContract = this._getTokenContract(token)
     // console.log('Amount: ', amount, token)
     return tokenContract.address
@@ -481,6 +460,8 @@ class AuctionRepoEthereum {
   }
 
   async getBalances ({ address }) {
+    assert(address, 'The address is required')
+
     debug('Get balances for %s', address)
     const balancePromises =
       // for every token
@@ -495,6 +476,8 @@ class AuctionRepoEthereum {
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+
     return this._callForAuction({
       operation: 'extraTokens',
       sellToken,
@@ -504,6 +487,9 @@ class AuctionRepoEthereum {
   }
 
   async getSellerBalance ({ sellToken, buyToken, auctionIndex, address }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(address, 'The address is required')
+
     return this._callForAuction({
       operation: 'sellerBalances',
       sellToken,
@@ -514,6 +500,9 @@ class AuctionRepoEthereum {
   }
 
   async getBuyerBalance ({ sellToken, buyToken, auctionIndex, address }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(address, 'The address is required')
+
     return this._callForAuction({
       operation: 'buyerBalances',
       sellToken,
@@ -524,6 +513,9 @@ class AuctionRepoEthereum {
   }
 
   async getClaimedAmounts ({ sellToken, buyToken, auctionIndex, address }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(address, 'The address is required')
+
     return this._callForAuction({
       operation: 'claimedAmounts',
       sellToken,
@@ -534,6 +526,9 @@ class AuctionRepoEthereum {
   }
 
   async depositEther ({ from, amount }) {
+    assert(from, 'The from param is required')
+    assert(from, 'The amount is required')
+
     // deposit ether
     const eth = this._tokens.ETH
     return eth.deposit({ from, value: amount })
@@ -546,18 +541,31 @@ class AuctionRepoEthereum {
   }
 
   async approveERC20Token ({ token, from, amount }) {
+    assert(token, 'The token is required')
+    assert(from, 'The from param is required')
+    assert(amount, 'The amount is required')
+
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
     return tokenContract.approve(this._dx.address, amount, { from })
   }
 
   async transferERC20Token ({ token, from, to, amount }) {
+    assert(token, 'The token is required')
+    assert(from, 'The from param is required')
+    assert(to, 'The to param is required')
+    assert(amount, 'The amount is required')
+
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
     return tokenContract.transfer(to, amount, { from })
   }
 
   async deposit ({ token, amount, from }) {
+    assert(token, 'The token is required')
+    assert(from, 'The from param is required')
+    assert(amount, 'The amount is required')
+
     return this
       ._transactionForToken({
         operation: 'deposit',
@@ -570,6 +578,10 @@ class AuctionRepoEthereum {
   }
 
   async withdraw ({ token, amount, from }) {
+    assert(token, 'The token is required')
+    assert(from, 'The from param is required')
+    assert(amount, 'The amount is required')
+
     return this
       ._transactionForToken({
         operation: 'withdraw',
@@ -583,6 +595,10 @@ class AuctionRepoEthereum {
   async postSellOrder ({
     sellToken, buyToken, auctionIndex, from, amount
   }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(from, 'The from param is required')
+    assert(amount, 'The amount is required')
+
     debug('postSellOrder: %o', {
       sellToken, buyToken, auctionIndex, from, amount
     })
@@ -639,12 +655,17 @@ class AuctionRepoEthereum {
   }
 
   _auctionHasCleared ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
     const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
 
     return closingPrice.denominator !== 0
   }
 
   async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(from, 'The from param is required')
+    assert(amount, 'The amount is required')
+
     const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
     assert(auctionHasCleared, 'The auction has cleared')
 
@@ -678,6 +699,9 @@ class AuctionRepoEthereum {
   async claimSellerFunds ({
     sellToken, buyToken, from, auctionIndex
   }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(from, 'The from param is required')
+
     // TODO: Review why the transaction needs address as a param as well
     return this
       ._transactionForPair({
@@ -691,6 +715,9 @@ class AuctionRepoEthereum {
   }
 
   async claimBuyerFunds ({ sellToken, buyToken, from, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(from, 'The from param is required')
+
     return this
       ._transactionForPair({
         operation: 'claimBuyerFunds',
@@ -703,6 +730,9 @@ class AuctionRepoEthereum {
   }
 
   async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(address, 'The address is required')
+
     return this._callForPair({
       operation: 'getUnclaimedBuyerFunds',
       sellToken,
@@ -721,6 +751,14 @@ class AuctionRepoEthereum {
     // Initial closing price
     initialClosingPrice
   }) {
+    assertPair(tokenA, tokenB)
+    assert(tokenAFunding >= 0, 'The founding for token A is incorrect')
+    assert(tokenBFunding >= 0, 'The founding for token B is incorrect')
+    assert(from, 'The from param is required')
+    assert(initialClosingPrice, 'The initialClosingPrice is required')
+    assert(initialClosingPrice.numerator >= 0, 'The initialClosingPrice numerator is incorrect')
+    assert(initialClosingPrice.denominator >= 0, 'The initialClosingPrice denominator is incorrect')
+
     debug('Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
       tokenA, tokenAFunding,
       tokenB, tokenBFunding,
@@ -739,7 +777,6 @@ class AuctionRepoEthereum {
       address: from,
       maxAmount: tokenBFunding
     })
-    console.log(tokenB, actualBFounding.toNumber())
 
     assert.notEqual(tokenA, tokenB)
     assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
@@ -816,6 +853,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   }
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+
     return this
       ._callForAuction({
         operation: 'getPriceForJS',
@@ -827,6 +866,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   }
 
   async getPriceOracle ({ token }) {
+    assert(token, 'The token is required')
+
     return this
       ._callForToken({
         operation: 'getPriceOracleForJS',
@@ -836,6 +877,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   }
 
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
     return this
       ._callForAuction({
         operation: 'closingPrices',
@@ -844,6 +886,60 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
         auctionIndex
       })
       .then(toFraction)
+  }
+
+  async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+
+    debug('_getAuctionState: %d', auctionIndex)
+    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
+    let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+    let sellVolume = await this.getSellVolume({ sellToken, buyToken })
+
+    debug('Auction index: %d, Price: %d/%d %s/%s',
+      auctionIndex, price.numerator, price.denominator,
+      sellToken, buyToken
+    )
+    debug('_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
+      sellToken, buyToken,
+      buyVolume, sellVolume
+    )
+    const isTheoreticalClosed = (
+      // (Pn x SV) / (Pd x BV)
+      // example:
+      price
+        .numerator
+        .mul(sellVolume)
+        .sub(
+          price
+            .denominator
+            .mul(buyVolume)
+        ).toNumber() === 0)
+
+    let closingPrice = await this.getClosingPrices({
+      sellToken, buyToken, auctionIndex
+    })
+    /*
+    debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
+      sellToken, buyToken,
+      closingPrice.numerator, closingPrice.denominator
+    )
+    */
+    const isClosed = (closingPrice.numerator.toNumber() > 0)
+    /*
+    debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
+      sellToken, buyToken,
+      isClosed, isTheoreticalClosed
+    )
+    */
+
+    return {
+      buyVolume,
+      sellVolume,
+      closingPrice,
+      isClosed,
+      isTheoreticalClosed
+    }
   }
 
   async _getMaxAmountAvaliable ({ token, address, maxAmount }) {
@@ -1174,6 +1270,16 @@ function toTransactionNumber (transactionResult) {
 
 function epochToDate (epoch) {
   return new Date(epoch * 1000)
+}
+
+function assertPair (sellToken, buyToken) {
+  assert(sellToken, 'The sell token is required')
+  assert(buyToken, 'The buy token is required')
+}
+
+function assertAuction (sellToken, buyToken, auctionIndex) {
+  assertPair(sellToken, buyToken)
+  assert(auctionIndex >= 0, 'The auction index is invalid')
 }
 
 module.exports = AuctionRepoEthereum
