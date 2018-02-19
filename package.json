@@ -16,6 +16,7 @@
     "test-debug": "DEBUG=* jest",
     "cli": "node tests/playground/cli/bot-cli.js",
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '50000000000000000000000'",
+    "console": "cd node_modules/@gnosis.pm/dutch-exchange; truffle console",
     "contracts-compile-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; yarn install; truffle compile;",
     "contracts-compile-project": "truffle compile",
     "contracts-compile": "npm run contracts-compile-dx; npm run contracts-compile-project",
