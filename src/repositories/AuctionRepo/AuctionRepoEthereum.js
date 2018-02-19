@@ -597,15 +597,23 @@ class AuctionRepoEthereum {
   async postSellOrder ({
     sellToken, buyToken, auctionIndex, from, amount
   }) {
-    assertAuction(sellToken, buyToken, auctionIndex)
-    assert(from, 'The from param is required')
-    assert(amount, 'The amount is required')
-
     debug('postSellOrder: %o', {
       sellToken, buyToken, auctionIndex, from, amount
     })
 
+    assertAuction(sellToken, buyToken, auctionIndex)
+    assert(from, 'The from param is required')
+    assert(amount, 'The amount is required')
+
     assert(amount > 0, 'The amount must be a positive number')
+    const actualAmount = await this._getMaxAmountAvaliable({
+      token: sellToken,
+      address: from,
+      maxAmount: amount
+    })
+    // debug('amount: %d', amount)
+    // debug('actualAmount: %d', actualAmount)
+    assert.equal(amount, actualAmount, "The user doesn't have enough tokens")
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
     assert(isApprovedMarket, 'The token pair has not been approved')
@@ -656,17 +664,13 @@ class AuctionRepoEthereum {
       .then(toTransactionNumber)
   }
 
-  _auctionHasCleared ({ sellToken, buyToken, auctionIndex }) {
-    assertAuction(sellToken, buyToken, auctionIndex)
-    const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
-
-    return closingPrice.denominator !== 0
-  }
-
-  async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
+  async postBuyOrder ({ buyToken, sellToken, auctionIndex, from, amount }) {    
+    debug('postBuyOrder: %o', {
+      buyToken, sellToken, auctionIndex, from, amount
+    })
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
-    assert(amount, 'The amount is required')
+    assert(amount >= 0, 'The amount is required')
 
     const actualAmount = await this._getMaxAmountAvaliable({
       token: sellToken,
@@ -693,7 +697,7 @@ class AuctionRepoEthereum {
     assert(sellVolume > 0, "There's not selling volume")
 
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
-    assert(buyVolume + amount < MAXIMUM_FUNDING, 'The buyVolume plus the amount cannot be greater than ' + MAXIMUM_FUNDING)
+    assert(buyVolume.add(amount).toNumber() < MAXIMUM_FUNDING, `The buyVolume (${buyVolume}) plus the amount (${amount}) cannot be greater than ${MAXIMUM_FUNDING}`)
 
     return this
       ._transactionForAuction({
@@ -953,6 +957,13 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       isClosed,
       isTheoreticalClosed
     }
+  }
+
+  _auctionHasCleared ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+    const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
+
+    return closingPrice.denominator !== 0
   }
 
   async _getMaxAmountAvaliable ({ token, address, maxAmount }) {
