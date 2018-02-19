@@ -43,7 +43,7 @@ async function run ({
     .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
     .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
     .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
-    .option('-p --price "<sell-token>,<buy-token>,<auctionIndez>"', 'Show the closing price for an auction', list)
+    .option('-p --price "<sell-token>,<buy-token>,<auctionIndex>"', 'Show the closing price for an auction', list)
     .option('-o --oracle <token>', 'Show oracle-price')
     .option('-t, --time <hours>', 'Increase time of the blockchain in hours', parseFloat)
     .option('-m, --mine', 'Mine one block')

@@ -193,6 +193,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
     const state = await auctionRepo.getState({ sellToken, buyToken })
     const isApprovedMarket = await auctionRepo.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
+    const auctionIndex = await auctionRepo.getAuctionIndex({ buyToken, sellToken })    
 
     console.log(`\n**********  ${message}  **********\n`)
     console.log(`\tToken pair: ${sellToken}-${buyToken}`)
@@ -205,14 +206,32 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
 
     console.log('\n\tState info:')
     printProps('\t\t', stateInfoProps, stateInfo)
+
+    async function printAuction (auction, tokenA, tokenB) {
+      console.log(`\n\tAuction ${tokenA}-${tokenB}: `)
+      printProps('\t\t', auctionProps, auction, formatters)
+      const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
+      if (sellToken === 'ETH') {
+        const ethUsdPrice = await auctionRepo.getEthUsdPrice()
+        const sellVolumeInUsd = ethUsdPrice * formatFromWei(auction.sellVolume)
+        console.log(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
+      }
+      console.log(`\t\tCurrent Price:`, fractionFormatter(price))
+      if (price) {
+        const buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
+        const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
+  
+        console.log(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
+        console.log(`\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
+      }
+    }
+
     if (stateInfo.auction) {
-      console.log(`\n\tAuction ${sellToken}-${buyToken}:`)
-      printProps('\t\t', auctionProps, stateInfo.auction, formatters)
+      await printAuction(stateInfo.auction, sellToken, buyToken)
     }
 
     if (stateInfo.auctionOpp) {
-      console.log(`\n\tAuction ${buyToken}-${sellToken}:`)
-      printProps('\t\t', auctionProps, stateInfo.auctionOpp, formatters)
+      await printAuction(stateInfo.auctionOpp, buyToken, sellToken)
     }
     console.log('\n**************************************\n\n')
   }
@@ -267,18 +286,19 @@ var formatFromWei = n => web3.fromWei(n, 'ether').toNumber()
 
 var dx = DutchExchange.at(dxAddress)
 var dxMaster = DutchExchange.at(dxMasterAddress)
-var priceOracleAddress = PriceOracleInterface.at(priceOracleAddress)
+var priceOracle = PriceOracleInterface.at(priceOracleAddress)
 
 var eth = EtherToken.at(ethAddress)
 var rdn = Token.at(rdnAddress)
 var omg = Token.at(omgAddress)
 
 
+dx.sellVolumesCurrent(ethAddress, rdnAddress).then(formatFromWei)
 eth.balanceOf(user1).then(formatFromWei)
 eth.allowance(user1, dxAddress).then(formatFromWei)
 dx.deposit(ethAddress, web3.toWei(1, 'ether'), { from: user1 })
 dx.balances(ethAddress, user1).then(formatFromWei)
-
+priceOracle.getUSDETHPrice().then(formatFromWei)
       `)
 
     console.log('\n**************************************\n\n')
@@ -507,9 +527,14 @@ function fractionFormatter (fraction) {
   if (fraction === null) {
     return null
   } else {
-    return fraction
+    const fractionBigNumber = {
+      numerator: new BigNumber(fraction.numerator),
+      denominator: new BigNumber(fraction.denominator)
+    }
+
+    return fractionBigNumber
       .numerator
-      .div(fraction.denominator)
+      .div(fractionBigNumber.denominator)
       .toNumber()
   }
 }
