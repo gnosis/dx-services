@@ -617,12 +617,12 @@ class AuctionRepoEthereum {
     if (auctionStart !== null && auctionStart <= now) {
       // The auction is running
       assert.equal(auctionIndex, lastAuctionIndex + 1,
-        'The auction index show be set for the next auction (the auction is running)'
+        'The auction index should be set to the next auction (the auction is running)'
       )
     } else {
       // We are waiting (to start or for funding
       assert.equal(auctionIndex, lastAuctionIndex,
-        'The auction index show be set to the current auction (we are in a waiting period)'
+        'The auction index should be set to the current auction (we are in a waiting period)'
       )
     }
 
@@ -667,6 +667,15 @@ class AuctionRepoEthereum {
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')
+
+    const actualAmount = await this._getMaxAmountAvaliable({
+      token: sellToken,
+      address: from,
+      maxAmount: amount
+    })
+    // debug('amount: %d', amount)
+    // debug('actualAmount: %d', actualAmount)
+    assert.equal(amount, actualAmount, "The user doesn't have enough tokens")
 
     const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
     assert(auctionHasCleared, 'The auction has cleared')
@@ -893,30 +902,32 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
-    debug('_getAuctionState: %d', auctionIndex)
-    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
+    debug('_getAuctionState: %d', auctionIndex)    
     let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     let sellVolume = await this.getSellVolume({ sellToken, buyToken })
-
-    debug('Auction index: %d, Price: %d/%d %s/%s',
-      auctionIndex, price.numerator, price.denominator,
-      sellToken, buyToken
-    )
     debug('_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
       sellToken, buyToken,
       buyVolume, sellVolume
     )
-    const isTheoreticalClosed = (
+
+    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
+    let isTheoreticalClosed = null
+    if (price) {
+      debug('Auction index: %d, Price: %d/%d %s/%s',
+        auctionIndex, price.numerator, price.denominator,
+        sellToken, buyToken
+      )
+
       // (Pn x SV) / (Pd x BV)
       // example:
-      price
-        .numerator
+      isTheoreticalClosed = price.numerator
         .mul(sellVolume)
-        .sub(
-          price
-            .denominator
-            .mul(buyVolume)
-        ).toNumber() === 0)
+        .sub(price.denominator
+          .mul(buyVolume)
+        ).toNumber() === 0
+    } else {
+      isTheoreticalClosed = false
+    }
 
     let closingPrice = await this.getClosingPrices({
       sellToken, buyToken, auctionIndex
