@@ -10,9 +10,9 @@ after_success: |-
   if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker tag dx-services gnosispm/dx-services:staging;
     docker push gnosispm/dx-services:staging;
-  elif [ "$TRAVIS_BRANCH" == "development" ]; then
+  elif [ "$TRAVIS_BRANCH" == "develop" ]; then
     docker tag dx-services gnosispm/dx-services:development;
-    docker push gnosispm/dx-services:development;
+    docker push gnosispm/dx-services:develop;
   fi
 env:
   global:
