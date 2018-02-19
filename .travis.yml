@@ -11,7 +11,7 @@ after_success: |-
     docker tag dx-services gnosispm/dx-services:master;
     docker push gnosispm/dx-services:master;
   elif [ "$TRAVIS_BRANCH" == "develop" ]; then
-    docker tag dx-services gnosispm/dx-services:development;
+    docker tag dx-services gnosispm/dx-services:develop;
     docker push gnosispm/dx-services:develop;
   fi
 env:
