@@ -12,12 +12,18 @@ const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'LOCAL'
 }
+
+// Load env conf
 const environment = process.env.NODE_ENV // LOCAL, DEV, PRO
 const defaultConf = require('./config')
 const envConf = require('./env/' + environment.toLowerCase() + '-config')
-const markets = envConf.MARKETS || defaultConf.MARKETS
+
+// Load network conf
+const network = process.env.NETWORK // Optional: RINKEBY, KOVAN
+const networkConfig = network ? require(`./network/${network}-config`) : {}
 
 // Get token list and env vars
+const markets = envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 const envVars = getEnvVars(tokens)
 // debug('markets: %o', markets)
@@ -25,7 +31,7 @@ const envVars = getEnvVars(tokens)
 // debug('envVars: %o', envVars)
 
 // Merge three configs to get final config
-const config = Object.assign({}, defaultConf, envConf, envVars)
+const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars)
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
 debug('tokens', tokens)

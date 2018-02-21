@@ -1,21 +1,10 @@
 const ENVIRONMENT = 'LOCAL'
 
 const MINIMUM_SELL_VOLUME_USD = 1000
-
-const DX_CONTRACT_ADDRESS = null
-
 const MARKETS = [
   { tokenA: 'ETH', tokenB: 'RDN' },
   { tokenA: 'ETH', tokenB: 'OMG' }
 ]
-
-const RDN_TOKEN_ADDRESS = null
-const OMG_TOKEN_ADDRESS = null
-
-const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
-const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
-// const BOT_ACCOUNT_MNEMONIC = null
-
 const BUY_THRESHOLDS = [{
   marketPriceRatio: 1,
   buyRatio: 1 / 3
@@ -27,8 +16,16 @@ const BUY_THRESHOLDS = [{
   buyRatio: 1
 }]
 
-const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
-const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
+const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
+const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+// const BOT_ACCOUNT_MNEMONIC = null
+
+const API_PORT = 8080
+const API_HOST = '0.0.0.0'
+
+const DX_CONTRACT_ADDRESS = null
+const RDN_TOKEN_ADDRESS = null
+const OMG_TOKEN_ADDRESS = null
 
 // Kraken custom config
 const KRAKEN = {
@@ -36,16 +33,8 @@ const KRAKEN = {
   version: '0'
 }
 
-/*
-TODO: Define the minimun config required to trade
-
-const BUY_TOKENS_KEYS =
-const CONTRACT_XXXXX_ADDRESS =
-const CONTRACT_YYYYY_ADDRESS =
-*/
-
-const API_PORT = 8080
-const API_HOST = '0.0.0.0'
+const AUCTION_REPO_IMPL = 'mock' // mock, ethereum
+const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
 
 module.exports = {
   ENVIRONMENT,
