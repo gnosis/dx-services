@@ -211,7 +211,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       console.log(`\n\tAuction ${tokenA}-${tokenB}: `)
       printProps('\t\t', auctionProps, auction, formatters)
       const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
-      if (sellToken === 'ETH') {
+      if (tokenA === 'ETH') {
         const ethUsdPrice = await auctionRepo.getEthUsdPrice()
         const sellVolumeInUsd = ethUsdPrice * formatFromWei(auction.sellVolume)
         console.log(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
