@@ -7,7 +7,8 @@ const MAXIMUM_FUNDING = 10 ** 30
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
-const isLocal = process.env.NODE_ENV === 'LOCAL'
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'LOCAL'
 
 // const BigNumber = require('bignumber.js')
 
@@ -1132,7 +1133,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     debug('_doTransaction. Estimated gas for "%s": %d', operation, estimatedGas)
     // const gas = estimatedGas // * 1.15
     */
-   
+
     return this
       ._dx[operation](...params, {
         from,
@@ -1153,8 +1154,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     let dxContractAddress
     if (this._dxContractAddress) {
       dxContractAddress = this._dxContractAddress
-    } else {
-      // TODO: Raise error if not in development
+    } else if (isLocal) {
+      // For local, we get the address from the contract definition
       const proxyContract = this._ethereumClient
         .loadContract(this._contractDefinitions.DutchExchangeProxy)
 
@@ -1162,6 +1163,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       dxContractAddress = dxProxy.address
 
       this._dxMaster = await dxContract.deployed()
+    } else {
+      throw new Error('The DX address is mandatory for the environment ' + environment)
     }
     return dxContract.at(dxContractAddress)
   }
@@ -1169,11 +1172,14 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   async _loadERC20tokenContract (token, tokenContract) {
     let address = this._erc20TokenAddresses[token]
     if (!address) {
-      // TODO: Rise error if not in development
-      address = await this._ethereumClient
-        .loadContract(`${this._devContractsBaseDir}/Token${token}`)
-        .deployed()
-        .then(contract => contract.address)
+      if (isLocal) {
+        address = await this._ethereumClient
+          .loadContract(`${this._devContractsBaseDir}/Token${token}`)
+          .deployed()
+          .then(contract => contract.address)
+      } else {
+        throw new Error(`The Token address for ${token} is mandatory for the environment ${environment}`)
+      }
     }
     return {
       token,
@@ -1190,9 +1196,13 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     let address = this._gnoTokenAddress
     if (!address) {
       // TODO: Rise error if not in development
-      address = await gnoTokenContract
-        .deployed()
-        .then(contract => contract.address)
+      if (isLocal) {
+        address = await gnoTokenContract
+          .deployed()
+          .then(contract => contract.address)
+      } else {
+        throw new Error(`The Token address for GNO is mandatory for the environment ${environment}`)
+      }      
     }
 
     return gnoTokenContract.at(address)
