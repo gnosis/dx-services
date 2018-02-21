@@ -23,6 +23,21 @@ const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich sm
 const API_PORT = 8080
 const API_HOST = '0.0.0.0'
 
+// contracts
+const CONTRACTS_BASE_DIR = 'build/contracts'
+const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@gnosis.pm/dutch-exchange/build/contracts'
+const CONTRACT_DEFINITIONS = {
+  StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
+  DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',
+  PriceOracleInterface: CONTRACTS_DUTCH_EXCHANGE_DIR + '/PriceOracleInterface',
+  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/Proxy',
+  EtherToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/EtherToken',
+  TokenTUL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenTUL',
+  TokenOWL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWL',
+  TokenOWLProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWLProxy',
+  TokenGNO: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenGNO'
+}
+
 const DX_CONTRACT_ADDRESS = null
 const RDN_TOKEN_ADDRESS = null
 const OMG_TOKEN_ADDRESS = null
@@ -43,6 +58,10 @@ module.exports = {
   MINIMUM_SELL_VOLUME_USD,
   BUY_THRESHOLDS,
   MARKETS,
+
+  // Contracts
+  CONTRACTS_BASE_DIR,
+  CONTRACT_DEFINITIONS,
 
   // Ethereum config
   ETHEREUM_RPC_URL,
