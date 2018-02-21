@@ -1,6 +1,8 @@
 const debug = require('debug')('dx-service:conf')
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
+  'DEFAULT_GAS',
+  'GAS_PRICE_GWEI',
   'DX_CONTRACT_ADDRESS',
   'BOT_ACCOUNT_MNEMONIC',
   'MINIMUM_SELL_VOLUME_USD'

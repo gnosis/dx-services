@@ -91,6 +91,8 @@ function getAuctionRepoPromise (config) {
       const AuctionRepoEthereum = require('../repositories/AuctionRepo/AuctionRepoEthereum')
       const auctionRepoEthereum = new AuctionRepoEthereum({
         ethereumClient,
+        defaultGas: config.DEFAULT_GAS,
+        gasPriceGWei: config.GAS_PRICE_GWEI,
         contractDefinitions: config.CONTRACT_DEFINITIONS,
         dxContractAddress: config.DX_CONTRACT_ADDRESS,
         gnoTokenAddress: config.GNO_TOKEN_ADDRESS,

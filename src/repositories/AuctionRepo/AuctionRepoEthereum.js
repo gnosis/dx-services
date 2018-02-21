@@ -3,8 +3,6 @@ const assert = require('assert')
 
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
 const MAXIMUM_FUNDING = 10 ** 30
-const DEFAULT_GAS = 6700000
-const DEFAULT_GAS_PRICE = 100000000000
 
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
@@ -92,6 +90,8 @@ const isLocal = process.env.NODE_ENV === 'LOCAL'
 class AuctionRepoEthereum {
   constructor ({
     ethereumClient,
+    defaultGas,
+    gasPriceGWei,
     contractDefinitions,
     dxContractAddress = null,
     gnoTokenAddress = null,
@@ -99,6 +99,8 @@ class AuctionRepoEthereum {
     devContractsBaseDir
   }) {
     this._ethereumClient = ethereumClient
+    this._defaultGas = defaultGas
+    this._gasPrice = gasPriceGWei * 10 ** 9
     this._contractDefinitions = contractDefinitions
     this._dxContractAddress = dxContractAddress
     this._gnoTokenAddress = gnoTokenAddress
@@ -664,7 +666,7 @@ class AuctionRepoEthereum {
       .then(toTransactionNumber)
   }
 
-  async postBuyOrder ({ buyToken, sellToken, auctionIndex, from, amount }) {    
+  async postBuyOrder ({ buyToken, sellToken, auctionIndex, from, amount }) {
     debug('postBuyOrder: %o', {
       buyToken, sellToken, auctionIndex, from, amount
     })
@@ -906,7 +908,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
   async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
-    debug('_getAuctionState: %d', auctionIndex)    
+    debug('_getAuctionState: %d', auctionIndex)
     let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     let sellVolume = await this.getSellVolume({ sellToken, buyToken })
     debug('_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
@@ -1130,12 +1132,12 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     debug('_doTransaction. Estimated gas for "%s": %d', operation, estimatedGas)
     // const gas = estimatedGas // * 1.15
     */
-
+   
     return this
       ._dx[operation](...params, {
         from,
-        gas: DEFAULT_GAS,
-        gasPrice: DEFAULT_GAS_PRICE
+        gas: this._defaultGas,
+        gasPrice: this._gasPrice
       }).catch(error => {
         console.error('Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
           operation, from, params, error
