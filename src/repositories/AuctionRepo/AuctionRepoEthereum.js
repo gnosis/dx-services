@@ -336,7 +336,8 @@ class AuctionRepoEthereum {
     const auctionStartEpoch = await this._callForPair({
       operation: 'getAuctionStart',
       sellToken,
-      buyToken
+      buyToken,
+      checkTokens: false
     })
 
     // The SC has 0 when the contract is initialized
@@ -402,7 +403,8 @@ class AuctionRepoEthereum {
     return this._callForPair({
       operation: 'sellVolumesCurrent',
       sellToken,
-      buyToken
+      buyToken,
+      checkTokens: false
     })
   }
 
@@ -412,7 +414,8 @@ class AuctionRepoEthereum {
     return this._callForPair({
       operation: 'sellVolumesNext',
       sellToken,
-      buyToken
+      buyToken,
+      checkTokens: false
     })
   }
 
@@ -422,7 +425,8 @@ class AuctionRepoEthereum {
     return this._callForPair({
       operation: 'buyVolumes',
       sellToken,
-      buyToken
+      buyToken,
+      checkTokens: false
     })
   }
 
@@ -487,7 +491,8 @@ class AuctionRepoEthereum {
       operation: 'extraTokens',
       sellToken,
       buyToken,
-      auctionIndex
+      auctionIndex,
+      checkTokens: false
     })
   }
 
@@ -500,7 +505,8 @@ class AuctionRepoEthereum {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ]
+      args: [ address ],
+      checkTokens: false
     })
   }
 
@@ -513,7 +519,8 @@ class AuctionRepoEthereum {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ]
+      args: [ address ],
+      checkTokens: false
     })
   }
 
@@ -526,7 +533,8 @@ class AuctionRepoEthereum {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ]
+      args: [ address ],
+      checkTokens: false
     })
   }
 
@@ -755,7 +763,8 @@ class AuctionRepoEthereum {
       operation: 'getUnclaimedBuyerFunds',
       sellToken,
       buyToken,
-      args: [address, auctionIndex]
+      args: [address, auctionIndex],
+      checkTokens: false
     })
   }
 
@@ -878,7 +887,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
         operation: 'getPriceForJS',
         sellToken,
         buyToken,
-        auctionIndex
+        auctionIndex,
+        checkTokens: false
       })
       .then(toFraction)
   }
@@ -889,7 +899,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     return this
       ._callForToken({
         operation: 'getPriceOracleForJS',
-        token
+        token,
+        checkToken: false
       })
       .then(toFraction)
   }
@@ -901,7 +912,8 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
         operation: 'closingPrices',
         sellToken,
         buyToken,
-        auctionIndex
+        auctionIndex,
+        checkTokens: false
       })
       .then(toFraction)
   }
@@ -1195,7 +1207,6 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     // For now, we jsut assume we get the address in the config file
     let address = this._gnoTokenAddress
     if (!address) {
-      // TODO: Rise error if not in development
       if (isLocal) {
         address = await gnoTokenContract
           .deployed()
