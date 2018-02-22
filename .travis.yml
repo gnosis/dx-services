@@ -3,7 +3,8 @@ node_js:
 - '8'
 install:
 - yarn install --pure-lockfile
-- npm run contracts-compile
+- npm run rpc
+- npm run contracts-deploy
 after_success: |-
   docker build -t dx-services .;
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
