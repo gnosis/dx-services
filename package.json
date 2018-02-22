@@ -13,7 +13,7 @@
     "trace": "DEBUG=* node src/main.js",
     "test": "NODE_ENV=LOCAL jest",
     "tdd": "jest --watch",
-    "test-debug": "DEBUG=* jest",
+    "test-debug": "NODE_ENV=LOCAL DEBUG=* jest",
     "cli": "node tests/playground/cli/bot-cli.js",
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '50000000000000000000000'",
     "console": "cd node_modules/@gnosis.pm/dutch-exchange; truffle console",
@@ -38,21 +38,21 @@
     "debug": "^3.1.0",
     "express": "^4.16.2",
     "git-rev-sync": "^1.9.1",
-    "got": "^8.0.3",
+    "got": "^8.2.0",
     "qs": "^6.5.1",
     "truffle-contract": "^3.0.3",
     "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2"
   },
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend",
-    "eslint": "^4.16.0",
-    "eslint-config-standard": "^11.0.0-beta.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jest": "^21.7.0",
-    "eslint-plugin-node": "^5.2.1",
+    "eslint": "^4.18.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-jest": "^21.12.2",
+    "eslint-plugin-node": "^6.0.0",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
-    "jest": "^22.1.4",
+    "jest": "^22.4.0",
     "truffle": "^4.0.6"
   }
 }

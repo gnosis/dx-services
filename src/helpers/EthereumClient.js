@@ -91,6 +91,17 @@ class EthereumClient {
     return this._sendAsync('evm_mine', { id })
   }
 
+  // Returns an snapshotId
+  async makeSnapshot () {
+    return this._sendAsync('evm_snapshot')
+      .then(snapshot => { return snapshot.result })
+  }
+
+  async revertSnapshot (snapshotId) {
+    const params = snapshotId ? [snapshotId] : []
+    return this._sendAsync('evm_revert', { params: params })
+  }
+
   async increaseTime (increaseMs) {
     const id = Date.now()
     return this
