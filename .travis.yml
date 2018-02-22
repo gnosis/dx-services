@@ -1,9 +1,14 @@
+sudo: required
 language: node_js
 node_js:
 - '8'
+services:
+- docker
+before_install:
+- docker pull trufflesuite/ganache-cli:latest
+- docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '50000000000000000000000'
 install:
 - yarn install --pure-lockfile
-- npm run rpc
 - npm run contracts-deploy
 after_success: |-
   docker build -t dx-services .;
