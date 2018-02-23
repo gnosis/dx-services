@@ -363,7 +363,13 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
   }
 
   function formatFromWei (wei) {
-    return web3.fromWei(wei, 'ether') // .toNumber()
+    let weiAux
+    if (isBigNumber(wei)) {
+      weiAux = wei.toString()
+    } else {
+      weiAux = wei
+    }
+    return web3.fromWei(weiAux, 'ether') // .toNumber()
   }
 
   async function printOraclePrice (message, { token }) {
@@ -555,6 +561,12 @@ function fractionFormatter ({ numerator, denominator }) {
 
 function printBoolean (flag) {
   return flag ? 'Yes' : 'No'
+}
+
+function isBigNumber (n) {
+  // The current version of bignumber is too old and doesn't have isBigNumber method
+  // It cannot be updated due to web3
+  return n instanceof BigNumber
 }
 
 /*
