@@ -10,15 +10,15 @@ const ENV_VAR_LIST = [
 ]
 const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
 
+// Get environment: local, dev, pro
+let environment = process.env.NODE_ENV.toLowerCase() || 'local'
+process.env.NODE_ENV = environment
+
 // Load conf
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'LOCAL'
-}
+const defaultConf = require('./config')
 
 // Load env conf
-const environment = process.env.NODE_ENV // LOCAL, DEV, PRO
-const defaultConf = require('./config')
-const envConf = require('./env/' + environment.toLowerCase() + '-config')
+const envConf = require('./env/' + environment + '-config')
 
 // Load network conf
 const network = process.env.NETWORK // Optional: RINKEBY, KOVAN
@@ -87,7 +87,7 @@ function getTokenAddresses (tokens, config) {
     const address = config[paramName]
     if (address) {
       tokenAddresses[token] = address
-    } else if (config.ENVIRONMENT === 'LOCAL') {
+    } else if (config.ENVIRONMENT === 'local') {
       tokenAddresses[token] = null
     } else {
       throw new Error(`The token ${token} is declared in the market, but no \

@@ -1,4 +1,4 @@
-const ENVIRONMENT = 'PRO'
+const ENVIRONMENT = 'pro'
 
 // To be set using env vars
 const DX_CONTRACT_ADDRESS = null

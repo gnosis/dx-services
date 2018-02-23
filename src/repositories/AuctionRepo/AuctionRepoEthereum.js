@@ -8,7 +8,7 @@ const MAXIMUM_FUNDING = 10 ** 30
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
 const environment = process.env.NODE_ENV
-const isLocal = environment === 'LOCAL'
+const isLocal = environment === 'local'
 
 // const BigNumber = require('bignumber.js')
 
@@ -1213,7 +1213,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
           .then(contract => contract.address)
       } else {
         throw new Error(`The Token address for GNO is mandatory for the environment ${environment}`)
-      }      
+      }
     }
 
     return gnoTokenContract.at(address)

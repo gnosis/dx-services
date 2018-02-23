@@ -1,4 +1,4 @@
-const ENVIRONMENT = 'LOCAL'
+const ENVIRONMENT = 'local'
 
 module.exports = {
   ENVIRONMENT

@@ -1,4 +1,4 @@
-const ENVIRONMENT = 'LOCAL'
+const ENVIRONMENT = 'local'
 
 const MINIMUM_SELL_VOLUME_USD = 1000
 const MARKETS = [
