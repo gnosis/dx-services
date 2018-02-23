@@ -1,3 +1,4 @@
+const debug = require('debug')('dx-service:tests:helpers:testSetup')
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
 const NUM_TEST_USERS = 1
@@ -68,6 +69,9 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     // Deposit 50ETH in the ETH Token
     // const [, ...users] = accounts
     const users = accounts.slice(1, 1 + NUM_TEST_USERS)
+    debug('owner: %s', owner)
+    debug('users: %s', users.join(', '))
+
     const initialAmounts = [
       { token: 'ETH', amount: 15 },
       { token: 'GNO', amount: 5 },
@@ -92,6 +96,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     }
 
     // Aprove tokens
+    /*
     console.log('\tAprove tokens:')
     await Promise.all(
       approveERC20Tokens.map(token => {
@@ -101,6 +106,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       })
     )
     console.log('\t\t- All tokens has been approved')
+    */
 
     console.log('\n\tFounding DX:')
     const userSetupPromises = users.map(async userAddress => {

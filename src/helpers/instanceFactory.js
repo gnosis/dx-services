@@ -53,7 +53,7 @@ function getEhereumClient (config) {
     const EthereumClient = require('./EthereumClient')
     ethereumClient = new EthereumClient({
       url: config.ETHEREUM_RPC_URL,
-      mnemonic: config.BOT_ACCOUNT_MNEMONIC
+      mnemonic: config.MNEMONIC
     })
   }
 

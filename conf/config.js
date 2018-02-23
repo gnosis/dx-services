@@ -20,8 +20,8 @@ const DEFAULT_GAS = 6700000
 const GAS_PRICE_GWEI = 100
 
 const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
-const BOT_ACCOUNT_MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
-// const BOT_ACCOUNT_MNEMONIC = null
+const MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+// const MNEMONIC = null
 
 const API_PORT = 8080
 const API_HOST = '0.0.0.0'
@@ -72,7 +72,7 @@ module.exports = {
 
   // Ethereum config
   ETHEREUM_RPC_URL,
-  BOT_ACCOUNT_MNEMONIC,
+  MNEMONIC,
 
   // REPO
   AUCTION_REPO_IMPL,

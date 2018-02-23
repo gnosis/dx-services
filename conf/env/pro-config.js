@@ -5,7 +5,7 @@ const DX_CONTRACT_ADDRESS = null
 const GNO_TOKEN_ADDRESS = null
 const RDN_TOKEN_ADDRESS = null
 const OMG_TOKEN_ADDRESS = null
-const BOT_ACCOUNT_MNEMONIC = null
+const MNEMONIC = null
 
 module.exports = {
   ENVIRONMENT,
@@ -18,5 +18,5 @@ module.exports = {
   GNO_TOKEN_ADDRESS,
 
   // Ethereum config
-  BOT_ACCOUNT_MNEMONIC
+  MNEMONIC
 }
