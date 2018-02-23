@@ -273,7 +273,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       'Price Oracle': priceOracle.address
       */
       'dxAddress': dx.address,
-      'dxMasterAddress': dxMaster.address,
+      'dxMasterAddress': dxMaster ? dxMaster.address : 'DX master address not public :(',
       'priceOracleAddress': priceOracle.address
     }
     Object.keys(contracts).forEach(name => {
@@ -328,22 +328,16 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
               owner: account,
               spender: dx.address
             }),
-            ethereumRepo.tokenAllowance({
-              tokenAddress,
-              owner: account,
-              spender: dxMaster.address
-            }),
             ethereumRepo.tokenTotalSupply({ tokenAddress }),
             // get token balance in DX
             auctionRepo.getBalance({ token, address: account })
           ])
-          .then(([ amount, allowance, allowanceMaster, totalSupply, amountInDx ]) => {
+          .then(([ amount, allowance, totalSupply, amountInDx ]) => {
             return {
               tokenAddress,
               token,
               amount,
               allowance,
-              allowanceMaster,
               totalSupply,
               amountInDx
             }
@@ -357,7 +351,6 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
 
       if (verbose) {
         console.log('\t\t- Approved for DX: ' + formatFromWei(balance.allowance))
-        // console.log('\t\t- Alowance DX (master): ' + formatFromWei(balance.allowanceMaster))
         console.log('\t\t- Token Supply: ' + formatFromWei(balance.totalSupply))
         // console.log('\t\t- Token address: ' + balance.tokenAddress)
       }

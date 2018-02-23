@@ -1166,6 +1166,7 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     let dxContractAddress
     if (this._dxContractAddress) {
       dxContractAddress = this._dxContractAddress
+      this._dxMaster = null // no public :(
     } else if (isLocal) {
       // For local, we get the address from the contract definition
       const proxyContract = this._ethereumClient
@@ -1178,7 +1179,12 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
     } else {
       throw new Error('The DX address is mandatory for the environment ' + environment)
     }
-    return dxContract.at(dxContractAddress)
+    const dxContractInstance = dxContract.at(dxContractAddress)
+
+    // no public :(
+    // this._dxMaster = dxContractInstance.masterCopy
+
+    return dxContractInstance
   }
 
   async _loadERC20tokenContract (token, tokenContract) {
