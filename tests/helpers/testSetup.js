@@ -48,8 +48,8 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       buyToken,
       sellToken
     })
-    console.log(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`)
-    console.log(`Auction:\n\t${auctionIndex}`)
+    debug(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`)
+    debug(`Auction:\n\t${auctionIndex}`)
 
     await printState('State before buy', { buyToken, sellToken })
 
@@ -60,12 +60,12 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       auctionIndex,
       amount: web3.toWei(amount, 'ether')
     })
-    console.log(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
+    debug(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
     await printState('State after buy', { buyToken, sellToken })
   }
 
   async function setupTestCases () {
-    console.log(`\n**********  Setup DX: Founding, and aproved tokens and Oracle  **********\n`)
+    debug(`\n**********  Setup DX: Founding, and aproved tokens and Oracle  **********\n`)
     // Deposit 50ETH in the ETH Token
     // const [, ...users] = accounts
     const users = accounts.slice(1, 1 + NUM_TEST_USERS)
@@ -102,13 +102,13 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       approveERC20Tokens.map(token => {
         return auctionRepo
           .approveToken({ token, from: owner })
-          .then(() => console.log(`\t\t- The "owner" has approved the token "${token}"`))
+          .then(() => debug(`\t\t- The "owner" has approved the token "${token}"`))
       })
     )
     console.log('\t\t- All tokens has been approved')
     */
 
-    console.log('\n\tFounding DX:')
+    debug('\n\tFounding DX:')
     const userSetupPromises = users.map(async userAddress => {
       const userId = users.indexOf(userAddress) + 1
 
@@ -126,7 +126,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
               token,
               amount: web3.toWei(amount, 'ether')
             }).then(() => {
-              console.log('\t\t- "owner" gives "user%d" %d %s as a present', userId, amount, token)
+              debug('\t\t- "owner" gives "user%d" %d %s as a present', userId, amount, token)
             })
           })
       )
@@ -137,7 +137,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
         from: userAddress,
         amount: web3.toWei(amountETH, 'ether')
       })
-      console.log('\t\t- "user%d" deposits %d ETH into ETH token', userId, amountETH)
+      debug('\t\t- "user%d" deposits %d ETH into ETH token', userId, amountETH)
 
       // Deposit initial amounts
       await Promise.all(initialAmounts.map(({ token }) => {
@@ -149,32 +149,32 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
           token,
           amount: amountInWei
         }).then(() => {
-          console.log('\t\t- "user%d" aproves DX to take %d %s on his behalf', userId, amount, token)
+          debug('\t\t- "user%d" aproves DX to take %d %s on his behalf', userId, amount, token)
         })
       }))
 
       await Promise.all(initialAmounts.map(({ token, amount }) => {
         const amountInWei = web3.toWei(amount, 'ether')
-        // console.log('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
+        // debug('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
         return auctionRepo.deposit({
           from: userAddress,
           token,
           amount: amountInWei
         }).then(() => {
-          console.log('\t\t- "user%d" deposits %d %s in the DX', userId, amount, token)
+          debug('\t\t- "user%d" deposits %d %s in the DX', userId, amount, token)
         })
       }))
     })
 
     // Do funding
     await Promise.all(userSetupPromises)
-    console.log('\t\t- All users has deposited the %s tokens in the DX\n',
+    debug('\t\t- All users has deposited the %s tokens in the DX\n',
       depositERC20Tokens.join(', '))
 
     // I don't understand why we need this
     // TODO: Revview "testFunction" in DX
     /*
-    console.log('\n\tFounding DX:')
+    debug('\n\tFounding DX:')
     const priceFeedSource = await priceOracle.priceFeedSource.call()
     await priceFeed.post(
       web3.toWei(ethUsdPrice),
@@ -184,12 +184,12 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     )
     */
 
-    console.log('\n**************************************\n\n')
+    debug('\n**************************************\n\n')
   }
 
   async function printTime (message) {
     const time = await ethereumClient.geLastBlockTime()
-    console.log(message + ':\t', time.toUTCString())
+    debug(message + ':\t', time.toUTCString())
   }
 
   async function printState (message, { sellToken, buyToken }) {
@@ -199,36 +199,36 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
     const state = await auctionRepo.getState({ sellToken, buyToken })
     const isApprovedMarket = await auctionRepo.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
-    const auctionIndex = await auctionRepo.getAuctionIndex({ buyToken, sellToken })    
+    const auctionIndex = await auctionRepo.getAuctionIndex({ buyToken, sellToken })
 
-    console.log(`\n**********  ${message}  **********\n`)
-    console.log(`\tToken pair: ${sellToken}-${buyToken}`)
-    console.log('\n\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
-    console.log(`\tState: ${state}`)
+    debug(`\n**********  ${message}  **********\n`)
+    debug(`\tToken pair: ${sellToken}-${buyToken}`)
+    debug('\n\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
+    debug(`\tState: ${state}`)
 
-    console.log(`\n\tAre tokens Approved?`)
-    console.log('\t\t- %s: %s', sellToken, printBoolean(isSellTokenApproved))
-    console.log('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
+    debug(`\n\tAre tokens Approved?`)
+    debug('\t\t- %s: %s', sellToken, printBoolean(isSellTokenApproved))
+    debug('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
 
-    console.log('\n\tState info:')
+    debug('\n\tState info:')
     printProps('\t\t', stateInfoProps, stateInfo)
 
     async function printAuction (auction, tokenA, tokenB) {
-      console.log(`\n\tAuction ${tokenA}-${tokenB}: `)
+      debug(`\n\tAuction ${tokenA}-${tokenB}: `)
       printProps('\t\t', auctionProps, auction, formatters)
       const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
       if (tokenA === 'ETH') {
         const ethUsdPrice = await auctionRepo.getEthUsdPrice()
         const sellVolumeInUsd = ethUsdPrice * formatFromWei(auction.sellVolume)
-        console.log(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
+        debug(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
       }
-      console.log(`\t\tCurrent Price:`, fractionFormatter(price))
+      debug(`\t\tCurrent Price:`, fractionFormatter(price))
       if (price) {
         const buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
         const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
-  
-        console.log(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
-        console.log(`\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
+
+        debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
+        debug(`\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
       }
     }
 
@@ -239,12 +239,12 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     if (stateInfo.auctionOpp) {
       await printAuction(stateInfo.auctionOpp, buyToken, sellToken)
     }
-    console.log('\n**************************************\n\n')
+    debug('\n**************************************\n\n')
   }
 
   async function printAddresses () {
-    console.log(`\n**********  Addresses  **********\n`)
-    // console.log('\n\tUsers:')
+    debug(`\n**********  Addresses  **********\n`)
+    // debug('\n\tUsers:')
     const users = {
       /*
       'Owner': owner,
@@ -256,22 +256,22 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       'user2': user2
     }
     Object.keys(users).forEach(name => {
-      // console.log('\t\t-%s: %s', name, users[name])
-      console.log("var %s = '%s'", name, users[name])
+      // debug('\t\t-%s: %s', name, users[name])
+      debug("var %s = '%s'", name, users[name])
     })
 
     // Print token addresses
-    // console.log('\n\tToken Addresses:')
+    // debug('\n\tToken Addresses:')
     const tokens = await auctionRepo.getTokens()
     await Promise.all(
       tokens.map(async token => {
         const tokenAddress = await auctionRepo.getTokenAddress({ token })
-        // console.log('var %s: %s', token.toLowerCase(), tokenAddress)
-        console.log("var %sAddress = '%s'", token.toLowerCase(), tokenAddress)
+        // debug('var %s: %s', token.toLowerCase(), tokenAddress)
+        debug("var %sAddress = '%s'", token.toLowerCase(), tokenAddress)
       })
     )
 
-    // console.log('\n\tContract Addresses:')
+    // debug('\n\tContract Addresses:')
     const contracts = {
       /*
       'DX (proxy)': dx.address,
@@ -283,11 +283,11 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       'priceOracleAddress': priceOracle.address
     }
     Object.keys(contracts).forEach(name => {
-      // console.log('\t\t- %s: \t%s', name, contracts[name])
-      console.log("var %s = '%s'", name, contracts[name])
+      // debug('\t\t- %s: \t%s', name, contracts[name])
+      debug("var %s = '%s'", name, contracts[name])
     })
 
-    console.log(`
+    debug(`
 var formatFromWei = n => web3.fromWei(n, 'ether').toNumber()
 
 var dx = DutchExchange.at(dxAddress)
@@ -307,7 +307,7 @@ dx.balances(ethAddress, user1).then(formatFromWei)
 priceOracle.getUSDETHPrice().then(formatFromWei)
       `)
 
-    console.log('\n**************************************\n\n')
+    debug('\n**************************************\n\n')
   }
 
   async function printBalances ({
@@ -315,10 +315,10 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
     account = address,
     verbose = true
   }) {
-    console.log(`\n**********  Balance for ${accountName}  **********\n`)
+    debug(`\n**********  Balance for ${accountName}  **********\n`)
     const balanceETH = await ethereumRepo.balanceOf({ account })
-    console.log('\tACCOUNT: %s', account)
-    console.log('\tBALANCE: %d ETH', formatFromWei(balanceETH))
+    debug('\tACCOUNT: %s', account)
+    debug('\tBALANCE: %d ETH', formatFromWei(balanceETH))
 
     const tokens = await auctionRepo.getTokens()
     const balances = await Promise.all(
@@ -351,17 +351,17 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
       }))
 
     balances.forEach(balance => {
-      console.log('\n\tBalances %s:', balance.token)
-      console.log('\t\t- Balance in DX: ' + formatFromWei(balance.amountInDx))
-      console.log('\t\t- Balance of user: ' + formatFromWei(balance.amount))
+      debug('\n\tBalances %s:', balance.token)
+      debug('\t\t- Balance in DX: ' + formatFromWei(balance.amountInDx))
+      debug('\t\t- Balance of user: ' + formatFromWei(balance.amount))
 
       if (verbose) {
-        console.log('\t\t- Approved for DX: ' + formatFromWei(balance.allowance))
-        console.log('\t\t- Token Supply: ' + formatFromWei(balance.totalSupply))
+        debug('\t\t- Approved for DX: ' + formatFromWei(balance.allowance))
+        debug('\t\t- Token Supply: ' + formatFromWei(balance.totalSupply))
         // console.log('\t\t- Token address: ' + balance.tokenAddress)
       }
     })
-    console.log('\n**************************************\n\n')
+    debug('\n**************************************\n\n')
   }
 
   function formatFromWei (wei) {
@@ -376,14 +376,14 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
 
       if (hasPrice) {
         const priceToken = await auctionRepo.getPriceOracle({ token })
-        console.log('%s%s: %d ETH/%s',
+        debug('%s%s: %d ETH/%s',
           message, token, fractionFormatter(priceToken), token)
       } else {
-        console.log(`\t\t- %s: The token has no price because the market %s-ETH\
+        debug(`\t\t- %s: The token has no price because the market %s-ETH\
  doesn't exist yet`, token, token)
       }
     } else {
-      console.log('\t\t- %s: The token is not approved yet, so it cannot have price', token)
+      debug('\t\t- %s: The token is not approved yet, so it cannot have price', token)
     }
   }
 
@@ -398,20 +398,20 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
     })
     // const ethUsdPrice = await auctionRepo.getBalance({ token: tokenB })
 
-    console.log(`\n**********  "${accountName}" ads a new token pair  **********\n`)
-    console.log('\tMarket to add:')
-    console.log('\t\t- Market: %s-%s', tokenA, tokenB)
-    console.log('\t\t- %d %s. The user has a balance of %d %s',
+    debug(`\n**********  "${accountName}" ads a new token pair  **********\n`)
+    debug('\tMarket to add:')
+    debug('\t\t- Market: %s-%s', tokenA, tokenB)
+    debug('\t\t- %d %s. The user has a balance of %d %s',
       formatFromWei(tokenAFunding), tokenA, formatFromWei(tokenABalance), tokenA)
-    console.log('\t\t- %d %s. The user has a balance of %d %s',
+    debug('\t\t- %d %s. The user has a balance of %d %s',
       formatFromWei(tokenBFunding), tokenB, formatFromWei(tokenBBalance), tokenB)
-    console.log('\t\t- Initial price: %d', fractionFormatter(initialClosingPrice))
-    console.log('\t\t- From: %s (%s)', accountName, from)
+    debug('\t\t- Initial price: %d', fractionFormatter(initialClosingPrice))
+    debug('\t\t- From: %s (%s)', accountName, from)
 
-    console.log('\n\tPrice Oracle:')
+    debug('\n\tPrice Oracle:')
     await printOraclePrice('\t\t- ', { token: tokenA })
     await printOraclePrice('\t\t- ', { token: tokenB })
-    console.log()
+    debug()
 
     const result = await auctionRepo.addTokenPair({
       from,
@@ -421,26 +421,26 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
       tokenBFunding,
       initialClosingPrice
     })
-    console.log('\n\tResult:')
-    console.log('\t\t- Successfully added the token pair. Transaction : %s', result)
+    debug('\n\tResult:')
+    debug('\t\t- Successfully added the token pair. Transaction : %s', result)
 
-    console.log('\n**************************************\n\n')
+    debug('\n**************************************\n\n')
 
     // return result
   }
 
   async function deposit ({ account, token, amount }) {
-    console.log(`\n**********  Deposit ${token} for ${account}  **********\n`)
+    debug(`\n**********  Deposit ${token} for ${account}  **********\n`)
     let balance = await auctionRepo.getBalance({
       token,
       address: account
     })
 
-    console.log('\n\tPrevious balance:')
-    console.log('\t\t- %s: %d', token, formatFromWei(balance))
+    debug('\n\tPrevious balance:')
+    debug('\t\t- %s: %d', token, formatFromWei(balance))
 
-    console.log('\n\tAmount to deposit:')
-    console.log('\t\t- %s: %d', token, amount)
+    debug('\n\tAmount to deposit:')
+    debug('\t\t- %s: %d', token, amount)
 
     // do the deposit
     await auctionRepo.deposit({
@@ -449,11 +449,11 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
       from: account
     })
 
-    console.log('\n\tNew balance:')
+    debug('\n\tNew balance:')
     balance = await auctionRepo.getBalance({ token: token, address: account })
-    console.log('\t\t- %s: %d', token, formatFromWei(balance))
+    debug('\t\t- %s: %d', token, formatFromWei(balance))
 
-    console.log('\n**************************************\n\n')
+    debug('\n**************************************\n\n')
   }
 
   async function addTokens () {
@@ -515,10 +515,10 @@ function printProps (prefix, props, object, formatters) {
         value = formatters[prop](value)
       }
 
-      console.log(`${prefix}${prop}: ${value}`)
+      debug(`${prefix}${prop}: ${value}`)
     })
   } else {
-    console.log(`${prefix}${object}`)
+    debug(`${prefix}${object}`)
   }
 }
 
