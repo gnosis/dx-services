@@ -96,8 +96,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
     }
 
     // Aprove tokens
-    /*
-    console.log('\tAprove tokens:')
+    debug('\tAprove tokens:')
     await Promise.all(
       approveERC20Tokens.map(token => {
         return auctionRepo
@@ -105,8 +104,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
           .then(() => debug(`\t\t- The "owner" has approved the token "${token}"`))
       })
     )
-    console.log('\t\t- All tokens has been approved')
-    */
+    debug('\t\t- All tokens has been approved')
 
     debug('\n\tFounding DX:')
     const userSetupPromises = users.map(async userAddress => {
