@@ -10,6 +10,7 @@ before_install:
 install:
 - yarn install --pure-lockfile
 - npm run contracts-deploy
+script: npm run test-coverage
 after_success: |-
   docker build -t dx-services .;
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";

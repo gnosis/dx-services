@@ -12,6 +12,7 @@
     "pro": "NODE_ENV=PRO node src/main.js",
     "trace": "DEBUG=* node src/main.js",
     "test": "NODE_ENV=local jest",
+    "test-coverage": "NODE_ENV=local jest --coverage && cat ./coverage/lcov.info | coveralls",
     "tdd": "jest --watch",
     "test-debug": "NODE_ENV=local DEBUG=* jest",
     "cli": "node tests/playground/cli/bot-cli.js",
@@ -45,6 +46,7 @@
   },
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend",
+    "coveralls": "^3.0.0",
     "eslint": "^4.18.1",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.9.0",

@@ -151,7 +151,7 @@ test('Buy in auction', async () => {
 })
 
 // Test auction closing
-test('Auction closing by all sold', async () => {
+test.skip('Auction closing by all sold', async () => {
   jest.setTimeout(10000)
   const { auctionRepo, user1, buySell, setupTestCases, ethereumClient } = await setupPromise
 
