@@ -11,7 +11,7 @@ const ENV_VAR_LIST = [
 const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
 
 // Get environment: local, dev, pro
-let environment = process.env.NODE_ENV.toLowerCase() || 'local'
+let environment = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : 'local'
 process.env.NODE_ENV = environment
 
 // Load conf
