@@ -18,14 +18,24 @@ afterEach(async () => {
 })
 
 // Test to approve one token
-test('Approve token', async () => {
+test('should allow to approve token', async () => {
   const { auctionRepo, owner } = await setupPromise
+  const getIsApprovedRDN = () => auctionRepo.isApprovedToken({
+    token: 'RDN'
+  })
 
-  expect(await auctionRepo.isApprovedToken({ token: 'RDN' })).toBeFalsy()
+  // GIVEN a not approved token
+  let isRdnApproved = await getIsApprovedRDN()
+  expect(isRdnApproved).toBeFalsy()
 
-  await auctionRepo.approveToken({ token: 'RDN', from: owner })
+  // WHEN approve the token
+  await auctionRepo.approveToken({
+    token: 'RDN', from: owner
+  })
 
-  expect(await auctionRepo.isApprovedToken({ token: 'RDN' })).toBeTruthy()
+  // THEN the token is approved
+  isRdnApproved = await getIsApprovedRDN()
+  expect(isRdnApproved).toBeTruthy()
 })
 
 // Add a new token pair
