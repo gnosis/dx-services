@@ -1,5 +1,6 @@
-# Dutch Exchange Services
+[![Coverage Status](https://coveralls.io/repos/github/gnosis/gnosisdb/badge.svg?branch=master)](https://coveralls.io/github/gnosis/gnosisdb?branch=master)
 
+# Dutch Exchange Services
 
 ## Run with docker-compose
 This app contains a docker-compose configuration.
