@@ -822,9 +822,9 @@ class AuctionRepoEthereum {
     debug('ethUsdPrice: %d', ethUsdPrice)
     let fundedValueUSD
     if (tokenA === 'ETH') {
-      fundedValueUSD = actualAFounding * ethUsdPrice
+      fundedValueUSD = actualAFounding * ethUsdPrice / 1e18
     } else if (tokenB === 'ETH') {
-      fundedValueUSD = actualBFounding * ethUsdPrice
+      fundedValueUSD = actualBFounding * ethUsdPrice / 1e18
     } else {
       // If none of the tokens are ETH, then:
       //  TOKENA-ETH must be an aproved market
@@ -840,11 +840,14 @@ class AuctionRepoEthereum {
       assert(tokenAMarketExists, `The market ${tokenA}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
       assert(tokenBMarketExists, `The market ${tokenB}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
       const priceTokenA = this.getPrice({ token: tokenA })
-      const priceTokenB = this.getPrice({ token: tokenA })
+      const priceTokenB = this.getPrice({ token: tokenB })
+      debug('Price Token A', priceTokenA)
+      debug('Price Token B', priceTokenB)
+
       fundedValueUSD = (
         actualAFounding * priceTokenA.numerator / priceTokenA.denominator +
         actualBFounding * priceTokenB.numerator / priceTokenB.denominator
-      ) * ethUsdPrice
+      ) * ethUsdPrice / 1e18
     }
 
     debug('Price in USD for the initial funding', fundedValueUSD)
