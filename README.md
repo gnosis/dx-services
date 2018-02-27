@@ -39,3 +39,30 @@ docker ps
 ```bash
 docker logs <container id>
 ```
+
+
+## Develop
+```bash
+yarn install
+npm run rpc
+npm run contracts-deploy
+npm run cli -- --setup
+```
+
+Start app:
+```bash
+npm start
+```
+
+Use the bot-cli:
+```bash
+npm run cli
+```
+
+Some examples:
+* `npm run cli -- --balances`
+* `npm run cli -- --approve-token RDN`
+* `npm run cli -- --deposit ETH,100`
+* `npm run cli -- --sell ETH,RDN,100`
+* `npm run cli -- --buy RDN,ETH,100`
+* `npm run cli -- --time 0.5`

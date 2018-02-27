@@ -4,6 +4,7 @@ const commander = require('commander')
 const getVersion = require('../../../src/helpers/getVersion')
 const testSetup = require('../../helpers/testSetup')
 // const BigNumber = require('bignumber.js')
+const BOT_CLI_SCRIPT = 'npm run cli --'
 
 testSetup()
   .then(run)
@@ -50,25 +51,28 @@ async function run ({
     .option('-B, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens in the <sell-token>-<buy-token> auction', list)
     .option('-S, --sell <sell-token> <buy-token> <amount>', 'Sell tokens <sell-token>-<buy-token> auction', list)
 
-  commander.on('--help', function () {
+  commander.on('--help', function () {    
+    const examples = [
+      '--now',
+      '--addresses',
+      '--balances',
+      '--setup',
+      '--approve-token RDN',
+      '--state RDN,ETH',
+      '--deposit ETH,100',
+      '--add-tokens',
+      '--closing-price RDN,ETH,0',
+      '--price RDN,ETH,1',
+      '--oracle ETH',
+      '--mine',
+      '--time 0.5',
+      '--time 6',
+      '--buy RDN,ETH,100',
+      '--sell ETH,RDN,100'
+    ]
+
     console.log('\n\nExamples:')
-    console.log('')
-    console.log('\tbot-cli --now')
-    console.log('\tbot-cli --addresses')
-    console.log('\tbot-cli --balances')
-    console.log('\tbot-cli --setup')
-    console.log('\tbot-cli --approve-token RDN')
-    console.log('\tbot-cli --state RDN,ETH')
-    console.log('\tbot-cli --deposit ETH,100')
-    console.log('\tbot-cli --add-tokens')
-    console.log('\tbot-cli --closing-price RDN,ETH,0')
-    console.log('\tbot-cli --price RDN,ETH,1')
-    console.log('\tbot-cli --oracle ETH')
-    console.log('\tbot-cli --mine')
-    console.log('\tbot-cli --time 0.5')
-    console.log('\tbot-cli --time 6')
-    console.log('\tbot-cli --buy RDN,ETH,100')
-    console.log('\tbot-cli --sell ETH,RDN,100')
+    examples.forEach(example => console.log('\t %s %s', BOT_CLI_SCRIPT, example))
     console.log('')
   })
 
