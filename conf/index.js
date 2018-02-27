@@ -28,7 +28,7 @@ const networkConfig = network ? require(`./network/${network}-config`) : {}
 const markets = envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 const envVars = getEnvVars(tokens)
-// debug('markets: %o', markets)
+debug('markets: %o', markets)
 // debug('tokens: %o', tokens)
 // debug('envVars: %o', envVars)
 

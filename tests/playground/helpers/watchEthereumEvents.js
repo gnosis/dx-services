@@ -9,7 +9,7 @@ testSetup()
 function run ({
   dx
 }) {
-  const filter = ethereumEventHelper.filter({
+  const filter = ethereumEventHelper.watch({
     name: 'DX',
     contract: dx,
     fromBlock: 0, // 'latest'
@@ -22,8 +22,6 @@ function run ({
       }
     },
     events: [
-      'NewBuyOrder'
-    /*,
       'NewDeposit',
       'NewWithdrawal',
       'NewSellOrder',
@@ -36,7 +34,6 @@ function run ({
       'LogOustandingVolume',
       'LogNumber',
       'ClaimBuyerFunds'
-      */
     ]
   })
 

@@ -14,6 +14,7 @@ instanceFactory({})
     // Create and start app
     const app = new App(instances)
     app.start()
+      .catch(handleError)
 
     // shutdown app
     gracefullShutdown.onShutdown(() => {
