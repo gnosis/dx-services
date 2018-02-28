@@ -132,16 +132,16 @@ function getAuctionRepoPromise (config, contracts) {
     case 'ethereum':
       const ethereumClient = getEhereumClient(config)
       const AuctionRepoImpl = require('../repositories/AuctionRepo/AuctionRepoImpl')
-      const auctionRepoEthereum = new AuctionRepoImpl({
+      const auctionRepoImpl = new AuctionRepoImpl({
         ethereumClient,
         defaultGas: config.DEFAULT_GAS,
         gasPriceGWei: config.GAS_PRICE_GWEI,
         contracts
       })
       // Return the repo when it's ready
-      auctionRepoPromise = auctionRepoEthereum
+      auctionRepoPromise = auctionRepoImpl
         .ready
-        .then(() => auctionRepoEthereum)
+        .then(() => auctionRepoImpl)
       break
 
     default:
