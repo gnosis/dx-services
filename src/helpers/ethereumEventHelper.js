@@ -11,17 +11,15 @@ function watch (args) {
 }
 
 function _filterWatchAux ({
-  name,
   contract,
   callback,
   filters = null,
   fromBlock = 0,
   toBlock = 'latest',
-  events = null,
+  events = null
 }, watchMethod) {
   debug('%s for contract %s (%s) events: %s',
     watchMethod,
-    name,
     contract.address,
     events ? events.join(', ') : 'all'
   )
@@ -32,7 +30,7 @@ function _filterWatchAux ({
     // Subscribe to all events
     assert.equal(filters, null, 'When filtering all the events, the parameter "filter" is allowed')
     const eventObject = contract.allEvents(aditionalFilters)
-    _getAndNotifyEvents(name, eventObject, callback, watchMethod)
+    _getAndNotifyEvents(eventObject, callback, watchMethod)
 
     // Allow to stop watching
     stopWatching = () => {
@@ -45,7 +43,7 @@ function _filterWatchAux ({
     events.forEach(event => {
       debug('Subscribe to event %s', event)
       const eventObject = contract[event](filters, aditionalFilters)
-      _getAndNotifyEvents(name, eventObject, callback, watchMethod)
+      _getAndNotifyEvents(eventObject, callback, watchMethod)
     })
 
     // Allow to stop watching
@@ -61,26 +59,25 @@ function _filterWatchAux ({
   }
 }
 
-function _notifyEvent (name, log, callback) {
-  debug('[%s:%d] New log "%s" - %o', name, log.logIndex, log.event, log.args)
-  const eventDetails = Object.assign({ name }, log)
-  callback(null, eventDetails)
+function _notifyEvent (log, callback) {
+  debug('[%d] New log "%s" - %o', log.logIndex, log.event, log.args)
+  callback(null, log)
 }
 
-function _getAndNotifyEvents (name, eventObject, callback, watchMethod) {
+function _getAndNotifyEvents (eventObject, callback, watchMethod) {
   eventObject[watchMethod]((error, log) => {
     if (error) {
-      callback(error, { name })
+      callback(error)
     } else {
       // console.log(log)
       if (Array.isArray(log)) {
         // Notify events
         log.map(logAux => {
-          _notifyEvent(name, logAux, callback)
+          _notifyEvent(logAux, callback)
         })
       } else {
         // Notify event
-        _notifyEvent(name, log, callback)
+        _notifyEvent(log, callback)
       }
     }
   })
