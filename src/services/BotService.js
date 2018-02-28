@@ -41,11 +41,18 @@ class BotService {
     return this._auctionRepo.getPrice({ tokenA, tokenB })
   }
 
-  ensureSellLiquidity ({ tokenA, tokenB }) {
+  async ensureSellLiquidity ({ sellToken, buyToken }) {
     debug('Ensure that sell liquidity on %s-%s markets is over $%d',
-      tokenA, tokenB,
+      sellToken, buyToken,
       this._minimumSellVolume
     )
+
+    if (true /* for the time being */) {
+      return {
+        token: sellToken,
+        soldTokens: 0
+      }
+    }
 
     // Check if there's an ongoing liquidity check
     const lockName = `SELL-LIQUIDITY:${tokenA}-${tokenB}`

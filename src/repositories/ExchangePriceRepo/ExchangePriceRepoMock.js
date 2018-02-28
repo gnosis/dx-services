@@ -15,7 +15,7 @@ class ExchangePriceRepoMock {
     //  https://walletinvestor.com/converter/usd/ethereum/290
     this._priceTable = {}
 
-    this._changePriceRandomly()
+    // this._changePriceRandomly()
   }
 
   async getPrice ({ tokenA, tokenB }) {

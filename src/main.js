@@ -56,15 +56,11 @@ class App {
 
   async start () {
     // Display some basic info
-    this._botService
-      .getAbout()
-      .then(about => {
-        debug('Loading app in %s environment with %o ...',
-          this._config.ENVIRONMENT,
-          about
-        )
-      })
-      .catch(handleError)
+    const about = await this._botService.getAbout()
+    debug('Loading app in %s environment with %o ...',
+      this._config.ENVIRONMENT,
+      about
+    )
 
     // Run all the bots
     await Promise.all(
