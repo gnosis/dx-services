@@ -98,7 +98,7 @@ class AuctionRepoImpl {
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
     this._gasPrice = gasPriceGWei * 10 ** 9
-    
+
     // Contracts
     this._dx = contracts.dx
     this._priceOracle = contracts.priceOracle

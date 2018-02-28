@@ -89,13 +89,13 @@ describe('Market interacting tests', async () => {
 
   // Add funds to auction (sell tokens in auction)
   test('It should allow to add funds to an auction', async () => {
-    const { user1, buySell } = await setupPromise
+    const { user1 } = await setupPromise
 
     // GIVEN a new token pair
     await _addRdnEthTokenPair({})
 
     // WHEN we add a new sell token order
-    await buySell('postSellOrder', {
+    await _buySell('postSellOrder', {
       from: user1,
       sellToken: 'RDN',
       buyToken: 'ETH',
@@ -114,7 +114,7 @@ describe('Market interacting tests', async () => {
   // Test buy tokens in auction
   test('It should allow to buy tokens in an auction', async () => {
     jest.setTimeout(10000)
-    const { user1, buySell, ethereumClient } = await setupPromise
+    const { user1, ethereumClient } = await setupPromise
 
     // GIVEN a new token pair after 6 hours of funding
     await _addRdnEthTokenPair({})
@@ -130,7 +130,7 @@ describe('Market interacting tests', async () => {
     expect(rdnEthState).toEqual('RUNNING')
 
     // WHEN we add a buy order
-    await buySell('postBuyOrder', {
+    await _buySell('postBuyOrder', {
       from: user1,
       sellToken: 'ETH',
       buyToken: 'RDN',
@@ -148,21 +148,18 @@ describe('Market interacting tests', async () => {
   // Test auction closing
   test('It should close auction after all tokens sold', async () => {
     jest.setTimeout(10000)
-    const { user1, buySell, ethereumClient } = await setupPromise
+    const { user1, ethereumClient } = await setupPromise
 
     // GIVEN a new token pair after 6 hours of funding
     await _addRdnEthTokenPair({rdnFunding: 0.5})
     await ethereumClient.increaseTime(6.1 * 60 * 60)
-
-    // expect(await auctionRepo.getStateInfo({ sellToken: 'RDN', buyToken: 'ETH' }))
-    //   .toMatchObject(INITIAL_MARKET_STATE)
 
     // GIVEN a state status of RUNNING
     let rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('RUNNING')
 
     // WHEN we add a buy order for all tokens of one auction side
-    await buySell('postBuyOrder', {
+    await _buySell('postBuyOrder', {
       from: user1,
       sellToken: 'RDN',
       buyToken: 'ETH',
@@ -171,9 +168,9 @@ describe('Market interacting tests', async () => {
 
     // THEN the new state matches that one auction has closed, with a closing price
     let updatedAuction = {
-      buyVolume: new BigNumber('4018084907660346'),
+      buyVolume: new BigNumber('4018223850433874'),
       closingPrice: {
-        numerator: new BigNumber('4018084907660346'),
+        numerator: new BigNumber('4018223850433874'),
         denominator: new BigNumber('498750000000000000')
       },
       isClosed: true,
@@ -194,13 +191,13 @@ describe('Market interacting tests', async () => {
   // Closing an auction in PENDING_CLOSE_THEORETICAL state
   test('It should allow to close a PENDING_CLOSE_THEORETICAL auction', async () => {
     jest.setTimeout(10000)
-    const { user1, buySell, ethereumClient, setupTestCases } = await setupPromise
+    const { user1, ethereumClient, setupTestCases } = await setupPromise
     await setupTestCases()
 
     // GIVEN an auction after many tokens sold and 24 hours later
     await _addRdnEthTokenPair({ ethFunding: 10 })
     await ethereumClient.increaseTime(6.1 * 60 * 60)
-    await buySell('postBuyOrder', {
+    await _buySell('postBuyOrder', {
       from: user1,
       sellToken: 'ETH',
       buyToken: 'RDN',
@@ -213,7 +210,7 @@ describe('Market interacting tests', async () => {
     expect(rdnEthState).toEqual('PENDING_CLOSE_THEORETICAL')
 
     // WHEN we add a buy order without amount
-    await buySell('postBuyOrder', {
+    await _buySell('postBuyOrder', {
       from: user1,
       sellToken: 'ETH',
       buyToken: 'RDN',
@@ -268,6 +265,23 @@ async function _getState ({ sellToken = 'RDN', buyToken = 'ETH' }) {
   const { auctionRepo } = await setupPromise
 
   return auctionRepo.getState({ sellToken, buyToken })
+}
+
+async function _buySell (operation, { from, buyToken, sellToken, amount }) {
+  const { web3, auctionRepo } = await setupPromise
+
+  const auctionIndex = await auctionRepo.getAuctionIndex({
+    buyToken,
+    sellToken
+  })
+
+  await auctionRepo[operation]({
+    from,
+    buyToken,
+    sellToken,
+    auctionIndex,
+    amount: web3.toWei(amount, 'ether')
+  })
 }
 
 async function _addRdnEthTokenPair ({ rdnFunding = 0, ethFunding = 13.123 }) {
