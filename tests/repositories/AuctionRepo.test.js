@@ -53,6 +53,17 @@ describe('Market interacting tests', async () => {
     return ethereumClient.revertSnapshot(beforeSetupState)
   })
 
+  test('It should return account balances', async () => {
+    const { user1, auctionRepo } = await setupPromise
+    // GIVEN a base setupTest
+
+    // WHEN we ask for account balance
+    let userBalance = await auctionRepo.getBalances({ address: user1 })
+
+    // THEN the user balance matches INITIAL_USER1_BALANCE
+    expect(userBalance).toEqual(INITIAL_USER1_BALANCE)
+  })
+
   test('It should allow to add a new token pair', async () => {
     // GIVEN a not approved token pair
     let isRdnEthApproved = await _getIsApprovedMarket({})
@@ -248,6 +259,15 @@ const INITIAL_MARKET_STATE = {
     sellVolume: new BigNumber('13062839545454545454')
   }
 }
+
+const INITIAL_USER1_BALANCE = [
+  {'amount': new BigNumber('5000000000000000000'), 'token': 'GNO'},
+  {'amount': new BigNumber('15000000000000000000'), 'token': 'ETH'},
+  {'amount': new BigNumber('0'), 'token': 'TUL'},
+  {'amount': new BigNumber('6000000000000000000'), 'token': 'OWL'},
+  {'amount': new BigNumber('10000000000000000000'), 'token': 'RDN'},
+  {'amount': new BigNumber('20000000000000000000'), 'token': 'OMG'}
+]
 
 async function _getIsApprovedMarket ({ tokenA = 'RDN', tokenB = 'ETH' }) {
   const { auctionRepo } = await setupPromise
