@@ -51,7 +51,7 @@ const KRAKEN = {
   version: '0'
 }
 
-const AUCTION_REPO_IMPL = 'mock' // mock, impl
+const AUCTION_REPO_IMPL = 'impl' // mock, impl
 const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
 
 module.exports = {

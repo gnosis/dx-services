@@ -4,7 +4,7 @@ const BigNumber = require('bignumber.js')
 const NUM_TEST_USERS = 1
 
 const config = {
-  AUCTION_REPO_IMPL: 'ethereum'
+  AUCTION_REPO_IMPL: 'impl'
 }
 
 const stateInfoProps = ['auctionIndex', 'auctionStart']
