@@ -77,6 +77,11 @@ describe('Market interacting tests', async () => {
     rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
 
+    // THEN the new state status is WAITING_FOR_AUCTION_TO_START
+    // for oposite market too
+    rdnEthState = await _getState({ sellToken: 'ETH', buyToken: 'RDN' })
+    expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
+
     // THEN the market is now approved
     isRdnEthApproved = await _getIsApprovedMarket({})
     expect(isRdnEthApproved).toBeTruthy()
@@ -84,18 +89,9 @@ describe('Market interacting tests', async () => {
 
   // Add funds to auction (sell tokens in auction)
   test('It should allow to add funds to an auction', async () => {
-    jest.setTimeout(10000)
     const { user1, buySell } = await setupPromise
 
-    // GIVEN a not approved token pair
-    let isRdnEthApproved = await _getIsApprovedMarket({})
-    expect(isRdnEthApproved).toBeFalsy()
-
-    // GIVEN a state status of UNKNOWN_TOKEN_PAIR
-    let rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('UNKNOWN_TOKEN_PAIR')
-
-    // WHEN we add a new token pair
+    // GIVEN a new token pair
     await _addRdnEthTokenPair({})
 
     // WHEN we add a new sell token order
@@ -106,20 +102,13 @@ describe('Market interacting tests', async () => {
       amount: parseFloat('2')
     })
 
-    // THEN the new state matches the intial market state
+    // THEN the new state matches the intial market state,
+    // but with sellVolume != 0 for RDN-ETH
     let updatedAuction = Object.assign({}, INITIAL_MARKET_STATE.auction,
       { sellVolume: new BigNumber('1990000000000000000') })
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE, { auction: updatedAuction })
     let rdnEthstateInfo = await _getStateInfo({})
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
-
-    // THEN the new state status is WAITING_FOR_AUCTION_TO_START
-    rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
-
-    // THEN the market is now approved
-    isRdnEthApproved = await _getIsApprovedMarket({})
-    expect(isRdnEthApproved).toBeTruthy()
   })
 
   // Test buy tokens in auction
@@ -127,34 +116,15 @@ describe('Market interacting tests', async () => {
     jest.setTimeout(10000)
     const { user1, buySell, ethereumClient } = await setupPromise
 
-    // GIVEN a not approved token pair
-    let isRdnEthApproved = await _getIsApprovedMarket({})
-    expect(isRdnEthApproved).toBeFalsy()
-
-    // GIVEN a state status of UNKNOWN_TOKEN_PAIR
-    let rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('UNKNOWN_TOKEN_PAIR')
-
-    // WHEN we add a new token pair
+    // GIVEN a new token pair after 6 hours of funding
     await _addRdnEthTokenPair({})
-
-    // THEN the new state status is WAITING_FOR_AUCTION_TO_START
-    rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
-
-    // THEN the new state status is WAITING_FOR_AUCTION_TO_START
-    // for oposite market too
-    rdnEthState = await _getState({ sellToken: 'ETH', buyToken: 'RDN' })
-    expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
-
-    // WHEN we increase time in 6 hours
     await ethereumClient.increaseTime(6.1 * 60 * 60)
 
-    // THEN the new state status is RUNNING
-    rdnEthState = await _getState({})
+    // GIVEN a state status of RUNNING
+    let rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('RUNNING')
 
-    // THEN the new state status is RUNNING
+    // GIVEN a state status of RUNNING
     // for oposite market too
     rdnEthState = await _getState({ sellToken: 'ETH', buyToken: 'RDN' })
     expect(rdnEthState).toEqual('RUNNING')
@@ -180,29 +150,15 @@ describe('Market interacting tests', async () => {
     jest.setTimeout(10000)
     const { user1, buySell, ethereumClient } = await setupPromise
 
-    // GIVEN a not approved token pair
-    let isRdnEthApproved = await _getIsApprovedMarket({})
-    expect(isRdnEthApproved).toBeFalsy()
-
-    // GIVEN a state status of UNKNOWN_TOKEN_PAIR
-    let rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('UNKNOWN_TOKEN_PAIR')
-
-    // WHEN we add a new token pair
+    // GIVEN a new token pair after 6 hours of funding
     await _addRdnEthTokenPair({rdnFunding: 0.5})
-
-    // THEN the new state status is WAITING_FOR_AUCTION_TO_START
-    rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
+    await ethereumClient.increaseTime(6.1 * 60 * 60)
 
     // expect(await auctionRepo.getStateInfo({ sellToken: 'RDN', buyToken: 'ETH' }))
     //   .toMatchObject(INITIAL_MARKET_STATE)
 
-    // WHEN we increase time in 6 hours
-    await ethereumClient.increaseTime(6.1 * 60 * 60)
-
-    // THEN the new state status is RUNNING
-    rdnEthState = await _getState({})
+    // GIVEN a state status of RUNNING
+    let rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('RUNNING')
 
     // WHEN we add a buy order for all tokens of one auction side
@@ -214,17 +170,16 @@ describe('Market interacting tests', async () => {
     })
 
     // THEN the new state matches that one auction has closed, with a closing price
-    let updatedAuction = Object.assign({}, // INITIAL_MARKET_STATE.auction,
-      {
-        buyVolume: new BigNumber('4018084907660346'),
-        closingPrice: {
-          numerator: new BigNumber('4018084907660346'),
-          denominator: new BigNumber('498750000000000000')
-        },
-        isClosed: true,
-        isTheoreticalClosed: true,
-        sellVolume: new BigNumber('498750000000000000')
-      })
+    let updatedAuction = {
+      buyVolume: new BigNumber('4018084907660346'),
+      closingPrice: {
+        numerator: new BigNumber('4018084907660346'),
+        denominator: new BigNumber('498750000000000000')
+      },
+      isClosed: true,
+      isTheoreticalClosed: true,
+      sellVolume: new BigNumber('498750000000000000')
+    }
     let updatedAuctionOpp = Object.assign({}, INITIAL_MARKET_STATE.auctionOpp,
       {sellVolume: new BigNumber('13062834446704545454')})
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE, { auction: updatedAuction, auctionOpp: updatedAuctionOpp })
@@ -234,6 +189,40 @@ describe('Market interacting tests', async () => {
     // THEN the new state status is ONE_AUCTION_HAS_CLOSED
     rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('ONE_AUCTION_HAS_CLOSED')
+  })
+
+  // Closing an auction in PENDING_CLOSE_THEORETICAL state
+  test('It should allow to close a PENDING_CLOSE_THEORETICAL auction', async () => {
+    jest.setTimeout(10000)
+    const { user1, buySell, ethereumClient, setupTestCases } = await setupPromise
+    await setupTestCases()
+
+    // GIVEN an auction after many tokens sold and 24 hours later
+    await _addRdnEthTokenPair({ ethFunding: 10 })
+    await ethereumClient.increaseTime(6.1 * 60 * 60)
+    await buySell('postBuyOrder', {
+      from: user1,
+      sellToken: 'ETH',
+      buyToken: 'RDN',
+      amount: parseFloat('9')
+    })
+    await ethereumClient.increaseTime(24 * 60 * 60)
+
+    // GIVEN a state status of PENDING_CLOSE_THEORETICAL
+    let rdnEthState = await _getState({})
+    expect(rdnEthState).toEqual('PENDING_CLOSE_THEORETICAL')
+
+    // WHEN we add a buy order without amount
+    await buySell('postBuyOrder', {
+      from: user1,
+      sellToken: 'ETH',
+      buyToken: 'RDN',
+      amount: parseFloat('0')
+    })
+
+    // THEN the new state status is WAITING_FOR_FUNDING
+    rdnEthState = await _getState({})
+    expect(rdnEthState).toEqual('WAITING_FOR_FUNDING')
   })
 })
 
