@@ -806,17 +806,8 @@ class AuctionRepoImpl {
       tokenA, tokenB, isApprovedMarket)
     assert(!isApprovedMarket, 'The pair was previouslly added')
 
-    const ethUsdPrice = await this.getEthUsdPrice()
-    debug('ethUsdPrice: %d', ethUsdPrice)
-    let fundedValueUSD
-    if (tokenA === 'ETH') {
-      fundedValueUSD = actualAFounding * ethUsdPrice / 1e18
-    } else if (tokenB === 'ETH') {
-      fundedValueUSD = actualBFounding * ethUsdPrice / 1e18
-    } else {
-      // If none of the tokens are ETH, then:
-      //  TOKENA-ETH must be an aproved market
-      //  TOKENB-ETH must be an aproved market
+    // If none of the token are ETH, we make sure the market <token>/ETH exists
+    if (tokenA !== 'ETH' && tokenB !== 'ETH') {
       const tokenAMarketExists = await this.isApprovedMarket({
         tokenA,
         tokenB: 'ETH'
@@ -827,16 +818,16 @@ class AuctionRepoImpl {
       })
       assert(tokenAMarketExists, `The market ${tokenA}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
       assert(tokenBMarketExists, `The market ${tokenB}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
-      const priceTokenA = this.getPrice({ token: tokenA })
-      const priceTokenB = this.getPrice({ token: tokenB })
-      debug('Price Token A', priceTokenA)
-      debug('Price Token B', priceTokenB)
-
-      fundedValueUSD = (
-        actualAFounding * priceTokenA.numerator / priceTokenA.denominator +
-        actualBFounding * priceTokenB.numerator / priceTokenB.denominator
-      ) * ethUsdPrice / 1e18
     }
+
+    // get the funded value in USD
+    let fundedValueUSD = await this._getFundedValuesUSD({
+      tokenA,
+      foundingA: actualAFounding,
+      tokenB,
+      foundingB: actualBFounding,
+      combineOppositeAuctionsFunding: true
+    })
 
     debug('Price in USD for the initial funding', fundedValueUSD)
     assert(fundedValueUSD > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
@@ -868,6 +859,39 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       })
       */
       .then(toTransactionNumber)
+  }
+
+  async _getFundedValuesUSD ({
+    tokenA,
+    foundingA,
+    tokenB,
+    foundingB,
+    combineOppositeAuctionsFunding = false
+  }) {
+    const ethUsdPrice = await this.getEthUsdPrice()
+    debug('ethUsdPrice: %d', ethUsdPrice)
+    let fundedValueUSD
+    if (tokenA === 'ETH') {
+      fundedValueUSD = foundingA
+    } else if (tokenB === 'ETH') {
+      fundedValueUSD = foundingB
+    } else {
+      const priceTokenA = this.getPrice({ token: tokenA })
+      const priceTokenB = this.getPrice({ token: tokenB })
+      debug('Price Token A', priceTokenA)
+      debug('Price Token B', priceTokenB)
+
+      const foundedA = foundingA * priceTokenA.numerator / priceTokenA.denominator
+      const foundedB = foundingB * priceTokenB.numerator / priceTokenB.denominator
+
+      if (combineOppositeAuctionsFunding) {
+        fundedValueUSD = foundedA + foundedB
+      } else {
+        fundedValueUSD = BigNumber.max(foundedA + foundedB)
+      }
+    }
+
+    return fundedValueUSD * ethUsdPrice / 1e18
   }
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {

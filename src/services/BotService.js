@@ -47,15 +47,8 @@ class BotService {
       this._minimumSellVolume
     )
 
-    if (true /* for the time being */) {
-      return {
-        token: sellToken,
-        soldTokens: 0
-      }
-    }
-
     // Check if there's an ongoing liquidity check
-    const lockName = `SELL-LIQUIDITY:${tokenA}-${tokenB}`
+    const lockName = `SELL-LIQUIDITY:${sellToken}-${buyToken}`
     let ensureLiquidityPromise = this.concurrencyCheck[lockName]
     if (ensureLiquidityPromise) {
       // We don't do concurrent liquidity
