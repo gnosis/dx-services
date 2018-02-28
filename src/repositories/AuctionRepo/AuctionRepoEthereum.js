@@ -94,12 +94,6 @@ class AuctionRepoEthereum {
     defaultGas,
     gasPriceGWei,
     contracts
-
-    contractDefinitions,
-    dxContractAddress = null,
-    gnoTokenAddress = null,
-    erc20TokenAddresses = {},
-    devContractsBaseDir
   }) {
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
@@ -109,10 +103,10 @@ class AuctionRepoEthereum {
     this._dx = contracts.dx
     this._priceOracle = contracts.priceOracle
     this._tokens = Object.assign({
-      GNO: gno,
-      ETH: eth,
-      TUL: tul,
-      OWL: owl
+      GNO: contracts.gno,
+      ETH: contracts.eth,
+      TUL: contracts.tul,
+      OWL: contracts.owl
     }, contracts.erc20TokenContracts)
     debug(`DX contract in address %s`, this._dx.address)
     debug(`Price Oracle in address %s`, this._priceOracle.address)
