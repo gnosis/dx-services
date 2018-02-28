@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:repositories:AuctionRepoEthereum')
+const debug = require('debug')('dx-service:repositories:AuctionRepoImpl')
 const assert = require('assert')
 
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
@@ -88,7 +88,7 @@ const isLocal = environment === 'local'
   );
 */
 
-class AuctionRepoEthereum {
+class AuctionRepoImpl {
   constructor ({
     ethereumClient,
     defaultGas,
@@ -1182,4 +1182,4 @@ function assertAuction (sellToken, buyToken, auctionIndex) {
   assert(auctionIndex >= 0, 'The auction index is invalid')
 }
 
-module.exports = AuctionRepoEthereum
+module.exports = AuctionRepoImpl

@@ -14,7 +14,7 @@ const auctionProps = [
 ]
 
 // Run:
-//    DEBUG=*:AuctionRepoEthereum node getState.js
+//    DEBUG=*:AuctionRepoImpl node getState.js
 async function run ({
   auctionRepo,
   printProps,

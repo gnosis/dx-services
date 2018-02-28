@@ -131,8 +131,8 @@ function getAuctionRepoPromise (config, contracts) {
 
     case 'ethereum':
       const ethereumClient = getEhereumClient(config)
-      const AuctionRepoEthereum = require('../repositories/AuctionRepo/AuctionRepoEthereum')
-      const auctionRepoEthereum = new AuctionRepoEthereum({
+      const AuctionRepoImpl = require('../repositories/AuctionRepo/AuctionRepoImpl')
+      const auctionRepoEthereum = new AuctionRepoImpl({
         ethereumClient,
         defaultGas: config.DEFAULT_GAS,
         gasPriceGWei: config.GAS_PRICE_GWEI,
