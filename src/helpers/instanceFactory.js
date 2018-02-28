@@ -129,7 +129,7 @@ function getAuctionRepoPromise (config, contracts) {
       auctionRepoPromise = Promise.resolve(new AuctionRepoMock({}))
       break
 
-    case 'ethereum':
+    case 'impl':
       const ethereumClient = getEhereumClient(config)
       const AuctionRepoImpl = require('../repositories/AuctionRepo/AuctionRepoImpl')
       const auctionRepoImpl = new AuctionRepoImpl({
