@@ -125,10 +125,11 @@ class AuctionRepoImpl {
     // debug('Get auction basic info')
     const auctioneerAddress = await this._dx.auctioneer.call()
     const tokenNames = Object.keys(this._tokens)
+    const blockNumber = await this._ethereumClient.getBlockNumber()
 
     return {
       network: this._ethereumClient.getUrl(),
-      blockNumber: this._ethereumClient.getBlockNumber(),
+      blockNumber,
       auctioneer: auctioneerAddress,
       dxAddress: this._dx.address,
       priceOracleAddress: this._priceOracle.address,
