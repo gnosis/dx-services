@@ -2,8 +2,6 @@ const debug = require('debug')('dx-service:main')
 const gracefullShutdown = require('./helpers/gracefullShutdown')
 
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
-const AuctionEventWatcher = require('./bots/AuctionEventWatcher')
-const EventBus = require('./helpers/EventBus')
 const DxApiServer = require('./api/DxApiServer')
 
 const instanceFactory = require('./helpers/instanceFactory')
@@ -24,26 +22,26 @@ instanceFactory({})
   .catch(handleError)
 
 class App {
-  constructor ({ config, botService, apiService }) {
+  constructor ({
+    config,
+    // Services
+    botService,
+    apiService,
+    // Events
+    eventBus,
+    auctionEventWatcher
+  }) {
     this._config = config
     this._botService = botService
     this._apiService = apiService
+    this._eventBus = eventBus
+    this._auctionEventWatcher = auctionEventWatcher
 
     // Create server
     this._dxApiServer = new DxApiServer({
       port: config.API_PORT,
       host: config.API_HOST,
       apiService
-    })
-
-    // Create the eventBus
-    this._eventBus = new EventBus()
-
-    // Create event watcher
-    this._auctionEventWatcher = new AuctionEventWatcher({
-      eventBus: this._eventBus,
-      botService,
-      markets: config.MARKETS
     })
 
     // Create bots

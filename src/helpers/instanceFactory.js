@@ -1,19 +1,28 @@
 const debug = require('debug')('dx-service:helpers:instanceFactory')
 const originalConfig = require('../../conf/')
+
+const EventBus = require('./EventBus')
+
 let ethereumClient
 
 async function createInstances ({ test = false, config = {} }) {
   const mergedConfig = Object.assign({}, originalConfig, config)
   debug('Initializing app for %s environment...', mergedConfig.ENVIRONMENT)
 
+  // Create the eventBus
+  const eventBus = new EventBus()
+
+  // Contracts
+  const contracts = await loadContracts(mergedConfig)
+
   // Repos
   const exchangePriceRepo = getExchangePriceRepo(mergedConfig)
-  const auctionRepoPromise = getAuctionRepoPromise(mergedConfig)
+  const auctionRepoPromise = getAuctionRepoPromise(mergedConfig, contracts)
   const ethereumRepoPromise = getEthereumRepoPromise(mergedConfig)
   const auctionRepo = await auctionRepoPromise
   const ethereumRepo = await ethereumRepoPromise
 
-  // Services
+  // Service: Bot service
   const botService = getBotService({
     config: mergedConfig,
     exchangePriceRepo,
@@ -21,6 +30,7 @@ async function createInstances ({ test = false, config = {} }) {
     ethereumRepo
   })
 
+  // Service: Api service
   const apiService = getApiService({
     config: mergedConfig,
     exchangePriceRepo,
@@ -28,8 +38,16 @@ async function createInstances ({ test = false, config = {} }) {
     ethereumRepo
   })
 
+  // Event Watcher
+  const auctionEventWatcher = getAuctionEventWatcher(
+    mergedConfig, eventBus, contracts
+  )
+
   let instances = {
     config: mergedConfig,
+    eventBus,
+    contracts,
+    auctionEventWatcher,
 
     // services
     botService,
@@ -60,6 +78,31 @@ function getEhereumClient (config) {
   return ethereumClient
 }
 
+function getAuctionEventWatcher (config, eventBus, contracts) {
+  const AuctionEventWatcher = require('./AuctionEventWatcher')
+  return new AuctionEventWatcher({
+    markets: config.MARKETS,
+    eventBus: eventBus,
+    contracts
+  })
+}
+
+async function loadContracts (config) {
+  const ContractLoader = require('./ContractLoader')
+
+  const ethereumClient = getEhereumClient(config)
+  const contractLoader = new ContractLoader({
+    ethereumClient,
+    contractDefinitions: config.CONTRACT_DEFINITIONS,
+    dxContractAddress: config.DX_CONTRACT_ADDRESS,
+    gnoTokenAddress: config.GNO_TOKEN_ADDRESS,
+    erc20TokenAddresses: config.ERC20_TOKEN_ADDRESSES,
+    devContractsBaseDir: config.CONTRACTS_BASE_DIR // just for develop (TODO: improve)
+  })
+
+  return contractLoader.loadContracts()
+}
+
 async function getEthereumRepoPromise (config) {
   switch (config.ETHEREUM_REPO_IMPL) {
     case 'mock':
@@ -78,7 +121,7 @@ async function getEthereumRepoPromise (config) {
   }
 }
 
-function getAuctionRepoPromise (config) {
+function getAuctionRepoPromise (config, contracts) {
   let auctionRepoPromise
   switch (config.AUCTION_REPO_IMPL) {
     case 'mock':
@@ -93,11 +136,7 @@ function getAuctionRepoPromise (config) {
         ethereumClient,
         defaultGas: config.DEFAULT_GAS,
         gasPriceGWei: config.GAS_PRICE_GWEI,
-        contractDefinitions: config.CONTRACT_DEFINITIONS,
-        dxContractAddress: config.DX_CONTRACT_ADDRESS,
-        gnoTokenAddress: config.GNO_TOKEN_ADDRESS,
-        erc20TokenAddresses: config.ERC20_TOKEN_ADDRESSES,
-        devContractsBaseDir: config.CONTRACTS_BASE_DIR // just for develop (TODO: improve)
+        contracts
       })
       // Return the repo when it's ready
       auctionRepoPromise = auctionRepoEthereum
