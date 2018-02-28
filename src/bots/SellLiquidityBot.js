@@ -1,5 +1,6 @@
 // const Promise = require('../helpers/Promise')
 const debug = require('debug')('dx-service:bots:SellLiquidityBot')
+const events = require('../helpers/events')
 
 class SellLiquidityBot {
   constructor ({ eventBus, botService }) {
@@ -11,28 +12,27 @@ class SellLiquidityBot {
     debug('Initialized bot')
 
     // Ensure the sell liquidity when an aunction has ended
-    // TODO: Make sure if it's the first or second market to end
-    this._eventBus.listenTo('AUCTION_END', ({ eventName, data }) => {
-      const { tokenA, tokenB } = data
+    this._eventBus.listenTo(events.EVENT_AUCTION_CLRARED, ({ eventName, data }) => {
+      const { sellToken, buyToken } = data
       debug(
         "An auction for the par %s-%s has ended. Let's ensure the liquidity",
-        tokenA,
-        tokenB
+        sellToken,
+        buyToken
       )
       this._botService
-        .ensureSellLiquidity({ tokenA, tokenB })
+        .ensureSellLiquidity({ sellToken, buyToken })
         .then(soldTokens => {
           if (soldTokens.amount > 0) {
             debug(
               "I've sold %d %s tokens to ensure liquidity on the market %s-%s",
               soldTokens.amount,
               soldTokens.token,
-              tokenA,
-              tokenB
+              sellToken,
+              buyToken
             )
           } else {
             debug('There was no need to sell any token to ensure liquidity on the market %s-%s',
-              tokenA, tokenB
+              sellToken, buyToken
             )
           }
         })

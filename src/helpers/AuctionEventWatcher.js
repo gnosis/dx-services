@@ -1,5 +1,6 @@
 const debug = require('debug')('dx-service:bots:AuctionEventWatcher')
 const ethereumEventHelper = require('../helpers/ethereumEventHelper')
+const events = require('./events')
 
 class AuctionEventWatcher {
   constructor ({ eventBus, markets, contracts }) {
@@ -81,9 +82,9 @@ class AuctionEventWatcher {
     const tokenA = this._tokenNamesByAddress[sellToken]
     const tokenB = this._tokenNamesByAddress[buyToken]
 
-    let tokensAreKnown
+    let tokensAreKnown, market
     if (tokenA && tokenB) {
-      const market = _toMarketDescriptor({ tokenA, tokenB })
+      market = _toMarketDescriptor({ tokenA, tokenB })
       tokensAreKnown = this._knownMarkets.includes(market)
     } else {
       tokensAreKnown = false
@@ -91,8 +92,8 @@ class AuctionEventWatcher {
 
     // Check if the cleared auction is of a known market
     if (tokensAreKnown) {
-      debug('One auction cleared for a known token pair: %s-%s', sellToken, buyToken)
-      this._eventBus.trigger('auction:cleared', {
+      debug('One auction cleared for a known token pair: %s-%s', tokenA, tokenB)
+      this._eventBus.trigger(events.EVENT_AUCTION_CLRARED, {
         sellToken: tokenA,
         buyToken: tokenB,
         sellVolume,
