@@ -216,7 +216,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       printProps('\t\t', auctionProps, auction, formatters)
       const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
       if (tokenA === 'ETH') {
-        const ethUsdPrice = await auctionRepo.getEthUsdPrice()
+        const ethUsdPrice = await auctionRepo.getPriceEthUsd()
         const sellVolumeInUsd = ethUsdPrice * formatFromWei(auction.sellVolume)
         debug(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
       }
@@ -379,7 +379,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
       const hasPrice = await auctionRepo.hasPrice({ token })
 
       if (hasPrice) {
-        const priceToken = await auctionRepo.getPriceOracle({ token })
+        const priceToken = await auctionRepo.getPriceInEth({ token })
         debug('%s%s: %d ETH/%s',
           message, token, fractionFormatter(priceToken), token)
       } else {

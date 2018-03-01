@@ -51,7 +51,7 @@ async function run ({
     .option('-B, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens in the <sell-token>-<buy-token> auction', list)
     .option('-S, --sell <sell-token> <buy-token> <amount>', 'Sell tokens <sell-token>-<buy-token> auction', list)
 
-  commander.on('--help', function () {    
+  commander.on('--help', function () {
     const examples = [
       '--now',
       '--addresses',

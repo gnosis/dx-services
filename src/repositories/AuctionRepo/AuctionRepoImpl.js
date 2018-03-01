@@ -10,84 +10,6 @@ const BigNumber = require('bignumber.js')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
-// const BigNumber = require('bignumber.js')
-
-/*
-  // TODO: Events
-  event NewDeposit(
-       address indexed token,
-       uint indexed amount
-  );
-
-  event NewWithdrawal(
-      address indexed token,
-      uint indexed amount
-  );
-
-  event NewSellOrder(
-      address indexed sellToken,
-      address indexed buyToken,
-      address indexed user,
-      uint auctionIndex,
-      uint amount
-  );
-
-  event NewBuyOrder(
-      address indexed sellToken,
-      address indexed buyToken,
-      address indexed user,
-      uint auctionIndex,
-      uint amount
-  );
-
-  event NewSellerFundsClaim(
-      address indexed sellToken,
-      address indexed buyToken,
-      address indexed user,
-      uint auctionIndex,
-      uint amount
-  );
-
-  event NewBuyerFundsClaim(
-      address indexed sellToken,
-      address indexed buyToken,
-      address indexed user,
-      uint auctionIndex,
-      uint amount
-  );
-
-  event NewTokenPair(
-      address sellToken,
-      address buyToken
-  );
-
-  event AuctionCleared(
-      address sellToken,
-      address buyToken,
-      uint sellVolume,
-      uint buyVolume,
-      uint auctionIndex
-  );
-
-  event Log(
-      string l
-  );
-
-  event LogOustandingVolume(
-      uint l
-  );
-
-  event LogNumber(
-      string l,
-      uint n
-  );
-
-  event ClaimBuyerFunds (
-      uint returned,
-      uint tulipsIssued
-  );
-*/
-
 class AuctionRepoImpl {
   constructor ({
     ethereumClient,
@@ -98,7 +20,7 @@ class AuctionRepoImpl {
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
     this._gasPrice = gasPriceGWei * 10 ** 9
-
+    
     // Contracts
     this._dx = contracts.dx
     this._priceOracle = contracts.priceOracle
@@ -535,7 +457,7 @@ class AuctionRepoImpl {
     return eth.deposit({ from, value: amount })
   }
 
-  async getEthUsdPrice () {
+  async getPriceEthUsd () {
     return this._priceOracle
       .getUSDETHPrice
       .call()
@@ -766,6 +688,12 @@ class AuctionRepoImpl {
     // Initial closing price
     initialClosingPrice
   }) {
+    debug('Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
+      tokenA, tokenAFunding,
+      tokenB, tokenBFunding,
+      initialClosingPrice,
+      from
+    )
     assertPair(tokenA, tokenB)
     assert(tokenAFunding >= 0, 'The founding for token A is incorrect')
     assert(tokenBFunding >= 0, 'The founding for token B is incorrect')
@@ -773,31 +701,20 @@ class AuctionRepoImpl {
     assert(initialClosingPrice, 'The initialClosingPrice is required')
     assert(initialClosingPrice.numerator >= 0, 'The initialClosingPrice numerator is incorrect')
     assert(initialClosingPrice.denominator >= 0, 'The initialClosingPrice denominator is incorrect')
-
-    debug('Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
-      tokenA, tokenAFunding,
-      tokenB, tokenBFunding,
-      initialClosingPrice,
-      from
-    )
-
-    const actualAFounding = await this._getMaxAmountAvaliable({
-      token: tokenA,
-      address: from,
-      maxAmount: tokenAFunding
-    })
-
-    const actualBFounding = await this._getMaxAmountAvaliable({
-      token: tokenB,
-      address: from,
-      maxAmount: tokenBFunding
-    })
-
     assert.notEqual(tokenA, tokenB)
     assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
     assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
+
+    const actualAFounding = await this._getMaxAmountAvaliable({
+      token: tokenA, address: from, maxAmount: tokenAFunding
+    })
+
+    const actualBFounding = await this._getMaxAmountAvaliable({
+      token: tokenB, address: from, maxAmount: tokenBFunding
+    })
+
     assert(actualAFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
-    assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
+    assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)    
     debug('actual A Founding: %s', actualAFounding)
     debug('actual B Founding: %s', actualBFounding)
 
@@ -806,32 +723,10 @@ class AuctionRepoImpl {
       tokenA, tokenB, isApprovedMarket)
     assert(!isApprovedMarket, 'The pair was previouslly added')
 
-    // If none of the token are ETH, we make sure the market <token>/ETH exists
-    if (tokenA !== 'ETH' && tokenB !== 'ETH') {
-      const tokenAMarketExists = await this.isApprovedMarket({
-        tokenA,
-        tokenB: 'ETH'
-      })
-      const tokenBMarketExists = await this.isApprovedMarket({
-        tokenA: tokenB,
-        tokenB: 'ETH'
-      })
-      assert(tokenAMarketExists, `The market ${tokenA}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
-      assert(tokenBMarketExists, `The market ${tokenB}-ETH doesn't exist and it's required to add ${tokenA}-${tokenB}`)
-    }
-
-    // get the funded value in USD
-    let fundedValueUSD = await this._getFundedValuesUSD({
-      tokenA,
-      foundingA: actualAFounding,
-      tokenB,
-      foundingB: actualBFounding,
-      combineOppositeAuctionsFunding: true
+    // Ensure that we reach the minimun USD to add a token pair
+    await this._assertMinimunFundingForAddToken({
+      tokenA, actualAFounding, tokenB, actualBFounding
     })
-
-    debug('Price in USD for the initial funding', fundedValueUSD)
-    assert(fundedValueUSD > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
-Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_PAIR}`)
 
     const tokenAAddress = await this._getTokenAddress(tokenA, false)
     const tokenBAddress = await this._getTokenAddress(tokenB, false)
@@ -861,37 +756,85 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       .then(toTransactionNumber)
   }
 
-  async _getFundedValuesUSD ({
-    tokenA,
-    foundingA,
-    tokenB,
-    foundingB,
-    combineOppositeAuctionsFunding = false
-  }) {
-    const ethUsdPrice = await this.getEthUsdPrice()
-    debug('ethUsdPrice: %d', ethUsdPrice)
+  async _assertMinimunFundingForAddToken ({ tokenA, actualAFounding, tokenB, actualBFounding }) {
+    // get the funded value in USD
     let fundedValueUSD
     if (tokenA === 'ETH') {
-      fundedValueUSD = foundingA
+      fundedValueUSD = await this._getPriceInUSD({
+        token: tokenA,
+        amount: actualAFounding
+      })
     } else if (tokenB === 'ETH') {
-      fundedValueUSD = foundingB
+      fundedValueUSD = await this._getPriceInUSD({
+        token: tokenB,
+        amount: actualBFounding
+      })
     } else {
-      const priceTokenA = this.getPrice({ token: tokenA })
-      const priceTokenB = this.getPrice({ token: tokenB })
-      debug('Price Token A', priceTokenA)
-      debug('Price Token B', priceTokenB)
-
-      const foundedA = foundingA * priceTokenA.numerator / priceTokenA.denominator
-      const foundedB = foundingB * priceTokenB.numerator / priceTokenB.denominator
-
-      if (combineOppositeAuctionsFunding) {
-        fundedValueUSD = foundedA + foundedB
-      } else {
-        fundedValueUSD = BigNumber.max(foundedA + foundedB)
-      }
+      const foundingAInUSD = await this._getPriceInUSD({
+        token: tokenA,
+        amount: actualAFounding
+      })
+      const foundingBInUSD = await this._getPriceInUSD({
+        token: tokenB,
+        amount: actualBFounding
+      })
+      fundedValueUSD = foundingAInUSD + foundingBInUSD
     }
 
-    return fundedValueUSD * ethUsdPrice / 1e18
+    debug('Price in USD for the initial funding', fundedValueUSD)
+    assert(fundedValueUSD > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
+Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_PAIR}`)
+  }
+
+  async getFundingInUSD ({ tokenA, tokenB, auctionIndex }) {
+    debug(`getFundingInUSD for auction ${auctionIndex} of ${tokenA}-${tokenB}`)
+    const currentAuctionIndex = await this.getAuctionIndex({
+      sellToken: tokenA, buyToken: tokenB
+    })
+    let getSellVolumeFn
+    if (auctionIndex === currentAuctionIndex) {
+      getSellVolumeFn = 'getSellVolume'
+    } else if (auctionIndex === currentAuctionIndex + 1) {
+      getSellVolumeFn = 'getSellVolumeNext'
+    } else {
+      throw new Error(`The sell volume can only be obtained for the current \
+auction or the next one. auctionIndex=${auctionIndex}, \
+currentAuctionIndex=${currentAuctionIndex}`)
+    }
+
+    const sellVolumeA = await this[getSellVolumeFn]({ sellToken: tokenA, buyToken: tokenB })
+    const sellVolumeB = await this[getSellVolumeFn]({ sellToken: tokenB, buyToken: tokenA })
+
+    const foundingA = await this._getPriceInUSD({
+      token: tokenA,
+      amount: sellVolumeA
+    })
+
+    const foundingB = await this._getPriceInUSD({
+      token: tokenB,
+      amount: sellVolumeB
+    })
+
+    return {
+      foundingA,
+      foundingB
+    }
+  }
+
+  async _getPriceInUSD ({ token, amount }) {
+    const ethUsdPrice = await this.getPriceEthUsd()
+    debug('Eth/Usd Price: %d', ethUsdPrice)
+    let fundedValueETH
+    if (token === 'ETH') {
+      fundedValueETH = amount
+    } else {
+      const priceTokenETH = await this.getPriceInEth({ token })
+      
+      debug('Price Token', priceTokenETH)
+      fundedValueETH = amount * priceTokenETH.numerator / priceTokenETH.denominator
+    }
+
+    return fundedValueETH * ethUsdPrice / 1e18
   }
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {
@@ -908,8 +851,14 @@ Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_P
       .then(toFraction)
   }
 
-  async getPriceOracle ({ token }) {
+  async getPriceInEth ({ token }) {
     assert(token, 'The token is required')
+    // If none of the token are ETH, we make sure the market <token>/ETH exists
+    const tokenEthMarketExists = await this.isApprovedMarket({
+      tokenA: token,
+      tokenB: 'ETH'
+    })
+    assert(tokenEthMarketExists, `The market ${token}-ETH doesn't`)
 
     return this
       ._callForToken({

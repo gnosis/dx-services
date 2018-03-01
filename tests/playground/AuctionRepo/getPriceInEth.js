@@ -9,7 +9,7 @@ function run ({
 }) {
   const token = 'ETH'
   return auctionRepo
-    .getPriceOracle({ token })
+    .getPriceInEth({ token })
     .then(price => {
       console.log(`The price for ${token} is ${price.numerator}/${price.denominator}`)
     })
