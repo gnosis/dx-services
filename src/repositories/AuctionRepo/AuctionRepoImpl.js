@@ -714,7 +714,7 @@ class AuctionRepoImpl {
     })
 
     assert(actualAFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
-    assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)    
+    assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
     debug('actual A Founding: %s', actualAFounding)
     debug('actual B Founding: %s', actualBFounding)
 
@@ -778,11 +778,11 @@ class AuctionRepoImpl {
         token: tokenB,
         amount: actualBFounding
       })
-      fundedValueUSD = foundingAInUSD + foundingBInUSD
+      fundedValueUSD = foundingAInUSD.add(foundingBInUSD)
     }
 
     debug('Price in USD for the initial funding', fundedValueUSD)
-    assert(fundedValueUSD > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
+    assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
 Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_PAIR}`)
   }
 
@@ -824,17 +824,41 @@ currentAuctionIndex=${currentAuctionIndex}`)
   async _getPriceInUSD ({ token, amount }) {
     const ethUsdPrice = await this.getPriceEthUsd()
     debug('Eth/Usd Price: %d', ethUsdPrice)
-    let fundedValueETH
+    let amountInETH
     if (token === 'ETH') {
-      fundedValueETH = amount
+      amountInETH = amount
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
       
       debug('Price Token', priceTokenETH)
-      fundedValueETH = amount * priceTokenETH.numerator / priceTokenETH.denominator
+      amountInETH = amount
+        .mul(priceTokenETH.numerator)
+        .div(priceTokenETH.denominator)
     }
 
-    return fundedValueETH * ethUsdPrice / 1e18
+    return amountInETH
+      .mul(ethUsdPrice)
+      .div(1e18)
+  }
+
+  async getPriceFromUSDInTokens ({ token, amount }) {
+    const ethUsdPrice = await this.getPriceEthUsd()
+    debug('Eth/Usd Price: %d', ethUsdPrice)
+    let amountInETH = amount.div(ethUsdPrice)
+
+    let amountInToken
+    if (token === 'ETH') {
+      amountInToken = amountInETH
+    } else {
+      const priceTokenETH = await this.getPriceInEth({ token })
+      
+      debug('Price Token', priceTokenETH)
+      amountInToken = amountInETH
+        .mul(priceTokenETH.denominator)
+        .div(priceTokenETH.numerator)
+    }
+
+    return amountInToken.mul(1e18)
   }
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {

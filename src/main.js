@@ -5,6 +5,8 @@ const SellLiquidityBot = require('./bots/SellLiquidityBot')
 const DxApiServer = require('./api/DxApiServer')
 
 const instanceFactory = require('./helpers/instanceFactory')
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
 
 // Run app
 instanceFactory({})
@@ -29,6 +31,7 @@ class App {
     apiService,
     // Events
     eventBus,
+    ethereumClient,
     auctionEventWatcher
   }) {
     this._config = config
@@ -44,17 +47,22 @@ class App {
       apiService
     })
 
-    // Create bots
-    this._bots = [
-      // Liquidity bot
-      new SellLiquidityBot({
-        eventBus: this._eventBus,
-        botService
+    // Initialize the bots
+    this.ready = _getBotAddress(ethereumClient)
+      .then(botAddress => {
+        // Liquidity bot
+        const sellLiquidityBot = new SellLiquidityBot({
+          eventBus: this._eventBus,
+          botService,
+          botAddress
+        })
+        this._bots = [ sellLiquidityBot ]
       })
-    ]
   }
 
   async start () {
+    await this.ready
+
     // Display some basic info
     const about = await this._botService.getAbout()
     debug('Loading app in %s environment with %o ...',
@@ -104,4 +112,22 @@ function handleError (error) {
   debug('Something went wrong....')
   // Rethrow error
   throw error
+}
+
+async function _getBotAddress (ethereumClient) {
+  return ethereumClient
+    .getAccounts()
+    .then(accounts => {
+      if (isLocal && accounts.length > 1) {
+        // In LOCAL, for testing we use:
+        //  * the account 0 for the owner
+        //  * the account 1 for the bot
+        return accounts[1]
+      } else if (accounts.length > 0) {
+        // In DEV,PRE and PRO we use the account 0 for the bot
+        return accounts[0]
+      } else {
+        throw new Error("The ethereumClient doesn't have the bot account configured")
+      }
+    })
 }

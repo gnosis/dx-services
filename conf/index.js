@@ -26,7 +26,6 @@ if (environment === 'pre' || environment === 'pro') {
 } else {
   envConfFileName = environment + '-config'
 }
-console.log(envConfFileName)
 const envConf = require('./env/' + envConfFileName)
 
 // Load network conf
