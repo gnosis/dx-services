@@ -48,8 +48,8 @@ async function run ({
     .option('-o --oracle <token>', 'Show oracle-price')
     .option('-t, --time <hours>', 'Increase time of the blockchain in hours', parseFloat)
     .option('-m, --mine', 'Mine one block')
-    .option('-B, --buy "<sell-token>,<buy-token>,<amount>"', 'Buy tokens in the <sell-token>-<buy-token> auction', list)
-    .option('-S, --sell <sell-token> <buy-token> <amount>', 'Sell tokens <sell-token>-<buy-token> auction', list)
+    .option('-B, --buy "<sell-token>,<buy-token>,<amount>[,<auctionIndex>]"', 'Buy tokens in the <sell-token>-<buy-token> auction', list)
+    .option('-S, --sell "<sell-token> <buy-token> <amount>[,<auctionIndex>]"', 'Sell tokens <sell-token>-<buy-token> auction', list)
 
   commander.on('--help', function () {
     const examples = [
@@ -153,21 +153,27 @@ async function run ({
     await printTime('Time after minining: ')
   } else if (commander.buy) {
     // buy
-    const [sellToken, buyToken, amountString] = commander.buy
+    const [sellToken, buyToken, amountString, ...extra] = commander.buy
+    const auctionIndex = (extra.lenth === 1) ? extra[0] : null
     await buySell('postBuyOrder', {
       from: user1,
       sellToken,
       buyToken,
-      amount: parseFloat(amountString)
+      amount: parseFloat(amountString),
+      auctionIndex
     })
   } else if (commander.sell) {
     // sell
-    const [sellToken, buyToken, amountString] = commander.sell
+    const [sellToken, buyToken, amountString, ...extra] = commander.sell
+    const auctionIndex = (extra.length === 1) ? extra[0] : null
+    console.log('auctionIndex', extra, auctionIndex)
+
     await buySell('postSellOrder', {
       from: user1,
       sellToken,
       buyToken,
-      amount: parseFloat(amountString)
+      amount: parseFloat(amountString),
+      auctionIndex
     })
   } else {
     // help
