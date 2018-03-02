@@ -1,6 +1,6 @@
 const debug = require('debug')('dx-service:bots:SellLiquidityBot')
 const events = require('../helpers/events')
-const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 10000
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
 
 class SellLiquidityBot {
   constructor ({ eventBus, botService, botAddress, markets }) {

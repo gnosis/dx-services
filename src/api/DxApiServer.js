@@ -35,6 +35,10 @@ class DxApiServer {
       res.send(await this._apiService.getAbout())
     })
 
+    app.get('/markets', async (req, res) => {
+      res.send(await this._apiService.getMarkets())
+    })
+
     app.get('/auctions/:currencyA/:currencyB/current', async (req, res) => {
       res.send(await this._apiService.getAuctions({
         currencyA: req.params.currencyA,

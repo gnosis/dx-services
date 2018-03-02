@@ -3,7 +3,7 @@ const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
 class ApiService {
-  constructor ({ auctionRepo, ethereumRepo }) {
+  constructor ({ auctionRepo, ethereumRepo, markets }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
 
@@ -13,6 +13,7 @@ class ApiService {
     // About info
     this._gitInfo = getGitInfo()
     this._version = getVersion()
+    this._markets = markets
   }
 
   async getVersion () {
@@ -33,9 +34,11 @@ class ApiService {
     }
   }
 
-  async getCurrencies () {}
+  async getMarkets () {
+    return this._markets
+  }
 
-  async getMarkets () {}
+  async getCurrencies () {}
 
   async getAuctions ({ currencyA, currencyB }) {
     debug(`Passed tokens are %s,%s`, currencyA, currencyB)

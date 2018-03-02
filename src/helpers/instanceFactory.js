@@ -165,7 +165,8 @@ function _getApiService ({ config, auctionRepo, exchangePriceRepo }) {
   return new ApiService({
     // Repos
     auctionRepo,
-    exchangePriceRepo
+    exchangePriceRepo,
+    markets: config.MARKETS
   })
 }
 
