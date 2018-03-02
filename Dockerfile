@@ -29,6 +29,9 @@ RUN yarn install --pure-lockfile
 # Bundle app source
 COPY . .
 
+# Compile necesary contracts for app
+RUN npm run contracts-compile
+
 # Expose container port
 EXPOSE 8080
 
