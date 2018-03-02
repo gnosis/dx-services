@@ -54,7 +54,8 @@ class App {
         const sellLiquidityBot = new SellLiquidityBot({
           eventBus: this._eventBus,
           botService,
-          botAddress
+          botAddress,
+          markets: config.MARKETS
         })
         this._bots = [ sellLiquidityBot ]
       })

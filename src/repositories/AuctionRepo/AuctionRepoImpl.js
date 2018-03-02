@@ -7,6 +7,8 @@ const MAXIMUM_FUNDING = 10 ** 30
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
+const { toBigNumber } = require('../../helpers/numerUtil.js')
+
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
@@ -521,7 +523,7 @@ class AuctionRepoImpl {
     debug('postSellOrder: %o', {
       sellToken, buyToken, auctionIndex, from, amount
     })
-
+    
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')
@@ -534,7 +536,7 @@ class AuctionRepoImpl {
     })
     // debug('amount: %d', amount)
     // debug('actualAmount: %d', actualAmount)
-    assert.equal(amount, actualAmount, "The user doesn't have enough tokens")
+    assert.equal(toBigNumber(amount).toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
     assert(isApprovedMarket, 'The token pair has not been approved')
@@ -589,6 +591,8 @@ class AuctionRepoImpl {
     debug('postBuyOrder: %o', {
       buyToken, sellToken, auctionIndex, from, amount
     })
+    const amountBigNum = (amount instanceof BigNumber) ? amount : new BigNumber(amount)
+    
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
     assert(amount >= 0, 'The amount is required')
@@ -600,7 +604,7 @@ class AuctionRepoImpl {
     })
     // debug('amount: %d', amount)
     // debug('actualAmount: %d', actualAmount)
-    assert.equal(amount, actualAmount, "The user doesn't have enough tokens")
+    assert.equal(amount.toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
 
     const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
     assert(auctionHasCleared, 'The auction has cleared')

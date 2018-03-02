@@ -152,7 +152,7 @@ ${tokenA} ${tokenB}`)
     await this._auctionRepo.postSellOrder({
       sellToken,
       buyToken,
-      amount: amountToSellInUSD,
+      amount: amountInSellTokens,
       auctionIndex,
       from
     })

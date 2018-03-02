@@ -1,11 +1,13 @@
 const debug = require('debug')('dx-service:bots:SellLiquidityBot')
 const events = require('../helpers/events')
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 10000
 
 class SellLiquidityBot {
-  constructor ({ eventBus, botService, botAddress }) {
+  constructor ({ eventBus, botService, botAddress, markets }) {
     this._eventBus = eventBus
     this._botService = botService
     this._botAddress = botAddress
+    this._markets = markets
   }
 
   async run () {
@@ -22,6 +24,19 @@ class SellLiquidityBot {
         from: this._botAddress
       })
     })
+
+    // Backup strategy, in case events fail to notify the bot
+    // From time to time, we ensure the liquidity
+    setInterval(() => {
+      this._markets.forEach(market => {
+        // Do ensure liquidity on the market
+        this._ensureSellLiquidity({
+          sellToken: market.tokenA,
+          buyToken: market.tokenB,
+          from: this._botAddress
+        })
+      })
+    }, ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS)
   }
 
   async stop () {
