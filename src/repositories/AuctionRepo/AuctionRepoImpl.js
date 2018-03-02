@@ -591,8 +591,6 @@ class AuctionRepoImpl {
     debug('postBuyOrder: %o', {
       buyToken, sellToken, auctionIndex, from, amount
     })
-    const amountBigNum = (amount instanceof BigNumber) ? amount : new BigNumber(amount)
-    
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
     assert(amount >= 0, 'The amount is required')
@@ -604,7 +602,7 @@ class AuctionRepoImpl {
     })
     // debug('amount: %d', amount)
     // debug('actualAmount: %d', actualAmount)
-    assert.equal(amount.toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
+    assert.equal(toBigNumber(amount).toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
 
     const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
     assert(auctionHasCleared, 'The auction has cleared')
