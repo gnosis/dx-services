@@ -92,7 +92,7 @@ class AuctionEventWatcher {
 
     // Check if the cleared auction is of a known market
     if (tokensAreKnown) {
-      debug('One auction cleared for a known token pair: %s-%s', tokenA, tokenB)
+      debug('One auction cleared: %s-%s', tokenA, tokenB)
       this._eventBus.trigger(events.EVENT_AUCTION_CLRARED, {
         sellToken: tokenA,
         buyToken: tokenB,

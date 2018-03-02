@@ -18,7 +18,15 @@ process.env.NODE_ENV = environment
 const defaultConf = require('./config')
 
 // Load env conf
-const envConf = require('./env/' + environment + '-config')
+let envConfFileName
+if (environment === 'pre' || environment === 'pro') {
+  // PRE and PRO share the same config on porpoise (so they are more alike)
+  // differences are modeled just as ENV_VARs
+  envConfFileName = 'prepro-config'
+} else {
+  envConfFileName = environment + '-config'
+}
+const envConf = require('./env/' + envConfFileName)
 
 // Load network conf
 const network = process.env.NETWORK // Optional: RINKEBY, KOVAN

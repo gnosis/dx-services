@@ -3,8 +3,6 @@ const originalConfig = require('../../conf/')
 
 const EventBus = require('./EventBus')
 
-let ethereumClient
-
 async function createInstances ({ test = false, config = {} }) {
   const mergedConfig = Object.assign({}, originalConfig, config)
   debug('Initializing app for %s environment...', mergedConfig.ENVIRONMENT)
@@ -12,18 +10,19 @@ async function createInstances ({ test = false, config = {} }) {
   // Create the eventBus
   const eventBus = new EventBus()
 
+  // Ethereum client
+  const ethereumClient = _getEhereumClient(mergedConfig)
+
   // Contracts
-  const contracts = await loadContracts(mergedConfig)
+  const contracts = await _loadContracts(mergedConfig, ethereumClient)
 
   // Repos
-  const exchangePriceRepo = getExchangePriceRepo(mergedConfig)
-  const auctionRepoPromise = getAuctionRepoPromise(mergedConfig, contracts)
-  const ethereumRepoPromise = getEthereumRepoPromise(mergedConfig)
-  const auctionRepo = await auctionRepoPromise
-  const ethereumRepo = await ethereumRepoPromise
+  const exchangePriceRepo = _getExchangePriceRepo(mergedConfig)
+  const auctionRepo = _getAuctionRepo(mergedConfig, ethereumClient, contracts)
+  const ethereumRepo = _getEthereumRepo(mergedConfig, ethereumClient)
 
   // Service: Bot service
-  const botService = getBotService({
+  const botService = _getBotService({
     config: mergedConfig,
     exchangePriceRepo,
     auctionRepo,
@@ -31,7 +30,7 @@ async function createInstances ({ test = false, config = {} }) {
   })
 
   // Service: Api service
-  const apiService = getApiService({
+  const apiService = _getApiService({
     config: mergedConfig,
     exchangePriceRepo,
     auctionRepo,
@@ -39,7 +38,7 @@ async function createInstances ({ test = false, config = {} }) {
   })
 
   // Event Watcher
-  const auctionEventWatcher = getAuctionEventWatcher(
+  const auctionEventWatcher = _getAuctionEventWatcher(
     mergedConfig, eventBus, contracts
   )
 
@@ -48,6 +47,7 @@ async function createInstances ({ test = false, config = {} }) {
     eventBus,
     contracts,
     auctionEventWatcher,
+    ethereumClient,
 
     // services
     botService,
@@ -66,19 +66,16 @@ async function createInstances ({ test = false, config = {} }) {
   return instances
 }
 
-function getEhereumClient (config) {
-  if (!ethereumClient) {
-    const EthereumClient = require('./EthereumClient')
-    ethereumClient = new EthereumClient({
-      url: config.ETHEREUM_RPC_URL,
-      mnemonic: config.MNEMONIC
-    })
-  }
-
+function _getEhereumClient (config) {
+  const EthereumClient = require('./EthereumClient')
+  const ethereumClient = new EthereumClient({
+    url: config.ETHEREUM_RPC_URL,
+    mnemonic: config.MNEMONIC
+  })
   return ethereumClient
 }
 
-function getAuctionEventWatcher (config, eventBus, contracts) {
+function _getAuctionEventWatcher (config, eventBus, contracts) {
   const AuctionEventWatcher = require('./AuctionEventWatcher')
   return new AuctionEventWatcher({
     markets: config.MARKETS,
@@ -87,10 +84,9 @@ function getAuctionEventWatcher (config, eventBus, contracts) {
   })
 }
 
-async function loadContracts (config) {
+async function _loadContracts (config, ethereumClient) {
   const ContractLoader = require('./ContractLoader')
 
-  const ethereumClient = getEhereumClient(config)
   const contractLoader = new ContractLoader({
     ethereumClient,
     contractDefinitions: config.CONTRACT_DEFINITIONS,
@@ -103,14 +99,13 @@ async function loadContracts (config) {
   return contractLoader.loadContracts()
 }
 
-async function getEthereumRepoPromise (config) {
+function _getEthereumRepo (config, ethereumClient) {
   switch (config.ETHEREUM_REPO_IMPL) {
     case 'mock':
       const EthereumRepoMock = require('../repositories/EthereumRepo/EthereumRepoMock')
       return new EthereumRepoMock({})
 
     case 'impl':
-      const ethereumClient = getEhereumClient(config)
       const EthereumRepoImpl = require('../repositories/EthereumRepo/EthereumRepoImpl')
       return new EthereumRepoImpl({
         ethereumClient
@@ -121,7 +116,7 @@ async function getEthereumRepoPromise (config) {
   }
 }
 
-function getAuctionRepoPromise (config, contracts) {
+function _getAuctionRepo (config, ethereumClient, contracts) {
   let auctionRepoPromise
   switch (config.AUCTION_REPO_IMPL) {
     case 'mock':
@@ -130,7 +125,6 @@ function getAuctionRepoPromise (config, contracts) {
       break
 
     case 'impl':
-      const ethereumClient = getEhereumClient(config)
       const AuctionRepoImpl = require('../repositories/AuctionRepo/AuctionRepoImpl')
       const auctionRepoImpl = new AuctionRepoImpl({
         ethereumClient,
@@ -138,12 +132,8 @@ function getAuctionRepoPromise (config, contracts) {
         gasPriceGWei: config.GAS_PRICE_GWEI,
         contracts
       })
-      // Return the repo when it's ready
-      auctionRepoPromise = auctionRepoImpl
-        .ready
-        .then(() => auctionRepoImpl)
-      break
 
+      return auctionRepoImpl
     default:
       throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO_IMPL)
   }
@@ -151,14 +141,14 @@ function getAuctionRepoPromise (config, contracts) {
   return auctionRepoPromise
 }
 
-function getExchangePriceRepo (config) {
+function _getExchangePriceRepo (config) {
   const ExchangePriceRepoMock =
     require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
 
   return new ExchangePriceRepoMock({})
 }
 
-function getBotService ({ config, auctionRepo, exchangePriceRepo }) {
+function _getBotService ({ config, auctionRepo, exchangePriceRepo }) {
   const BotService = require('../services/BotService')
   return new BotService({
     // Repos
@@ -170,7 +160,7 @@ function getBotService ({ config, auctionRepo, exchangePriceRepo }) {
   })
 }
 
-function getApiService ({ config, auctionRepo, exchangePriceRepo }) {
+function _getApiService ({ config, auctionRepo, exchangePriceRepo }) {
   const ApiService = require('../services/ApiService')
   return new ApiService({
     // Repos

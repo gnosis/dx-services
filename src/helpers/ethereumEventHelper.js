@@ -18,7 +18,7 @@ function _filterWatchAux ({
   toBlock = 'latest',
   events = null
 }, watchMethod) {
-  debug('%s for contract %s (%s) events: %s',
+  debug('%s for contract %s events: %s',
     watchMethod,
     contract.address,
     events ? events.join(', ') : 'all'

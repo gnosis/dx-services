@@ -42,16 +42,18 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
   }
 
   // helpers
-  async function buySell (operation, { from, buyToken, sellToken, amount }) {
+  async function buySell (operation, { from, buyToken, sellToken, amount, auctionIndex = null }) {
     // buy
-    const auctionIndex = await auctionRepo.getAuctionIndex({
-      buyToken,
-      sellToken
-    })
+    if (!auctionIndex) {
+      auctionIndex = await auctionRepo.getAuctionIndex({
+        buyToken,
+        sellToken
+      })
+    }
     debug(`Token:\n\t${sellToken}-${buyToken}. Auction: ${auctionIndex}`)
     debug(`Auction:\n\t${auctionIndex}`)
 
-    await printState('State before buy', { buyToken, sellToken })
+    await printState('State before ' + operation, { buyToken, sellToken })
 
     await auctionRepo[operation]({
       from,
@@ -61,7 +63,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       amount: web3.toWei(amount, 'ether')
     })
     debug(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
-    await printState('State after buy', { buyToken, sellToken })
+    await printState('State after ' + operation, { buyToken, sellToken })
   }
 
   async function setupTestCases () {
@@ -216,7 +218,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
       printProps('\t\t', auctionProps, auction, formatters)
       const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
       if (tokenA === 'ETH') {
-        const ethUsdPrice = await auctionRepo.getEthUsdPrice()
+        const ethUsdPrice = await auctionRepo.getPriceEthUsd()
         const sellVolumeInUsd = ethUsdPrice * formatFromWei(auction.sellVolume)
         debug(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
       }
@@ -379,7 +381,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
       const hasPrice = await auctionRepo.hasPrice({ token })
 
       if (hasPrice) {
-        const priceToken = await auctionRepo.getPriceOracle({ token })
+        const priceToken = await auctionRepo.getPriceInEth({ token })
         debug('%s%s: %d ETH/%s',
           message, token, fractionFormatter(priceToken), token)
       } else {

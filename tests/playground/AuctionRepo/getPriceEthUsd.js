@@ -8,7 +8,7 @@ function run ({
   address
 }) {
   return auctionRepo
-    .getEthUsdPrice()
+    .getPriceEthUsd()
     .then(price => {
       console.log(`Price: ${price} USD/ETH`)
     })
