@@ -4,7 +4,7 @@
   xhr.open('GET', 'api/version')
   xhr.onload = function () {
     if (xhr.status === 200) {
-      versionContainer.innerHTML = '- &nbsp;v' + xhr.responseText
+      versionContainer.innerHTML = '&nbsp;- &nbsp;v' + xhr.responseText
     } else {
       console.error('ERROR getting the version: ' + xhr.status)
     }
