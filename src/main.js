@@ -2,7 +2,7 @@ const debug = require('debug')('dx-service:main')
 const gracefullShutdown = require('./helpers/gracefullShutdown')
 
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
-const DxApiServer = require('./api/DxApiServer')
+const DxApiServer = require('./web/DxApiServer')
 
 const instanceFactory = require('./helpers/instanceFactory')
 const environment = process.env.NODE_ENV
