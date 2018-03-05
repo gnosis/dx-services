@@ -60,3 +60,7 @@ header a {
 header a:hover {
   text-decoration: underline;
 }
+
+img, video, object, embed {
+  max-width: 100%;
+}
