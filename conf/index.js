@@ -12,7 +12,7 @@ const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
 
 // Get environment: local, dev, pro
 let environment = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : 'local'
-process.env.NODE_ENV = environment
+process.env.NODE_ENV = environment === 'test' ? 'local' : environment
 
 // Load conf
 const defaultConf = require('./config')
