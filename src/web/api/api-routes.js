@@ -6,7 +6,7 @@ const router = express.Router()
 function getRouter ({ apiService }) {
   router.get([ '/', '/version' ], async (req, res) => {
     const version = await apiService.getVersion()
-    res.send('Dutch Exchange Bots - version ' + version)
+    res.send(version)
   })
   
   router.get('/ping', (req, res) => {
