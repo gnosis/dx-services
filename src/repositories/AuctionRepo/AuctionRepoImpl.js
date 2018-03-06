@@ -254,7 +254,6 @@ class AuctionRepoImpl {
     // The SC has 0 when the contract is initialized
     // 1 when looking for founding. For the repo, they both will be modeled as a
     // null state of the auctionStart
-
     if (auctionStartEpoch <= AUCTION_START_FOR_WAITING_FOR_FUNDING) {
       return null
     } else {

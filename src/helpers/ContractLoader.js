@@ -1,6 +1,10 @@
-const debug = require('debug')('DEBUG-dx-service:helpers:ContractLoader')
+const loggerNamespace = 'dx-service:helpers:ContractLoader'
+const Debug = require('debug')
+const debug = Debug('DEBUG-' + loggerNamespace)
+const logError = Debug('ERROR-' + loggerNamespace)
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
+const assert = require('assert')
 
 class ContractLoader {
   constructor ({
@@ -42,10 +46,8 @@ class ContractLoader {
       const proxyContract = this._ethereumClient
         .loadContract(this._contractDefinitions.DutchExchangeProxy)
   
-      const dxProxy = await proxyContract.deployed()
-      dxContractAddress = dxProxy.address
-  
-      this._dxMaster = await dxContract.deployed()
+      dxContractAddress = await this._getDeployedAddress('DX Proxy', proxyContract)
+      this._dxMaster = await this._getDeployedAddress('DX', dxContract)
     } else {
       throw new Error('The DX address is mandatory for the environment ' + environment)
     }
@@ -61,10 +63,10 @@ class ContractLoader {
     let address = this._erc20TokenAddresses[token]
     if (!address) {
       if (isLocal) {
-        address = await this._ethereumClient
+        const contract = await this._ethereumClient
           .loadContract(`${this._devContractsBaseDir}/Token${token}`)
-          .deployed()
-          .then(contract => contract.address)
+        
+        address = await this._getDeployedAddress('Token ' + token, contract)
       } else {
         throw new Error(`The Token address for ${token} is mandatory for the environment ${environment}`)
       }
@@ -84,9 +86,7 @@ class ContractLoader {
     let address = this._gnoTokenAddress
     if (!address) {
       if (isLocal) {
-        address = await gnoTokenContract
-          .deployed()
-          .then(contract => contract.address)
+        address = await this._getDeployedAddress('Token GNO', gnoTokenContract)
       } else {
         throw new Error(`The Token address for GNO is mandatory for the environment ${environment}`)
       }
@@ -158,6 +158,33 @@ class ContractLoader {
       owl,
       gno
     }
-  }  
+  }
+
+  async _getDeployedAddress (contractName, contract) {
+    assert(isLocal, `Getting the deployed address from the truffle contract is \
+only avaliable in LOCAL. Environment = ${environment}`)
+
+    return contract
+      .deployed()
+      .then(contractInstance => contractInstance.address)
+      .catch(error => {
+        logError('Error loading the contract address from "%s": %s',
+          contractName, error.toString())
+        console.error(error)
+
+        // Rethrow error after logging
+        throw error
+      })
+  }
+  
 }
+
+function _handleError (error, message) {
+  logError(message)
+  console.error(error)
+
+  // Rethrow error after logging
+  throw error
+}
+
 module.exports = ContractLoader
