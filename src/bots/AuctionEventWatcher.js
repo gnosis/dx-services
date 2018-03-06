@@ -6,6 +6,25 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 const ethereumEventHelper = require('../helpers/ethereumEventHelper')
 const events = require('../helpers/events')
 
+const RETRY_WATCH_EVENTS_MILLISECONDS = 4 * 1000
+/*
+const EVENTS_TO_LISTEN = [
+  'AuctionCleared',
+  'NewDeposit',
+  'NewWithdrawal',
+  'NewSellOrder',
+  'NewBuyOrder',
+  'NewSellerFundsClaim',
+  'NewBuyerFundsClaim',
+  'NewTokenPair',
+  'AuctionCleared',
+  'Log',
+  'LogOustandingVolume',
+  'LogNumber',
+  'ClaimBuyerFunds'
+]
+*/
+
 class AuctionEventWatcher {
   constructor ({ eventBus, markets, contracts }) {
     this._eventBus = eventBus
@@ -30,34 +49,7 @@ class AuctionEventWatcher {
   }
 
   async start () {
-    logger.info('Start to follow the markets [%o]...', this._knownMarkets.join(', '))
-    const that = this
-
-    this._watchingFilter = ethereumEventHelper.watch({
-      contract: this._contracts.dx,
-      fromBlock: 'latest',
-      toBlock: 'latest',
-      callback (error, eventData) {
-        that._handleEvent(error, eventData)
-      }
-      /*,
-      events: [
-        'AuctionCleared',
-        'NewDeposit',
-        'NewWithdrawal',
-        'NewSellOrder',
-        'NewBuyOrder',
-        'NewSellerFundsClaim',
-        'NewBuyerFundsClaim',
-        'NewTokenPair',
-        'AuctionCleared',
-        'Log',
-        'LogOustandingVolume',
-        'LogNumber',
-        'ClaimBuyerFunds'
-      ]
-      */
-    })
+    this._doWatch()
   }
 
   async stop () {
@@ -65,6 +57,49 @@ class AuctionEventWatcher {
     this._watchingFilter.stopWatching()
     this._watchingFilter = null
     logger.info('Stopped watching for events')
+  }
+
+  _doWatch () {
+    logger.info('Start to follow the markets [%o]...', this._knownMarkets.join(', '))
+    const that = this
+    try {
+      this._watchingFilter = ethereumEventHelper.watch({
+        contract: this._contracts.dx,
+        fromBlock: 'latest',
+        toBlock: 'latest',
+        callback (error, eventData) {
+          that._handleEvent(error, eventData)
+        }
+        //, events: EVENTS_TO_LISTEN
+      })
+    } catch (error) {
+      logger.error('Error watching events: ' + error.toString())
+      if (this._watchingFilter !== null) {
+        // If there was a watchingFilter, means that we were watching
+        // succesfully for events, but somthing happend (i.e. we lost connection)
+        //  * In this case we retry in some seconds
+        console.error(error)
+        if (this._watchingFilter) {
+          try {
+            this._watchingFilter.stopWatching()
+          } catch (errorStoppingWatch) {
+            logger.error(`Error when trying stop watching events (handling an \
+  error watching the blockchain): ` + errorStoppingWatch.toString())
+            console.error(errorStoppingWatch)
+          }
+        }
+
+        this._watchingFilter = null
+        logger.error('Retrying to connect in %d seconds', RETRY_WATCH_EVENTS_MILLISECONDS / 1000)
+        setTimeout(() => {
+          this._doWatch()
+        }, RETRY_WATCH_EVENTS_MILLISECONDS)
+      } else {
+        // If we don't have a watchingFilter, means that the first watch failed
+        //  * In this case we rethrow the error (so the app won't boot)
+        throw error
+      }
+    }
   }
 
   _handleEvent (error, eventData) {
