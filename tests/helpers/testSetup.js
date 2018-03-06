@@ -28,11 +28,16 @@ async function getContracts ({ ethereumClient, auctionRepo }) {
   }
 }
 
-async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, dxMaster, priceOracle, tokens }) {
+async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }, { dx, dxMaster, priceOracle, tokens }) {
   const address = await ethereumClient.getCoinbase()
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts
+  const supportedTokens = config.MARKETS.reduce((acc, market) => {
+    if (!acc.includes(market.tokenA)) acc.push(market.tokenA)
+    if (!acc.includes(market.tokenB)) acc.push(market.tokenB)
+    return acc
+  }, [])
 
   const formatters = {
     closingPrice: fractionFormatter,
@@ -76,13 +81,19 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo }, { dx, 
 
     const initialAmounts = [
       { token: 'ETH', amount: 15 },
-      { token: 'GNO', amount: 5 },
-      { token: 'OWL', amount: 6 },
+      { token: 'GNO', amount: 40 },
+      { token: 'OWL', amount: 50 }
       // { token: 'TUL', amount: 2 },
-      { token: 'RDN', amount: 10 },
-      { token: 'OMG', amount: 20 }
     ]
-    const approveERC20Tokens = ['ETH', 'OWL', 'RDN', 'OMG']
+    const approveERC20Tokens = ['ETH', 'OWL']
+    if (supportedTokens.includes('RDN')) {
+      approveERC20Tokens.push('RDN')
+      initialAmounts.push({ token: 'RDN', amount: 55 })
+    }
+    if (supportedTokens.includes('OMG')) {
+      approveERC20Tokens.push('OMG')
+      initialAmounts.push({ token: 'OMG', amount: 70 })
+    }
     const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
     // const ethUsdPrice = 1100.0
 
@@ -463,18 +474,22 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
   }
 
   async function addTokens () {
-    return addTokenPair({
-      accountName: 'user1',
-      from: user1,
-      tokenA: 'RDN',
-      tokenAFunding: web3.toWei(0, 'ether'),
-      tokenB: 'ETH',
-      tokenBFunding: web3.toWei(13.123, 'ether'),
-      initialClosingPrice: {
-        numerator: 4079,
-        denominator: 1000000
-      }
-    })
+    if (supportedTokens.includes('RDN')) {
+      return addTokenPair({
+        accountName: 'user1',
+        from: user1,
+        tokenA: 'RDN',
+        tokenAFunding: web3.toWei(0, 'ether'),
+        tokenB: 'ETH',
+        tokenBFunding: web3.toWei(13.123, 'ether'),
+        initialClosingPrice: {
+          numerator: 4079,
+          denominator: 1000000
+        }
+      })
+    } else {
+      throw new Error('RDN is not supported')
+    }
 
     /*
     await addTokenPair({
