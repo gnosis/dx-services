@@ -20,31 +20,16 @@ class SellLiquidityBot {
 
     // Ensure the sell liquidity when an aunction has ended
     this._eventBus.listenTo(events.EVENT_AUCTION_CLRARED, ({ eventName, data }) => {
-      const { sellToken, buyToken } = data
-
-      // Do ensure liquidity on the market
-      auctionLogger.info(sellToken, buyToken, "Auction ended. Let's ensure liquidity")
-      this._ensureSellLiquidity({
-        sellToken,
-        buyToken,
-        from: this._botAddress
-      })
+      this._onAuctionCleared(eventName, data)
     })
 
-    // Backup strategy, in case events fail to notify the bot
-    // From time to time, we ensure the liquidity
+    // Backup strategy: From time to time, we ensure the liquidity
+    // Used only in case events fail to notify the bot
     setInterval(() => {
       this._markets.forEach(market => {
         const sellToken = market.tokenA
         const buyToken = market.tokenB
-        // Do ensure liquidity on the market
-        auctionLogger.debug(sellToken, buyToken, "Doing a routine check. Let's see if we need to ensure the liquidity")
-        this._ensureSellLiquidity({
-          sellToken,
-          buyToken,
-          from: this._botAddress,
-          isRoutineCheck: true
-        })
+        this._doRoutineLiquidityCheck(sellToken, buyToken)
       })
     }, ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS)
   }
@@ -53,36 +38,73 @@ class SellLiquidityBot {
     logger.debug('Bot stopped')
   }
 
-  async _ensureSellLiquidity ({ sellToken, buyToken, from, isRoutineCheck = false }) {
-    return this
-      ._botService
-      .ensureSellLiquidity({ sellToken, buyToken, from })
-      .then(soldTokens => {
-        if (soldTokens) {
-          auctionLogger.info(sellToken, buyToken, "I've sold %d %s tokens to ensure liquidity",
-            soldTokens.amount,
-            soldTokens.sellToken
-          )
+  _onAuctionCleared (eventName, data) {
+    const { sellToken, buyToken } = data
 
-          if (isRoutineCheck) {
-            auctionLogger.warn(sellToken, buyToken, "The liquidity was enssured by the routine check. Make sure there's no problem getting events")
-          }
-        } else {
-          auctionLogger.debug(sellToken, buyToken, 'There was no need to sell any token to ensure liquidity',
-            sellToken, buyToken
-          )
-        }
-
-        return soldTokens
-      })
-      .catch(error => {
-        // TODO: How do we handle this error?
-        // It would be nice, at list a slack message or sth
-        auctionLogger.error(sellToken, buyToken,
-          'There was an error ensuring liquidity: ' + error.toString())
-        console.error(error)
-      })
+    // Do ensure liquidity on the market
+    auctionLogger.info(sellToken, buyToken, "Auction ended. Let's ensure liquidity")
+    this._ensureSellLiquidity({
+      sellToken,
+      buyToken,
+      from: this._botAddress
+    })
   }
+
+  _doRoutineLiquidityCheck (sellToken, buyToken) {
+    try {
+      // Do ensure liquidity on the market
+      auctionLogger.debug(sellToken, buyToken, "Doing a routine check. Let's see if we need to ensure the liquidity")
+      this._ensureSellLiquidity({
+        sellToken,
+        buyToken,
+        from: this._botAddress,
+        isRoutineCheck: true
+      })
+      
+    } catch (error) {
+      _handleError(sellToken, buyToken, error)
+    }
+  }
+
+  async _ensureSellLiquidity ({ sellToken, buyToken, from, isRoutineCheck = false }) {
+    let soldTokens
+    try {
+      soldTokens = await this._botService
+        .ensureSellLiquidity({ sellToken, buyToken, from })
+        .catch(error => _handleError(sellToken, buyToken, error))
+      
+      if (soldTokens) {
+        // The bot sold some tokens
+        auctionLogger.info(sellToken, buyToken,
+          "I've sold %d %s tokens to ensure liquidity",
+          soldTokens.amount,
+          soldTokens.sellToken
+        )
+
+        if (isRoutineCheck) {
+          auctionLogger.warn(sellToken, buyToken, "The liquidity was enssured by the routine check. Make sure there's no problem getting events")
+        }
+        
+      } else {
+        // The bot didn't have to do anything
+        auctionLogger.debug(sellToken, buyToken,
+          'There was no need to sell any token to ensure liquidity',
+          sellToken, buyToken
+        )
+      }
+    } catch (error) {
+      _handleError(sellToken, buyToken, error)
+      soldTokens = null
+    }
+
+    return soldTokens
+  }
+}
+
+function _handleError (sellToken, buyToken, error) {
+  auctionLogger.error(sellToken, buyToken,
+    'There was an error ensuring liquidity: ' + error.toString())
+  console.error(error)
 }
 
 module.exports = SellLiquidityBot
