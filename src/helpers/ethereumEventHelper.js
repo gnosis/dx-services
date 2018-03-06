@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:helpers:ethereumEventHelper')
+const debug = require('debug')('DEBUG-dx-service:helpers:ethereumEventHelper')
 const assert = require('assert')
 
 function filter (args) {

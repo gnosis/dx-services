@@ -1,6 +1,10 @@
-const debug = require('debug')('dx-service:bots:AuctionEventWatcher')
+const loggerNamespace = 'dx-service:bots:AuctionEventWatcher'
+const Logger = require('../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+const AuctionLogger = require('../helpers/AuctionLogger')
+const auctionLogger = new AuctionLogger(loggerNamespace)
 const ethereumEventHelper = require('../helpers/ethereumEventHelper')
-const events = require('./events')
+const events = require('../helpers/events')
 
 class AuctionEventWatcher {
   constructor ({ eventBus, markets, contracts }) {
@@ -25,8 +29,8 @@ class AuctionEventWatcher {
     }, {})
   }
 
-  async startWatching () {
-    debug('Starting the following auctions markets %o...', this._knownMarkets)
+  async start () {
+    logger.info('Start to follow the markets [%o]...', this._knownMarkets.join(', '))
     const that = this
 
     this._watchingFilter = ethereumEventHelper.watch({
@@ -56,15 +60,16 @@ class AuctionEventWatcher {
     })
   }
 
-  async stopWatching () {
-    debug('Stopping the auction watch...')
+  async stop () {
+    logger.info('Stopping the auction watch...')
     this._watchingFilter.stopWatching()
     this._watchingFilter = null
-    debug('Stopped watching for events')
+    logger.info('Stopped watching for events')
   }
 
   _handleEvent (error, eventData) {
     if (error) {
+      logger.error('Error watching events: ' + error.toString())
       console.error(error)
     } else {
       switch (eventData.event) {
@@ -72,7 +77,7 @@ class AuctionEventWatcher {
           this._onAuctionCleared(eventData)
           break
         default:
-          debug('Got event %s - %o', eventData.event, eventData)
+          logger.debug('Got event %s - %o', eventData.event, eventData)
       }
     }
   }
@@ -92,7 +97,7 @@ class AuctionEventWatcher {
 
     // Check if the cleared auction is of a known market
     if (tokensAreKnown) {
-      debug('One auction cleared: %s-%s', tokenA, tokenB)
+      auctionLogger.info(tokenA, tokenB, 'One auction cleared: %s-%s')
       this._eventBus.trigger(events.EVENT_AUCTION_CLRARED, {
         sellToken: tokenA,
         buyToken: tokenB,
@@ -101,7 +106,9 @@ class AuctionEventWatcher {
         auctionIndex: auctionIndex.toNumber()
       })
     } else {
-      console.warn('One auction cleared, but it was for a known pair: %s-%s', sellToken, buyToken)
+      auctionLogger.error(sellToken, buyToken,
+        'One auction cleared, but it was for a known pair: %s-%s'
+      )
     }
   }
 }

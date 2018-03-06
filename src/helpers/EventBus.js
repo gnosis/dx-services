@@ -1,5 +1,5 @@
 // const Promise = require('../helpers/Promise')
-const debug = require('debug')('dx-service:helpers:EventBus')
+const debug = require('debug')('DEBUG-dx-service:helpers:EventBus')
 
 class EventBus {
   constructor () {

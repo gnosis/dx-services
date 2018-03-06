@@ -1,4 +1,8 @@
-const debug = require('debug')('dx-service:repositories:EthereumRepoImpl')
+const loggerNamespace = 'dx-service:repositories:EthereumRepoImpl'
+const Logger = require('../../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+// const AuctionLogger = require('../../helpers/AuctionLogger')
+// const auctionLogger = new AuctionLogger(loggerNamespace)
 
 // See: https://github.com/ethereum/eips/issues/20
 const ERC20_ABI = require('./ERC20Abi')
@@ -37,7 +41,7 @@ class EthereumRepoImpl {
   }
 
   async tokenBalanceOf ({ tokenAddress, account }) {
-    debug('Get balance for token %s and account %s', tokenAddress, account)
+    logger.debug('Get balance for token %s and account %s', tokenAddress, account)
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.balanceOf.call, account)
   }

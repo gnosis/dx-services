@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:repositories:AuctionRepoMock')
+const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
 const auctions = {
   'RDN-ETH': {
     // Aprox 0.004079 ETH/RDN

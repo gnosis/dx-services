@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:repositories:ExchangePriceRepoHuobi')
+const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoHuobi')
 const httpRequest = require('../../helpers/httpRequest')
 
 class ExchangePriceRepoHuobi {

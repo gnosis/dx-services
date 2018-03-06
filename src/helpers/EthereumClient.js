@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:repositories:EthereumClient')
+const debug = require('debug')('DEBUG-dx-service:repositories:EthereumClient')
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
 const HDWalletProvider = require('truffle-hdwallet-provider')

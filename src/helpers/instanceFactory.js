@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:helpers:instanceFactory')
+const debug = require('debug')('DEBUG-dx-service:helpers:instanceFactory')
 const originalConfig = require('../../conf/')
 
 const EventBus = require('./EventBus')
@@ -76,7 +76,7 @@ function _getEhereumClient (config) {
 }
 
 function _getAuctionEventWatcher (config, eventBus, contracts) {
-  const AuctionEventWatcher = require('./AuctionEventWatcher')
+  const AuctionEventWatcher = require('../bots/AuctionEventWatcher')
   return new AuctionEventWatcher({
     markets: config.MARKETS,
     eventBus: eventBus,

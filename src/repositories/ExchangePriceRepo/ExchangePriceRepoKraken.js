@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:repositories:ExchangePriceRepoKraken')
+const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoKraken')
 const httpRequest = require('../../helpers/httpRequest')
 const LAST_OPERATION_PROP_NAME = 'c'
 

@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:repositories:ExchangePriceRepoMock')
+const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoMock')
 
 const pricesInUSD = [{
   token: 'RDN',

@@ -1,4 +1,9 @@
-const debug = require('debug')('dx-service:services:BotService')
+const loggerNamespace = 'dx-service:services:BotService'
+// const Logger = require('../helpers/Logger')
+// const logger = new Logger(loggerNamespace)
+const AuctionLogger = require('../helpers/AuctionLogger')
+const auctionLogger = new AuctionLogger(loggerNamespace)
+
 const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 const assert = require('assert')
@@ -43,9 +48,10 @@ class BotService {
     return this._auctionRepo.getPrice({ tokenA, tokenB })
   }
 
-  async ensureSellLiquidity ({ sellToken, buyToken, from }) {    
-    debug('Ensure that sell liquidity on %s-%s markets is over $%d',
+  async ensureSellLiquidity ({ sellToken, buyToken, from }) {
+    auctionLogger.debug(
       sellToken, buyToken,
+      'Ensure that sell liquidity on %s-%s markets is over $%d',
       this._minimumSellVolume
     )
     assert(from, 'The "from" account is required')
@@ -97,8 +103,9 @@ class BotService {
         foundingB.lessThan(this._minimumSellVolume)
       ) {
         // Not enough liquidity
-        debug('Not enough liquidity for auction %d of %s-%s: %s=$%d, %s=$%d',
-          auctionIndex, tokenA, tokenB, tokenA, foundingA, tokenB, foundingB
+        auctionLogger.info(tokenA, tokenB,
+          'Not enough liquidity for auction %d: %s=$%d, %s=$%d',
+          auctionIndex, tokenA, foundingA, tokenB, foundingB
         )
         // Do sell in the correct auction
         sellLiquidityResult = await this._sellTokenToCreateLiquidity({
@@ -113,8 +120,8 @@ class BotService {
       }
     } else {
       // Not sell is required
-      debug(`No sell is required, we are not in a waiting for funding state for \
-${tokenA} ${tokenB}`)
+      auctionLogger.debug(tokenA, tokenB, `No sell is required, we are not in \
+a waiting for funding state`)
       sellLiquidityResult = null
     }
 
@@ -138,16 +145,15 @@ ${tokenA} ${tokenB}`)
     }
 
     // Get the amount to sell in sellToken
-  
-    // closing price (tokenBuy / tokenSell )
     const amountInSellTokens = await this._auctionRepo.getPriceFromUSDInTokens({
       token: sellToken,
       amount: amountToSellInUSD
     })
 
     // Sell the missing difference
-    debug('Selling %d %s ($%d) in the %s-%s auction',
-      amountInSellTokens, sellToken, amountToSellInUSD, sellToken, buyToken
+    auctionLogger.info(sellToken, buyToken,
+      'Selling %d %s ($%d)',
+      amountInSellTokens, sellToken, amountToSellInUSD
     )
     await this._auctionRepo.postSellOrder({
       sellToken,

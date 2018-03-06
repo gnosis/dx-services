@@ -1,4 +1,4 @@
-const debug = require('debug')('auth-core:util:version')
+const debug = require('debug')('DEBUG-auth-core:util:version')
 
 function getVersion () {
   let packageJson = require('../../package.json')

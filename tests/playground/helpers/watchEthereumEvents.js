@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:tests:helpers:watchEthereumEvents')
+const debug = require('debug')('DEBUG-dx-service:tests:helpers:watchEthereumEvents')
 const testSetup = require('../../helpers/testSetup')
 const ethereumEventHelper = require('../../../src/helpers/ethereumEventHelper')
 

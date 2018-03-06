@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:helpers:ContractLoader')
+const debug = require('debug')('DEBUG-dx-service:helpers:ContractLoader')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 

@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:main')
+const info = require('debug')('INFO-dx-service:main')
 const gracefullShutdown = require('./helpers/gracefullShutdown')
 
 const SellLiquidityBot = require('./bots/SellLiquidityBot')
@@ -66,27 +66,27 @@ class App {
 
     // Display some basic info
     const about = await this._botService.getAbout()
-    debug('Loading app in %s environment with %o ...',
+    info('Loading app in %s environment with %o ...',
       this._config.ENVIRONMENT,
       about
     )
 
     // Run all the bots
     await Promise.all(
-      this._bots.map(bot => bot.run())
+      this._bots.map(bot => bot.start())
     )
-    debug('All bots are ready')
+    info('All bots are ready')
 
     // Run Api server
     await this._dxApiServer.start()
 
     // Watch auction events
-    await this._auctionEventWatcher.startWatching()
-    debug('App ready!')
+    await this._auctionEventWatcher.start()
+    info('App ready!')
   }
 
   async stop () {
-    debug('Shut down App')
+    info('Shut down App')
     // Stop watching events
     // Stop the API Server
     await Promise.all([
@@ -95,22 +95,22 @@ class App {
     ])
 
     // Stop the bots
-    debug('Stopping the bots')
+    info('Stopping the bots')
     await Promise.all(
       this._bots.map(async bot => bot.stop())
     )
 
     // Clear listerners
     this._eventBus.clearAllListeners()
-    debug('App is ready to shutDown')
+    info('App is ready to shutDown')
   }
 }
 
 function handleError (error) {
   process.exitCode = 1
-  console.error(`ERORR in dx-service main: ${error.message}`)
+  info('Error booting the application: ' + error.toSting())
   console.error(error)
-  debug('Something went wrong....')
+
   // Rethrow error
   throw error
 }

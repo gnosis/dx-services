@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:tests:helpers:testSetup')
+const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
 const NUM_TEST_USERS = 1

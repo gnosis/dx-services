@@ -1,4 +1,4 @@
-const debug = require('debug')('dx-service:DxApiServer')
+const info = require('debug')('INFO-dx-service:DxApiServer')
 const express = require('express')
 const http = require('http')
 
@@ -25,7 +25,7 @@ class DxApiServer {
     })
     Object.keys(routes).forEach(path => {
       const fullPath = CONTEXT_PATH + path
-      debug('[app] Define path ', fullPath)
+      info('[app] Define path ', fullPath)
       app.use(fullPath, routes[path])
     })
     
@@ -33,8 +33,8 @@ class DxApiServer {
     this._server = http.createServer(app)
     return new Promise((resolve, reject) => {
       this._server.listen(this._port, this._host, () => {
-        debug(`Running API Servier on http://%s:%d`, this._host, this._port)
-        debug(`Try http://%s:%d/ping to check the service is onLine`,
+        info(`Running API Servier on http://%s:%d`, this._host, this._port)
+        info(`Try http://%s:%d/ping to check the service is onLine`,
           this._host, this._port
         )
         resolve(this)
@@ -44,11 +44,11 @@ class DxApiServer {
 
   async stop () {
     if (this._server) {
-      debug('Stopping server on http://%s:%d ...', this._host, this._port)
+      info('Stopping server on http://%s:%d ...', this._host, this._port)
       await this._server.close()
     }
 
-    debug('The API server has been stopped')
+    info('The API server has been stopped')
   }
 }
 

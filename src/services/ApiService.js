@@ -1,4 +1,9 @@
-const debug = require('debug')('dx-service:services:ApiService')
+const loggerNamespace = 'dx-service:services:ApiService'
+// const Logger = require('../helpers/Logger')
+// const logger = new Logger(loggerNamespace)
+const AuctionLogger = require('../helpers/AuctionLogger')
+const auctionLogger = new AuctionLogger(loggerNamespace)
+
 const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
@@ -41,7 +46,7 @@ class ApiService {
   async getCurrencies () {}
 
   async getAuctions ({ currencyA, currencyB }) {
-    debug(`Passed tokens are %s,%s`, currencyA, currencyB)
+    auctionLogger.debug(currencyA, currencyB, 'Get auctions')
     const auctionInfo = await this._auctionRepo.getStateInfo({
       sellToken: currencyA, buyToken: currencyB
     })
@@ -71,7 +76,7 @@ class ApiService {
   }
 
   async getCurrentPrice ({sellToken, buyToken}) {
-    debug(`Passed tokens are %s,%s`, sellToken, buyToken)
+    auctionLogger.debug(sellToken, buyToken, 'Get current price')
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({sellToken, buyToken})
     return this._auctionRepo.getPrice({sellToken, buyToken, auctionIndex})
