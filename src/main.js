@@ -108,11 +108,11 @@ class App {
 
 function handleError (error) {
   process.exitCode = 1
-  info('Error booting the application: ' + error.toSting())
+  info('Error booting the application: ' + error.toString())
   console.error(error)
 
   // Rethrow error
-  throw error
+  process.exit(1)
 }
 
 async function _getBotAddress (ethereumClient) {
