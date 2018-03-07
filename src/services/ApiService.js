@@ -25,6 +25,14 @@ class ApiService {
     return this._version
   }
 
+  async isConnectedToEthereum () {
+    return this._ethereumRepo.isConnected()
+  }
+
+  async getSyncing () {
+    return this._ethereumRepo.getSyncing()
+  }
+
   async getAbout () {
     const auctionInfo = await this._auctionRepo.getBasicInfo()
     const config = Object.assign({

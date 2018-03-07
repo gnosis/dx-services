@@ -160,13 +160,14 @@ function _getBotService ({ config, auctionRepo, exchangePriceRepo }) {
   })
 }
 
-function _getApiService ({ config, auctionRepo, exchangePriceRepo }) {
+function _getApiService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
   const ApiService = require('../services/ApiService')
   return new ApiService({
     // Repos
     auctionRepo,
     exchangePriceRepo,
-    markets: config.MARKETS
+    markets: config.MARKETS,
+    ethereumRepo
   })
 }
 

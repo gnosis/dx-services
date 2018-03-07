@@ -9,8 +9,19 @@ function getRouter ({ apiService }) {
     res.send(version)
   })
   
+  // TODO Remove
   router.get('/ping', (req, res) => {
     res.status(204).send()
+  })
+
+  router.get('/ethereum/connected', async (req, res) => {
+    const isConnectedToEthereum = await apiService.isConnectedToEthereum()
+    res.status(200).send(isConnectedToEthereum)
+  })
+
+  router.get('/ethereum/syncing', async (req, res) => {
+    const syncing = await apiService.getSyncing()
+    res.status(200).send(syncing)
   })
   
   router.get('/about', async (req, res) => {

@@ -16,6 +16,18 @@ class EthereumRepoImpl {
     this._erc20Contract = this._web3.eth.contract(ERC20_ABI)
   }
 
+  async isConnected () {
+    return this._ethereumClient.isConnected()
+  }
+
+  async isSyncing () {
+    return this._ethereumClient.isSyncing()
+  }
+
+  async getSyncing () {
+    return this._ethereumClient.getSyncing()
+  }
+
   async getAbout () {
     const web3 = this._web3
     const version = web3.version

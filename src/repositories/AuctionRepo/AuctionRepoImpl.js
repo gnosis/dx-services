@@ -1,7 +1,7 @@
 const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
-const AuctionLogger = require('../../helpers/AuctionLogger')
 const logger = new Logger(loggerNamespace)
+const AuctionLogger = require('../../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const assert = require('assert')
@@ -523,7 +523,7 @@ class AuctionRepoImpl {
       sellToken, buyToken, auctionIndex, from, amount
     })
     */
-    
+
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')
@@ -845,7 +845,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
       amountInToken = amountInETH
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
-      
+
       logger.debug('Price of token %s in ETH: %d', token, priceTokenETH)
       amountInToken = amountInETH
         .mul(priceTokenETH.denominator)
