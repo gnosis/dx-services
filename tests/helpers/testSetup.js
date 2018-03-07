@@ -3,6 +3,15 @@ const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
 const NUM_TEST_USERS = 1
 
+const INITIAL_AMOUNTS = {
+  ETH: 15,
+  GNO: 5,
+  OWL: 6,
+  TUL: 2,
+  RDN: 10,
+  OMG: 20
+}
+
 const config = {
   AUCTION_REPO_IMPL: 'impl'
 }
@@ -80,19 +89,19 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('users: %s', users.join(', '))
 
     const initialAmounts = [
-      { token: 'ETH', amount: 15 },
-      { token: 'GNO', amount: 40 },
-      { token: 'OWL', amount: 50 }
+      { token: 'ETH', amount: INITIAL_AMOUNTS['ETH'] },
+      { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] },
+      { token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
       // { token: 'TUL', amount: 2 },
     ]
     const approveERC20Tokens = ['ETH', 'OWL']
     if (supportedTokens.includes('RDN')) {
       approveERC20Tokens.push('RDN')
-      initialAmounts.push({ token: 'RDN', amount: 55 })
+      initialAmounts.push({ token: 'RDN', amount: INITIAL_AMOUNTS['RDN'] })
     }
     if (supportedTokens.includes('OMG')) {
       approveERC20Tokens.push('OMG')
-      initialAmounts.push({ token: 'OMG', amount: 70 })
+      initialAmounts.push({ token: 'OMG', amount: INITIAL_AMOUNTS['OMG'] })
     }
     const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
     // const ethUsdPrice = 1100.0
