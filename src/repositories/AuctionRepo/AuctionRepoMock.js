@@ -151,9 +151,6 @@ class AuctionRepoMock {
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {
     debug('Get price for auction %d', auctionIndex)
-    // TODO: IMPORTANT: This calculated for the onGoing (check SC)
-    // getPrice
-    // TODO: what is the getPriceForJS??
     this._notImplementedYet()
   }
 

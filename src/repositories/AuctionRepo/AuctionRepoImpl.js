@@ -860,7 +860,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
 
     return this
       ._callForAuction({
-        operation: 'getPriceForJS',
+        operation: 'getPriceExt',
         sellToken,
         buyToken,
         auctionIndex,
@@ -880,7 +880,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
 
     return this
       ._callForToken({
-        operation: 'getPriceOracleForJS',
+        operation: 'priceOracleExt',
         token,
         checkToken: false
       })

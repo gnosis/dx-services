@@ -20,13 +20,13 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@digix/tempo/-/tempo-0.2.0.tgz#5daf91ad788d6b596a19aad22e2e667e4ec808a8"
 
-"@gnosis.pm/dutch-exchange@https://github.com/gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend":
+"@gnosis.pm/dutch-exchange@https://github.com/gnosis/dutch-exchange.git#contracts/SmartContractAudit1.0":
   version "0.1.0"
-  resolved "https://github.com/gnosis/dutch-exchange.git#ad0324b2291d0aee1926ce3531e810efb27f3ca9"
+  resolved "https://github.com/gnosis/dutch-exchange.git#d3617402b0b3411e84844d993a84c7a6a8ca7fa4"
   dependencies:
     "@digix/tempo" "^0.2.0"
     "@gnosis.pm/gnosis-core-contracts" "^1.0.1"
-    "@gnosis.pm/owl-token" "^0.2.0"
+    "@gnosis.pm/owl-token" "^0.3.0"
     autobind-decorator "^2.1.0"
     await-delay "^1.0.0"
     babel-polyfill "^6.23.0"
@@ -72,9 +72,9 @@
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/gnosis-core-contracts/-/gnosis-core-contracts-1.0.2.tgz#853b30ed810c7c552be06edb6fcfbc02d514daef"
 
-"@gnosis.pm/owl-token@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-0.2.0.tgz#511bdb184e824491edd7b064e6979749d9bb22a7"
+"@gnosis.pm/owl-token@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-0.3.0.tgz#5ff2ec6c406a1cfcf81fd9d76ca8b850c572aa76"
   dependencies:
     "@gnosis.pm/gnosis-core-contracts" "^1.0.1"
 
