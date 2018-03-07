@@ -1097,7 +1097,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
   }) {
     auctionLogger.debug(sellToken, buyToken,
       'Execute transaction %s (address %s) for auction %d',
-      operation, from, auctionIndex, sellToken, buyToken
+      operation, from, auctionIndex
     )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)

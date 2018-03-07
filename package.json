@@ -18,6 +18,8 @@
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
     "cli": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests* node tests/playground/cli/bot-cli.js",
+    "cli-kovan": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests* NODE_ENV=dev NETWORK=kovan node tests/playground/cli/bot-cli.js",
+    "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests* NODE_ENV=dev NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
     "cli-debug": "DEBUG=* node tests/playground/cli/bot-cli.js",
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'",
     "console": "cd node_modules/@gnosis.pm/dutch-exchange; truffle console",

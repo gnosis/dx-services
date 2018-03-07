@@ -86,9 +86,9 @@ async function run ({
     await printAddresses()
   } else if (commander.balances) {
     // Balances
-    await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
+    // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
     // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
-    // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
+    await printBalances({ accountName: 'Owner', account: owner, verbose: false })
     await printBalances({ accountName: 'User 1', account: user1, verbose: true })
   } else if (commander.setup) {
     // Setup for testing

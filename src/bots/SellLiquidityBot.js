@@ -5,7 +5,7 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
-const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 4 * 1000
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
 
 class SellLiquidityBot {
   constructor ({ eventBus, botService, botAddress, markets }) {
@@ -88,8 +88,7 @@ class SellLiquidityBot {
       } else {
         // The bot didn't have to do anything
         auctionLogger.debug(sellToken, buyToken,
-          'There was no need to sell any token to ensure liquidity',
-          sellToken, buyToken
+          'Nothing to do'
         )
       }
     } catch (error) {
