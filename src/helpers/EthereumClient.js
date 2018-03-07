@@ -1,4 +1,7 @@
-const debug = require('debug')('DEBUG-dx-service:repositories:EthereumClient')
+const loggerNamespace = 'dx-service:repositories:EthereumClient'
+const Debug = require('debug')
+const debug = Debug('DEBUG-' + loggerNamespace)
+const logError = Debug('ERROR-' + loggerNamespace)
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
 const HDWalletProvider = require('truffle-hdwallet-provider')
@@ -12,9 +15,14 @@ class EthereumClient {
     this._url = url
     if (mnemonic) {
       this._provider = new HDWalletProvider(mnemonic, url, 0, 5)
+      this._provider.engine.on('error', error => {
+        logError('Error in Web3 engine: ' + error.toString())
+        console.error(error)
+      })
     } else {
       this._provider = new Web3.providers.HttpProvider(url)
     }
+
     this._web3 = new Web3(this._provider)
     this._contractCache = {}
     this._contractsBaseDir = contractsBaseDir
@@ -85,6 +93,21 @@ class EthereumClient {
 
   async balanceOf (account) {
     return this._promisify(this._web3.eth.getBalance, account)
+  }
+
+  async isConnected () {
+    return this._promisify(this._web3.net.getListening)
+  }
+
+  async peerCount () {
+    return this._promisify(this._web3.net.getPeetCount)
+  }
+
+  // TODO: web3.eth.isSyncing
+
+
+  async getSyncing () {
+    return this._promisify(this._web3.eth.getSyncing)
   }
 
   async mineBlock (id = new Date().getTime()) {
