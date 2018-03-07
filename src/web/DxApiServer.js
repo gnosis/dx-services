@@ -1,6 +1,8 @@
 const info = require('debug')('INFO-dx-service:DxApiServer')
 const express = require('express')
 const http = require('http')
+const cors = require('cors')
+
 
 // Constants
 const DEFAULT_PORT = 8080
@@ -18,6 +20,9 @@ class DxApiServer {
     // App
     const app = express()
     this._app = app
+
+    // Enable CORS
+    app.use(cors())
 
     // Define all the routes
     const routes = require('./routes')({

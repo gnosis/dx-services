@@ -39,6 +39,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "commander": "^2.13.0",
+    "cors": "^2.8.4",
     "debug": "^3.1.0",
     "express": "^4.16.2",
     "git-rev-sync": "^1.9.1",
