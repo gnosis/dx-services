@@ -51,7 +51,7 @@
     "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2"
   },
   "devDependencies": {
-    "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/DX-2.0-No-Frontend",
+    "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/abiKovan",
     "coveralls": "^3.0.0",
     "eslint": "^4.18.1",
     "eslint-config-standard": "^11.0.0",
