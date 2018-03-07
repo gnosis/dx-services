@@ -11,6 +11,7 @@ install:
   - docker build -t dx-services .
 script:
   - docker run --mount type=tmpfs,destination=/usr/src/app/build
+    -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     --mount type=tmpfs,destination=/usr/src/app/node_modules/@gnosis.pm/dutch-exchange/build
     --mount type=tmpfs,destination=/usr/src/app/coverage
     --net host dx-services /bin/bash -c "npm run contracts-deploy; npm run test-coverage"
