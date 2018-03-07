@@ -14,15 +14,26 @@ class DxApiServer {
     this._port = port
     this._host = host
     this._apiService = apiService
+    this._poweredByHeader = null
   }
 
   async start () {
+    const version = await this._apiService.getVersion()
+    this._poweredByHeader = 'dx-services v' + version
+
     // App
     const app = express()
     this._app = app
 
     // Enable CORS
     app.use(cors())
+
+    // Custom middleware
+    app.use((req, res, next) => {
+      // Remove default X-Powered-By
+      res.setHeader('X-Powered-By', this._poweredByHeader)
+      next()
+    })
 
     // Define all the routes
     const routes = require('./routes')({
