@@ -6,13 +6,15 @@ services:
 - docker
 before_install:
 - docker pull trufflesuite/ganache-cli:latest
-- docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'
+- docker run -d -p 8545:8545 --net host trufflesuite/ganache-cli:latest -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'
 install:
-- yarn install --pure-lockfile
-- npm run contracts-deploy
-script: npm run test-coverage
+  - docker build -t dx-services .
+script:
+  - docker run --mount type=tmpfs,destination=/usr/src/app/build
+    --mount type=tmpfs,destination=/usr/src/app/node_modules/@gnosis.pm/dutch-exchange/build
+    --mount type=tmpfs,destination=/usr/src/app/coverage
+    --net host dx-services /bin/bash -c "npm run contracts-deploy; npm run test-coverage"
 after_success: |-
-  docker build -t dx-services .;
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker tag dx-services gnosispm/dx-services:master;
