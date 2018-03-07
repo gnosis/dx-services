@@ -68,7 +68,7 @@ describe('Market interacting tests', async () => {
     return ethereumClient.revertSnapshot(beforeSetupState)
   })
 
-  test('It should return account balances', async () => {
+  test.skip('It should return account balances', async () => {
     const { user1, auctionRepo } = await setupPromise
     // GIVEN a base setupTest
 
@@ -138,6 +138,8 @@ describe('Market interacting tests', async () => {
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
     expect(_isValidSellVolume(rdnEthstateInfo.auction.sellVolume, await _toBigNumberWei(2)))
       .toBeTruthy()
+    expect(_isValidSellVolume(rdnEthstateInfo.auctionOpp.sellVolume, await _toBigNumberWei(13.123)))
+      .toBeTruthy()
   })
 
   // Test buy tokens in auction
@@ -173,6 +175,8 @@ describe('Market interacting tests', async () => {
     let rdnEthstateInfo = await _getStateInfo({})
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
     expect(_isValidBuyVolume(rdnEthstateInfo.auctionOpp.buyVolume, rdnEthstateInfo.auctionOpp.sellVolume))
+      .toBeTruthy()
+    expect(_isValidSellVolume(rdnEthstateInfo.auctionOpp.sellVolume, await _toBigNumberWei(13.123)))
       .toBeTruthy()
   })
 
@@ -371,18 +375,18 @@ const UNKNOWN_PAIR_MARKET_STATE = {
 const INITIAL_MARKET_STATE = {
   auctionIndex: 1,
   auction: {
-    buyVolume: new BigNumber('0'),
+    // buyVolume: new BigNumber('0'),
     closingPrice: null,
     isClosed: false,
-    isTheoreticalClosed: false,
-    sellVolume: new BigNumber('0')
+    isTheoreticalClosed: false// ,
+    // sellVolume: new BigNumber('0')
   },
   auctionOpp: {
-    buyVolume: new BigNumber('0'),
+    // buyVolume: new BigNumber('0'),
     closingPrice: null,
     isClosed: false,
-    isTheoreticalClosed: false,
-    sellVolume: new BigNumber('13062839545454545454')
+    isTheoreticalClosed: false// ,
+    // sellVolume: new BigNumber('13062839545454545454')
   }
 }
 
