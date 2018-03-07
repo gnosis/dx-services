@@ -1,3 +1,5 @@
+const debug = require('debug')('tests:repositories:AuctionRepo')
+
 const testSetup = require('../helpers/testSetup')
 const BigNumber = require('bignumber.js')
 
@@ -129,11 +131,13 @@ describe('Market interacting tests', async () => {
     // THEN the new state matches the intial market state,
     // but with sellVolume != 0 for RDN-ETH
     let updatedAuction = Object.assign({}, INITIAL_MARKET_STATE.auction,
-      { sellVolume: new BigNumber('1990000000000000000') })
+      { sellVolume: {} })
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE,
       { auction: updatedAuction })
     let rdnEthstateInfo = await _getStateInfo({})
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
+    expect(_isValidSellVolume(rdnEthstateInfo.auction.sellVolume, await _toBigNumberWei(2)))
+      .toBeTruthy()
   })
 
   // Test buy tokens in auction
@@ -163,15 +167,17 @@ describe('Market interacting tests', async () => {
 
     // THEN the new state matches the intial market state
     let updatedAuctionOpp = Object.assign({}, INITIAL_MARKET_STATE.auctionOpp,
-      { buyVolume: new BigNumber('497500000000000000') })
+      { buyVolume: {} })
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE,
       { auctionOpp: updatedAuctionOpp })
     let rdnEthstateInfo = await _getStateInfo({})
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
+    expect(_isValidBuyVolume(rdnEthstateInfo.auctionOpp.buyVolume, rdnEthstateInfo.auctionOpp.sellVolume))
+      .toBeTruthy()
   })
 
   // Test auction closing
-  test.skip('It should close auction after all tokens sold', async () => {
+  test('It should close auction after all tokens sold', async () => {
     jest.setTimeout(10000)
     const { user1, ethereumClient } = await setupPromise
 
@@ -192,23 +198,28 @@ describe('Market interacting tests', async () => {
     })
 
     // THEN the new state matches that one auction has closed, with a closing price
-    let price = await _getPrice({})
+    // let price = await _getPrice({})
     let updatedAuction = {
-      buyVolume: price.numerator,
-      closingPrice: {
-        numerator: price.numerator,
-        denominator: new BigNumber('498750000000000000')
-      },
+      // TODO check correct price
+      // closingPrice: {
+      //   numerator: price.numerator,
+      //   denominator: new BigNumber('498750000000000000')
+      // },
       isClosed: true,
-      isTheoreticalClosed: true,
-      sellVolume: new BigNumber('498750000000000000')
+      isTheoreticalClosed: true
     }
     let updatedAuctionOpp = Object.assign({}, INITIAL_MARKET_STATE.auctionOpp,
-      {sellVolume: new BigNumber('13062834446704545454')})
+      {sellVolume: {}})
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE,
       { auction: updatedAuction, auctionOpp: updatedAuctionOpp })
     let rdnEthstateInfo = await _getStateInfo({})
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
+    expect(_isValidBuyVolume(rdnEthstateInfo.auction.buyVolume, rdnEthstateInfo.auction.sellVolume))
+      .toBeTruthy()
+    expect(_isValidSellVolume(rdnEthstateInfo.auction.sellVolume, await _toBigNumberWei(0.5)))
+      .toBeTruthy()
+    expect(_isValidSellVolume(rdnEthstateInfo.auctionOpp.sellVolume, await _toBigNumberWei(13.123)))
+      .toBeTruthy()
 
     // THEN the new state status is ONE_AUCTION_HAS_CLOSED
     rdnEthState = await _getState({})
@@ -347,6 +358,9 @@ describe('Market interacting tests', async () => {
 })
 
 // ********* Test helpers *********
+// DX Fee up to 0.5%
+const MAXIMUM_DX_FEE = 0.005
+
 const UNKNOWN_PAIR_MARKET_STATE = {
   'auction': null,
   'auctionIndex': 0,
@@ -441,4 +455,28 @@ async function _addRdnEthTokenPair ({ rdnFunding = 0, ethFunding = 13.123 }) {
       denominator: 1000000
     }
   })
+}
+
+async function _toBigNumberWei (value) {
+  const { web3 } = await setupPromise
+
+  return new BigNumber(web3.toWei(value, 'ether'))
+}
+
+function _isValidBuyVolume (buyVolume, sellVolume) {
+  debug('buyVolume: ', buyVolume)
+  debug('sellVolume: ', sellVolume)
+
+  return buyVolume.lessThanOrEqualTo(sellVolume)
+}
+
+function _isValidSellVolume (sellVolume, fundingSellVolume) {
+  const minimumSellVolume = fundingSellVolume.mul(1 - MAXIMUM_DX_FEE)
+
+  debug('minimumSellVolume: ', minimumSellVolume)
+  debug('sellVolume: ', sellVolume)
+  debug('originSellVolume: ', fundingSellVolume)
+
+  return minimumSellVolume.lessThanOrEqualTo(sellVolume) &&
+    sellVolume.lessThanOrEqualTo(fundingSellVolume)
 }
