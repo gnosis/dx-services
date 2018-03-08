@@ -4,7 +4,7 @@ const BigNumber = require('bignumber.js')
 const NUM_TEST_USERS = 1
 
 const INITIAL_AMOUNTS = {
-  ETH: 15,
+  ETH: 20,
   GNO: 250,
   OWL: 2500,
   TUL: 0,
@@ -55,6 +55,89 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     balance: formatFromWei
   }
 
+  async function setAuctionRunningAndFundUser ({ sellToken = 'ETH', buyToken = 'RDN' }) {
+    const tokenPair = { sellToken, buyToken }
+    const ethBalance = await auctionRepo.getBalance({
+      token: 'ETH',
+      address: user1
+    })
+    if (ethBalance.lessThan(5 * 1e18)) {
+      debug("The user1 doesn't have so much coin. Let's give him some :)")
+      await fundUser1()
+    } else {
+      debug('The user1 is wealthy enough :)')
+    }
+
+    const isApprovedMarket = await auctionRepo.isApprovedMarket({
+      tokenA: sellToken,
+      tokenB: buyToken
+    })
+    if (!isApprovedMarket) {
+      debug("The %s-%s market was not approved. Let's add the token pair",
+        sellToken, buyToken)
+      await addTokens()
+    } else {
+      debug('The %s-%s market was approved. Nothing to do',
+        sellToken, buyToken)
+    }
+
+    await printBalances({ accountName: 'User 1', account: user1, verbose: true })
+    await printState('Intial state of the auction', tokenPair)
+
+    const state = await auctionRepo.getState(tokenPair)
+    if (state === 'WAITING_FOR_AUCTION_TO_START') {
+      await printTime('We are waiting for the auction to start')
+      const now = await ethereumClient.geLastBlockTime()
+      const auctionStart = await auctionRepo.getAuctionStart(tokenPair)
+      const secondsToStart = (auctionStart.getTime() - now.getTime()) / 1000
+      await ethereumClient.increaseTime(secondsToStart)
+      const numHours = (secondsToStart / 3600).toFixed(2)
+      await printTime(`Let time to go by ${numHours} hours`)
+    } else if (state === 'WAITING_FOR_FUNDING') {
+      debug("We are in a waiting for funding period, let's wait for the bots to do their job")
+      await delay(() => {
+        debug("Let's continue...")
+      }, 31000)
+    } else if (state === 'RUNNING') {
+      debug('The auction is curently running')
+    } else {
+      // Clear both auctions
+      await clearAuction({ sellToken, buyToken })
+      await clearAuction({ sellToken: buyToken, buyToken: sellToken })
+    }
+
+    await printState('State after setup', { buyToken, sellToken })
+  }
+
+  async function clearAuction ({ sellToken, buyToken }) {
+    const auctionIndex = await auctionRepo.getAuctionIndex({ sellToken, buyToken })
+    const outstandingVolume = await auctionRepo.getOutstandingVolume({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+
+    debug('Clear %s-%s auction', sellToken, buyToken)
+    if (outstandingVolume.greaterThan(0)) {
+      const amount = outstandingVolume.div(1e18)
+      debug('We need to buy %d %s in %s-%s', amount,
+        buyToken, sellToken, buyToken)
+      await buySell('postBuyOrder', {
+        from: user1,
+        sellToken,
+        buyToken,
+        amount
+      })
+      debug('We bought %d %s in %s-%s', outstandingVolume,
+        buyToken, sellToken, buyToken)
+    } else {
+      debug('The auction %s-%s was already cleared. Nothing to do',
+        sellToken, buyToken)
+    }
+
+    debug('Auction %s-%s cleared', sellToken, buyToken)
+  }
+
   // helpers
   async function buySell (operation, { from, buyToken, sellToken, amount, auctionIndex = null }) {
     // buy
@@ -80,8 +163,8 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     await printState('State after ' + operation, { buyToken, sellToken })
   }
 
-  async function setupTestCases () {
-    debug(`\n**********  Setup DX: Founding, and aproved tokens and Oracle  **********\n`)
+  async function fundUser1 () {
+    debug(`\n**********  Setup DX: Funding, and aproved tokens and Oracle  **********\n`)
     // Deposit 50ETH in the ETH Token
     // const [, ...users] = accounts
     const users = accounts.slice(1, 1 + NUM_TEST_USERS)
@@ -128,7 +211,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     )
     debug('\t\t- All tokens has been approved')
 
-    debug('\n\tFounding DX:')
+    debug('\n\tFunding DX:')
     const userSetupPromises = users.map(async userAddress => {
       const userId = users.indexOf(userAddress) + 1
 
@@ -194,7 +277,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     // I don't understand why we need this
     // TODO: Revview "testFunction" in DX
     /*
-    debug('\n\tFounding DX:')
+    debug('\n\tFunding DX:')
     const priceFeedSource = await priceOracle.priceFeedSource.call()
     await priceFeed.post(
       web3.toWei(ethUsdPrice),
@@ -235,20 +318,62 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
 
     async function printAuction (auction, tokenA, tokenB) {
       debug(`\n\tAuction ${tokenA}-${tokenB}: `)
-      printProps('\t\t', auctionProps, auction, formatters)
-      const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
-      if (tokenA === 'ETH') {
-        const ethUsdPrice = await auctionRepo.getPriceEthUsd()
-        const sellVolumeInUsd = ethUsdPrice * formatFromWei(auction.sellVolume)
-        debug(`\t\tSell Volumen in USD: $%d`, sellVolumeInUsd.toFixed(2))
+      // printProps('\t\t', auctionProps, auction, formatters)
+      let closed
+      if (auctionProps.isClosed) {
+        closed = 'Yes'
+      } else if (auctionProps.isTheoreticalClosed) {
+        closed = 'Theoretically closed'
+      } else {
+        closed = 'No'
       }
-      debug(`\t\tCurrent Price:`, fractionFormatter(price))
+      debug('\t\tIs closed: %s', closed)
+
+
+      const fundingInUSD = await auctionRepo.getFundingInUSD({
+        tokenA, tokenB, auctionIndex
+      })
+
+      debug('\t\tSell volume:')
+      debug(`\t\t\tsellVolume: %d %s`, auction.sellVolume, tokenA)
+      debug(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
+
+      const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
       if (price) {
+        const closingPrice = await auctionRepo.getPrice({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex: auctionIndex - 1
+        })
+  
+        const priceRelationshipPercentage = price.numerator
+          .mul(closingPrice.denominator)
+          .div(price.denominator)
+          .div(closingPrice.numerator)
+          .mul(100)
+          .toFixed(2)
+  
+        debug(`\t\tPrice:`)
+        debug(`\t\t\tPrevious Closing Price:`, fractionFormatter(closingPrice))
+        debug(`\t\t\tCurrent Price:`, fractionFormatter(price))
+        debug(`\t\t\tPrice relation: %d %`, priceRelationshipPercentage)
+
         const buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
         const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
+        // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
 
-        debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
-        debug(`\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
+        debug('\t\tBuy volume:')
+        debug(`\t\t\tbuyVolume: %d %s`, auction.buyVolume, tokenB)
+        debug(`\t\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
+        if (state.indexOf('WAITING') === -1) {
+          // Show outstanding volumen if we are not in a waiting period
+          const outstandingVolume = await auctionRepo.getOutstandingVolume({
+            sellToken: tokenA,
+            buyToken: tokenB,
+            auctionIndex
+          })
+          debug(`\t\t\tOutstanding volume: %d`, formatFromWei(outstandingVolume))
+        }
       }
     }
 
@@ -523,6 +648,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
     accounts,
 
     // debug utils
+    delay,
     printProps,
     printTime,
     printState,
@@ -531,7 +657,8 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
     fractionFormatter,
 
     // interact with DX
-    setupTestCases,
+    setAuctionRunningAndFundUser,
+    fundUser1,
     addTokens,
     buySell,
     deposit
@@ -593,6 +720,14 @@ function isBigNumber (n) {
   // The current version of bignumber is too old and doesn't have isBigNumber method
   // It cannot be updated due to web3
   return n instanceof BigNumber
+}
+
+async function delay (callback, mills) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(callback())
+    }, mills)
+  })
 }
 
 /*
