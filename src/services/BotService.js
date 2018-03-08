@@ -145,10 +145,13 @@ a waiting for funding state`)
     }
 
     // Get the amount to sell in sellToken
-    const amountInSellTokens = await this._auctionRepo.getPriceFromUSDInTokens({
-      token: sellToken,
-      amount: amountToSellInUSD
-    })
+    const amountInSellTokens = (await this._auctionRepo
+      .getPriceFromUSDInTokens({
+        token: sellToken,
+        amount: amountToSellInUSD
+      }))
+      // Important to round up
+      .ceil()
 
     // Sell the missing difference
     auctionLogger.info(sellToken, buyToken,
