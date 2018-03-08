@@ -5,11 +5,11 @@ const NUM_TEST_USERS = 1
 
 const INITIAL_AMOUNTS = {
   ETH: 15,
-  GNO: 5,
-  OWL: 6,
-  TUL: 2,
-  RDN: 10,
-  OMG: 20
+  GNO: 250,
+  OWL: 2500,
+  TUL: 0,
+  RDN: 1500,
+  OMG: 200
 }
 
 const config = {
