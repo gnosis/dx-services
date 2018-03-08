@@ -355,6 +355,9 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     let closed
     if (auction.isClosed) {
       closed = 'Yes'
+      if (auction.sellVolume.isZero()) {
+        closed += ' (closed from start)'
+      }
     } else if (auction.isTheoreticalClosed) {
       closed = 'Theoretically closed'
     } else {

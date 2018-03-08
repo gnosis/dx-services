@@ -120,14 +120,14 @@ class AuctionRepoImpl {
     } else {
       const {
         isClosed,
-        isTheoreticalClosed
-        // sellVolume
+        isTheoreticalClosed,
+        sellVolume
       } = auction
 
       const {
         isClosed: isClosedOpp,
-        isTheoreticalClosed: isTheoreticalClosedOpp
-        // sellVolume: sellVolumeOpp
+        isTheoreticalClosed: isTheoreticalClosedOpp,
+        sellVolume: sellVolumeOpp
       } = auctionOpp
 
       const now = await this._getTime()
@@ -141,8 +141,9 @@ class AuctionRepoImpl {
         (isTheoreticalClosedOpp && !isClosedOpp)) {
         return 'PENDING_CLOSE_THEORETICAL'
       } else if (
-        (isClosed && !isClosedOpp) ||
-        (!isClosed && isClosedOpp)) {
+        // If one side is closed (by clearing, not by having no sellVolume)
+        (isClosed && !sellVolume.isZero() && !isClosedOpp) ||
+        (!isClosed && isClosedOpp && !sellVolumeOpp.isZero())) {
         return 'ONE_AUCTION_HAS_CLOSED'
       } else {
         return 'RUNNING'
