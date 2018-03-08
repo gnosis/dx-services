@@ -8,6 +8,7 @@ const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 const assert = require('assert')
 const BigNumber = require('bignumber.js')
+const MAXIMUM_DX_FEE = 0.05 // 5%
 
 class BotService {
   constructor ({ auctionRepo, ethereumRepo, exchangePriceRepo, minimumSellVolume }) {
@@ -61,7 +62,11 @@ class BotService {
     let ensureLiquidityPromise = this.concurrencyCheck[lockName]
     if (ensureLiquidityPromise) {
       // We don't do concurrent liquidity checks
+      // we return both promises at the same time, but the last ones always 
+      // return that there was no need to sell (returns "null")
+
       return ensureLiquidityPromise
+        .then(() => null)
     } else {
       // Create lock
       this.concurrencyCheck[lockName] = ensureLiquidityPromise
@@ -144,12 +149,17 @@ a waiting for funding state`)
       amountToSellInUSD = this._minimumSellVolume.minus(fundingA)
     }
 
+    // We round up the dollars
+    amountToSellInUSD = amountToSellInUSD.ceil()
+
     // Get the amount to sell in sellToken
     const amountInSellTokens = (await this._auctionRepo
       .getPriceFromUSDInTokens({
         token: sellToken,
         amount: amountToSellInUSD
       }))
+      // We add the maximun fee as an extra amount
+      .mul(1 + MAXIMUM_DX_FEE)
       // Important to round up
       .ceil()
 

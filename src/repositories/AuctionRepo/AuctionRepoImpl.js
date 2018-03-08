@@ -848,8 +848,8 @@ currentAuctionIndex=${currentAuctionIndex}`)
       amountInToken = amountInETH
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
-
-      logger.debug('Price of token %s in ETH: %d', token, priceTokenETH)
+      logger.debug('Price of token %s in ETH: %d', token,
+        priceTokenETH.numerator.div(priceTokenETH.denominator))
       amountInToken = amountInETH
         .mul(priceTokenETH.denominator)
         .div(priceTokenETH.numerator)
