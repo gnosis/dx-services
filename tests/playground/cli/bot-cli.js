@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const commander = require('commander')
 
 const getVersion = require('../../../src/helpers/getVersion')
@@ -25,20 +26,23 @@ async function run ({
   printState,
   printAddresses,
   printBalances,
-  setupTestCases,
+  setAuctionRunningAndFundUser,
+  fundUser1,
   addTokens,
   buySell,
   deposit,
   dx,
   dxMaster,
-  web3
+  web3,
+  delay
 }) {
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
     .option('-a, --addresses', 'Addresses for main contracts and tokens')
     .option('-b, --balances', 'Balances for all known tokens')
-    .option('-I, --setup', 'Basic setup for testing porpouses')
+    .option('-I, --setup', 'Basic setup for testing porpouses. Set the auction to RUNNING and ensures the user has funding')
+    .option('-F, --fund', 'Ensures the test user has funding')
     .option('-A, --approve-token <token>', 'Approve token', list)
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
     .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
@@ -50,6 +54,7 @@ async function run ({
     .option('-m, --mine', 'Mine one block')
     .option('-B, --buy "<sell-token>,<buy-token>,<amount>[,<auctionIndex>]"', 'Buy tokens in the <sell-token>-<buy-token> auction', list)
     .option('-S, --sell "<sell-token> <buy-token> <amount>[,<auctionIndex>]"', 'Sell tokens <sell-token>-<buy-token> auction', list)
+    .option('-T, --test <test-number>', 'Execute a test case (i.e. 1 is: Add tokens, wait for auction to start, fake some buyings, ...', list)
 
   commander.on('--help', function () {
     const examples = [
@@ -68,7 +73,8 @@ async function run ({
       '--time 0.5',
       '--time 6',
       '--buy RDN,ETH,100',
-      '--sell ETH,RDN,100'
+      '--sell ETH,RDN,100',
+      '--test 1'
     ]
 
     console.log('\n\nExamples:')
@@ -92,7 +98,10 @@ async function run ({
     await printBalances({ accountName: 'User 1', account: user1, verbose: true })
   } else if (commander.setup) {
     // Setup for testing
-    await setupTestCases()
+    await setAuctionRunningAndFundUser({})
+  } else if (commander.fund) {
+    // Fund the user 1
+    await fundUser1()
   } else if (commander.approveToken) {
     const token = commander.approveToken
     await auctionRepo.approveToken({ token, from: owner })
@@ -175,6 +184,85 @@ async function run ({
       amount: parseFloat(amountString),
       auctionIndex
     })
+  } else if (commander.test) {
+    const testNumber = parseInt(commander.test)
+
+    switch (testNumber) {
+      case 1:
+        const sellToken = 'ETH'
+        const buyToken = 'RDN'
+        const ethToSell = 0.1
+        // const ethToBuy = 0.4
+        const rdnToSell = 150
+        const rdnToBuy = 200
+
+        const tokenPair = { sellToken, buyToken }
+        const auctionIndex = await auctionRepo.getAuctionIndex(tokenPair)
+
+        debug('*** Test 1 ***')
+        await setAuctionRunningAndFundUser(tokenPair)
+
+        debug(`[in 3s] User1 is will try to sell ${ethToSell} ETH in current \
+auction - it must fail`)
+        await delay(() => {
+          return buySell('postSellOrder', {
+            from: user1,
+            sellToken,
+            buyToken,
+            amount: ethToSell
+          }).catch(error => {
+            debug('Nice! The postSellOrder failed for the current auction, because it was RUNNING: ' + error.toString())
+          })
+        }, 3000)
+
+        debug('[in 3s] User1 is will try to sell %d ETH in next auction (%d) - it must succed',
+          ethToSell, auctionIndex + 1)
+        await delay(() => {
+          return buySell('postSellOrder', {
+            from: user1,
+            sellToken,
+            buyToken,
+            amount: ethToSell,
+            auctionIndex: auctionIndex + 1
+          }).then(() => {
+            debug(`Nice! The postSellOrder succeded for the next auction. We've \
+sold ${ethToSell} ETH for auction ${auctionIndex + 1}`)
+          })
+        }, 3000)
+
+        debug('[in 3s] User1 is will try to sell %d RDN in next auction (%d) - it must succed',
+          rdnToSell, auctionIndex + 1)
+        await delay(() => {
+          return buySell('postSellOrder', {
+            from: user1,
+            sellToken: buyToken,
+            buyToken: sellToken,
+            amount: rdnToSell,
+            auctionIndex: auctionIndex + 1
+          }).then(() => {
+            debug(`Nice! The postSellOrder succeded for the next auction. We've \
+sold ${rdnToSell} RDN for auction %d${auctionIndex + 1}`)
+          })
+        }, 3000)
+
+        debug('[in 3s] User1 is buying in ETH-RDN bidding %d RDN', rdnToBuy)
+        await delay(() => {
+          return buySell('postBuyOrder', {
+            from: user1,
+            sellToken,
+            buyToken,
+            amount: rdnToBuy
+          }).then(() => {
+            debug("Nice! The postBuyOrder, we've bought %d RDN", rdnToBuy)
+          })
+        }, 3000)
+
+        await printState('Final state', { buyToken, sellToken })
+        debug('Test 1 finished! Well done')
+        break
+      default:
+        throw new Error('Unknown test case: ' + testNumber)
+    }
   } else {
     // help
     commander.help()
