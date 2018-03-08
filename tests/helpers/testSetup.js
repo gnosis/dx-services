@@ -4,6 +4,7 @@ const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
 const moment = require('moment')
 const NUM_TEST_USERS = 1
+const TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS = 6 * 60 * 60 * 1000
 
 const INITIAL_AMOUNTS = {
   ETH: 20,
@@ -17,15 +18,6 @@ const INITIAL_AMOUNTS = {
 const config = {
   AUCTION_REPO_IMPL: 'impl'
 }
-
-const stateInfoProps = ['auctionIndex', 'auctionStart']
-const auctionProps = [
-  'buyVolume',
-  'sellVolume',
-  'closingPrice',
-  'isClosed',
-  'isTheoreticalClosed'
-]
 
 // const balanceProps = ['token', 'balance']
 
@@ -49,13 +41,6 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     if (!acc.includes(market.tokenB)) acc.push(market.tokenB)
     return acc
   }, [])
-
-  const formatters = {
-    closingPrice: fractionFormatter,
-    sellVolume: formatFromWei,
-    buyVolume: formatFromWei,
-    balance: formatFromWei
-  }
 
   async function setAuctionRunningAndFundUser ({ sellToken = 'ETH', buyToken = 'RDN' }) {
     const tokenPair = { sellToken, buyToken }
@@ -315,18 +300,30 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('\t\t- %s: %s', sellToken, printBoolean(isSellTokenApproved))
     debug('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
 
-    if (stateInfo.auctionIndex) {
-      const now = await ethereumClient.geLastBlockTime()
-      
-      debug('\n\tState info:')
-      debug('\t\t- auctionIndex: %d', stateInfo.auctionIndex)
-      debug('\t\t- auctionStart: %s', formatDateTime(stateInfoProps.auctionStart))
-      debug('\t\t- Blockchain time: %s', formatDateTime(now))
+    debug('\n\tState info:')
+    debug('\t\t- auctionIndex: %s', stateInfo.auctionIndex)
 
-      if (now < stateInfoProps.auctionStart) {
-        debug('\t\t- It will start in: %s', formatDatesDifference(stateInfoProps.auctionStart, now))
+    if (stateInfo.auctionStart) {
+      const now = await ethereumClient.geLastBlockTime()
+
+      debug('\t\t- auctionStart: %s', formatDateTime(stateInfo.auctionStart))
+      // debug('\t\t- Blockchain time: %s', formatDateTime(now))
+
+      if (now < stateInfo.auctionStart) {
+        debug('\t\t- It will start in: %s', formatDatesDifference(stateInfo.auctionStart, now))
       } else {
-        debug('\t\t- It started: %s ago', formatDatesDifference(now, stateInfoProps.auctionStart))
+        debug('\t\t- It started: %s ago', formatDatesDifference(now, stateInfo.auctionStart))
+        const marketPriceTime = new Date(
+          stateInfo.auctionStart.getTime() +
+          TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS
+        )
+
+        // debug('\t\t- Market price time: %s', formatDateTime(marketPriceTime))
+        if (marketPriceTime > now) {
+          debug('\t\t- It will reached market price in: %s', formatDatesDifference(now, marketPriceTime))
+        } else {
+          debug('\t\t- It has reached market price: %s ago', formatDatesDifference(marketPriceTime, now))
+        }
       }
 
       if (stateInfo.auction) {
@@ -338,7 +335,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
           state
         })
       }
-  
+
       if (stateInfo.auctionOpp) {
         await _printAuction({
           auction: stateInfo.auctionOpp,
@@ -353,14 +350,13 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('\n**************************************\n\n')
   }
 
-
   async function _printAuction ({ auction, tokenA, tokenB, auctionIndex, state }) {
     debug(`\n\tAuction ${tokenA}-${tokenB}: `)
     // printProps('\t\t', auctionProps, auction, formatters)
     let closed
-    if (auctionProps.isClosed) {
+    if (auction.isClosed) {
       closed = 'Yes'
-    } else if (auctionProps.isTheoreticalClosed) {
+    } else if (auction.isTheoreticalClosed) {
       closed = 'Theoretically closed'
     } else {
       closed = 'No'
@@ -391,8 +387,10 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
         .toFixed(2)
 
       debug(`\t\tPrice:`)
-      debug(`\t\t\tPrevious Closing Price:`, fractionFormatter(closingPrice))
-      debug(`\t\t\tCurrent Price:`, fractionFormatter(price))
+      debug(`\t\t\tPrevious Closing Price: %s %s/%s`, fractionFormatter(closingPrice),
+        tokenB, tokenA)
+      debug(`\t\t\tCurrent Price: %s %s/%s`, fractionFormatter(price),
+        tokenB, tokenA)
       debug(`\t\t\tPrice relation: %d %`, priceRelationshipPercentage)
 
       const buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
@@ -409,7 +407,8 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
           buyToken: tokenB,
           auctionIndex
         })
-        debug(`\t\t\tOutstanding volume: %d`, formatFromWei(outstandingVolume))
+        debug(`\t\t\tOutstanding volume: %d %s`,
+          formatFromWei(outstandingVolume), tokenB)
       }
     }
   }

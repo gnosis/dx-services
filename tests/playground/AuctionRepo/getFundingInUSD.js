@@ -9,7 +9,7 @@ function run ({
   const tokenA = 'RDN'
   const tokenB = 'ETH'
   const auctionIndex = 1
-  
+
   return auctionRepo
     .getFundingInUSD({ tokenA, tokenB, auctionIndex })
     .then(({ fundingA, fundingB }) => {
