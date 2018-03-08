@@ -316,10 +316,19 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
 
     if (stateInfo.auctionIndex) {
+      const now = await ethereumClient.geLastBlockTime()
+      
       debug('\n\tState info:')
       debug('\t\t- auctionIndex: %d', stateInfo.auctionIndex)
       debug('\t\t- auctionStart: %s', formatDateTime(stateInfoProps.auctionStart))
-      
+      debug('\t\t- Blockchain time: %s', formatDateTime(now))
+
+      if (now < stateInfoProps.auctionStart) {
+        debug('\t\t- It will start in: %s', formatDatesDifference(stateInfoProps.auctionStart, now))
+      } else {
+        debug('\t\t- It started: %s ago', formatDatesDifference(now, stateInfoProps.auctionStart))
+      }
+
       if (stateInfo.auction) {
         await _printAuction({
           auction: stateInfo.auction,
@@ -750,6 +759,10 @@ async function delay (callback, mills) {
 
 function formatDateTime (date) {
   return moment(date).format('MM/D/YY H:mm')
+}
+
+function formatDatesDifference (date1, date2) {
+  return moment.duration(moment(date1).diff(moment(date2))).humanize()
 }
 
 /*
