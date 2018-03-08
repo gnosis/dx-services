@@ -1,6 +1,8 @@
+// TODO: Split this file and refactor
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
+const moment = require('moment')
 const NUM_TEST_USERS = 1
 
 const INITIAL_AMOUNTS = {
@@ -313,78 +315,94 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('\t\t- %s: %s', sellToken, printBoolean(isSellTokenApproved))
     debug('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
 
-    debug('\n\tState info:')
-    printProps('\t\t', stateInfoProps, stateInfo)
-
-    async function printAuction (auction, tokenA, tokenB) {
-      debug(`\n\tAuction ${tokenA}-${tokenB}: `)
-      // printProps('\t\t', auctionProps, auction, formatters)
-      let closed
-      if (auctionProps.isClosed) {
-        closed = 'Yes'
-      } else if (auctionProps.isTheoreticalClosed) {
-        closed = 'Theoretically closed'
-      } else {
-        closed = 'No'
+    if (stateInfo.auctionIndex) {
+      debug('\n\tState info:')
+      debug('\t\t- auctionIndex: %d', stateInfo.auctionIndex)
+      debug('\t\t- auctionStart: %s', formatDateTime(stateInfoProps.auctionStart))
+      
+      if (stateInfo.auction) {
+        await _printAuction({
+          auction: stateInfo.auction,
+          tokenA: sellToken,
+          tokenB: buyToken,
+          auctionIndex,
+          state
+        })
       }
-      debug('\t\tIs closed: %s', closed)
+  
+      if (stateInfo.auctionOpp) {
+        await _printAuction({
+          auction: stateInfo.auctionOpp,
+          tokenA: buyToken,
+          tokenB: sellToken,
+          auctionIndex,
+          state
+        })
+      }
+    }
+
+    debug('\n**************************************\n\n')
+  }
 
 
-      const fundingInUSD = await auctionRepo.getFundingInUSD({
-        tokenA, tokenB, auctionIndex
+  async function _printAuction ({ auction, tokenA, tokenB, auctionIndex, state }) {
+    debug(`\n\tAuction ${tokenA}-${tokenB}: `)
+    // printProps('\t\t', auctionProps, auction, formatters)
+    let closed
+    if (auctionProps.isClosed) {
+      closed = 'Yes'
+    } else if (auctionProps.isTheoreticalClosed) {
+      closed = 'Theoretically closed'
+    } else {
+      closed = 'No'
+    }
+    debug('\t\tIs closed: %s', closed)
+
+    const fundingInUSD = await auctionRepo.getFundingInUSD({
+      tokenA, tokenB, auctionIndex
+    })
+
+    debug('\t\tSell volume:')
+    debug(`\t\t\tsellVolume: %d %s`, formatFromWei(auction.sellVolume), tokenA)
+    debug(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
+
+    const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
+    if (price) {
+      const closingPrice = await auctionRepo.getPrice({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        auctionIndex: auctionIndex - 1
       })
 
-      debug('\t\tSell volume:')
-      debug(`\t\t\tsellVolume: %d %s`, auction.sellVolume, tokenA)
-      debug(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
+      const priceRelationshipPercentage = price.numerator
+        .mul(closingPrice.denominator)
+        .div(price.denominator)
+        .div(closingPrice.numerator)
+        .mul(100)
+        .toFixed(2)
 
-      const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
-      if (price) {
-        const closingPrice = await auctionRepo.getPrice({
+      debug(`\t\tPrice:`)
+      debug(`\t\t\tPrevious Closing Price:`, fractionFormatter(closingPrice))
+      debug(`\t\t\tCurrent Price:`, fractionFormatter(price))
+      debug(`\t\t\tPrice relation: %d %`, priceRelationshipPercentage)
+
+      const buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
+      const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
+      // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
+
+      debug('\t\tBuy volume:')
+      debug(`\t\t\tbuyVolume: %d %s`, formatFromWei(auction.buyVolume), tokenB)
+      debug(`\t\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
+      if (state.indexOf('WAITING') === -1) {
+        // Show outstanding volumen if we are not in a waiting period
+        const outstandingVolume = await auctionRepo.getOutstandingVolume({
           sellToken: tokenA,
           buyToken: tokenB,
-          auctionIndex: auctionIndex - 1
+          auctionIndex
         })
-  
-        const priceRelationshipPercentage = price.numerator
-          .mul(closingPrice.denominator)
-          .div(price.denominator)
-          .div(closingPrice.numerator)
-          .mul(100)
-          .toFixed(2)
-  
-        debug(`\t\tPrice:`)
-        debug(`\t\t\tPrevious Closing Price:`, fractionFormatter(closingPrice))
-        debug(`\t\t\tCurrent Price:`, fractionFormatter(price))
-        debug(`\t\t\tPrice relation: %d %`, priceRelationshipPercentage)
-
-        const buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
-        const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
-        // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
-
-        debug('\t\tBuy volume:')
-        debug(`\t\t\tbuyVolume: %d %s`, auction.buyVolume, tokenB)
-        debug(`\t\t\tBought percentage: %d %`, boughtPercentage.toFixed(4))
-        if (state.indexOf('WAITING') === -1) {
-          // Show outstanding volumen if we are not in a waiting period
-          const outstandingVolume = await auctionRepo.getOutstandingVolume({
-            sellToken: tokenA,
-            buyToken: tokenB,
-            auctionIndex
-          })
-          debug(`\t\t\tOutstanding volume: %d`, formatFromWei(outstandingVolume))
-        }
+        debug(`\t\t\tOutstanding volume: %d`, formatFromWei(outstandingVolume))
       }
     }
-
-    if (stateInfo.auction) {
-      await printAuction(stateInfo.auction, sellToken, buyToken)
-    }
-
-    if (stateInfo.auctionOpp) {
-      await printAuction(stateInfo.auctionOpp, buyToken, sellToken)
-    }
-    debug('\n**************************************\n\n')
   }
 
   async function printAddresses () {
@@ -728,6 +746,10 @@ async function delay (callback, mills) {
       resolve(callback())
     }, mills)
   })
+}
+
+function formatDateTime (date) {
+  return moment(date).format('MM/D/YY H:mm')
 }
 
 /*
