@@ -93,29 +93,29 @@ class BotService {
       // We are in a waiting for funding period
 
       // Get the liquidity
-      const { foundingA, foundingB } = await this._auctionRepo.getFundingInUSD({
+      const { fundingA, fundingB } = await this._auctionRepo.getFundingInUSD({
         tokenA, tokenB, auctionIndex
       })
 
       // Check if we surprlus it
       if (
-        foundingA.lessThan(this._minimumSellVolume) &&
-        foundingB.lessThan(this._minimumSellVolume)
+        fundingA.lessThan(this._minimumSellVolume) &&
+        fundingB.lessThan(this._minimumSellVolume)
       ) {
         // Not enough liquidity
         auctionLogger.info(tokenA, tokenB,
           'Not enough liquidity for auction %d: %s=$%d, %s=$%d',
-          auctionIndex, tokenA, foundingA, tokenB, foundingB
+          auctionIndex, tokenA, fundingA, tokenB, fundingB
         )
         // Do sell in the correct auction
         sellLiquidityResult = await this._sellTokenToCreateLiquidity({
-          tokenA, foundingA, tokenB, foundingB, auctionIndex, from
+          tokenA, fundingA, tokenB, fundingB, auctionIndex, from
         })
       } else {
         // ERROR: Why there is no auctionStart if there is enough liquidity
         // It shouldn't happen (the liquidity criteria should be the same for the SC and the bots)
         throw new Error("There is enough liquidity but somehow there's no startDate for auction %d  %s-%s: %s: $%d, %s: $%d",
-          auctionIndex, tokenA, tokenB, tokenA, foundingA, tokenB, foundingB
+          auctionIndex, tokenA, tokenB, tokenA, fundingA, tokenB, fundingB
         )
       }
     } else {
@@ -128,20 +128,20 @@ a waiting for funding state`)
     return sellLiquidityResult
   }
 
-  async _sellTokenToCreateLiquidity ({ tokenA, foundingA, tokenB, foundingB, auctionIndex, from }) {
+  async _sellTokenToCreateLiquidity ({ tokenA, fundingA, tokenB, fundingB, auctionIndex, from }) {
     // decide if we sell on the auction A-B or the B-A
     //  * We sell on the auction with less liquidity
     let sellToken, buyToken, amountToSellInUSD
-    if (foundingA.lessThan(foundingB)) {
+    if (fundingA.lessThan(fundingB)) {
       // We sell in the B-A auction
       sellToken = tokenB
       buyToken = tokenA
-      amountToSellInUSD = this._minimumSellVolume.minus(foundingB)
+      amountToSellInUSD = this._minimumSellVolume.minus(fundingB)
     } else {
       // We sell in the A-B auction
       sellToken = tokenA
       buyToken = tokenB
-      amountToSellInUSD = this._minimumSellVolume.minus(foundingA)
+      amountToSellInUSD = this._minimumSellVolume.minus(fundingA)
     }
 
     // Get the amount to sell in sellToken

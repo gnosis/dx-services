@@ -12,10 +12,10 @@ function run ({
   
   return auctionRepo
     .getFundingInUSD({ tokenA, tokenB, auctionIndex })
-    .then(({ foundingA, foundingB }) => {
+    .then(({ fundingA, fundingB }) => {
       console.log(`The funding un USD for auction ${auctionIndex} of \
 ${tokenA}-${tokenB} pair is:
-\t* ${tokenA}: ${foundingA} USD
-\t* ${tokenB}: ${foundingB} USD`)
+\t* ${tokenA}: ${fundingA} USD
+\t* ${tokenB}: ${fundingB} USD`)
     })
 }

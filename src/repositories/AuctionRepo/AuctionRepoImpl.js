@@ -254,7 +254,7 @@ class AuctionRepoImpl {
     })
 
     // The SC has 0 when the contract is initialized
-    // 1 when looking for founding. For the repo, they both will be modeled as a
+    // 1 when looking for funding. For the repo, they both will be modeled as a
     // null state of the auctionStart
     if (auctionStartEpoch <= AUCTION_START_FOR_WAITING_FOR_FUNDING) {
       return null
@@ -606,8 +606,8 @@ class AuctionRepoImpl {
     // debug('actualAmount: %d', actualAmount)
     assert.equal(toBigNumber(amount).toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
 
-    const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })
-    assert(auctionHasCleared, 'The auction has cleared')
+    const hasClousingPrice = this._hasClosingPrice({ sellToken, buyToken, auctionIndex })
+    assert(hasClousingPrice, 'The auction has closing price (has cleared)')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
     assert(auctionStart != null, 'The auction is in a waiting period')
@@ -700,8 +700,8 @@ class AuctionRepoImpl {
       from
     )
     assertPair(tokenA, tokenB)
-    assert(tokenAFunding >= 0, 'The founding for token A is incorrect')
-    assert(tokenBFunding >= 0, 'The founding for token B is incorrect')
+    assert(tokenAFunding >= 0, 'The funding for token A is incorrect')
+    assert(tokenBFunding >= 0, 'The funding for token B is incorrect')
     assert(from, 'The from param is required')
     assert(initialClosingPrice, 'The initialClosingPrice is required')
     assert(initialClosingPrice.numerator >= 0, 'The initialClosingPrice numerator is incorrect')
@@ -710,18 +710,18 @@ class AuctionRepoImpl {
     assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
     assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
 
-    const actualAFounding = await this._getMaxAmountAvaliable({
+    const actualAFunding = await this._getMaxAmountAvaliable({
       token: tokenA, address: from, maxAmount: tokenAFunding
     })
 
-    const actualBFounding = await this._getMaxAmountAvaliable({
+    const actualBFunding = await this._getMaxAmountAvaliable({
       token: tokenB, address: from, maxAmount: tokenBFunding
     })
 
-    assert(actualAFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
-    assert(actualBFounding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
-    auctionLogger.debug(tokenA, tokenB, 'actual A Founding: %s', actualAFounding)
-    auctionLogger.debug(tokenA, tokenB, 'actual B Founding: %s', actualBFounding)
+    assert(actualAFunding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
+    assert(actualBFunding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
+    auctionLogger.debug(tokenA, tokenB, 'actual A Funding: %s', actualAFunding)
+    auctionLogger.debug(tokenA, tokenB, 'actual B Funding: %s', actualBFunding)
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA, tokenB })
     /*
@@ -732,7 +732,7 @@ class AuctionRepoImpl {
 
     // Ensure that we reach the minimun USD to add a token pair
     await this._assertMinimunFundingForAddToken({
-      tokenA, actualAFounding, tokenB, actualBFounding
+      tokenA, actualAFunding, tokenB, actualBFunding
     })
 
     const tokenAAddress = await this._getTokenAddress(tokenA, false)
@@ -752,34 +752,34 @@ class AuctionRepoImpl {
       .then(toTransactionNumber)
   }
 
-  async _assertMinimunFundingForAddToken ({ tokenA, actualAFounding, tokenB, actualBFounding }) {
+  async _assertMinimunFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
     // get the funded value in USD
     let fundedValueUSD
     if (tokenA === 'ETH') {
       fundedValueUSD = await this._getPriceInUSD({
         token: tokenA,
-        amount: actualAFounding
+        amount: actualAFunding
       })
     } else if (tokenB === 'ETH') {
       fundedValueUSD = await this._getPriceInUSD({
         token: tokenB,
-        amount: actualBFounding
+        amount: actualBFunding
       })
     } else {
-      const foundingAInUSD = await this._getPriceInUSD({
+      const fundingAInUSD = await this._getPriceInUSD({
         token: tokenA,
-        amount: actualAFounding
+        amount: actualAFunding
       })
-      const foundingBInUSD = await this._getPriceInUSD({
+      const fundingBInUSD = await this._getPriceInUSD({
         token: tokenB,
-        amount: actualBFounding
+        amount: actualBFunding
       })
-      fundedValueUSD = foundingAInUSD.add(foundingBInUSD)
+      fundedValueUSD = fundingAInUSD.add(fundingBInUSD)
     }
 
     auctionLogger.debug(tokenA, tokenB, 'Price in USD for the initial funding', fundedValueUSD)
-    assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough founding. \
-Actual USD founding ${fundedValueUSD}. Required founding ${THRESHOLD_NEW_TOKEN_PAIR}`)
+    assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough funding. \
+Actual USD funding ${fundedValueUSD}. Required funding ${THRESHOLD_NEW_TOKEN_PAIR}`)
   }
 
   async getFundingInUSD ({ tokenA, tokenB, auctionIndex }) {
@@ -801,19 +801,19 @@ currentAuctionIndex=${currentAuctionIndex}`)
     const sellVolumeA = await this[getSellVolumeFn]({ sellToken: tokenA, buyToken: tokenB })
     const sellVolumeB = await this[getSellVolumeFn]({ sellToken: tokenB, buyToken: tokenA })
 
-    const foundingA = await this._getPriceInUSD({
+    const fundingA = await this._getPriceInUSD({
       token: tokenA,
       amount: sellVolumeA
     })
 
-    const foundingB = await this._getPriceInUSD({
+    const fundingB = await this._getPriceInUSD({
       token: tokenB,
       amount: sellVolumeB
     })
 
     return {
-      foundingA,
-      foundingB
+      fundingA,
+      fundingB
     }
   }
 
@@ -856,6 +856,61 @@ currentAuctionIndex=${currentAuctionIndex}`)
 
     return amountInToken.mul(1e18)
   }
+
+  async getOutstandingVolume ({ sellToken, buyToken, auctionIndex }) {
+    const state = this.getState({ sellToken, buyToken, auctionIndex })
+    assert(
+      state !== 'WAITING_FOR_FUNDING' &&
+      state !== 'WAITING_FOR_AUCTION_TO_START',
+      `The auction can't be in a waiting period for getting the outstanding \
+volume: ${state}`)
+
+    const sellVolume = await this.getSellVolume({
+      sellToken,
+      buyToken
+    })
+
+    const buyVolume = await this.getBuyVolume({
+      sellToken,
+      buyToken
+    })
+
+    const price = await this.getPrice({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+
+    const sellVolumeInBuyTokens = sellVolume
+      .mul(price.numerator)
+      .div(price.denominator)
+
+    const outstandingVolume = sellVolumeInBuyTokens.minus(buyVolume)
+    return outstandingVolume.lessThan(0) ? 0 : outstandingVolume
+  }
+
+  // TODO: Implement a price function for auctions that are running
+  /*
+        fraction memory ratioOfPriceOracles = computeRatioOfHistoricalPriceOracles(sellToken, buyToken, auctionIndex);
+
+        // If we're calling the function into an unstarted auction,
+        // it will return the starting price of that auction
+        uint timeElapsed = atleastZero(int(now - getAuctionStart(sellToken, buyToken)));
+
+        // The numbers below are chosen such that
+        // P(0 hrs) = 2 * lastClosingPrice, P(6 hrs) = lastClosingPrice, P(>=24 hrs) = 0
+
+        // 10^4 * 10^35 = 10^39
+        price.num = atleastZero(int((86400 - timeElapsed) * ratioOfPriceOracles.num));
+        // 10^4 * 10^35 = 10^39
+        price.den = (timeElapsed + 43200) * ratioOfPriceOracles.den;
+
+        if (price.num * sellVolumesCurrent[sellToken][buyToken] <= price.den * buyVolumes[sellToken][buyToken]) {
+            price.num = buyVolumes[sellToken][buyToken];
+            price.den = sellVolumesCurrent[sellToken][buyToken];
+        }
+
+  */
 
   async getPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
@@ -963,7 +1018,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     }
   }
 
-  _auctionHasCleared ({ sellToken, buyToken, auctionIndex }) {
+  _hasClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
     const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
 
