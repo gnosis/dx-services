@@ -961,8 +961,9 @@ volume: ${state}`)
     assertAuction(sellToken, buyToken, auctionIndex)
 
     // auctionLogger.debug(sellToken, buyToken, '_getAuctionState: %d', auctionIndex)
-    let buyVolume = await this.getBuyVolume({ sellToken, buyToken })
-    let sellVolume = await this.getSellVolume({ sellToken, buyToken })
+    const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+    const sellVolume = await this.getSellVolume({ sellToken, buyToken })
+    
     /*
     auctionLogger.debug(sellToken, buyToken,
       '_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
@@ -992,16 +993,31 @@ volume: ${state}`)
       isTheoreticalClosed = false
     }
 
-    let closingPrice = await this.getClosingPrices({
+    const closingPrice = await this.getClosingPrices({
       sellToken, buyToken, auctionIndex
     })
-    /*
-    debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
-      sellToken, buyToken,
-      closingPrice.numerator, closingPrice.denominator
-    )
-    */
-    const isClosed = closingPrice !== null
+
+    // There's to ways a auction can be closed
+    //  (1) Because it has cleared, so it has a closing price
+    //  (2) Because when the auction started, it didn't have sellVolume, so i
+    //      is considered, autoclosed since the start
+    let isClosed
+    if (sellVolume.isZero()) {
+      const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
+      const now = await this._getTime()
+
+      // closed if sellVolume=0 and the auction has started and hasn't been cleared
+      isClosed = auctionStart && auctionStart < now
+    } else {
+      /*
+      debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
+        sellToken, buyToken,
+        closingPrice.numerator, closingPrice.denominator
+      )
+      */
+      isClosed = closingPrice !== null
+    }
+
     /*
     debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
       sellToken, buyToken,

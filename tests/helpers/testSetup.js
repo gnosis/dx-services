@@ -8,11 +8,11 @@ const TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS = 6 * 60 * 60 * 1000
 
 const INITIAL_AMOUNTS = {
   ETH: 20,
-  GNO: 250,
-  OWL: 2500,
+  GNO: 750,
+  OWL: 1000,
   TUL: 0,
-  RDN: 1500,
-  OMG: 200
+  RDN: 12000,
+  OMG: 1500
 }
 
 const config = {
@@ -302,13 +302,11 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
 
     debug('\n\tState info:')
     debug('\t\t- auctionIndex: %s', stateInfo.auctionIndex)
-
+    debug('\t\t- auctionStart: %s', formatDateTime(stateInfo.auctionStart))
+    
     if (stateInfo.auctionStart) {
-      const now = await ethereumClient.geLastBlockTime()
-
-      debug('\t\t- auctionStart: %s', formatDateTime(stateInfo.auctionStart))
       // debug('\t\t- Blockchain time: %s', formatDateTime(now))
-
+      const now = await ethereumClient.geLastBlockTime()
       if (now < stateInfo.auctionStart) {
         debug('\t\t- It will start in: %s', formatDatesDifference(stateInfo.auctionStart, now))
       } else {
@@ -317,7 +315,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
           stateInfo.auctionStart.getTime() +
           TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS
         )
-
+  
         // debug('\t\t- Market price time: %s', formatDateTime(marketPriceTime))
         if (marketPriceTime > now) {
           debug('\t\t- It will reached market price in: %s', formatDatesDifference(now, marketPriceTime))
@@ -325,33 +323,34 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
           debug('\t\t- It has reached market price: %s ago', formatDatesDifference(marketPriceTime, now))
         }
       }
+    }
 
-      if (stateInfo.auction) {
-        await _printAuction({
-          auction: stateInfo.auction,
-          tokenA: sellToken,
-          tokenB: buyToken,
-          auctionIndex,
-          state
-        })
-      }
+    if (stateInfo.auction) {
+      await _printAuction({
+        auction: stateInfo.auction,
+        tokenA: sellToken,
+        tokenB: buyToken,
+        auctionIndex,
+        state
+      })
+    }
 
-      if (stateInfo.auctionOpp) {
-        await _printAuction({
-          auction: stateInfo.auctionOpp,
-          tokenA: buyToken,
-          tokenB: sellToken,
-          auctionIndex,
-          state
-        })
-      }
+    if (stateInfo.auctionOpp) {
+      await _printAuction({
+        auction: stateInfo.auctionOpp,
+        tokenA: buyToken,
+        tokenB: sellToken,
+        auctionIndex,
+        state
+      })
     }
 
     debug('\n**************************************\n\n')
   }
 
   async function _printAuction ({ auction, tokenA, tokenB, auctionIndex, state }) {
-    debug(`\n\tAuction ${tokenA}-${tokenB}: `)
+    debug(`\n\tAuction ${tokenA}-${tokenB}:`)
+
     // printProps('\t\t', auctionProps, auction, formatters)
     let closed
     if (auction.isClosed) {
@@ -757,7 +756,7 @@ async function delay (callback, mills) {
 }
 
 function formatDateTime (date) {
-  return moment(date).format('MM/D/YY H:mm')
+  return date ? moment(date).format('MM/D/YY H:mm') : null
 }
 
 function formatDatesDifference (date1, date2) {

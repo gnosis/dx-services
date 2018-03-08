@@ -51,7 +51,7 @@ class BotService {
   async ensureSellLiquidity ({ sellToken, buyToken, from }) {
     auctionLogger.debug(
       sellToken, buyToken,
-      'Ensure that sell liquidity on %s-%s markets is over $%d',
+      'Ensure that sell liquidity is over $%d',
       this._minimumSellVolume
     )
     assert(from, 'The "from" account is required')
@@ -130,7 +130,7 @@ a waiting for funding state`)
 
   async _sellTokenToCreateLiquidity ({ tokenA, fundingA, tokenB, fundingB, auctionIndex, from }) {
     // decide if we sell on the auction A-B or the B-A
-    //  * We sell on the auction with less liquidity
+    //  * We sell on the auction with more liquidity
     let sellToken, buyToken, amountToSellInUSD
     if (fundingA.lessThan(fundingB)) {
       // We sell in the B-A auction
@@ -153,7 +153,7 @@ a waiting for funding state`)
     // Sell the missing difference
     auctionLogger.info(sellToken, buyToken,
       'Selling %d %s ($%d)',
-      amountInSellTokens, sellToken, amountToSellInUSD
+      amountInSellTokens.div(1e18), sellToken, amountToSellInUSD
     )
     await this._auctionRepo.postSellOrder({
       sellToken,
