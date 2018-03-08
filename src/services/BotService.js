@@ -57,26 +57,31 @@ class BotService {
     )
     assert(from, 'The "from" account is required')
 
-    // Check if there's an ongoing liquidity check
-    const lockName = `SELL-LIQUIDITY:${sellToken}-${buyToken}`
+    const lockName = this._getAuctionLockName('SELL-LIQUIDITY', sellToken, buyToken)
     let ensureLiquidityPromise = this.concurrencyCheck[lockName]
+
+    // Check if there's an ongoing liquidity check
     if (ensureLiquidityPromise) {
       // We don't do concurrent liquidity checks
-      // we return both promises at the same time, but the last ones always 
+      // we return both promises at the same time, but the last ones always
       // return that there was no need to sell (returns "null")
-
+      auctionLogger.warn(sellToken, buyToken, `There is a concurrent liquidity \
+check going on, so no aditional check should be done`)
       return ensureLiquidityPromise
         .then(() => null)
     } else {
-      // Create lock
-      this.concurrencyCheck[lockName] = ensureLiquidityPromise
-
-      // Ensure liquidity
-      ensureLiquidityPromise = this._doEnsureSellLiquidity({
-        tokenA: sellToken,
-        tokenB: buyToken,
-        from
-      })
+      // Ensure liquidity + Create concurrency lock
+      this.concurrencyCheck[lockName] = this
+        ._doEnsureSellLiquidity({
+          tokenA: sellToken,
+          tokenB: buyToken,
+          from
+        })
+        .then(result => {
+          // Clear concurrency lock
+          this.concurrencyCheck[lockName] = null
+          return result
+        })
     }
 
     return ensureLiquidityPromise
@@ -119,8 +124,10 @@ class BotService {
       } else {
         // ERROR: Why there is no auctionStart if there is enough liquidity
         // It shouldn't happen (the liquidity criteria should be the same for the SC and the bots)
-        throw new Error("There is enough liquidity but somehow there's no startDate for auction %d  %s-%s: %s: $%d, %s: $%d",
-          auctionIndex, tokenA, tokenB, tokenA, fundingA, tokenB, fundingB
+        throw new Error(`There is enough liquidity but somehow there's no \
+startDate for auction ${auctionIndex}: ${tokenA}: ${fundingA}\
+${tokenB}: ${fundingB}. It might be a concurrency issue. Check if the error \
+keeps happening`
         )
       }
     } else {
@@ -181,6 +188,12 @@ a waiting for funding state`)
       buyToken,
       amount: amountToSellInUSD
     }
+  }
+
+  _getAuctionLockName (operation, sellToken, buyToken) {
+    const sufix = sellToken < buyToken ? sellToken + '-' + buyToken : buyToken + '-' + sellToken
+
+    return operation + sufix
   }
 }
 
