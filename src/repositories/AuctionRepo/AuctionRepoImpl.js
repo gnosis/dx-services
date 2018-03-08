@@ -150,6 +150,7 @@ class AuctionRepoImpl {
     }
   }
 
+  /*
   // TODO: Review this logic. This are the states of the diagram
   // (not used right now)
   async getState2 ({ sellToken, buyToken }) {
@@ -227,6 +228,7 @@ class AuctionRepoImpl {
       return 'RUNNING' // S0
     }
   }
+  */
 
   async getAuctionIndex ({ sellToken, buyToken }) {
     assertPair(sellToken, buyToken)
@@ -596,7 +598,7 @@ class AuctionRepoImpl {
     assert(amount >= 0, 'The amount is required')
 
     const actualAmount = await this._getMaxAmountAvaliable({
-      token: sellToken,
+      token: buyToken,
       address: from,
       maxAmount: amount
     })
