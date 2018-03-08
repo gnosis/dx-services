@@ -1,5 +1,9 @@
 const debug = require('debug')('DEBUG-dx-service:helpers:instanceFactory')
 const originalConfig = require('../../conf/')
+/*
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
+*/
 
 const EventBus = require('./EventBus')
 
@@ -72,6 +76,21 @@ function _getEhereumClient (config) {
     url: config.ETHEREUM_RPC_URL,
     mnemonic: config.MNEMONIC
   })
+
+  /*
+  // TODO: Simplify local development by running the EthereumTestRpcNode
+  if (isLocal) {
+    const EthereumTestRpcNode = require('../../tests/helpers/EthereumTestRpcNode')
+    const ethereumTestRpcNode = new EthereumTestRpcNode({
+      web3: ethereumClient.getWeb3(),
+      mnemonic: config.ETHEREUM_RPC_URL,
+      port: 8646,
+      totalAccounts: 5
+    })
+    ethereumTestRpcNode.start()
+  }
+  */
+
   return ethereumClient
 }
 
