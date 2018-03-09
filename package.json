@@ -8,8 +8,8 @@
   },
   "scripts": {
     "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* node src/main.js",
-    "kovan": "DEBUG=dx-service:*,,-*EventBus,-*:EthereumClient API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
-    "rinkeby": "DEBUG=dx-service:*,,-*EventBus,-*:EthereumClien API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
+    "kovan": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
+    "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
     "dev": "DEBUG=*-dx-service:* node src/main.js",
     "pro": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* NODE_ENV=PRO node src/main.js",
     "trace": "DEBUG=* node src/main.js",

@@ -39,26 +39,16 @@ class App {
     this._apiService = apiService
     this._eventBus = eventBus
     this._auctionEventWatcher = auctionEventWatcher
+    this._ethereumClient = ethereumClient
 
-    // Create server
-    this._dxApiServer = new DxApiServer({
-      port: config.API_PORT,
-      host: config.API_HOST,
-      apiService
-    })
+    this._bots = null
+    this._dxApiServer = null
 
-    // Initialize the bots
-    this.ready = _getBotAddress(ethereumClient)
-      .then(botAddress => {
-        // Liquidity bot
-        const sellLiquidityBot = new SellLiquidityBot({
-          eventBus: this._eventBus,
-          botService,
-          botAddress,
-          markets: config.MARKETS
-        })
-        this._bots = [ sellLiquidityBot ]
-      })
+    // Initialize the bots and API
+    this.ready = this
+      ._getBotAddress(ethereumClient)
+      .then(botAddress => this._createBotsAndApi(botAddress))
+      .catch(handleError)
   }
 
   async start () {
@@ -104,6 +94,46 @@ class App {
     this._eventBus.clearAllListeners()
     info('App is ready to shutDown')
   }
+
+  _createBotsAndApi (botAddress) {
+    // Liquidity bot
+    const sellLiquidityBot = new SellLiquidityBot({
+      name: 'SellLiquidityBot',
+      eventBus: this._eventBus,
+      botService: this._botService,
+      botAddress,
+      markets: this._config.MARKETS
+    })
+    this._bots = [ sellLiquidityBot ]
+
+    // Provide the bot list to the apiService
+    this._apiService.setBots(this._bots)
+
+    // Create server
+    this._dxApiServer = new DxApiServer({
+      port: this._config.API_PORT,
+      host: this._config.API_HOST,
+      apiService: this._apiService
+    })
+  }
+
+  async _getBotAddress () {
+    return this._ethereumClient
+      .getAccounts()
+      .then(accounts => {
+        if (isLocal && accounts.length > 1) {
+          // In LOCAL, for testing we use:
+          //  * the account 0 for the owner
+          //  * the account 1 for the bot
+          return accounts[1]
+        } else if (accounts.length > 0) {
+          // In DEV,PRE and PRO we use the account 0 for the bot
+          return accounts[0]
+        } else {
+          throw new Error("The ethereumClient doesn't have the bot account configured")
+        }
+      })
+  }
 }
 
 function handleError (error) {
@@ -113,22 +143,4 @@ function handleError (error) {
 
   // Rethrow error
   process.exit(1)
-}
-
-async function _getBotAddress (ethereumClient) {
-  return ethereumClient
-    .getAccounts()
-    .then(accounts => {
-      if (isLocal && accounts.length > 1) {
-        // In LOCAL, for testing we use:
-        //  * the account 0 for the owner
-        //  * the account 1 for the bot
-        return accounts[1]
-      } else if (accounts.length > 0) {
-        // In DEV,PRE and PRO we use the account 0 for the bot
-        return accounts[0]
-      } else {
-        throw new Error("The ethereumClient doesn't have the bot account configured")
-      }
-    })
 }

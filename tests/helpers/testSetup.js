@@ -32,7 +32,7 @@ async function getContracts ({ ethereumClient, auctionRepo }) {
 }
 
 async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }, { dx, dxMaster, priceOracle, tokens }) {
-  const address = await ethereumClient.getCoinbase()
+  const address = await ethereumClient.doCall('eth.getCoinbase')
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts

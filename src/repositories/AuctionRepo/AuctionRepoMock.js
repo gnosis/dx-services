@@ -35,7 +35,7 @@ const balances = {
 }
 
 class AuctionRepoMock {
-  async getBasicInfo () {
+  async getAbout () {
     debug('Get auction basic info')
     return {
       network: 'http://localhost:8545',

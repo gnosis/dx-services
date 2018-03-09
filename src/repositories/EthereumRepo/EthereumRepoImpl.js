@@ -24,28 +24,68 @@ class EthereumRepoImpl {
     return this._ethereumClient.isSyncing()
   }
 
-  async getSyncing () {
-    return this._ethereumClient.getSyncing()
+  async getHealth () {
+    return Promise
+      .all([
+        // this._ethereumClient.doCall('isConnected')
+        this._ethereumClient.doCall('version.getNode'),
+        this._ethereumClient.doCall('net.getListening'),
+        this._ethereumClient.doCall('version.getNetwork'),
+        this._ethereumClient.getBlockNumber(),
+        this._ethereumClient.geLastBlockTime(),
+        this._ethereumClient.doCall('net.getPeerCount')
+        // FIXME: Fails because promisfy mess up with the "this" so "this" is undefined instead of "web3.eth"
+        // this._ethereumClient.doCall('eth.isSyncing')
+      ]).then(([
+        node,
+        isListening,
+        network,
+        lastBlockNumber,
+        lastBlockTime,
+        peerCount
+        // isSyncing
+      ]) => ({
+        node,
+        host: this._ethereumClient.getUrl(),
+        isListening,
+        network,
+        lastBlockNumber,
+        lastBlockTime,
+        peerCount
+        // isSyncing,
+      }))
+    /*
+    return {
+      node: this._ethereumClient._web3.version.node,
+      
+      isConnected: await this._ethereumClient.doCall('isConnected'),
+
+      isSyncing: await 
+      network: await this._ethereumClient.doCall('version.getNetwork'),
+      ethereumVersion: await this._ethereumClient.doCall('version.ethereum'),
+      whisperVersion: await this._ethereumClient.doCall('version.whisper'),
+      peerCount: await this._ethereumClient.doCall('eth.getPeerCount')
+    }
+    */
+  }
+
+  async getGasPrice () {
+    this._ethereumClient.doCall('eth.gasPrice')
   }
 
   async getAbout () {
-    const web3 = this._web3
-    const version = web3.version
-    return {
-      network: version.network,
-      ethereum: version.ethereum,
-      whisper: version.whisper,
-      node: version.node,
-      api: version.api,
-      isConnected: web3.isConnected(),
-      host: web3.currentProvider.host ? web3.currentProvider.host : null,
-      peerCount: web3.net.peerCount,
-      syncing: web3.eth.syncing,
-      isSyncing: web3.eth.isSyncing,
-      gasPrice: web3.eth.gasPrice.toNumber(),
-      // accouts: web3.eth.accounts,
-      blockNumber: web3.eth.blockNumber
-    }
+    return Promise
+      .all([
+        this._ethereumClient.doCall('version.getNode'),
+        this._ethereumClient.doCall('version.getNetwork'),
+        this._ethereumClient.doCall('version.getEthereum')
+      ])
+      .then(([ node, network, ethereumVersion ]) => ({
+        node,
+        host: this._ethereumClient.getUrl(),
+        network,
+        ethereumVersion
+      }))
   }
 
   async balanceOf ({ account }) {

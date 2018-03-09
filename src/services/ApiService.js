@@ -25,23 +25,35 @@ class ApiService {
     return this._version
   }
 
-  async isConnectedToEthereum () {
-    return this._ethereumRepo.isConnected()
+  setBots (bots) {
+    this._bots = bots
   }
 
-  async getSyncing () {
-    return this._ethereumRepo.getSyncing()
+  async getHealthEthereum () {
+    return this._ethereumRepo.getHealth()
   }
 
   async getAbout () {
-    const auctionInfo = await this._auctionRepo.getBasicInfo()
-    const config = Object.assign({
-      minimumSellVolume: this._minimumSellVolume
-    }, auctionInfo)
+    const auctionAbout = await this._auctionRepo.getAbout()
+    const ethereumAbout = await this._ethereumRepo.getAbout()
+
+    const config = {
+      minimumSellVolume: this._minimumSellVolume,
+      botAddress: this._botAddress,
+      markets: this._markets
+    }
+
+    const bots = this._bots.map(bot => ({
+      name: bot.name,
+      startTime: bot.startTime
+    }))
 
     return {
       name: 'Dutch Exchange - Services',
       version: this._version,
+      auctions: auctionAbout,
+      bots,
+      ethereum: ethereumAbout,
       config,
       git: this._gitInfo
     }
