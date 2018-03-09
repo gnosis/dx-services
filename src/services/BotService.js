@@ -74,15 +74,24 @@ check going on, so no aditional check should be done`)
         this.concurrencyCheck[lockName] = ensureLiquidityPromise
 
         // Do ensure liquidiy
-        this._doEnsureSellLiquidity({
-          tokenA: sellToken,
-          tokenB: buyToken,
-          from
-        }).then(result => {
-          // Clear concurrency lock and retur result
-          this.concurrencyCheck[lockName] = null
-          resolve(result)
-        })
+        this
+          ._doEnsureSellLiquidity({
+            tokenA: sellToken,
+            tokenB: buyToken,
+            from
+          })
+          .then(result => {
+            // Success
+            // Clear concurrency lock and resolve proise
+            this.concurrencyCheck[lockName] = null
+            resolve(result)
+          })
+          .catch(error => {
+            // Error
+            // Clear concurrency and reject promise
+            this.concurrencyCheck[lockName] = null
+            reject(error)
+          })
       })
     }
 
