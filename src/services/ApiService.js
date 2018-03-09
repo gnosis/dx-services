@@ -43,10 +43,15 @@ class ApiService {
       markets: this._markets
     }
 
-    const bots = this._bots.map(bot => ({
-      name: bot.name,
-      startTime: bot.startTime
-    }))
+    const bots = await Promise.all(
+      this._bots.map(async bot => {
+        const botInfo = await bot.getInfo()
+        return Object.assign({
+          name: bot.name,
+          startTime: bot.startTime
+        }, botInfo)
+      })
+    )
 
     return {
       name: 'Dutch Exchange - Services',

@@ -113,6 +113,12 @@ class SellLiquidityBot extends Bot {
     )
     console.error(error)
   }
+
+  async getInfo () {
+    return {
+      botAddress: this._botAddress
+    }
+  }
 }
 
 module.exports = SellLiquidityBot
