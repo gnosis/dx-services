@@ -32,7 +32,8 @@ COPY . .
 # Compile necesary contracts for app
 RUN npm run contracts-compile
 #Cleanup unnecesary files
-RUN rm -rf node_modules/@gnosis.pm/dutch-exchange/node_modules
+RUN rm -rf /usr/src/app/node_modules/@gnosis.pm/dutch-exchange/node_modules
+RUN yarn cache clean
 
 # Expose container port
 EXPOSE 8080
