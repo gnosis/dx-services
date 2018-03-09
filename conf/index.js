@@ -5,6 +5,7 @@ const ENV_VAR_LIST = [
   'GAS_PRICE_GWEI',
   'DX_CONTRACT_ADDRESS',
   'MNEMONIC',
+  'MARKETS',
   'MINIMUM_SELL_VOLUME_USD',
   'API_PORT',
   'API_HOST'
@@ -35,7 +36,8 @@ const network = process.env.NETWORK // Optional: RINKEBY, KOVAN
 const networkConfig = network ? require(`./network/${network}-config`) : {}
 
 // Get token list and env vars
-const markets = envConf.MARKETS || defaultConf.MARKETS
+const envMarkets = getEnvMarkets()
+const markets = envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 const envVars = getEnvVars(tokens)
 debug('markets: %o', markets)
@@ -43,12 +45,30 @@ debug('markets: %o', markets)
 // debug('envVars: %o', envVars)
 
 // Merge three configs to get final config
-const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars)
+const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars, {
+  MARKETS: markets
+})
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
 debug('tokens', tokens)
 debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
 // debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)
+
+function getEnvMarkets () {
+  const envMarkets = process.env['MARKETS']
+  if (envMarkets) {
+    const marketsArray = envMarkets.split(',')
+    return marketsArray.map(marketString => {
+      const market = marketString.split('-')
+      return {
+        tokenA: market[0],
+        tokenB: market[1]
+      }
+    })
+  } else {
+    return null
+  }
+}
 
 function getTokenList (markets) {
   const result = []
