@@ -265,45 +265,28 @@ describe('Market interacting tests', async () => {
   })
 
   // Ask for sell volume for next auction
-  test.skip('It should return sell volume for next auction', async () => {
+  test('It should add sell volume for next auction', async () => {
     const { user1, ethereumClient, auctionRepo } = await setupPromise
 
-    // GIVEN an auction after few tokens sold and 24 hours later
+    // GIVEN a RUNNING auction
     await _addRdnEthTokenPair({ ethFunding: 10 })
     await ethereumClient.increaseTime(6.1 * 60 * 60)
-    await _buySell('postBuyOrder', {
-      from: user1,
-      sellToken: 'ETH',
-      buyToken: 'RDN',
-      amount: parseFloat('3')
-    })
 
     let sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'ETH', buyToken: 'RDN' })
     expect(sellVolumeNext).toEqual(new BigNumber('0'))
 
-    await ethereumClient.increaseTime(24 * 60 * 60)
-
-    // GIVEN a state status of PENDING_CLOSE_THEORETICAL
-    let rdnEthState = await _getState({})
-    expect(rdnEthState).toEqual('PENDING_CLOSE_THEORETICAL')
-    sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'ETH', buyToken: 'RDN' })
-    expect(sellVolumeNext).toEqual(new BigNumber('0'))
-
-    // WHEN we add a buy order without amount
-    await _buySell('postBuyOrder', {
+    // WHEN we add a new sell token order
+    await _buySell('postSellOrder', {
       from: user1,
       sellToken: 'ETH',
       buyToken: 'RDN',
-      amount: parseFloat('0')
+      amount: parseFloat('2')
     })
-    // let rdnEthstateInfo = await _getStateInfo({})
-    // expect(rdnEthstateInfo).toBe()
 
-    // WHEN
+    // THEN the volume is added to the next auction
     sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'ETH', buyToken: 'RDN' })
-
-    // THEN
-    expect(sellVolumeNext).toBe()
+    expect(_isValidSellVolume(sellVolumeNext, await _toBigNumberWei(2)))
+      .toBeTruthy()
   })
 
   // Add a non ethereum market
@@ -444,10 +427,18 @@ async function _getPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
 async function _buySell (operation, { from, buyToken, sellToken, amount }) {
   const { web3, auctionRepo } = await setupPromise
 
-  const auctionIndex = await auctionRepo.getAuctionIndex({
+  let auctionIndex = await auctionRepo.getAuctionIndex({
     buyToken,
     sellToken
   })
+
+  if (operation === 'postSellOrder') {
+    const auctionStart = await auctionRepo.getAuctionStart({ sellToken, buyToken })
+    const now = await auctionRepo._getTime()
+    auctionIndex = auctionStart !== null && auctionStart <= now
+      ? auctionIndex + 1
+      : auctionIndex
+  }
 
   await auctionRepo[operation]({
     from,
