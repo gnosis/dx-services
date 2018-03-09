@@ -27,7 +27,7 @@ class AuctionRepoImpl {
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
     this._gasPrice = gasPriceGWei * 10 ** 9
-    
+
     // Contracts
     this._dx = contracts.dx
     this._priceOracle = contracts.priceOracle
@@ -827,7 +827,8 @@ currentAuctionIndex=${currentAuctionIndex}`)
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
 
-      logger.debug('Price in ETH for %s: %d', token, priceTokenETH)
+      logger.debug('Price in ETH for %s: %d', token,
+        priceTokenETH.numerator.div(priceTokenETH.denominator))
       amountInETH = amount
         .mul(priceTokenETH.numerator)
         .div(priceTokenETH.denominator)
@@ -964,7 +965,7 @@ volume: ${state}`)
     // auctionLogger.debug(sellToken, buyToken, '_getAuctionState: %d', auctionIndex)
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
-    
+
     /*
     auctionLogger.debug(sellToken, buyToken,
       '_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',

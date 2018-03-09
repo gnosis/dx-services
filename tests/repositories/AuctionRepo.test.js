@@ -307,17 +307,21 @@ describe('Market interacting tests', async () => {
   })
 
   // Add a non ethereum market
-  test.skip('It should allow to add markets between tokens different from ETH', async () => {
-    jest.setTimeout(20000)
-    const { web3, auctionRepo, fundUser1, user1 } = await setupPromise
+  test('It should allow to add markets between tokens different from ETH', async () => {
+    jest.setTimeout(10000)
+    const { web3, auctionRepo, user1 } = await setupPromise
 
-    await fundUser1()
-
-    // GIVEN a state status of UNKNOWN_TOKEN_PAIR
+    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for RDN-ETH
     let rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('UNKNOWN_TOKEN_PAIR')
+    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for OMG-ETH
+    let omgEthState = await _getState({ sellToken: 'OMG' })
+    expect(omgEthState).toEqual('UNKNOWN_TOKEN_PAIR')
+    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for RDN-OMG
+    let rdnOmgState = await _getState({ buyToken: 'OMG' })
+    expect(rdnOmgState).toEqual('UNKNOWN_TOKEN_PAIR')
 
-    // WHEN we add a token pair
+    // WHEN we add ETH-RDN token pair
     await auctionRepo.addTokenPair({
       from: user1,
       tokenA: 'ETH',
@@ -325,38 +329,48 @@ describe('Market interacting tests', async () => {
       tokenB: 'RDN',
       tokenBFunding: web3.toWei(0, 'ether'),
       initialClosingPrice: {
-        numerator: 4079,
+        numerator: 1000000,
+        denominator: 4079
+      }
+    })
+
+    // WHEN we add OMG-ETH token pair
+    await auctionRepo.addTokenPair({
+      from: user1,
+      tokenA: 'OMG',
+      tokenAFunding: web3.toWei(0, 'ether'),
+      tokenB: 'ETH',
+      tokenBFunding: web3.toWei(10, 'ether'),
+      initialClosingPrice: {
+        numerator: 22200,
         denominator: 1000000
       }
     })
 
-    // THEN the new state status is WAITING_FOR_AUCTION_TO_START
+    // WHEN we add RDN-OMG token pair
+    await auctionRepo.addTokenPair({
+      from: user1,
+      tokenA: 'RDN',
+      tokenAFunding: web3.toWei(300, 'ether'),
+      tokenB: 'OMG',
+      tokenBFunding: web3.toWei(500, 'ether'),
+      initialClosingPrice: {
+        numerator: 4079,
+        denominator: 22200
+      }
+    })
+
+    // THEN the new state status for RDN-ETH is WAITING_FOR_AUCTION_TO_START
     rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
 
-    // await auctionRepo.addTokenPair({
-    //   from: user1,
-    //   tokenA: 'OMG',
-    //   tokenAFunding: web3.toWei(0, 'ether'),
-    //   tokenB: 'ETH',
-    //   tokenBFunding: web3.toWei(10, 'ether'),
-    //   initialClosingPrice: {
-    //     numerator: 22200,
-    //     denominator: 1000000
-    //   }
-    // })
+    // THEN the new state status for OMG-ETH is WAITING_FOR_AUCTION_TO_START
+    omgEthState = await _getState({ sellToken: 'OMG' })
+    expect(omgEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
 
-    // await auctionRepo.addTokenPair({
-    //   from: user1,
-    //   tokenA: 'RDN',
-    //   tokenAFunding: web3.toWei(30, 'ether'),
-    //   tokenB: 'OMG',
-    //   tokenBFunding: web3.toWei(30, 'ether'),
-    //   initialClosingPrice: {
-    //     numerator: 4079,
-    //     denominator: 22200
-    //   }
-    // })
+    // THEN the new state status for RDN-OMG is WAITING_FOR_AUCTION_TO_START
+    rdnOmgState = await _getState({ buyToken: 'OMG' })
+    expect(rdnOmgState).toEqual('WAITING_FOR_AUCTION_TO_START')
   })
 })
 
