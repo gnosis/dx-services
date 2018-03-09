@@ -103,6 +103,7 @@ class AuctionEventWatcher {
   }
 
   _handleEvent (error, eventData) {
+    logger.debug('Got event %s - %o', eventData.event, eventData)
     if (error) {
       logger.error('Error watching events: ' + error.toString())
       console.error(error)
@@ -112,7 +113,6 @@ class AuctionEventWatcher {
           this._onAuctionCleared(eventData)
           break
         default:
-          logger.debug('Got event %s - %o', eventData.event, eventData)
       }
     }
   }

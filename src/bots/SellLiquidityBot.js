@@ -38,65 +38,69 @@ class SellLiquidityBot {
     logger.debug('Bot stopped')
   }
 
-  _onAuctionCleared (eventName, data) {
+  async _onAuctionCleared (eventName, data) {
     const { sellToken, buyToken } = data
 
     // Do ensure liquidity on the market
     auctionLogger.info(sellToken, buyToken, "Auction ended. Let's ensure liquidity")
-    this._ensureSellLiquidity({
+    return this._ensureSellLiquidity({
       sellToken,
       buyToken,
       from: this._botAddress
     })
   }
 
-  _doRoutineLiquidityCheck (sellToken, buyToken) {
+  async _ensureSellLiquidity ({ sellToken, buyToken, from, isRoutineCheck = false }) {
+    let liquidityWasEnsured
     try {
-      // Do ensure liquidity on the market
-      auctionLogger.debug(sellToken, buyToken, "Doing a routine check. Let's see if we need to ensure the liquidity")
-      this._ensureSellLiquidity({
-        sellToken,
-        buyToken,
-        from: this._botAddress,
-        isRoutineCheck: true
-      })
+      liquidityWasEnsured = await this._botService
+        .ensureSellLiquidity({ sellToken, buyToken, from })
+        .then(soldTokens => {
+          // soldTokens is:
+          //  * NULL when nothing was sold
+          //  * An object with {amount, sellToken, buyToken} when the botService
+          //    had to sell tokens
+          if (soldTokens) {
+            // The bot sold some tokens
+            auctionLogger.info(sellToken, buyToken,
+              "I've sold %d %s tokens to ensure liquidity",
+              soldTokens.amount,
+              soldTokens.sellToken
+            )
       
+            if (isRoutineCheck) {
+              auctionLogger.warn(sellToken, buyToken, "The liquidity was enssured by the routine check. Make sure there's no problem getting events")
+            }
+          } else {
+            // The bot didn't have to do anything
+            auctionLogger.debug(sellToken, buyToken,
+              'Nothing to do'
+            )
+          }
+
+          return true
+        })
+        .catch(error => {
+          liquidityWasEnsured = false
+          _handleError(sellToken, buyToken, error)
+        })
     } catch (error) {
+      liquidityWasEnsured = false
       _handleError(sellToken, buyToken, error)
     }
+
+    return liquidityWasEnsured
   }
 
-  async _ensureSellLiquidity ({ sellToken, buyToken, from, isRoutineCheck = false }) {
-    let soldTokens
-    try {
-      soldTokens = await this._botService
-        .ensureSellLiquidity({ sellToken, buyToken, from })
-        .catch(error => _handleError(sellToken, buyToken, error))
-      
-      if (soldTokens) {
-        // The bot sold some tokens
-        auctionLogger.info(sellToken, buyToken,
-          "I've sold %d %s tokens to ensure liquidity",
-          soldTokens.amount,
-          soldTokens.sellToken
-        )
-
-        if (isRoutineCheck) {
-          auctionLogger.warn(sellToken, buyToken, "The liquidity was enssured by the routine check. Make sure there's no problem getting events")
-        }
-        
-      } else {
-        // The bot didn't have to do anything
-        auctionLogger.debug(sellToken, buyToken,
-          'Nothing to do'
-        )
-      }
-    } catch (error) {
-      _handleError(sellToken, buyToken, error)
-      soldTokens = null
-    }
-
-    return soldTokens
+  async _doRoutineLiquidityCheck (sellToken, buyToken) {
+    // Do ensure liquidity on the market
+    auctionLogger.debug(sellToken, buyToken, "Doing a routine check. Let's see if we need to ensure the liquidity")
+    return this._ensureSellLiquidity({
+      sellToken,
+      buyToken,
+      from: this._botAddress,
+      isRoutineCheck: true
+    })
   }
 }
 

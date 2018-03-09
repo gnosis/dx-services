@@ -63,15 +63,13 @@ class BotService {
     // Check if there's an ongoing liquidity check
     if (ensureLiquidityPromise) {
       // We don't do concurrent liquidity checks
-      // we return both promises at the same time, but the last ones always
       // return that there was no need to sell (returns "null")
       auctionLogger.warn(sellToken, buyToken, `There is a concurrent liquidity \
 check going on, so no aditional check should be done`)
-      return ensureLiquidityPromise
-        .then(() => null)
+      return Promise.resolve(null)
     } else {
       // Ensure liquidity + Create concurrency lock
-      this.concurrencyCheck[lockName] = this
+      ensureLiquidityPromise = this
         ._doEnsureSellLiquidity({
           tokenA: sellToken,
           tokenB: buyToken,
@@ -82,6 +80,10 @@ check going on, so no aditional check should be done`)
           this.concurrencyCheck[lockName] = null
           return result
         })
+
+      // Create lock and return promise
+      this.concurrencyCheck[lockName] = ensureLiquidityPromise
+      return ensureLiquidityPromise
     }
 
     return ensureLiquidityPromise
@@ -157,7 +159,11 @@ a waiting for funding state`)
     }
 
     // We round up the dollars
-    amountToSellInUSD = amountToSellInUSD.ceil()
+    amountToSellInUSD = amountToSellInUSD
+      // Round USD to 2 decimals
+      .mul(100)
+      .ceil()
+      .div(100)
 
     // Get the amount to sell in sellToken
     const amountInSellTokens = (await this._auctionRepo
@@ -167,7 +173,7 @@ a waiting for funding state`)
       }))
       // We add the maximun fee as an extra amount
       .mul(1 + MAXIMUM_DX_FEE)
-      // Important to round up
+      // Round up
       .ceil()
 
     // Sell the missing difference
