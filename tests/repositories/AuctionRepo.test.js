@@ -55,11 +55,11 @@ describe('Market interacting tests', async () => {
   let beforeSetupState
 
   beforeAll(async () => {
-    const { setupTestCases, ethereumClient } = await setupPromise
+    const { fundUser1, ethereumClient } = await setupPromise
 
     beforeSetupState = await ethereumClient.makeSnapshot()
     // Avoid seting up test cases for each test
-    await setupTestCases()
+    await fundUser1()
   })
 
   afterAll(async () => {
@@ -233,8 +233,8 @@ describe('Market interacting tests', async () => {
   // Closing an auction in PENDING_CLOSE_THEORETICAL state
   test('It should allow to close a PENDING_CLOSE_THEORETICAL auction', async () => {
     jest.setTimeout(10000)
-    const { user1, ethereumClient, setupTestCases } = await setupPromise
-    await setupTestCases()
+    const { user1, ethereumClient, fundUser1 } = await setupPromise
+    await fundUser1()
 
     // GIVEN an auction after many tokens sold and 24 hours later
     await _addRdnEthTokenPair({ ethFunding: 10 })
@@ -309,10 +309,9 @@ describe('Market interacting tests', async () => {
   // Add a non ethereum market
   test.skip('It should allow to add markets between tokens different from ETH', async () => {
     jest.setTimeout(20000)
-    const { web3, auctionRepo, setupTestCases, user1 } = await setupPromise
+    const { web3, auctionRepo, fundUser1, user1 } = await setupPromise
 
-    await setupTestCases()
-    await setupTestCases()
+    await fundUser1()
 
     // GIVEN a state status of UNKNOWN_TOKEN_PAIR
     let rdnEthState = await _getState({})
