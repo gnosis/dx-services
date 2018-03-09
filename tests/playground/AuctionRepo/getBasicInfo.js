@@ -7,6 +7,6 @@ function run ({
   auctionRepo
 }) {
   return auctionRepo
-    .getBasicInfo()
+    .getAbout()
     .then(console.log)
 }

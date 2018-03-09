@@ -28,6 +28,10 @@ class EthereumClient {
     this._contractsBaseDir = contractsBaseDir
   }
 
+  getUrl () {
+    return this._url
+  }
+
   /*
   loadContracts ({ contractNames, contractsBaseDir }) {
     // Load contract as an array of objects (props: name, instance)
@@ -61,28 +65,21 @@ class EthereumClient {
   }
   */
 
-  getUrl () {
-    return this._url
-  }
-
   async getBlock (blockNumber) {
     if (!blockNumber) {
       blockNumber = await this.getBlockNumber()
     }
-    return this._promisify(this._web3.eth.getBlock, blockNumber)
-  }
-
-  async getCoinbase () {
-    return this._promisify(this._web3.eth.getCoinbase)
+    return _promisify(this._web3.eth.getBlock, blockNumber)
   }
 
   async getAccounts () {
-    return this._promisify(this._web3.eth.getAccounts)
+    return this.doCall('eth.getAccounts')
   }
 
   async getBlockNumber () {
-    return this._promisify(this._web3.eth.getBlockNumber)
+    return this.doCall('eth.getBlockNumber')
   }
+
 
   async geLastBlockTime () {
     // const blockNumber = this.getBlockNumber()
@@ -92,22 +89,38 @@ class EthereumClient {
   }
 
   async balanceOf (account) {
-    return this._promisify(this._web3.eth.getBalance, account)
+    return this.doCall('eth.getBalance', account)
   }
 
-  async isConnected () {
-    return this._promisify(this._web3.net.getListening)
+  async doCall (propName, params) {
+    const propPath = propName.split('.')
+    // const callFn = this._getCallFn(this._web3, propPath)
+    const callClass = this._getCallFn(this._web3, propPath)
+    const methodName = propPath[propPath.length - 1]
+    return _promisify(callClass[methodName], params) // TODO: Review promisify extra params
   }
 
-  async peerCount () {
-    return this._promisify(this._web3.net.getPeetCount)
+  _getCallFn (currentObject, [head, ...tail]) {
+    const nextObject = currentObject[head]
+    if (tail.length === 1) {
+      return nextObject
+    } else {
+      return this._getCallFn(nextObject, tail)
+    }
+
+    /*
+    const nextObject = currentObject[head]
+    if (tail.length === 0) {
+      nextObject.bind(currentObject)
+      return nextObject
+    } else {
+      return this._getCallFn(nextObject, tail)
+    }
+    */
   }
-
-  // TODO: web3.eth.isSyncing
-
 
   async getSyncing () {
-    return this._promisify(this._web3.eth.getSyncing)
+    return _promisify(this._web3.eth.getSyncing)
   }
 
   async mineBlock (id = new Date().getTime()) {
@@ -145,28 +158,10 @@ class EthereumClient {
       jsonrpc: '2.0'
     }, data)
 
-    return this._promisify((params, cb) => {
+    return _promisify((params, cb) => {
       // wee nedd to curry the function
       this._web3.currentProvider.sendAsync(params, cb)
     }, params)
-  }
-
-  async _promisify (fn, param) {
-    return new Promise((resolve, reject) => {
-      const callback = (error, data) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(data)
-        }
-      }
-
-      if (param) {
-        fn(param, callback)
-      } else {
-        fn(callback)
-      }
-    })
   }
 
   getWeb3 () {
@@ -200,6 +195,24 @@ class EthereumClient {
       })
   }
   */
+}
+
+async function _promisify (fn, param) {
+  return new Promise((resolve, reject) => {
+    const callback = (error, data) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(data)
+      }
+    }
+
+    if (param) {
+      fn(param, callback)
+    } else {
+      fn(callback)
+    }
+  })
 }
 
 module.exports = EthereumClient

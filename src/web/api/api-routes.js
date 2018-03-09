@@ -14,15 +14,24 @@ function getRouter ({ apiService }) {
     res.status(204).send()
   })
 
-  router.get('/ethereum/connected', async (req, res) => {
+  router.get('/health', async (req, res) => {
+    const healthEthereum = await apiService.getHealthEthereum()
+    res.status(200).send({
+      ethereum: healthEthereum
+    })
+  })
+
+  /*
+  router.get('/health/ethereum-connected', async (req, res) => {
     const isConnectedToEthereum = await apiService.isConnectedToEthereum()
     res.status(200).send(isConnectedToEthereum)
   })
 
-  router.get('/ethereum/syncing', async (req, res) => {
+  router.get('/ethereum/ethereum-syncing', async (req, res) => {
     const syncing = await apiService.getSyncing()
     res.status(200).send(syncing)
   })
+  */
   
   router.get('/about', async (req, res) => {
     res.send(await apiService.getAbout())

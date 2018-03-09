@@ -1,5 +1,6 @@
 const loggerNamespace = 'dx-service:bots:SellLiquidityBot'
 const AuctionLogger = require('../helpers/AuctionLogger')
+const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 
 const logger = new Logger(loggerNamespace)
@@ -7,15 +8,16 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
 
-class SellLiquidityBot {
-  constructor ({ eventBus, botService, botAddress, markets }) {
+class SellLiquidityBot extends Bot {
+  constructor ({ name, eventBus, botService, botAddress, markets }) {
+    super(name)
     this._eventBus = eventBus
     this._botService = botService
     this._botAddress = botAddress
     this._markets = markets
   }
 
-  async start () {
+  async _doStart () {
     logger.debug('Initialized bot')
 
     // Ensure the sell liquidity when an aunction has ended
@@ -34,7 +36,7 @@ class SellLiquidityBot {
     }, ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS)
   }
 
-  async stop () {
+  async _doStop () {
     logger.debug('Bot stopped')
   }
 
@@ -82,11 +84,11 @@ class SellLiquidityBot {
         })
         .catch(error => {
           liquidityWasEnsured = false
-          _handleError(sellToken, buyToken, error)
+          this._handleError(sellToken, buyToken, error)
         })
     } catch (error) {
       liquidityWasEnsured = false
-      _handleError(sellToken, buyToken, error)
+      this._handleError(sellToken, buyToken, error)
     }
 
     return liquidityWasEnsured
@@ -102,12 +104,15 @@ class SellLiquidityBot {
       isRoutineCheck: true
     })
   }
-}
 
-function _handleError (sellToken, buyToken, error) {
-  auctionLogger.error(sellToken, buyToken,
-    'There was an error ensuring liquidity: ' + error.toString())
-  console.error(error)
+  _handleError (sellToken, buyToken, error) {
+    auctionLogger.error(sellToken, buyToken,
+      'There was an error ensuring liquidity with the account %s: %s',
+      this._botAddress,
+      error.toString()
+    )
+    console.error(error)
+  }
 }
 
 module.exports = SellLiquidityBot

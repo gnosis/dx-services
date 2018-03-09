@@ -32,7 +32,7 @@ class BotService {
   }
 
   async getAbout () {
-    const auctionInfo = await this._auctionRepo.getBasicInfo()
+    const auctionInfo = await this._auctionRepo.getAbout()
     const config = Object.assign({
       minimumSellVolume: this._minimumSellVolume
     }, auctionInfo)
@@ -66,24 +66,24 @@ class BotService {
       // return that there was no need to sell (returns "null")
       auctionLogger.warn(sellToken, buyToken, `There is a concurrent liquidity \
 check going on, so no aditional check should be done`)
-      return Promise.resolve(null)
+      ensureLiquidityPromise = Promise.resolve(null)
     } else {
       // Ensure liquidity + Create concurrency lock
-      ensureLiquidityPromise = this
-        ._doEnsureSellLiquidity({
+      ensureLiquidityPromise = new Promise((resolve, reject) => {
+        // Create lock and return promise
+        this.concurrencyCheck[lockName] = ensureLiquidityPromise
+
+        // Do ensure liquidiy
+        this._doEnsureSellLiquidity({
           tokenA: sellToken,
           tokenB: buyToken,
           from
-        })
-        .then(result => {
-          // Clear concurrency lock
+        }).then(result => {
+          // Clear concurrency lock and retur result
           this.concurrencyCheck[lockName] = null
-          return result
+          resolve(result)
         })
-
-      // Create lock and return promise
-      this.concurrencyCheck[lockName] = ensureLiquidityPromise
-      return ensureLiquidityPromise
+      })
     }
 
     return ensureLiquidityPromise
@@ -160,6 +160,8 @@ a waiting for funding state`)
 
     // We round up the dollars
     amountToSellInUSD = amountToSellInUSD
+      // We add the maximun fee as an extra amount
+      .mul(1 + MAXIMUM_DX_FEE)
       // Round USD to 2 decimals
       .mul(100)
       .ceil()
@@ -171,8 +173,6 @@ a waiting for funding state`)
         token: sellToken,
         amount: amountToSellInUSD
       }))
-      // We add the maximun fee as an extra amount
-      .mul(1 + MAXIMUM_DX_FEE)
       // Round up
       .ceil()
 
