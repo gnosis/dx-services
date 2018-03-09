@@ -68,7 +68,7 @@ describe('Market interacting tests', async () => {
     return ethereumClient.revertSnapshot(beforeSetupState)
   })
 
-  test.skip('It should return account balances', async () => {
+  test('It should return account balances', async () => {
     const { user1, auctionRepo } = await setupPromise
     // GIVEN a base setupTest
 
@@ -168,10 +168,12 @@ describe('Market interacting tests', async () => {
     })
 
     // THEN the new state matches the intial market state
+    let updatedAuction = Object.assign({}, INITIAL_MARKET_STATE.auction,
+      { isClosed: true })
     let updatedAuctionOpp = Object.assign({}, INITIAL_MARKET_STATE.auctionOpp,
       { buyVolume: {} })
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE,
-      { auctionOpp: updatedAuctionOpp })
+      { auction: updatedAuction, auctionOpp: updatedAuctionOpp })
     let rdnEthstateInfo = await _getStateInfo({})
     expect(rdnEthstateInfo).toMatchObject(updatedMarket)
     expect(_isValidBuyVolume(rdnEthstateInfo.auctionOpp.buyVolume, rdnEthstateInfo.auctionOpp.sellVolume))
@@ -232,9 +234,7 @@ describe('Market interacting tests', async () => {
 
   // Closing an auction in PENDING_CLOSE_THEORETICAL state
   test('It should allow to close a PENDING_CLOSE_THEORETICAL auction', async () => {
-    jest.setTimeout(10000)
-    const { user1, ethereumClient, fundUser1 } = await setupPromise
-    await fundUser1()
+    const { user1, ethereumClient } = await setupPromise
 
     // GIVEN an auction after many tokens sold and 24 hours later
     await _addRdnEthTokenPair({ ethFunding: 10 })
@@ -390,12 +390,12 @@ const INITIAL_MARKET_STATE = {
 }
 
 const INITIAL_USER1_BALANCE = [
-  {'amount': new BigNumber('5000000000000000000'), 'token': 'GNO'},
-  {'amount': new BigNumber('15000000000000000000'), 'token': 'ETH'},
+  {'amount': new BigNumber('750e18'), 'token': 'GNO'},
+  {'amount': new BigNumber('20e18'), 'token': 'ETH'},
   {'amount': new BigNumber('0'), 'token': 'TUL'},
-  {'amount': new BigNumber('6000000000000000000'), 'token': 'OWL'},
-  {'amount': new BigNumber('10000000000000000000'), 'token': 'RDN'},
-  {'amount': new BigNumber('20000000000000000000'), 'token': 'OMG'}
+  {'amount': new BigNumber('1000e18'), 'token': 'OWL'},
+  {'amount': new BigNumber('12000e18'), 'token': 'RDN'},
+  {'amount': new BigNumber('1500e18'), 'token': 'OMG'}
 ]
 
 async function _getIsApprovedMarket ({ tokenA = 'RDN', tokenB = 'ETH' }) {
