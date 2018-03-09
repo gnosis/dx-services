@@ -10,11 +10,11 @@ before_install:
 install:
   - docker build -t dx-services .
 script:
-  - docker run --mount type=tmpfs,destination=/usr/src/app/build
-    -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
-    --mount type=tmpfs,destination=/usr/src/app/node_modules/@gnosis.pm/dutch-exchange/build
+  - docker run --mount source=app-contracts,destination=/usr/src/app/build
+    --mount source=dx-contracts,destination=/usr/src/app/node_modules/@gnosis.pm/dutch-exchange/build
     --mount type=tmpfs,destination=/usr/src/app/coverage
-    --net host dx-services /bin/bash -c "npm run contracts-deploy; npm run test-coverage"
+    -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
+    --net host dx-services /bin/bash -c "npm run travis-contracts-deploy; npm run test-coverage"
 after_success: |-
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   if [ "$TRAVIS_BRANCH" == "master" ]; then

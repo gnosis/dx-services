@@ -31,6 +31,8 @@ COPY . .
 
 # Compile necesary contracts for app
 RUN npm run contracts-compile
+#Cleanup unnecesary files
+RUN rm -rf node_modules/@gnosis.pm/dutch-exchange/node_modules
 
 # Expose container port
 EXPOSE 8080
