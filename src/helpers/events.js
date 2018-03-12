@@ -1,5 +1,5 @@
-const EVENT_AUCTION_CLRARED = 'auction:cleared'
+const EVENT_AUCTION_CLEARED = 'auction:cleared'
 
 module.exports = {
-  EVENT_AUCTION_CLRARED
+  EVENT_AUCTION_CLEARED
 }

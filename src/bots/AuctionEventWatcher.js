@@ -133,7 +133,7 @@ class AuctionEventWatcher {
     // Check if the cleared auction is of a known market
     if (tokensAreKnown) {
       auctionLogger.info(tokenA, tokenB, 'The auction has cleared')
-      this._eventBus.trigger(events.EVENT_AUCTION_CLRARED, {
+      this._eventBus.trigger(events.EVENT_AUCTION_CLEARED, {
         sellToken: tokenA,
         buyToken: tokenB,
         sellVolume,

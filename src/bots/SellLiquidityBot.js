@@ -21,7 +21,7 @@ class SellLiquidityBot extends Bot {
     logger.debug('Initialized bot')
 
     // Ensure the sell liquidity when an aunction has ended
-    this._eventBus.listenTo(events.EVENT_AUCTION_CLRARED, ({ eventName, data }) => {
+    this._eventBus.listenTo(events.EVENT_AUCTION_CLEARED, ({ eventName, data }) => {
       this._onAuctionCleared(eventName, data)
     })
 
