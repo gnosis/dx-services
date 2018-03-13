@@ -24,6 +24,10 @@ class EthereumRepoImpl {
     return this._ethereumClient.isSyncing()
   }
 
+  async getAccounts () {
+    return this._ethereumClient.getAccounts()
+  }
+
   async getHealth () {
     return Promise
       .all([

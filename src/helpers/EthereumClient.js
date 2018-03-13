@@ -80,7 +80,6 @@ class EthereumClient {
     return this.doCall('eth.getBlockNumber')
   }
 
-
   async geLastBlockTime () {
     // const blockNumber = this.getBlockNumber()
     // return this._promisify(this._web3.eth.getBlock, blockNumber)
