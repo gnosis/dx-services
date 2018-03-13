@@ -12,7 +12,7 @@ const MAXIMUM_FUNDING = 10 ** 30
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
-const { toBigNumber } = require('../../helpers/numerUtil.js')
+const { toBigNumber } = require('../../helpers/numberUtil.js')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -359,24 +359,6 @@ class AuctionRepoImpl {
     return this._getTokenAddress(token, false)
   }
 
-  async getBalanceERC20Token ({ token, address }) {
-    assert(token, 'The token is required')
-    assert(address, 'The address is required')
-
-    const tokenContract = this._getTokenContract(token)
-    // console.log('Amount: ', amount, token)
-    return tokenContract.address
-    // return tokenContract.balanceOf.call(address)
-    /*
-    return this._callForToken({
-      operation: 'balanceOf',
-      token,
-      args: [ address ],
-      checkToken: false
-    })
-    */
-  }
-
   async getBalances ({ address }) {
     assert(address, 'The address is required')
 
@@ -481,6 +463,14 @@ class AuctionRepoImpl {
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
     return tokenContract.transfer(to, amount, { from })
+  }
+
+  async getBalanceERC20Token ({ token, address }) {
+    assert(token, 'The token is required')
+    assert(address, 'The address is required')
+
+    const tokenContract = this._getTokenContract(token)
+    return tokenContract.balanceOf.call(address)
   }
 
   async deposit ({ token, amount, from }) {
