@@ -1,3 +1,5 @@
+const BigNumber = require('bignumber.js')
+
 const pricesInUSD = [{
   token: 'RDN',
   price: 4.115 // $/RDN
@@ -15,34 +17,34 @@ const auctions = {
     index: 77,
     auctionStart: new Date(),
     // https://walletinvestor.com/converter/usd/raiden-network-token/315
-    sellVolume: 76.547844,      // RDN. aprox $315
-    sellVolumeNext: 12.547844,  // RDN
-    buyVolume: 0                // ETH
+    sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
+    sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
+    buyVolume: new BigNumber('0e18')                // ETH
   },
   'ETH-RDN': {
     index: 77,
     auctionStart: new Date(),
     // https://walletinvestor.com/converter/usd/ethereum/290
-    sellVolume: 0.289432,       // ETH. aprox $290
-    sellVolumeNext: 12.547844,  // ETH
-    buyVolume: 0                // RDN
+    sellVolume: new BigNumber('0.2894321e18'),       // ETH. aprox $290
+    sellVolumeNext: new BigNumber('12.5478441e18'),  // ETH
+    buyVolume: new BigNumber('0e18')                // RDN
   },
   'OMG-ETH': {
     // Aprox 0.022220 ETH/OMG
     index: 3,
     auctionStart: null,
     // https://walletinvestor.com/converter/usd/omisego/315
-    sellVolume: 22.569633,      // OMG. aprox $315
-    sellVolumeNext: 12.547844,  // OMG
-    buyVolume: 0                // ETH
+    sellVolume: new BigNumber('22.569633e18'),      // OMG. aprox $315
+    sellVolumeNext: new BigNumber('12.547844e18'),  // OMG
+    buyVolume: new BigNumber('0e18')                // ETH
   },
   'ETH-OMG': {
     index: 3,
     auctionStart: null,
     // https://walletinvestor.com/converter/usd/ethereum/550
-    sellVolume: 1.381729,       // ETH. aprox $1384
-    sellVolumeNext: 10.547844,  // ETH
-    buyVolume: 0                // OMG
+    sellVolume: new BigNumber('1.381729e18'),       // ETH. aprox $1384
+    sellVolumeNext: new BigNumber('10.547844e18'),  // ETH
+    buyVolume: new BigNumber('0e18')                // OMG
   }
 }
 

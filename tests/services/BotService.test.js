@@ -2,6 +2,10 @@ const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
 
+const auctionsMockData = require('../data/auctions')
+
+const BigNumber = require('bignumber.js')
+
 const setupPromise = testSetup()
 
 const PRICE_RDN_ETH = 0.00361234
@@ -16,22 +20,6 @@ const getPriceMock = jest.fn(({ tokenA, tokenB }) => {
   throw Error('Unknown mock tokens. tokenA=' + tokenA + ', tokenB=' + tokenB)
 })
 
-const postSellOrderMock = jest.fn(() => {
-
-})
-
-const getAuctionIndexMock = jest.fn(({ sellToken, buyToken }) => {
-  return auctionRepoMock.getAuctionIndex({ sellToken, buyToken })
-})
-
-const getAuctionStartMock = jest.fn(({ sellToken, buyToken }) => {
-  return auctionRepoMock.getAuctionStart({ sellToken, buyToken })
-})
-
-const getFundingInUSDMock = jest.fn()
-
-const getPriceFromUSDInTokensMock = jest.fn()
-
 test.skip('If both auctions are closed, and not enough liquidity. We buy the missing', async () => {
   const { botService } = await setupPromise
 
@@ -45,40 +33,64 @@ test.skip('If both auctions are closed, and not enough liquidity. We buy the mis
   expect(price).toBe(PRICE_RDN_ETH)
 })
 
-test.skip('It should ensureSellLiquidity', async () => {
+test('It should ensureSellLiquidity', async () => {
   const { botService } = await setupPromise
 
-  // we mock the auction repo
-  botService._auctionRepo = {
-    getPrice: getPriceMock,
-    getAuctionIndex: getAuctionIndexMock,
-    getAuctionStart: getAuctionStartMock,
-    getFundingInUSD: getFundingInUSDMock,
-    getPriceFromUSDInTokens: getPriceFromUSDInTokensMock,
-    postSellOrder: postSellOrderMock
+  function _isValidSellVolume (sellVolume, fundingSellVolume) {
+    return sellVolume.greaterThan(fundingSellVolume)
   }
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  const updatedAuction = Object.assign({}, auctionsMockData.auctions['ETH-OMG'],
+    { sellVolume: new BigNumber('0.5e18') })
+  const auctions = Object.assign({}, auctionsMockData.auctions,
+    { 'ETH-OMG': updatedAuction })
+  // we mock the auction repo
+  botService._auctionRepo = new AuctionRepoMock({ auctions })
+
+  // WHEN we ensure sell liquidity
+  const ensureLiquidityState = await botService.ensureSellLiquidity({
+    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+
+  // THEN
+  expect(ensureLiquidityState)
+    .toMatchObject({ amount: new BigNumber('523.97'), buyToken: 'OMG', sellToken: 'ETH' })
+
+  // THEN new sell volume is valid
+  let newSellVolume = await botService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
+  expect(_isValidSellVolume(newSellVolume, new BigNumber('0.5e18')))
+    .toBeTruthy()
 })
 
 test('It should not ensure liquidity if auction is not waiting for funding', async () => {
   const { botService } = await setupPromise
-
   // we mock the auction repo
   botService._auctionRepo = auctionRepoMock
 
-  expect(await botService.ensureSellLiquidity({ sellToken: 'RDN', buyToken: 'ETH', from: '0x123' }))
-    .toBeNull()
+  // GIVEN a running auction
+
+  // WHEN we ensure sell liquidity
+  const ensureLiquidityState = await botService.ensureSellLiquidity({
+    sellToken: 'RDN', buyToken: 'ETH', from: '0x123' })
+
+  // THEN we shouldn't be adding funds
+  expect(ensureLiquidityState).toBeNull()
 })
 
-test('It should not ensure liquidity if auction has enougth funds', async () => {
+test('It should not ensure liquidity if auction has enough funds', async () => {
   const { botService } = await setupPromise
   expect.assertions(1)
-
   // we mock the auction repo
   botService._auctionRepo = auctionRepoMock
 
+  // GIVEN an auction with enough funds
+
   try {
-    await botService.ensureSellLiquidity({ sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+    // WHEN we ensure sell liquidity
+    await botService.ensureSellLiquidity({
+      sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
   } catch (e) {
+    // THEN we get an error becuse we shouldn't ensure liquidity
     expect(e).toBeInstanceOf(Error)
   }
 })

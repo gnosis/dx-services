@@ -2,8 +2,8 @@ const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
 const BigNumber = require('bignumber.js')
 
 const auctionsMockData = require('../../../tests/data/auctions')
-const auctions = auctionsMockData.auctions
-const pricesInUSD = auctionsMockData.pricesInUSD
+// const auctions = auctionsMockData.auctions
+// const pricesInUSD = auctionsMockData.pricesInUSD
 
 const balances = {
   'RDN': {
@@ -21,6 +21,14 @@ const balances = {
 }
 
 class AuctionRepoMock {
+  constructor ({
+    auctions,
+    pricesInUSD
+  }) {
+    this._auctions = auctions || auctionsMockData.auctions
+    this._pricesInUSD = pricesInUSD || auctionsMockData.pricesInUSD
+  }
+
   async getAbout () {
     debug('Get auction basic info')
     return {
@@ -33,7 +41,7 @@ class AuctionRepoMock {
   async getAuctionIndex ({ sellToken, buyToken }) {
     debug('Get current auction index for %s-%s', sellToken, buyToken)
 
-    // latestAuctionIndices
+    // latestAuctionIndex
     return this._getAuction({ sellToken, buyToken }).index
   }
 
@@ -105,6 +113,34 @@ class AuctionRepoMock {
     }
   }
 
+  async getPriceFromUSDInTokens ({token, amount}) {
+    const ethUsdPrice = await this.getPriceEthUsd()
+    debug('Eth/Usd Price for %s: %d', token, ethUsdPrice)
+    let amountInETH = amount.div(ethUsdPrice)
+
+    let amountInToken
+    if (token === 'ETH') {
+      amountInToken = amountInETH
+    } else {
+      const priceTokenETH = await this.getPriceInEth({ token })
+      debug('Price of token %s in ETH: %d', token,
+        priceTokenETH.numerator.div(priceTokenETH.denominator))
+      amountInToken = amountInETH
+        .mul(priceTokenETH.denominator)
+        .div(priceTokenETH.numerator)
+    }
+
+    return amountInToken.mul(1e18)
+  }
+
+  async getPriceEthUsd () {
+    const price = this._pricesInUSD.find(price => {
+      return price.token === 'ETH'
+    })
+
+    return new BigNumber(price.price)
+  }
+
   async deposit ({ token, amount }) {
     debug('Deposit %d %s', token, amount)
     this._notImplementedYet()
@@ -115,15 +151,20 @@ class AuctionRepoMock {
     this._notImplementedYet()
   }
 
-  async sell ({ sellToken, buyToken, auctionIndex, amount }) {
+  async postSellOrder ({
+    sellToken, buyToken, auctionIndex, from, amount
+  }) {
     debug(
       'Sell %d %s using %s for auction %d',
       amount, buyToken,
       sellToken,
       auctionIndex
     )
-    // postSellOrder
-    //this._notImplementedYet()
+
+    let auction = this._auctions[sellToken + '-' + buyToken]
+    let newSellVolume = auction.sellVolume.add(amount)
+    Object.assign(auction.sellVolume, newSellVolume)
+
     return amount
   }
 
@@ -169,16 +210,20 @@ class AuctionRepoMock {
   }
 
   _getAuction ({ sellToken, buyToken }) {
-    return auctions[sellToken + '-' + buyToken]
+    return this._auctions[sellToken + '-' + buyToken]
   }
 
   _getPriceInUSD ({ token, amount }) {
-    const price = pricesInUSD.find(price => {
+    const price = this._pricesInUSD.find(price => {
       return price.token === token
-    })
-    debug('Price in USD for %s: %s', token, price.price)
+    }).price
+    debug('Price in USD for %s: %s', token, price)
 
-    return new BigNumber(price.price * amount)
+    return amount.mul(price).div(1e18)
+  }
+
+  _toWei (amount) {
+    return amount * 1e18
   }
 }
 
