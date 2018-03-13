@@ -1,23 +1,9 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
-const auctions = {
-  'RDN-ETH': {
-    // Aprox 0.004079 ETH/RDN
-    index: 77,
-    auctionStart: new Date(),
-    // https://walletinvestor.com/converter/usd/raiden-network-token/315
-    sellVolume: 76.547844,      // RDN. aprox $315
-    sellVolumeNext: 12.547844,  // RDN
-    buyVolume: 0                // ETH
-  },
-  'ETH-RDN': {
-    index: 77,
-    auctionStart: new Date(),
-    // https://walletinvestor.com/converter/usd/ethereum/290
-    sellVolume: 0.289432,       // ETH. aprox $290
-    sellVolumeNext: 12.547844,  // ETH
-    buyVolume: 0                // RDN
-  }
-}
+const BigNumber = require('bignumber.js')
+
+const auctionsMockData = require('../../../tests/data/auctions')
+const auctions = auctionsMockData.auctions
+const pricesInUSD = auctionsMockData.pricesInUSD
 
 const balances = {
   'RDN': {
@@ -43,7 +29,8 @@ class AuctionRepoMock {
       exchageAddress: '0x1223'
     }
   }
-  async getCurrentAuctionIndex ({ sellToken, buyToken }) {
+
+  async getAuctionIndex ({ sellToken, buyToken }) {
     debug('Get current auction index for %s-%s', sellToken, buyToken)
 
     // latestAuctionIndices
@@ -93,6 +80,29 @@ class AuctionRepoMock {
   async getBuyerBalance ({ sellToken, buyToken, address }) {
     debug('Get buyer (%s) balance for %s-%s', address, sellToken, buyToken)
     this._notImplementedYet()
+  }
+
+  async getFundingInUSD ({ tokenA, tokenB, auctionIndex }) {
+    debug('Get funding in USD for %s-%s', tokenA, tokenB)
+
+    const sellVolumeA = this._getAuction({ sellToken: tokenA, buyToken: tokenB }).sellVolume
+    const sellVolumeB = this._getAuction({ sellToken: tokenB, buyToken: tokenA }).sellVolume
+
+    const fundingA = this._getPriceInUSD({
+      token: tokenA,
+      amount: sellVolumeA
+    })
+
+    const fundingB = this._getPriceInUSD({
+      token: tokenB,
+      amount: sellVolumeB
+    })
+    debug('Auction funding is: %s-%s', fundingA, fundingB)
+
+    return {
+      fundingA,
+      fundingB
+    }
   }
 
   async deposit ({ token, amount }) {
@@ -160,6 +170,15 @@ class AuctionRepoMock {
 
   _getAuction ({ sellToken, buyToken }) {
     return auctions[sellToken + '-' + buyToken]
+  }
+
+  _getPriceInUSD ({ token, amount }) {
+    const price = pricesInUSD.find(price => {
+      return price.token === token
+    })
+    debug('Price in USD for %s: %s', token, price.price)
+
+    return new BigNumber(price.price * amount)
   }
 }
 
