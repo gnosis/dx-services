@@ -34,9 +34,7 @@ function getRouter ({ apiService }) {
   */
   
   router.get('/about', async (req, res) => {
-    const about = await apiService.getAbout()
-    about.test = 'Just a test!'
-    res.send(about)
+    res.send(await apiService.getAbout())
   })
   
   router.get('/markets', async (req, res) => {
