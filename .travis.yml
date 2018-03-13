@@ -18,8 +18,8 @@ script:
 after_success: |-
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker tag dx-services gnosispm/dx-services:master;
-    docker push gnosispm/dx-services:master;
+    docker tag dx-services gnosispm/dx-services:staging;
+    docker push gnosispm/dx-services:staging;
   elif [ "$TRAVIS_BRANCH" == "develop" ]; then
     docker tag dx-services gnosispm/dx-services:develop;
     docker push gnosispm/dx-services:develop;
