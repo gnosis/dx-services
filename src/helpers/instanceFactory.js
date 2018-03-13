@@ -7,7 +7,11 @@ const isLocal = environment === 'local'
 
 const EventBus = require('./EventBus')
 
-async function createInstances ({ test = false, config = {} }) {
+async function createInstances ({
+  test = false,
+  createCliService = false,
+  config = {}
+}) {
   const mergedConfig = Object.assign({}, originalConfig, config)
   debug('Initializing app for %s environment...', mergedConfig.ENVIRONMENT)
 
@@ -41,6 +45,13 @@ async function createInstances ({ test = false, config = {} }) {
     ethereumRepo
   })
 
+  // Service: CLI service
+  const cliService = createCliService ? null : _getCliService({
+    config: mergedConfig,
+    auctionRepo,
+    ethereumRepo
+  })
+
   // Event Watcher
   const auctionEventWatcher = _getAuctionEventWatcher(
     mergedConfig, eventBus, contracts
@@ -55,7 +66,8 @@ async function createInstances ({ test = false, config = {} }) {
 
     // services
     botService,
-    apiService
+    apiService,
+    cliService
   }
 
   if (test) {
@@ -185,6 +197,16 @@ function _getApiService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo 
     // Repos
     auctionRepo,
     exchangePriceRepo,
+    markets: config.MARKETS,
+    ethereumRepo
+  })
+}
+
+function _getCliService ({ config, auctionRepo, ethereumRepo }) {
+  const CliService = require('../services/CliService')
+  return new CliService({
+    // Repos
+    auctionRepo,
     markets: config.MARKETS,
     ethereumRepo
   })

@@ -7,6 +7,9 @@ const testSetup = require('../../helpers/testSetup')
 // const BigNumber = require('bignumber.js')
 const BOT_CLI_SCRIPT = 'npm run cli --'
 
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
+
 testSetup()
   .then(run)
   .catch(console.error)
@@ -16,10 +19,15 @@ function list (val) {
 }
 
 async function run ({
+  cliService,
+  // TODO: Repos and ethereumClient should disapear (we should move logic to serviceCli)
   auctionRepo,
   ethereumClient,
+
   owner,
   user1,
+
+  // The utils should be imported from the helper functions
   printProps,
   fractionFormatter,
   printTime,
@@ -31,18 +39,22 @@ async function run ({
   addTokens,
   buySell,
   deposit,
+  delay
+  /*
   dx,
   dxMaster,
   web3,
-  delay
+  */
 }) {
   commander
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
     .option('-a, --addresses', 'Addresses for main contracts and tokens')
-    .option('-b, --balances', 'Balances for all known tokens')
+    .option('-b, --balances', 'Balances for all known tokens (i.e --balances false)')
     .option('-I, --setup', 'Basic setup for testing porpouses. Set the auction to RUNNING and ensures the user has funding')
-    .option('-F, --fund', 'Ensures the test user has funding')
+    .option('-$, --setup-funding', 'Ensures the test user has funding')
+    .option('-M, --send <token>,<amount>[,<to-account>[,<from-account>]]', 'Send a token to an arbitrary account (i.e. --send ETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732) ', list)
+    .option('-F, --fund <token>,<amount>[,<account-index>]', 'Fund a user account (i.e. --fund ETH,0.1) ', list)
     .option('-A, --approve-token <token>', 'Approve token', list)
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
     .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
@@ -59,9 +71,12 @@ async function run ({
   commander.on('--help', function () {
     const examples = [
       '--now',
-      '--addresses',
+      '--addres ses',
       '--balances',
       '--setup',
+      '--setup-funding',
+      '--send ETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732',
+      '--fund ETH,0.5',
       '--approve-token RDN',
       '--state RDN,ETH',
       '--deposit ETH,100',
@@ -94,12 +109,62 @@ async function run ({
     // Balances
     // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
     // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
-    await printBalances({ accountName: 'Owner', account: owner, verbose: false })
-    await printBalances({ accountName: 'User 1', account: user1, verbose: true })
+    // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
+    await printBalances({ accountName: 'User 1', account: user1, verbose: false })
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
+  } else if (commander.send) {
+    // Send tokens
+    const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
+    const amount = parseFloat(amountString)
+    const fromAddress = fromAddressOpc || owner
+    const toAddress = toAddressOpc || user1
+
+    await printBalances({
+      accountName: 'Balance before funding',
+      account: toAddress,
+      verbose: false
+    })
+
+    await cliService.sendTokens({
+      token,
+      amount,
+      fromAddress: fromAddress || owner,
+      toAddress: toAddress || user1
+    })
+
+    await printBalances({
+      accountName: 'Balance before funding',
+      account: toAddress,
+      verbose: false
+    })
   } else if (commander.fund) {
+    // Fund account
+    const [ token, amountString, accountAddressOpt ] = commander.fund
+    const amount = parseFloat(amountString)
+    const defaultAccountAddress = isLocal ? user1 : owner
+    const accountAddress = accountAddressOpt || defaultAccountAddress
+
+    await printBalances({
+      accountName: 'Balance before funding',
+      account: accountAddress,
+      verbose: false
+    })
+
+    const newBalance = await cliService.fundAccount({
+      token,
+      amount,
+      accountAddress
+    })
+    debug('New Balance: %d %s', newBalance, token)
+
+    await printBalances({
+      accountName: 'Balance after funding',
+      account: accountAddress,
+      verbose: false
+    })
+  } else if (commander.fundBots) {
     // Fund the user 1
     await fundUser1()
   } else if (commander.approveToken) {

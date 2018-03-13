@@ -1,8 +1,12 @@
-// TODO: Split this file and refactor
+// TODO: Move amd refactor logic into CliService.
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
-const moment = require('moment')
+
+const numberUtil = require('../../src/helpers/numberUtil')
+
+const formatUtil = require('../../src/helpers/formatUtil')
+
 const NUM_TEST_USERS = 1
 const TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS = 6 * 60 * 60 * 1000
 
@@ -144,7 +148,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       buyToken,
       sellToken,
       auctionIndex,
-      amount: web3.toWei(amount, 'ether')
+      amount: numberUtil.toWei(amount)
     })
     debug(`Succesfull "${operation}" of ${amount} tokens. SellToken: ${sellToken}, BuyToken: ${buyToken} `)
     await printState('State after ' + operation, { buyToken, sellToken })
@@ -214,7 +218,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
               from: owner,
               to: userAddress,
               token,
-              amount: web3.toWei(amount, 'ether')
+              amount: numberUtil.toWei(amount)
             }).then(() => {
               debug('\t\t- "owner" gives "user%d" %d %s as a present', userId, amount, token)
             })
@@ -225,7 +229,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       const amountETH = getAmount('ETH')
       await auctionRepo.depositEther({
         from: userAddress,
-        amount: web3.toWei(amountETH, 'ether')
+        amount: numberUtil.toWei(amountETH)
       })
       debug('\t\t- "user%d" deposits %d ETH into ETH token', userId, amountETH)
 
@@ -233,7 +237,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       await Promise.all(initialAmounts.map(({ token }) => {
         const amount = getAmount(token)
 
-        const amountInWei = web3.toWei(amount, 'ether')
+        const amountInWei = numberUtil.toWei(amount)
         return auctionRepo.approveERC20Token({
           from: userAddress,
           token,
@@ -244,7 +248,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       }))
 
       await Promise.all(initialAmounts.map(({ token, amount }) => {
-        const amountInWei = web3.toWei(amount, 'ether')
+        const amountInWei = numberUtil.toWei(amount)
         // debug('\t\t- "user%d" is about to deposits %d %s in the DX', userId, amount, token)
         return auctionRepo.deposit({
           from: userAddress,
@@ -297,30 +301,30 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug(`\tState: ${state}`)
 
     debug(`\n\tAre tokens Approved?`)
-    debug('\t\t- %s: %s', sellToken, printBoolean(isSellTokenApproved))
-    debug('\t\t- %s: %s', buyToken, printBoolean(isBuyTokenApproved))
+    debug('\t\t- %s: %s', sellToken, formatUtil.formatBoolean(isSellTokenApproved))
+    debug('\t\t- %s: %s', buyToken, formatUtil.formatBoolean(isBuyTokenApproved))
 
     debug('\n\tState info:')
     debug('\t\t- auctionIndex: %s', stateInfo.auctionIndex)
-    debug('\t\t- auctionStart: %s', formatDateTime(stateInfo.auctionStart))
+    debug('\t\t- auctionStart: %s', formatUtil.formatDateTime(stateInfo.auctionStart))
     
     if (stateInfo.auctionStart) {
-      // debug('\t\t- Blockchain time: %s', formatDateTime(now))
+      // debug('\t\t- Blockchain time: %s', formatUtil.formatDateTime(now))
       const now = await ethereumClient.geLastBlockTime()
       if (now < stateInfo.auctionStart) {
-        debug('\t\t- It will start in: %s', formatDatesDifference(stateInfo.auctionStart, now))
+        debug('\t\t- It will start in: %s', formatUtil.formatDatesDifference(stateInfo.auctionStart, now))
       } else {
-        debug('\t\t- It started: %s ago', formatDatesDifference(now, stateInfo.auctionStart))
+        debug('\t\t- It started: %s ago', formatUtil.formatDatesDifference(now, stateInfo.auctionStart))
         const marketPriceTime = new Date(
           stateInfo.auctionStart.getTime() +
           TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS
         )
   
-        // debug('\t\t- Market price time: %s', formatDateTime(marketPriceTime))
+        // debug('\t\t- Market price time: %s', formatUtil.formatDateTime(marketPriceTime))
         if (marketPriceTime > now) {
-          debug('\t\t- It will reached market price in: %s', formatDatesDifference(now, marketPriceTime))
+          debug('\t\t- It will reached market price in: %s', formatUtil.formatDatesDifference(now, marketPriceTime))
         } else {
-          debug('\t\t- It has reached market price: %s ago', formatDatesDifference(marketPriceTime, now))
+          debug('\t\t- It has reached market price: %s ago', formatUtil.formatDatesDifference(marketPriceTime, now))
         }
       }
     }
@@ -545,12 +549,12 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
 
   function formatFromWei (wei) {
     let weiAux
-    if (isBigNumber(wei)) {
+    if (numberUtil.isBigNumber(wei)) {
       weiAux = wei.toString()
     } else {
       weiAux = wei
     }
-    return web3.fromWei(weiAux, 'ether') // .toNumber()
+    return numberUtil.fromWei(weiAux)
   }
 
   async function printOraclePrice (message, { token }) {
@@ -630,7 +634,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
     // do the deposit
     await auctionRepo.deposit({
       token,
-      amount: web3.toWei(amount, 'ether'),
+      amount: numberUtil.toWei(amount),
       from: account
     })
 
@@ -647,9 +651,9 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
         accountName: 'user1',
         from: user1,
         tokenA: 'RDN',
-        tokenAFunding: web3.toWei(0, 'ether'),
+        tokenAFunding: 0,
         tokenB: 'ETH',
-        tokenBFunding: web3.toWei(13.123, 'ether'),
+        tokenBFunding: numberUtil.toWei(13.123),
         initialClosingPrice: {
           numerator: 4079,
           denominator: 1000000
@@ -746,30 +750,12 @@ function fractionFormatter ({ numerator, denominator }) {
 }
 */
 
-function printBoolean (flag) {
-  return flag ? 'Yes' : 'No'
-}
-
-function isBigNumber (n) {
-  // The current version of bignumber is too old and doesn't have isBigNumber method
-  // It cannot be updated due to web3
-  return n instanceof BigNumber
-}
-
 async function delay (callback, mills) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve(callback())
     }, mills)
   })
-}
-
-function formatDateTime (date) {
-  return date ? moment(date).format('MM/D/YY H:mm') : null
-}
-
-function formatDatesDifference (date1, date2) {
-  return moment.duration(moment(date1).diff(moment(date2))).humanize()
 }
 
 /*
