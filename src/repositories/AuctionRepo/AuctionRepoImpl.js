@@ -439,9 +439,10 @@ class AuctionRepoImpl {
     assert(from, 'The from param is required')
     assert(from, 'The amount is required')
 
-    const balance = await this.ethereumClient.balanceOf({ address: from })
-    assert(balance.greaterThanOrEqualTo(amount), `The user ${from.div(1e18)} \
-has just ${balance.div(1e18)} ETH (not able to wrap ${amount} ETH)`)
+    const balance = await this._ethereumClient.balanceOf(from)
+    const amountBigNumber = toBigNumber(amount)
+    assert(balance.greaterThanOrEqualTo(amountBigNumber), `The user ${from} has \
+just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH)`)
 
     // deposit ether
     const eth = this._tokens.ETH
@@ -769,10 +770,11 @@ has just ${balance.div(1e18)} ETH (not able to wrap ${amount} ETH)`)
       token,
       address
     })
+    const amountBigNumber = toBigNumber(amount)
     assert(
-      balance.greaterThanOrEqualTo(amount),
+      balance.greaterThanOrEqualTo(amountBigNumber),
       `The user ${address} has just ${balance.div(1e18)} ${token} \
-(not able to use ${amount.div(1e18)} ${token})`)
+(required ${amountBigNumber.div(1e18)} ${token})`)
   }
 
   async _assertMinimunFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {

@@ -122,6 +122,9 @@ async function run ({
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
+  } else if (commander.setupFunding) {
+    // Setup funding for the bot user
+    await fundUser1()
   } else if (commander.send) {
     // Send tokens
     const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
