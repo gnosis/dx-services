@@ -9,21 +9,29 @@ const instanceFactory = require('./helpers/instanceFactory')
 // Env
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
+let app
 
 // Run app
 instanceFactory({})
   .then(instances => {
-    // Create and start app
-    const app = new App(instances)
-    app.start()
-      .catch(handleError)
+    // Create the app
+    app = new App(instances)
 
-    // shutdown app
+    // Let the app stop gracefully
     gracefullShutdown.onShutdown(() => {
       return app.stop()
     })
+
+    // Start the app
+    return app.start()
   })
-  .catch(handleError)
+  .catch(error => {
+    // Handle boot errors
+    handleError(error)
+
+    // Shutdown app
+    return gracefullShutdown.shutDown()
+  })
 
 class App {
   constructor ({
@@ -47,14 +55,13 @@ class App {
     this._dxApiServer = null
 
     // Initialize the bots and API
-    this.ready = this
+    this.isReadyPromise = this
       ._getBotAddress(ethereumClient)
       .then(botAddress => this._createBotsAndApi(botAddress))
-      .catch(handleError)
   }
 
   async start () {
-    await this.ready
+    await this.isReadyPromise
 
     // Display some basic info
     const about = await this._botService.getAbout()
@@ -62,7 +69,7 @@ class App {
       msg: 'Loading app in %s environment with %o ...',
       params: [ this._config.ENVIRONMENT, about ]
     })
-
+    
     // Run all the bots
     await Promise.all(
       this._bots.map(bot => bot.start())
@@ -79,21 +86,24 @@ class App {
 
   async stop () {
     logger.info({ msg: 'Shut down App' })
-    // Stop watching events
+
     // Stop the API Server
-    await Promise.all([
-      // this._auctionEventWatcher.stopWatching(),
+    if (this._dxApiServer) {
       this._dxApiServer.stop()
-    ])
+    }
 
     // Stop the bots
-    logger.info({ msg: 'Stopping the bots' })
-    await Promise.all(
-      this._bots.map(async bot => bot.stop())
-    )
+    if (this._bots) {
+      logger.info({ msg: 'Stopping the bots' })
+      await Promise.all(
+        this._bots.map(async bot => bot.stop())
+      )
+    }
 
     // Clear listerners
-    this._eventBus.clearAllListeners()
+    if (this._eventBus) {
+      this._eventBus.clearAllListeners()
+    }
     logger.info({ msg: 'App is ready to shutDown' })
   }
 
@@ -107,11 +117,11 @@ class App {
       botAddress,
       markets: this._config.MARKETS
     })
-    
+
     // Initialize bot list
     this._bots = [ sellLiquidityBot ]
     this._apiService.setBots(this._bots)
-    
+
     // Create server
     const DxApiServer = require('./web/DxApiServer')
     this._dxApiServer = new DxApiServer({
@@ -146,7 +156,4 @@ function handleError (error) {
     msg: 'Error booting the application: ' + error.toString(),
     error
   })
-
-  // Rethrow error
-  process.exit(1)
 }
