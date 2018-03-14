@@ -19,7 +19,7 @@ afterEach(async () => {
   return ethereumClient.revertSnapshot(currentSnapshotId)
 })
 
-test('It should allow to approve one token', async () => {
+test.only('It should allow to approve one token', async () => {
   const { auctionRepo, owner } = await setupPromise
   const getIsApprovedRDN = () => auctionRepo.isApprovedToken({
     token: 'RDN'
