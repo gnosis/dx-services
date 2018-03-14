@@ -1,10 +1,12 @@
-const info = require('debug')('INFO-dx-service:main')
+const loggerNamespace = 'dx-service:main'
+const Logger = require('./helpers/Logger')
+const logger = new Logger(loggerNamespace)
+
+// Helpers
 const gracefullShutdown = require('./helpers/gracefullShutdown')
-
-const SellLiquidityBot = require('./bots/SellLiquidityBot')
-const DxApiServer = require('./web/DxApiServer')
-
 const instanceFactory = require('./helpers/instanceFactory')
+
+// Env
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
@@ -56,27 +58,27 @@ class App {
 
     // Display some basic info
     const about = await this._botService.getAbout()
-    info('Loading app in %s environment with %o ...',
-      this._config.ENVIRONMENT,
-      about
-    )
+    logger.info({
+      msg: 'Loading app in %s environment with %o ...',
+      params: [ this._config.ENVIRONMENT, about ]
+    })
 
     // Run all the bots
     await Promise.all(
       this._bots.map(bot => bot.start())
     )
-    info('All bots are ready')
+    logger.info({ msg: 'All bots are ready' })
 
     // Run Api server
     await this._dxApiServer.start()
 
     // Watch auction events
     await this._auctionEventWatcher.start()
-    info('App ready!')
+    logger.info({ msg: 'App ready!' })
   }
 
   async stop () {
-    info('Shut down App')
+    logger.info({ msg: 'Shut down App' })
     // Stop watching events
     // Stop the API Server
     await Promise.all([
@@ -85,18 +87,19 @@ class App {
     ])
 
     // Stop the bots
-    info('Stopping the bots')
+    logger.info({ msg: 'Stopping the bots' })
     await Promise.all(
       this._bots.map(async bot => bot.stop())
     )
 
     // Clear listerners
     this._eventBus.clearAllListeners()
-    info('App is ready to shutDown')
+    logger.info({ msg: 'App is ready to shutDown' })
   }
 
   _createBotsAndApi (botAddress) {
     // Liquidity bot
+    const SellLiquidityBot = require('./bots/SellLiquidityBot')
     const sellLiquidityBot = new SellLiquidityBot({
       name: 'SellLiquidityBot',
       eventBus: this._eventBus,
@@ -104,12 +107,13 @@ class App {
       botAddress,
       markets: this._config.MARKETS
     })
+    
+    // Initialize bot list
     this._bots = [ sellLiquidityBot ]
-
-    // Provide the bot list to the apiService
     this._apiService.setBots(this._bots)
-
+    
     // Create server
+    const DxApiServer = require('./web/DxApiServer')
     this._dxApiServer = new DxApiServer({
       port: this._config.API_PORT,
       host: this._config.API_HOST,
@@ -138,8 +142,10 @@ class App {
 
 function handleError (error) {
   process.exitCode = 1
-  info('Error booting the application: ' + error.toString())
-  console.error(error)
+  logger.error({
+    msg: 'Error booting the application: ' + error.toString(),
+    error
+  })
 
   // Rethrow error
   process.exit(1)

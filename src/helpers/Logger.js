@@ -1,9 +1,99 @@
 const Debug = require('debug')
+const messageNotifier = require('./messageNotifier')
+const version = require('./getVersion')()
+// var util = require('util')
+// util.format.apply(util, arguments)
 
 class Logger {
   constructor (namespace) {
     this._namespace = namespace
+
+    const [, ...tags] = this._namespace.split(':')
+    this._tags = tags
     this.loggers = []
+  }
+
+  info (options) {
+    this._doLog('INFO', this._getSettings(arguments))
+  }
+
+  debug (options) {
+    this._doLog('DEBUG', this._getSettings(arguments))
+  }
+
+  warn (options) {
+    this._doLog('WARN', this._getSettings(arguments))
+  }
+
+  error (options) {
+    this._doLog('ERROR', this._getSettings(arguments))
+  }
+
+  _getSettings (args) {
+    if (typeof args[0] === 'string') {
+      const [msg, ...params] = args
+      return { msg, params }
+    } else {
+      return args[0]
+    }
+  }
+
+  _doLog (level, {
+    msg,
+    params = [],
+    error,
+    notify,
+    sufix = null,
+    contextData = {}
+  }) {
+    const logger = this._getLogger(level, sufix)
+    if (logger.enabled) {
+      logger(msg, ...params)
+
+      if (error) {
+        console.error(error)
+      }
+
+      const doNotify = notify !== undefined ? notify : messageNotifier.isEnabled()
+      if (doNotify) {
+        new Promise((resolve, reject) => {
+          const formattedMessage = _sprintf(msg, ...params)
+          let tags = this._tags.concat(contextData.tags || [])
+          // TODO: Review if we should add version as data? tag?
+          tags.push('v' + version)
+  
+          const that = this
+          const notifierParams = Object.assign(contextData, {
+            msg: formattedMessage,
+            error,
+            tags,
+            level: level.toLowerCase(level),
+            callback (sendErr, eventId) {
+              if (sendErr) {
+                // Error sending the message, we just lo
+                const errorLogger = (level !== 'ERROR') ? that._getLogger('ERROR', null) : logger
+                errorLogger({
+                  msg: 'Error notifing message: ' + formattedMessage,
+                  notify: false
+                })
+              }
+              /*
+              logger(`[${eventId}] ${msg}`, ...params)
+              */
+            }
+          })
+  
+          // Notify the message
+          if (error) {
+            messageNotifier.handleError(notifierParams)
+          } else {
+            messageNotifier.message(notifierParams)
+          }
+        }).catch(error => {
+          console.error(error)
+        })
+      }
+    }
   }
 
   _getLogger (prefix, sufix) {
@@ -20,26 +110,37 @@ class Logger {
 
     return logger
   }
+}
 
-  log (prefix, sufix, msg, ...params) {
-    this._getLogger(prefix, sufix)(msg, ...params)
-  }
+function _sprintf () {
+  var args = arguments
+  var string = args[0]
+  var i = 1
 
-  info (msg, ...params) {
-    this._getLogger('INFO', null)(msg, ...params)
-  }
-
-  debug (msg, ...params) {
-    this._getLogger('DEBUG', null)(msg, ...params)
-  }
-
-  warn (msg, ...params) {
-    this._getLogger('WARN', null)(msg, ...params)
-  }
-
-  error (msg, ...params) {
-    this._getLogger('ERROR', null)(msg, ...params)
-  }
+  return string.replace(/%((%)|s|d|o|O)/g, function (m) {
+    // m is the matched format, e.g. %s, %d
+    var val = null
+    if (m[2]) {
+      val = m[2]
+    } else {
+      val = args[i]
+      // A switch statement so that the formatter can be extended. Default is %s
+      switch (m) {
+        case '%d':
+          val = parseFloat(val)
+          if (isNaN(val)) {
+            val = 'NaN'
+          }
+          break
+        case '%o':
+        case '%O':
+          val = JSON.stringify(val)
+          break
+      }
+      i++
+    }
+    return val
+  })
 }
 
 module.exports = Logger

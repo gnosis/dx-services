@@ -1,5 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:helpers:instanceFactory')
 const originalConfig = require('../../conf/')
+const messageNotifier = require('./messageNotifier')
 /*
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -10,28 +11,31 @@ const EventBus = require('./EventBus')
 async function createInstances ({
   test = false,
   createCliService = false,
-  config = {}
+  config: configOverride = {}
 }) {
-  const mergedConfig = Object.assign({}, originalConfig, config)
-  debug('Initializing app for %s environment...', mergedConfig.ENVIRONMENT)
+  const config = Object.assign({}, originalConfig, configOverride)
+  debug('Initializing app for %s environment...', config.ENVIRONMENT)
+
+  // We init the error handler
+  messageNotifier.init({ sentryDsn: config.SENTRY_DSN })
 
   // Create the eventBus
   const eventBus = new EventBus()
 
   // Ethereum client
-  const ethereumClient = _getEhereumClient(mergedConfig)
+  const ethereumClient = _getEhereumClient(config)
 
   // Contracts
-  const contracts = await _loadContracts(mergedConfig, ethereumClient)
+  const contracts = await _loadContracts(config, ethereumClient)
 
   // Repos
-  const exchangePriceRepo = _getExchangePriceRepo(mergedConfig)
-  const auctionRepo = _getAuctionRepo(mergedConfig, ethereumClient, contracts)
-  const ethereumRepo = _getEthereumRepo(mergedConfig, ethereumClient)
+  const exchangePriceRepo = _getExchangePriceRepo(config)
+  const auctionRepo = _getAuctionRepo(config, ethereumClient, contracts)
+  const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
   // Service: Bot service
   const botService = _getBotService({
-    config: mergedConfig,
+    config: config,
     exchangePriceRepo,
     auctionRepo,
     ethereumRepo
@@ -39,7 +43,7 @@ async function createInstances ({
 
   // Service: Api service
   const apiService = _getApiService({
-    config: mergedConfig,
+    config: config,
     exchangePriceRepo,
     auctionRepo,
     ethereumRepo
@@ -47,18 +51,18 @@ async function createInstances ({
 
   // Service: CLI service
   const cliService = createCliService ? null : _getCliService({
-    config: mergedConfig,
+    config: config,
     auctionRepo,
     ethereumRepo
   })
 
   // Event Watcher
   const auctionEventWatcher = _getAuctionEventWatcher(
-    mergedConfig, eventBus, contracts
+    config, eventBus, contracts
   )
 
   let instances = {
-    config: mergedConfig,
+    config: config,
     eventBus,
     contracts,
     auctionEventWatcher,

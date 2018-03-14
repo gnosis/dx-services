@@ -1,7 +1,7 @@
 const loggerNamespace = 'dx-service:repositories:EthereumClient'
-const Debug = require('debug')
-const debug = Debug('DEBUG-' + loggerNamespace)
-const logError = Debug('ERROR-' + loggerNamespace)
+const Logger = require('../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
 const HDWalletProvider = require('truffle-hdwallet-provider')
@@ -11,13 +11,15 @@ const ROOT_DIR = '../../'
 
 class EthereumClient {
   constructor ({ url = 'http://127.0.0.1:8545', mnemonic = null, contractsBaseDir = 'build/contracts' }) {
-    debug('Using %s RPC api to connect to Ethereum', url)
+    logger.debug('Using %s RPC api to connect to Ethereum', url)
     this._url = url
     if (mnemonic) {
       this._provider = new HDWalletProvider(mnemonic, url, 0, 5)
       this._provider.engine.on('error', error => {
-        logError('Error in Web3 engine: ' + error.toString())
-        console.error(error)
+        logger.error({
+          msg: 'Error in Web3 engine: ' + error.toString(),
+          error
+        })
       })
     } else {
       this._provider = new Web3.providers.HttpProvider(url)

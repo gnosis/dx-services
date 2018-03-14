@@ -97,7 +97,10 @@ class EthereumRepoImpl {
   }
 
   async tokenBalanceOf ({ tokenAddress, account }) {
-    logger.debug('Get balance for token %s and account %s', tokenAddress, account)
+    logger.debug({
+      msg: 'Get balance for token %s and account %s',
+      params: [ tokenAddress, account ]
+    })
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.balanceOf.call, account)
   }

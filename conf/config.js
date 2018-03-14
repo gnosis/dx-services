@@ -51,6 +51,9 @@ const KRAKEN = {
   version: '0'
 }
 
+// Sentry
+const SENTRY_DSN = 'https://471f4b8740094aa0bdd13e08533115b5:67f2a995c8df48bebd64b602a03b722f@sentry.io/302707'
+
 const AUCTION_REPO_IMPL = 'impl' // mock, impl
 const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
 
@@ -88,5 +91,8 @@ module.exports = {
   API_HOST,
 
   // Exchanges
-  KRAKEN
+  KRAKEN,
+
+  // ERROR HANDLING
+  SENTRY_DSN
 }

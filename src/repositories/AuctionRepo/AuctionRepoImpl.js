@@ -37,16 +37,22 @@ class AuctionRepoImpl {
       TUL: contracts.tul,
       OWL: contracts.owl
     }, contracts.erc20TokenContracts)
-    logger.debug(`DX contract in address %s`, this._dx.address)
-    logger.debug(`Price Oracle in address %s`, this._priceOracle.address)
+    logger.debug({
+      msg: `DX contract in address %s`,
+      params: [ this._dx.address ]
+    })
+    logger.debug({
+      msg: `Price Oracle in address %s`,
+      params: [ this._priceOracle.address ]
+    })
 
     this.ready = Promise.resolve()
     Object.keys(this._tokens).forEach(token => {
       const contract = this._tokens[token]
-      logger.debug(`Token %s in address %s`,
-        token,
-        contract.address
-      )
+      logger.debug({
+        msg: `Token %s in address %s`,
+        params: [ token, contract.address ]
+      })
     })
   }
 
@@ -68,9 +74,9 @@ class AuctionRepoImpl {
   async getStateInfo ({ sellToken, buyToken }) {
     assertPair(sellToken, buyToken)
 
-    // auctionLogger.debug(sellToken, buyToken, 'Get state')
+    // auctionLogger.debug({ sellToken, buyToken, msg: 'Get state' })
     const auctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
-    // auctionLogger.debug(sellToken, buyToken, 'Auction index: %d', auctionIndex)
+    // auctionLogger.debug({ sellToken, buyToken, msg: 'Auction index: %d', params: [ auctionIndex ] })
 
     let auctionStart, auction, auctionOpp
     if (auctionIndex === 0) {
@@ -290,7 +296,7 @@ class AuctionRepoImpl {
       sellToken: tokenA,
       buyToken: tokenB
     })
-    // auctionLogger.debug(tokenA, tokenB,'isApprovedMarket? auctionIndex=%s', auctionIndex)
+    // auctionLogger.debug(tokenA, tokenB, msg: 'isApprovedMarket? auctionIndex=%s', params: [ auctionIndex ])
 
     return auctionIndex > 0
   }
@@ -362,7 +368,7 @@ class AuctionRepoImpl {
   async getBalances ({ address }) {
     assert(address, 'The address is required')
 
-    // auctionLogger.debug('Get balances for %s', address)
+    // logger.debug('Get balances for %s', address)
     const balancePromises =
       // for every token
       Object.keys(this._tokens)
@@ -508,7 +514,7 @@ class AuctionRepoImpl {
     sellToken, buyToken, auctionIndex, from, amount
   }) {
     /*
-    auctionLogger.debug('postSellOrder: %o', {
+    logger.debug('postSellOrder: %o', {
       sellToken, buyToken, auctionIndex, from, amount
     })
     */
@@ -577,8 +583,11 @@ class AuctionRepoImpl {
   }
 
   async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
-    auctionLogger.debug(sellToken, buyToken, 'postBuyOrder: %o', {
-      buyToken, sellToken, auctionIndex, from, amount
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'postBuyOrder: %o',
+      params: [{ buyToken, sellToken, auctionIndex, from, amount }]
     })
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
@@ -679,13 +688,12 @@ class AuctionRepoImpl {
     // Initial closing price
     initialClosingPrice
   }) {
-    auctionLogger.debug(tokenA, tokenB,
-      'Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
-      tokenA, tokenAFunding,
-      tokenB, tokenBFunding,
-      initialClosingPrice,
-      from
-    )
+    auctionLogger.debug({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      msg: 'Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
+      params: [ tokenA, tokenAFunding, tokenB, tokenBFunding, initialClosingPrice, from ]
+    })
     assertPair(tokenA, tokenB)
     assert(tokenAFunding >= 0, 'The funding for token A is incorrect')
     assert(tokenBFunding >= 0, 'The funding for token B is incorrect')
@@ -707,14 +715,20 @@ class AuctionRepoImpl {
 
     assert(actualAFunding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
     assert(actualBFunding < MAXIMUM_FUNDING, 'The funding cannot be greater than ' + MAXIMUM_FUNDING)
-    auctionLogger.debug(tokenA, tokenB, 'actual A Funding: %s', actualAFunding)
-    auctionLogger.debug(tokenA, tokenB, 'actual B Funding: %s', actualBFunding)
+    auctionLogger.debug({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      msg: 'Actual A Funding: %s',
+      params: [ actualAFunding ]
+    })
+    auctionLogger.debug({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      msg: 'Actual B Funding: %s',
+      params: [ actualBFunding ]
+    })
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA, tokenB })
-    /*
-    auctionLogger.debug(tokenA, tokenB, 'Was %s-%s pair previouslly approved? %s',
-      tokenA, tokenB, isApprovedMarket)
-    */
     assert(!isApprovedMarket, 'The pair was previouslly added')
 
     // Ensure that we reach the minimun USD to add a token pair
@@ -764,7 +778,12 @@ class AuctionRepoImpl {
       fundedValueUSD = fundingAInUSD.add(fundingBInUSD)
     }
 
-    auctionLogger.debug(tokenA, tokenB, 'Price in USD for the initial funding', fundedValueUSD)
+    auctionLogger.debug({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      msg: 'Price in USD for the initial funding',
+      params: [ fundedValueUSD ]
+    })
     assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough funding. \
 Actual USD funding ${fundedValueUSD}. Required funding ${THRESHOLD_NEW_TOKEN_PAIR}`)
   }
@@ -806,15 +825,22 @@ currentAuctionIndex=${currentAuctionIndex}`)
 
   async _getPriceInUSD ({ token, amount }) {
     const ethUsdPrice = await this.getPriceEthUsd()
-    logger.debug('Eth/Usd Price for %s: %d', token, ethUsdPrice)
+    logger.debug({
+      msg: 'Eth/Usd Price for %s: %d',
+      params: [ token, ethUsdPrice ]
+    })
     let amountInETH
     if (token === 'ETH') {
       amountInETH = amount
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
-
-      logger.debug('Price in ETH for %s: %d', token,
-        priceTokenETH.numerator.div(priceTokenETH.denominator))
+      logger.debug({
+        msg: 'Price in ETH for %s: %d',
+        params: [
+          token,
+          priceTokenETH.numerator.div(priceTokenETH.denominator)
+        ]
+      })
       amountInETH = amount
         .mul(priceTokenETH.numerator)
         .div(priceTokenETH.denominator)
@@ -1124,9 +1150,12 @@ volume: ${state}`)
   async _transactionForPair ({
     operation, from, sellToken, buyToken, args = [], checkTokens
   }) {
-    auctionLogger.debug(sellToken, buyToken, 'Execute transaction "%s" (from %s)',
-      operation, from
-    )
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Execute transaction "%s" (from %s)',
+      params: [ operation, from ]
+    })
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
 
@@ -1142,7 +1171,11 @@ volume: ${state}`)
     return this._dx[operation]
       .call(...params)
       .catch(e => {
-        console.error('ERROR: Call %s with params: [%s]', operation, params.join(', '))
+        logger.error({
+          msg: 'ERROR: Call %s with params: [%s]',
+          params: [ operation, params.join(', ') ],
+          e
+        })
         throw e
       })
   }
@@ -1156,10 +1189,12 @@ volume: ${state}`)
     args = [],
     checkTokens
   }) {
-    auctionLogger.debug(sellToken, buyToken,
-      'Execute transaction %s (address %s) for auction %d',
-      operation, from, auctionIndex
-    )
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Execute transaction %s (address %s) for auction %d',
+      params: [ operation, from, auctionIndex ]
+    })
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [
@@ -1172,10 +1207,13 @@ volume: ${state}`)
   }
 
   async _doTransaction (operation, from, params) {
-    logger.debug('_doTransaction: %o', {
-      operation,
-      from,
-      params
+    logger.debug({
+      msg: '_doTransaction: %o',
+      params: [
+        operation,
+        from,
+        params
+      ]
     })
     /*
     const estimatedGas = await this
@@ -1184,7 +1222,10 @@ volume: ${state}`)
         from
       })
 
-    logger.debug('_doTransaction. Estimated gas for "%s": %d', operation, estimatedGas)
+    logger.debug({
+      msg: '_doTransaction. Estimated gas for "%s": %d',
+      params: [ operation, estimatedGas ]
+    })
     // const gas = estimatedGas // * 1.15
     */
 
@@ -1194,9 +1235,11 @@ volume: ${state}`)
         gas: this._defaultGas,
         gasPrice: this._gasPrice
       }).catch(error => {
-        logger.error('Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
-          operation, from, params, error
-        )
+        logger.error({
+          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
+          params: [ operation, from, params, error ],
+          error
+        })
         // Rethrow error after logging
         throw error
       })

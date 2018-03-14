@@ -50,6 +50,7 @@
     "got": "^8.3.0",
     "moment": "^2.21.0",
     "qs": "^6.5.1",
+    "raven": "^2.4.2",
     "truffle-contract": "^3.0.3",
     "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2"
   },

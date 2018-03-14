@@ -18,7 +18,7 @@ class SellLiquidityBot extends Bot {
   }
 
   async _doStart () {
-    logger.debug('Initialized bot')
+    logger.debug({ msg: 'Initialized bot' })
 
     // Ensure the sell liquidity when an aunction has ended
     this._eventBus.listenTo(events.EVENT_AUCTION_CLEARED, ({ eventName, data }) => {
@@ -37,14 +37,18 @@ class SellLiquidityBot extends Bot {
   }
 
   async _doStop () {
-    logger.debug('Bot stopped')
+    logger.debug({ msg: 'Bot stopped' })
   }
 
   async _onAuctionCleared (eventName, data) {
     const { sellToken, buyToken } = data
 
     // Do ensure liquidity on the market
-    auctionLogger.info(sellToken, buyToken, "Auction ended. Let's ensure liquidity")
+    auctionLogger.info({
+      sellToken,
+      buyToken,
+      msg: "Auction ended. Let's ensure liquidity"
+    })
     return this._ensureSellLiquidity({
       sellToken,
       buyToken,
@@ -64,20 +68,27 @@ class SellLiquidityBot extends Bot {
           //    had to sell tokens
           if (soldTokens) {
             // The bot sold some tokens
-            auctionLogger.info(sellToken, buyToken,
-              "I've sold %d %s tokens to ensure liquidity",
-              soldTokens.amount,
-              soldTokens.sellToken
-            )
-      
+            auctionLogger.info({
+              sellToken,
+              buyToken,
+              msg: "I've sold %d %s tokens to ensure liquidity",
+              params: [ soldTokens.amount, soldTokens.sellToken ]
+            })
+
             if (isRoutineCheck) {
-              auctionLogger.warn(sellToken, buyToken, "The liquidity was enssured by the routine check. Make sure there's no problem getting events")
+              auctionLogger.warn({
+                sellToken,
+                buyToken,
+                msg: "The liquidity was enssured by the routine check. Make sure there's no problem getting events"
+              })
             }
           } else {
             // The bot didn't have to do anything
-            auctionLogger.debug(sellToken, buyToken,
-              'Nothing to do'
-            )
+            auctionLogger.debug({
+              sellToken,
+              buyToken,
+              msg: 'Nothing to do'
+            })
           }
 
           return true
@@ -96,7 +107,11 @@ class SellLiquidityBot extends Bot {
 
   async _doRoutineLiquidityCheck (sellToken, buyToken) {
     // Do ensure liquidity on the market
-    auctionLogger.debug(sellToken, buyToken, "Doing a routine check. Let's see if we need to ensure the liquidity")
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: "Doing a routine check. Let's see if we need to ensure the liquidity"
+    })
     return this._ensureSellLiquidity({
       sellToken,
       buyToken,
@@ -106,12 +121,13 @@ class SellLiquidityBot extends Bot {
   }
 
   _handleError (sellToken, buyToken, error) {
-    auctionLogger.error(sellToken, buyToken,
-      'There was an error ensuring liquidity with the account %s: %s',
-      this._botAddress,
-      error.toString()
-    )
-    console.error(error)
+    auctionLogger.error({
+      sellToken,
+      buyToken,
+      msg: 'There was an error ensuring liquidity with the account %s: %s',
+      params: [ this._botAddress, error ],
+      error
+    })
   }
 
   async getInfo () {

@@ -1,4 +1,5 @@
 const debug = require('debug')('dx-service:conf')
+
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
   'DEFAULT_GAS',
