@@ -439,6 +439,10 @@ class AuctionRepoImpl {
     assert(from, 'The from param is required')
     assert(from, 'The amount is required')
 
+    const balance = await this.ethereumClient.balanceOf({ address: from })
+    assert(balance.greaterThanOrEqualTo(amount), `The user ${from.div(1e18)} \
+has just ${balance.div(1e18)} ETH (not able to wrap ${amount} ETH)`)
+
     // deposit ether
     const eth = this._tokens.ETH
     return eth.deposit({ from, value: amount })
@@ -483,6 +487,13 @@ class AuctionRepoImpl {
     assert(token, 'The token is required')
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')
+
+    const balance = await this.getBalanceERC20Token({
+      token,
+      address: from
+    })
+    assert(balance.greaterThanOrEqualTo(amount), `The user ${from} has just ${balance.div(1e18)} \
+${token} (not able to deposit ${amount.div(1e18)} ${token})`)
 
     return this
       ._transactionForToken({
