@@ -10,7 +10,7 @@ function init ({ sentryDsn: sentryDsnAux }) {
   if (enabled === null) {
     const environment = process.env.NODE_ENV
     const isLocal = environment === 'local'
-    enabled = isLocal
+    enabled = !isLocal
   }
   if (enabled && !initialized) {
     initialized = true
@@ -28,6 +28,7 @@ function setEnabled (enabledAux) {
 }
 
 function handleError ({
+  msg,
   error,
   request,
   user,
@@ -37,10 +38,15 @@ function handleError ({
   level,
   callback // = _defaultCaptureExceptionCallback
 }) {
+  const extraWithMsg = Object.assign({
+    msg
+  }, extra)
+
   Raven.captureException(error, {
     request,
     user,
     tags,
+    extra: extraWithMsg,
     fingerprint,
     level
   }, callback)
@@ -56,6 +62,7 @@ function message ({
   level,
   callback // = _defaultCaptureExceptionCallback
 }) {
+
   Raven.captureMessage(msg, {
     request,
     user,
