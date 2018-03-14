@@ -15,14 +15,17 @@ script:
     --mount type=tmpfs,destination=/usr/src/app/coverage
     -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     --net host dx-services /bin/bash -c "npm run travis-contracts-deploy; npm run test-coverage"
-after_success: |-
-  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker tag dx-services gnosispm/dx-services:staging;
-    docker push gnosispm/dx-services:staging;
-  elif [ "$TRAVIS_BRANCH" == "develop" ]; then
-    docker tag dx-services gnosispm/dx-services:develop;
-    docker push gnosispm/dx-services:develop;
+after_success:
+- # Create Docker image if branch master or develop and not on pull requests
+  if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker tag dx-services gnosispm/dx-services:staging;
+      docker push gnosispm/dx-services:staging;
+    elif [ "$TRAVIS_BRANCH" == "develop" ]; then
+      docker tag dx-services gnosispm/dx-services:develop;
+      docker push gnosispm/dx-services:develop;
+    fi
   fi
 env:
   global:
