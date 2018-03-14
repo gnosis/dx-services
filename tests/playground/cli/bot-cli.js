@@ -110,7 +110,15 @@ async function run ({
     // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
     // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
     // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
-    await printBalances({ accountName: 'User 1', account: user1, verbose: false })
+    let account, accountName
+    if (isLocal) {
+      account = user1
+      accountName = 'User 1 (account index 2)'
+    } else {
+      account = owner
+      accountName = 'User 1 (account index 1)'
+    }
+    await printBalances({ accountName, account, verbose: false })
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
