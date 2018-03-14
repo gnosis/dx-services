@@ -487,13 +487,11 @@ has just ${balance.div(1e18)} ETH (not able to wrap ${amount} ETH)`)
     assert(token, 'The token is required')
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')
-
-    const balance = await this.getBalanceERC20Token({
+    await this._assertBalance({
       token,
-      address: from
+      address: from,
+      amount
     })
-    assert(balance.greaterThanOrEqualTo(amount), `The user ${from} has just ${balance.div(1e18)} \
-${token} (not able to deposit ${amount.div(1e18)} ${token})`)
 
     return this
       ._transactionForToken({
@@ -542,7 +540,11 @@ ${token} (not able to deposit ${amount.div(1e18)} ${token})`)
     })
     // debug('amount: %d', amount)
     // debug('actualAmount: %d', actualAmount)
-    assert.equal(actualAmount.toNumber(), toBigNumber(amount).toNumber(), "The user doesn't have enough tokens")
+    await this._assertBalance({
+      token: sellToken,
+      address: from,
+      amount
+    })
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
     assert(isApprovedMarket, 'The token pair has not been approved')
@@ -604,14 +606,11 @@ ${token} (not able to deposit ${amount.div(1e18)} ${token})`)
     assert(from, 'The from param is required')
     assert(amount >= 0, 'The amount is required')
 
-    const actualAmount = await this._getMaxAmountAvaliable({
+    await this._assertBalance({
       token: buyToken,
       address: from,
-      maxAmount: amount
+      amount
     })
-    // debug('amount: %d', amount)
-    // debug('actualAmount: %d', actualAmount)
-    assert.equal(actualAmount.toNumber(), toBigNumber(amount).toNumber(), "The user doesn't have enough tokens")
 
     const hasClousingPrice = this._hasClosingPrice({ sellToken, buyToken, auctionIndex })
     assert(hasClousingPrice, 'The auction has closing price (has cleared)')
@@ -762,6 +761,18 @@ ${token} (not able to deposit ${amount.div(1e18)} ${token})`)
     return this
       ._doTransaction('addTokenPair', from, params)
       .then(toTransactionNumber)
+  }
+
+
+  async _assertBalance ({ token, address, amount }) {
+    const balance = await this.getBalanceERC20Token({
+      token,
+      address
+    })
+    assert(
+      balance.greaterThanOrEqualTo(amount),
+      `The user ${address} has just ${balance.div(1e18)} ${token} \
+(not able to use ${amount.div(1e18)} ${token})`)
   }
 
   async _assertMinimunFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {

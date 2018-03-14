@@ -52,17 +52,8 @@ class CliService {
     if (token === 'ETH') {
       // In case of the ETH, we make sure we have enough EtherTokens
       await this._depositEtherIfRequired({ amountInWei, accountAddress })
-    } else {
-      // Make sure the user has enogh tokens
-      const ownedTokens = await this._auctionRepo.getBalanceERC20Token({
-        token,
-        address: accountAddress
-      })
-  
-      assert(ownedTokens.greaterThanOrEqualTo(amountInWei),
-        `The user doesn't have enough tokens. The actual balance is: ${ownedTokens.div(1e18)} ${token}`)
     }
-    
+
     // Approce DX to use the tokens
     transactionResult = await this._auctionRepo.approveERC20Token({
       from: accountAddress,
