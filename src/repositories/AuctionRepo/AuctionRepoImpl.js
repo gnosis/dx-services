@@ -479,7 +479,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     assert(token, 'The token is required')
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')
-    await this._assertBalance({
+    await this._assertBalanceERC20Token({
       token,
       address: from,
       amount
@@ -525,13 +525,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     assert(amount, 'The amount is required')
 
     assert(amount > 0, 'The amount must be a positive number')
-    const actualAmount = await this._getMaxAmountAvaliable({
-      token: sellToken,
-      address: from,
-      maxAmount: amount
-    })
-    // debug('amount: %d', amount)
-    // debug('actualAmount: %d', actualAmount)
+
     await this._assertBalance({
       token: sellToken,
       address: from,
@@ -754,12 +748,27 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
       .then(toTransactionNumber)
   }
 
+  async _assertBalanceERC20Token ({ token, address, amount }) {
+    this._assertBalanceAux({ token, address, amount, balanceInDx: false })
+  }
 
   async _assertBalance ({ token, address, amount }) {
-    const balance = await this.getBalanceERC20Token({
-      token,
-      address
-    })
+    this._assertBalanceAux({ token, address, amount, balanceInDx: true })
+  }
+
+  async _assertBalanceAux ({ token, address, amount, balanceInDx }) {
+    let balance
+    if (balanceInDx) {
+      balance = await this.getBalance({
+        token,
+        address
+      })
+    } else {
+      balance = await this.getBalanceERC20Token({
+        token,
+        address
+      })
+    }
     const amountBigNumber = toBigNumber(amount)
     assert(
       balance.greaterThanOrEqualTo(amountBigNumber),
