@@ -24,6 +24,7 @@ async function run ({
   auctionRepo,
   ethereumClient,
 
+  mainAccount,
   owner,
   user1,
 
@@ -110,15 +111,7 @@ async function run ({
     // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
     // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
     // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
-    let account, accountName
-    if (isLocal) {
-      account = user1
-      accountName = 'User 1 (account index 2)'
-    } else {
-      account = owner
-      accountName = 'User 1 (account index 1)'
-    }
-    await printBalances({ accountName, account, verbose: false })
+    await printBalances({ accountName: 'Main user', account: mainAccount, verbose: false })
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
@@ -130,7 +123,7 @@ async function run ({
     const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
     const amount = parseFloat(amountString)
     const fromAddress = fromAddressOpc || owner
-    const toAddress = toAddressOpc || user1
+    const toAddress = toAddressOpc || mainAccount
 
     await printBalances({
       accountName: 'Balance before funding',
@@ -142,7 +135,7 @@ async function run ({
       token,
       amount,
       fromAddress: fromAddress || owner,
-      toAddress: toAddress || user1
+      toAddress: toAddress || mainAccount
     })
 
     await printBalances({
@@ -154,8 +147,7 @@ async function run ({
     // Fund account
     const [ token, amountString, accountAddressOpt ] = commander.fund
     const amount = parseFloat(amountString)
-    const defaultAccountAddress = isLocal ? user1 : owner
-    const accountAddress = accountAddressOpt || defaultAccountAddress
+    const accountAddress = accountAddressOpt || mainAccount
 
     await printBalances({
       accountName: 'Balance before funding',
@@ -241,7 +233,7 @@ async function run ({
     const [sellToken, buyToken, amountString, ...extra] = commander.buy
     const auctionIndex = (extra.lenth === 1) ? extra[0] : null
     await buySell('postBuyOrder', {
-      from: user1,
+      from: mainAccount,
       sellToken,
       buyToken,
       amount: parseFloat(amountString),
@@ -254,7 +246,7 @@ async function run ({
     console.log('auctionIndex', extra, auctionIndex)
 
     await buySell('postSellOrder', {
-      from: user1,
+      from: mainAccount,
       sellToken,
       buyToken,
       amount: parseFloat(amountString),
