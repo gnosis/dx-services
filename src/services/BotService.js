@@ -74,9 +74,10 @@ check should be done`
       ensureLiquidityPromise = Promise.resolve(null)
     } else {
       // Ensure liquidity + Create concurrency lock
-      ensureLiquidityPromise = new Promise((resolve, reject) => {
+      // ensureLiquidityPromise =
+      this.concurrencyCheck[lockName] = new Promise((resolve, reject) => {
         // Create lock and return promise
-        this.concurrencyCheck[lockName] = ensureLiquidityPromise
+        // this.concurrencyCheck[lockName] = ensureLiquidityPromise
 
         // Do ensure liquidiy
         this
@@ -98,6 +99,7 @@ check should be done`
             reject(error)
           })
       })
+      ensureLiquidityPromise = this.concurrencyCheck[lockName]
     }
 
     return ensureLiquidityPromise

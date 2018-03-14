@@ -62,6 +62,37 @@ test('It should ensureSellLiquidity', async () => {
     .toBeTruthy()
 })
 
+test('It should detect concurrency when ensuring liquidiy', async () => {
+  const { botService } = await setupPromise
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  const updatedAuction = Object.assign({}, auctionsMockData.auctions['ETH-OMG'],
+    { sellVolume: new BigNumber('0.5e18') })
+  const auctions = Object.assign({}, auctionsMockData.auctions,
+    { 'ETH-OMG': updatedAuction })
+  // we mock the auction repo
+  botService._auctionRepo = new AuctionRepoMock({ auctions })
+
+  // we wrap postSellOrder with jest mock functionalities
+  const postSellOrder = jest.fn(botService._auctionRepo.postSellOrder)
+  botService._auctionRepo.postSellOrder = postSellOrder
+
+  // GIVEN no calls to postSellOrder function
+  expect(postSellOrder.mock.calls.length).toBe(0)
+
+  // WHEN we ensure sell liquidity twice
+  let ensureLiquidityPromise1 = botService.ensureSellLiquidity({
+    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+  let ensureLiquidityPromise2 = botService.ensureSellLiquidity({
+    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+
+  await ensureLiquidityPromise1
+  await ensureLiquidityPromise2
+
+  // THEN expect 1 call to postSellOrder function
+  expect(postSellOrder.mock.calls.length).toBe(1)
+})
+
 test('It should not ensure liquidity if auction is not waiting for funding', async () => {
   const { botService } = await setupPromise
   // we mock the auction repo
