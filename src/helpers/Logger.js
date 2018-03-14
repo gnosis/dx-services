@@ -42,7 +42,7 @@ class Logger {
     msg,
     params = [],
     error,
-    notify,
+    notify = false,
     sufix = null,
     contextData = {}
   }) {
@@ -54,7 +54,11 @@ class Logger {
         console.error(error)
       }
 
-      const doNotify = notify !== undefined ? notify : messageNotifier.isEnabled()
+      const doNotify = (
+        notify ||
+        level === 'WARN' ||
+        level === 'ERROR'
+      ) && messageNotifier.isEnabled()
       if (doNotify) {
         new Promise((resolve, reject) => {
           const formattedMessage = _sprintf(msg, ...params)
