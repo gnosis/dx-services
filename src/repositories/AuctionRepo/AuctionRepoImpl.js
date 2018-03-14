@@ -240,8 +240,7 @@ class AuctionRepoImpl {
       ._callForPair({
         operation: 'getAuctionIndex',
         sellToken,
-        buyToken,
-        checkTokens: false
+        buyToken
       })
       .then(parseInt)
   }
@@ -252,8 +251,7 @@ class AuctionRepoImpl {
     const auctionStartEpoch = await this._callForPair({
       operation: 'getAuctionStart',
       sellToken,
-      buyToken,
-      checkTokens: false
+      buyToken
     })
 
     // The SC has 0 when the contract is initialized
@@ -318,8 +316,7 @@ class AuctionRepoImpl {
     return this._callForPair({
       operation: 'sellVolumesCurrent',
       sellToken,
-      buyToken,
-      checkTokens: false
+      buyToken
     })
   }
 
@@ -329,8 +326,7 @@ class AuctionRepoImpl {
     return this._callForPair({
       operation: 'sellVolumesNext',
       sellToken,
-      buyToken,
-      checkTokens: false
+      buyToken
     })
   }
 
@@ -340,8 +336,7 @@ class AuctionRepoImpl {
     return this._callForPair({
       operation: 'buyVolumes',
       sellToken,
-      buyToken,
-      checkTokens: false
+      buyToken
     })
   }
 
@@ -388,8 +383,7 @@ class AuctionRepoImpl {
       operation: 'extraTokens',
       sellToken,
       buyToken,
-      auctionIndex,
-      checkTokens: false
+      auctionIndex
     })
   }
 
@@ -402,8 +396,7 @@ class AuctionRepoImpl {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ],
-      checkTokens: false
+      args: [ address ]
     })
   }
 
@@ -416,8 +409,7 @@ class AuctionRepoImpl {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ],
-      checkTokens: false
+      args: [ address ]
     })
   }
 
@@ -430,8 +422,7 @@ class AuctionRepoImpl {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ],
-      checkTokens: false
+      args: [ address ]
     })
   }
 
@@ -684,8 +675,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
       operation: 'getUnclaimedBuyerFunds',
       sellToken,
       buyToken,
-      args: [address, auctionIndex],
-      checkTokens: false
+      args: [address, auctionIndex]
     })
   }
 
@@ -958,8 +948,7 @@ volume: ${state}`)
         operation: 'getPriceExt',
         sellToken,
         buyToken,
-        auctionIndex,
-        checkTokens: false
+        auctionIndex
       })
       .then(toFraction)
   }
@@ -989,8 +978,7 @@ volume: ${state}`)
         operation: 'closingPrices',
         sellToken,
         buyToken,
-        auctionIndex,
-        checkTokens: false
+        auctionIndex
       })
       .then(toFraction)
   }
@@ -1122,7 +1110,7 @@ volume: ${state}`)
     return this._debugOperation({ operation, params })
   }
 
-  async _callForPair ({ operation, sellToken, buyToken, args = [], checkTokens = true }) {
+  async _callForPair ({ operation, sellToken, buyToken, args = [], checkTokens = false }) {
     /*
     debug('Get "%s" for pair %s-%s. Args: %s',
       operation, sellToken, buyToken, args)
@@ -1141,7 +1129,7 @@ volume: ${state}`)
     buyToken,
     auctionIndex,
     args = [],
-    checkTokens = true
+    checkTokens = false
   }) {
     /*
     debug('Get %s for auction %d of pair %s-%s',
