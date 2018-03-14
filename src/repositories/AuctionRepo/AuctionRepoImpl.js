@@ -1236,9 +1236,8 @@ volume: ${state}`)
         params
       ]
     })
-    /*
-    const estimatedGas = await this
-      ._dx[operation]
+
+    const estimatedGas = await this._dx[operation]
       .estimateGas(...params, {
         from
       })
@@ -1247,13 +1246,13 @@ volume: ${state}`)
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
-    // const gas = estimatedGas // * 1.15
-    */
+    const gas = Math.ceil(estimatedGas * 2) // 1.15
 
     return this
       ._dx[operation](...params, {
         from,
         // gas: this._defaultGas,
+        gas,
         gasPrice: this._gasPrice
       }).catch(error => {
         logger.error({
