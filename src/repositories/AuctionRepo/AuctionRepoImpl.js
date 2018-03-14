@@ -531,7 +531,7 @@ class AuctionRepoImpl {
     })
     // debug('amount: %d', amount)
     // debug('actualAmount: %d', actualAmount)
-    assert.equal(toBigNumber(amount).toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
+    assert.equal(actualAmount.toNumber(), toBigNumber(amount).toNumber(), "The user doesn't have enough tokens")
 
     const isApprovedMarket = await this.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
     assert(isApprovedMarket, 'The token pair has not been approved')
@@ -600,7 +600,7 @@ class AuctionRepoImpl {
     })
     // debug('amount: %d', amount)
     // debug('actualAmount: %d', actualAmount)
-    assert.equal(toBigNumber(amount).toNumber(), actualAmount.toNumber(), "The user doesn't have enough tokens")
+    assert.equal(actualAmount.toNumber(), toBigNumber(amount).toNumber(), "The user doesn't have enough tokens")
 
     const hasClousingPrice = this._hasClosingPrice({ sellToken, buyToken, auctionIndex })
     assert(hasClousingPrice, 'The auction has closing price (has cleared)')
