@@ -1,7 +1,7 @@
 const loggerNamespace = 'dx-service:helpers:ContractLoader'
-const Debug = require('debug')
-const debug = Debug('DEBUG-' + loggerNamespace)
-const logError = Debug('ERROR-' + loggerNamespace)
+const Logger = require('../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 const assert = require('assert')
@@ -98,8 +98,8 @@ class ContractLoader {
   async _loadTokenContracts () {
     const standardTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.StandardToken)
-  
-    debug('this._erc20TokenAddresses: ', this._erc20TokenAddresses)
+
+    logger.debug('this._erc20TokenAddresses: %s', this._erc20TokenAddresses)
   
     const tokenContractList = await Promise.all(
       Object
@@ -168,23 +168,15 @@ only avaliable in LOCAL. Environment = ${environment}`)
       .deployed()
       .then(contractInstance => contractInstance.address)
       .catch(error => {
-        logError('Error loading the contract address from "%s": %s',
-          contractName, error.toString())
-        console.error(error)
+        logger.error({
+          msg: 'Error loading the contract address from "%s": %s',
+          params: [ contractName, error.toString() ],
+          error
+        })
 
         // Rethrow error after logging
         throw error
       })
   }
-  
 }
-
-function _handleError (error, message) {
-  logError(message)
-  console.error(error)
-
-  // Rethrow error after logging
-  throw error
-}
-
 module.exports = ContractLoader

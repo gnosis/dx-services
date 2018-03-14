@@ -71,7 +71,11 @@ class ApiService {
   async getCurrencies () {}
 
   async getAuctions ({ currencyA, currencyB }) {
-    auctionLogger.debug(currencyA, currencyB, 'Get auctions')
+    auctionLogger.debug({
+      sellToken: currencyA,
+      buyToken: currencyB,
+      msg: 'Get auctions'
+    })
     const auctionInfo = await this._auctionRepo.getStateInfo({
       sellToken: currencyA, buyToken: currencyB
     })
@@ -101,7 +105,7 @@ class ApiService {
   }
 
   async getCurrentPrice ({sellToken, buyToken}) {
-    auctionLogger.debug(sellToken, buyToken, 'Get current price')
+    auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({sellToken, buyToken})
     return this._auctionRepo.getPrice({sellToken, buyToken, auctionIndex})

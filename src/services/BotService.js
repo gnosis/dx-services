@@ -50,11 +50,12 @@ class BotService {
   }
 
   async ensureSellLiquidity ({ sellToken, buyToken, from }) {
-    auctionLogger.debug(
-      sellToken, buyToken,
-      'Ensure that sell liquidity is over $%d',
-      this._minimumSellVolume
-    )
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Ensure that sell liquidity is over $%d',
+      params: [ this._minimumSellVolume ]
+    })
     assert(from, 'The "from" account is required')
 
     const lockName = this._getAuctionLockName('SELL-LIQUIDITY', sellToken, buyToken)
@@ -64,8 +65,12 @@ class BotService {
     if (ensureLiquidityPromise) {
       // We don't do concurrent liquidity checks
       // return that there was no need to sell (returns "null")
-      auctionLogger.warn(sellToken, buyToken, `There is a concurrent liquidity \
-check going on, so no aditional check should be done`)
+      auctionLogger.warn({
+        sellToken,
+        buyToken,
+        msg: `There is a concurrent liquidity check going on, so no aditional \
+check should be done`
+      })
       ensureLiquidityPromise = Promise.resolve(null)
     } else {
       // Ensure liquidity + Create concurrency lock
@@ -124,10 +129,12 @@ check going on, so no aditional check should be done`)
         fundingB.lessThan(this._minimumSellVolume)
       ) {
         // Not enough liquidity
-        auctionLogger.info(tokenA, tokenB,
-          'Not enough liquidity for auction %d: %s=$%d, %s=$%d',
-          auctionIndex, tokenA, fundingA, tokenB, fundingB
-        )
+        auctionLogger.info({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          msg: 'Not enough liquidity for auction %d: %s=$%d, %s=$%d',
+          params: [ auctionIndex, tokenA, fundingA, tokenB, fundingB ]
+        })
         // Do sell in the correct auction
         sellLiquidityResult = await this._sellTokenToCreateLiquidity({
           tokenA, fundingA, tokenB, fundingB, auctionIndex, from
@@ -143,8 +150,11 @@ keeps happening`
       }
     } else {
       // Not sell is required
-      auctionLogger.debug(tokenA, tokenB, `No sell is required, we are not in \
-a waiting for funding state`)
+      auctionLogger.debug({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        msg: `No sell is required, we are not in a waiting for funding state`
+      })
       sellLiquidityResult = null
     }
 
@@ -186,10 +196,12 @@ a waiting for funding state`)
       .ceil()
 
     // Sell the missing difference
-    auctionLogger.info(sellToken, buyToken,
-      'Selling %d %s ($%d)',
-      amountInSellTokens.div(1e18), sellToken, amountToSellInUSD
-    )
+    auctionLogger.info({
+      sellToken,
+      buyToken,
+      msg: 'Selling %d %s ($%d)',
+      params: [ amountInSellTokens.div(1e18), sellToken, amountToSellInUSD ]
+    })
     await this._auctionRepo.postSellOrder({
       sellToken,
       buyToken,

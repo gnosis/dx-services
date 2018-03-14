@@ -31,8 +31,10 @@ class CliService {
       amount: amountInWei
     })
 
-    logger.info('Transfered %d %s from %s to %s. Transaction: %s',
-      amount, token, fromAddress, toAddress)
+    logger.info({
+      msg: 'Transfered %d %s from %s to %s. Transaction: %s',
+      params: [ amount, token, fromAddress, toAddress ]
+    })
 
     return transactionResult.tx
   }
@@ -40,8 +42,10 @@ class CliService {
   async fundAccount ({ token, amount, accountAddress }) {
     // Get the account we want to fund
     // const accountAddress = await this._getAccountAddress(accountIndex)
-    logger.info('Fund the account %s with %d %s',
-      accountAddress, amount, token)
+    logger.info({
+      msg: 'Fund the account %s with %d %s',
+      params: [ accountAddress, amount, token ]
+    })
 
     let transactionResult
     const amountInWei = numberUtil.toWei(amount)
@@ -65,8 +69,10 @@ class CliService {
       token,
       amount: amountInWei
     })
-    logger.info('Approved the DX to use %d %s on behalf of the user. Transaction: %s',
-      amount, token, transactionResult.tx)
+    logger.info({
+      msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
+      params: [ amount, token, transactionResult.tx ]
+    })
 
     // Deposit the tokens into the user account balance
     transactionResult = await this._auctionRepo.deposit({
@@ -74,8 +80,10 @@ class CliService {
       token,
       amount: amountInWei
     })
-    logger.info('Deposited %d %s into DX account balances for the user. Transaction: %s',
-      amount, token, transactionResult.tx)
+    logger.info({
+      msg: 'Deposited %d %s into DX account balances for the user. Transaction: %s',
+      params: [ amount, token, transactionResult.tx ]
+    })
 
     return this._auctionRepo.getBalance({
       token,
@@ -95,18 +103,21 @@ class CliService {
 
     if (etherTokenBalance.lessThan(amountInWei)) {
       const missingDifferenceInWeis = amountInWei.minus(etherTokenBalance)
-      logger.info(`We don't have enogth EtherTokens, so we need to deposit: %d ETH`,
-        missingDifferenceInWeis.div(1e18))
+      logger.info({
+        msg: `We don't have enogth EtherTokens, so we need to deposit: %d ETH`,
+        params: [ missingDifferenceInWeis.div(1e18) ]
+      })
 
       transactionResult = await this._auctionRepo.depositEther({
         from: accountAddress,
         amount: missingDifferenceInWeis
       })
-      logger.info('Wrapped %d ETH in a ERC20 ETH token. Transaction: %s',
-        amountInWei.div(1e18), transactionResult.tx)
+      logger.info({
+        msg: 'Wrapped %d ETH in a ERC20 ETH token. Transaction: %s',
+        params: [ amountInWei.div(1e18), transactionResult.tx ]
+      })
     }
   }
-
 
   async _getAccountAddress (accountIndex) {
     const accounts = await this._ethereumRepo.getAccounts(accountIndex)

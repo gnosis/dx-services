@@ -53,14 +53,17 @@ class AuctionEventWatcher {
   }
 
   async stop () {
-    logger.info('Stopping the auction watch...')
+    logger.info({ msg: 'Stopping the auction watch...' })
     this._watchingFilter.stopWatching()
     this._watchingFilter = null
-    logger.info('Stopped watching for events')
+    logger.info({ msg: 'Stopped watching for events' })
   }
 
   _doWatch () {
-    logger.info('Start to follow the markets [%o]...', this._knownMarkets.join(', '))
+    logger.info({
+      msg: 'Start to follow the markets [%s]...',
+      params: [ this._knownMarkets.join(', ') ]
+    })
     const that = this
     try {
       this._watchingFilter = ethereumEventHelper.watch({
@@ -73,24 +76,37 @@ class AuctionEventWatcher {
         //, events: EVENTS_TO_LISTEN
       })
     } catch (error) {
-      logger.error('Error watching events: ' + error.toString())
+      logger.error({
+        msg: 'Error watching events: ' + error.toString(),
+        error
+      })
+      
       if (this._watchingFilter !== null) {
         // If there was a watchingFilter, means that we were watching
         // succesfully for events, but somthing happend (i.e. we lost connection)
         //  * In this case we retry in some seconds
-        console.error(error)
+        logger.error({
+          msg: 'Error watching events: ' + error.toString(),
+          error
+        })
+
         if (this._watchingFilter) {
           try {
             this._watchingFilter.stopWatching()
           } catch (errorStoppingWatch) {
-            logger.error(`Error when trying stop watching events (handling an \
-  error watching the blockchain): ` + errorStoppingWatch.toString())
-            console.error(errorStoppingWatch)
+            logger.error({
+              msg: `Error when trying stop watching events (handling an \
+error watching the blockchain): ` + errorStoppingWatch.toString(),
+              error: errorStoppingWatch
+            })
           }
         }
 
         this._watchingFilter = null
-        logger.error('Retrying to connect in %d seconds', RETRY_WATCH_EVENTS_MILLISECONDS / 1000)
+        logger.error({
+          msg: 'Retrying to connect in %d seconds',
+          params: [ RETRY_WATCH_EVENTS_MILLISECONDS / 1000 ]
+        })
         setTimeout(() => {
           this._doWatch()
         }, RETRY_WATCH_EVENTS_MILLISECONDS)
@@ -103,10 +119,15 @@ class AuctionEventWatcher {
   }
 
   _handleEvent (error, eventData) {
-    logger.debug('Got event %s - %o', eventData.event, eventData)
+    logger.debug({
+      msg: 'Got event %s - %o',
+      params: [ eventData.event, eventData ]
+    })
     if (error) {
-      logger.error('Error watching events: ' + error.toString())
-      console.error(error)
+      logger.error({
+        msg: 'Error watching events: ' + error.toString(),
+        error
+      })
     } else {
       switch (eventData.event) {
         case 'AuctionCleared':
@@ -132,7 +153,11 @@ class AuctionEventWatcher {
 
     // Check if the cleared auction is of a known market
     if (tokensAreKnown) {
-      auctionLogger.info(tokenA, tokenB, 'The auction has cleared')
+      auctionLogger.info({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        msg: 'The auction has cleared'
+      })
       this._eventBus.trigger(events.EVENT_AUCTION_CLEARED, {
         sellToken: tokenA,
         buyToken: tokenB,
@@ -141,9 +166,11 @@ class AuctionEventWatcher {
         auctionIndex: auctionIndex.toNumber()
       })
     } else {
-      auctionLogger.error(sellToken, buyToken,
-        'One auction cleared, but it was for a known pair: %s-%s'
-      )
+      auctionLogger.warn({
+        sellToken,
+        buyToken,
+        msg: 'One auction cleared, but it was for a known pair: %s-%s'
+      })
     }
   }
 }
