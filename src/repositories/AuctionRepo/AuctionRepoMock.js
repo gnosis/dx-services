@@ -96,12 +96,12 @@ class AuctionRepoMock {
     const sellVolumeA = this._getAuction({ sellToken: tokenA, buyToken: tokenB }).sellVolume
     const sellVolumeB = this._getAuction({ sellToken: tokenB, buyToken: tokenA }).sellVolume
 
-    const fundingA = this._getPriceInUSD({
+    const fundingA = this.getPriceInUSD({
       token: tokenA,
       amount: sellVolumeA
     })
 
-    const fundingB = this._getPriceInUSD({
+    const fundingB = this.getPriceInUSD({
       token: tokenB,
       amount: sellVolumeB
     })
@@ -113,10 +113,10 @@ class AuctionRepoMock {
     }
   }
 
-  async getPriceFromUSDInTokens ({token, amount}) {
+  async getPriceFromUSDInTokens ({token, amountOfUsd}) {
     const ethUsdPrice = await this.getPriceEthUsd()
     debug('Eth/Usd Price for %s: %d', token, ethUsdPrice)
-    let amountInETH = amount.div(ethUsdPrice)
+    let amountInETH = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
     if (token === 'ETH') {
@@ -213,7 +213,7 @@ class AuctionRepoMock {
     return this._auctions[sellToken + '-' + buyToken]
   }
 
-  _getPriceInUSD ({ token, amount }) {
+  getPriceInUSD ({ token, amount }) {
     const price = this._pricesInUSD.find(price => {
       return price.token === token
     }).price

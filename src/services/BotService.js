@@ -190,7 +190,7 @@ keeps happening`
     const amountInSellTokens = (await this._auctionRepo
       .getPriceFromUSDInTokens({
         token: sellToken,
-        amount: amountToSellInUSD
+        amountOfUsd: amountToSellInUSD
       }))
       // Round up
       .ceil()

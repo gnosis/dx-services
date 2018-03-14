@@ -781,21 +781,21 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     // get the funded value in USD
     let fundedValueUSD
     if (tokenA === 'ETH') {
-      fundedValueUSD = await this._getPriceInUSD({
+      fundedValueUSD = await this.getPriceInUSD({
         token: tokenA,
         amount: actualAFunding
       })
     } else if (tokenB === 'ETH') {
-      fundedValueUSD = await this._getPriceInUSD({
+      fundedValueUSD = await this.getPriceInUSD({
         token: tokenB,
         amount: actualBFunding
       })
     } else {
-      const fundingAInUSD = await this._getPriceInUSD({
+      const fundingAInUSD = await this.getPriceInUSD({
         token: tokenA,
         amount: actualAFunding
       })
-      const fundingBInUSD = await this._getPriceInUSD({
+      const fundingBInUSD = await this.getPriceInUSD({
         token: tokenB,
         amount: actualBFunding
       })
@@ -831,12 +831,12 @@ currentAuctionIndex=${currentAuctionIndex}`)
     const sellVolumeA = await this[getSellVolumeFn]({ sellToken: tokenA, buyToken: tokenB })
     const sellVolumeB = await this[getSellVolumeFn]({ sellToken: tokenB, buyToken: tokenA })
 
-    const fundingA = await this._getPriceInUSD({
+    const fundingA = await this.getPriceInUSD({
       token: tokenA,
       amount: sellVolumeA
     })
 
-    const fundingB = await this._getPriceInUSD({
+    const fundingB = await this.getPriceInUSD({
       token: tokenB,
       amount: sellVolumeB
     })
@@ -847,7 +847,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     }
   }
 
-  async _getPriceInUSD ({ token, amount }) {
+  async getPriceInUSD ({ token, amount }) {
     const ethUsdPrice = await this.getPriceEthUsd()
     logger.debug({
       msg: 'Eth/Usd Price for %s: %d',
@@ -875,10 +875,10 @@ currentAuctionIndex=${currentAuctionIndex}`)
       .div(1e18)
   }
 
-  async getPriceFromUSDInTokens ({ token, amount }) {
+  async getPriceFromUSDInTokens ({ token, amountOfUsd }) {
     const ethUsdPrice = await this.getPriceEthUsd()
     logger.debug('Eth/Usd Price for %s: %d', token, ethUsdPrice)
-    let amountInETH = amount.div(ethUsdPrice)
+    let amountInETH = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
     if (token === 'ETH') {
@@ -1094,7 +1094,7 @@ volume: ${state}`)
     return tokenContract
   }
 
-  async _getTokenAddress (token, check = true) {
+  async _getTokenAddress (token, check = false) {
     const tokenAddress = this._getTokenContract(token).address
     if (check) {
       const isApprovedToken = await this.isApprovedToken({ token })
@@ -1256,7 +1256,7 @@ volume: ${state}`)
     return this
       ._dx[operation](...params, {
         from,
-        gas: this._defaultGas,
+        // gas: this._defaultGas,
         gasPrice: this._gasPrice
       }).catch(error => {
         logger.error({

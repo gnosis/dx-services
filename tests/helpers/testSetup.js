@@ -521,22 +521,44 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
             // get token balance in DX
             auctionRepo.getBalance({ token, address: account })
           ])
-          .then(([ amount, allowance, totalSupply, amountInDx ]) => {
+          .then(async ([ amount, allowance, totalSupply, amountInDx ]) => {
+            const priceUsdInDx = await auctionRepo
+              .getPriceInUSD({
+                token, amount: amountInDx
+              })
+              .then(price => price.toFixed(2))
+              .catch(() => '???')
+
+            const priceUsd = await auctionRepo
+              .getPriceInUSD({ token, amount })
+              .then(price => price.toFixed(2))
+              .catch(() => '???')
+
             return {
               tokenAddress,
               token,
               amount,
               allowance,
               totalSupply,
-              amountInDx
+              amountInDx,
+              priceUsdInDx,
+              priceUsd
             }
           })
       }))
 
     balances.forEach(balance => {
       debug('\n\tBalances %s:', balance.token)
-      debug('\t\t- Balance in DX: ' + formatFromWei(balance.amountInDx))
-      debug('\t\t- Balance of user: ' + formatFromWei(balance.amount))
+      debug(
+        '\t\t- Balance in DX: %s (%s USD)',
+        formatFromWei(balance.amountInDx),
+        balance.priceUsdInDx
+      )
+      debug(
+        '\t\t- Balance of user: %s (%s USD)',
+        formatFromWei(balance.amount),
+        balance.priceUsd
+      )
 
       if (verbose) {
         debug('\t\t- Approved for DX: ' + formatFromWei(balance.allowance))
