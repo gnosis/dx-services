@@ -1,6 +1,6 @@
 {
   "name": "dx-services",
-  "version": "0.0.9-SNAPSHOT",
+  "version": "0.0.9",
   "description": "",
   "main": "src/main.js",
   "directories": {
