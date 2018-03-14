@@ -72,7 +72,8 @@ class SellLiquidityBot extends Bot {
               sellToken,
               buyToken,
               msg: "I've sold %d %s tokens to ensure liquidity",
-              params: [ soldTokens.amount, soldTokens.sellToken ]
+              params: [ soldTokens.amount, soldTokens.sellToken ],
+              notify: true
             })
 
             if (isRoutineCheck) {

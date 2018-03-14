@@ -133,7 +133,8 @@ check should be done`
           sellToken: tokenA,
           buyToken: tokenB,
           msg: 'Not enough liquidity for auction %d: %s=$%d, %s=$%d',
-          params: [ auctionIndex, tokenA, fundingA, tokenB, fundingB ]
+          params: [ auctionIndex, tokenA, fundingA, tokenB, fundingB ],
+          notify: true
         })
         // Do sell in the correct auction
         sellLiquidityResult = await this._sellTokenToCreateLiquidity({
