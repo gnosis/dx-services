@@ -188,8 +188,8 @@ keeps happening`
       }))
       // Round up
       .ceil()
-    
-    const gasPrice = await this._gasPriceRepo.getPrice()
+
+    const gasPrice = await this._ethereumRepo.getGasPrice()
 
     // Sell the missing difference
     auctionLogger.info({
