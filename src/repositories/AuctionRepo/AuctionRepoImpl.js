@@ -512,7 +512,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
   }
 
   async postSellOrder ({
-    sellToken, buyToken, auctionIndex, from, amount
+    sellToken, buyToken, auctionIndex, from, amount, gasPrice
   }) {
     /*
     logger.debug('postSellOrder: %o', {
@@ -576,7 +576,8 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         sellToken,
         buyToken,
         auctionIndex,
-        args: [ amount ]
+        args: [ amount ],
+        gasPrice
       })
       .then(toTransactionNumber)
   }
@@ -744,7 +745,11 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
 
     // debug('Add tokens with params: %o', params)
     return this
-      ._doTransaction('addTokenPair', from, params)
+      ._doTransaction({
+        operation: 'addTokenPair',
+        from,
+        params
+      })
       .then(toTransactionNumber)
   }
 
@@ -1165,7 +1170,7 @@ volume: ${state}`)
     ]
 
     // logger.debug('Params: %o', params)
-    return this._doTransaction(operation, from, params)
+    return this._doTransaction({ operation, from, params })
   }
 
   async _transactionForPair ({
@@ -1185,7 +1190,7 @@ volume: ${state}`)
       buyTokenAddress,
       ...args
     ]
-    return this._doTransaction(operation, from, params)
+    return this._doTransaction({ operation, from, params })
   }
 
   async _debugOperation ({ operation, params }) {
@@ -1208,7 +1213,8 @@ volume: ${state}`)
     buyToken,
     auctionIndex,
     args = [],
-    checkTokens
+    checkTokens,
+    gasPrice
   }) {
     auctionLogger.debug({
       sellToken,
@@ -1224,10 +1230,10 @@ volume: ${state}`)
       auctionIndex,
       ...args
     ]
-    return this._doTransaction(operation, from, params)
+    return this._doTransaction({ operation, from, gasPrice, params })
   }
 
-  async _doTransaction (operation, from, params) {
+  async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params }) {
     logger.debug({
       msg: '_doTransaction: %o',
       params: [
@@ -1237,12 +1243,24 @@ volume: ${state}`)
       ]
     })
 
+    let gasPricePromise
+    if (gasPriceParam) {
+      // Use the provided gas price
+      gasPricePromise = Promise.resolve(gasPriceParam)
+    } else {
+      // Get safe low gas price by default
+      gasPricePromise = this._ethereumClient
+        .getGasPrices()
+        .then(gasPrices => gasPrices.safeLow)
+    }
+
     const [ gasPrice, estimatedGas ] = await Promise.all([
-      // Get gas price
-      this._ethereumClient.getGasPrices().then(gasPrices => gasPrices.safeLow),
+      // Get gasPrice
+      gasPricePromise,
 
       // Estimate gas
-      this._dx[operation].estimateGas(...params, { from })
+      this._dx[operation]
+        .estimateGas(...params, { from })
     ])
 
     logger.debug({
