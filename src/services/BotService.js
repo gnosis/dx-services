@@ -59,10 +59,9 @@ class BotService {
     assert(from, 'The "from" account is required')
 
     const lockName = this._getAuctionLockName('SELL-LIQUIDITY', sellToken, buyToken)
-    let ensureLiquidityPromise = this.concurrencyCheck[lockName]
 
     // Check if there's an ongoing liquidity check
-    if (ensureLiquidityPromise) {
+    if (this.concurrencyCheck[lockName]) {
       // We don't do concurrent liquidity checks
       // return that there was no need to sell (returns "null")
       auctionLogger.warn({
@@ -71,38 +70,30 @@ class BotService {
         msg: `There is a concurrent liquidity check going on, so no aditional \
 check should be done`
       })
-      ensureLiquidityPromise = Promise.resolve(null)
+      return Promise.resolve(null)
     } else {
       // Ensure liquidity + Create concurrency lock
-      // ensureLiquidityPromise =
-      this.concurrencyCheck[lockName] = new Promise((resolve, reject) => {
-        // Create lock and return promise
-        // this.concurrencyCheck[lockName] = ensureLiquidityPromise
-
+      this.concurrencyCheck[lockName] = this
         // Do ensure liquidiy
-        this
-          ._doEnsureSellLiquidity({
-            tokenA: sellToken,
-            tokenB: buyToken,
-            from
-          })
-          .then(result => {
-            // Success
-            // Clear concurrency lock and resolve proise
-            this.concurrencyCheck[lockName] = null
-            resolve(result)
-          })
-          .catch(error => {
-            // Error
-            // Clear concurrency and reject promise
-            this.concurrencyCheck[lockName] = null
-            reject(error)
-          })
-      })
-      ensureLiquidityPromise = this.concurrencyCheck[lockName]
+        ._doEnsureSellLiquidity({
+          tokenA: sellToken,
+          tokenB: buyToken,
+          from
+        })
+        .then(result => {
+          // Success
+          // Clear concurrency lock and resolve proise
+          this.concurrencyCheck[lockName] = null
+          return result
+        })
+        .catch(error => {
+          // Error
+          // Clear concurrency and reject promise
+          this.concurrencyCheck[lockName] = null
+          throw error
+        })
+      return this.concurrencyCheck[lockName]
     }
-
-    return ensureLiquidityPromise
   }
 
   async _doEnsureSellLiquidity ({ tokenA, tokenB, from }) {
