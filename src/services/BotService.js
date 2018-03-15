@@ -210,7 +210,8 @@ keeps happening`
     return {
       sellToken,
       buyToken,
-      amount: amountToSellInUSD
+      amount: amountInSellTokens,
+      amountInUSD: amountToSellInUSD
     }
   }
 
