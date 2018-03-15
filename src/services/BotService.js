@@ -197,6 +197,8 @@ keeps happening`
       }))
       // Round up
       .ceil()
+    
+    const gasPrice = await this._gasPriceRepo.getPrice()
 
     // Sell the missing difference
     auctionLogger.info({
@@ -210,7 +212,8 @@ keeps happening`
       buyToken,
       amount: amountInSellTokens,
       auctionIndex,
-      from
+      from,
+      gasPrice: gasPrice.average
     })
 
     return {
