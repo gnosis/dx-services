@@ -1237,10 +1237,13 @@ volume: ${state}`)
       ]
     })
 
-    const estimatedGas = await this._dx[operation]
-      .estimateGas(...params, {
-        from
-      })
+    const [ gasPrice, estimatedGas ] = await Promise.all([
+      // Get gas price
+      this._ethereumClient.getGasPrices().then(gasPrices => gasPrices.safeLow),
+
+      // Estimate gas
+      this._dx[operation].estimateGas(...params, { from })
+    ])
 
     logger.debug({
       msg: '_doTransaction. Estimated gas for "%s": %d',
@@ -1253,7 +1256,7 @@ volume: ${state}`)
         from,
         // gas: this._defaultGas,
         gas,
-        gasPrice: this._gasPrice
+        gasPrice
       }).catch(error => {
         logger.error({
           msg: 'Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
