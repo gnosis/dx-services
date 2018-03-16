@@ -7,7 +7,8 @@ const ENV_VAR_LIST = [
   'DX_CONTRACT_ADDRESS',
   'GNO_TOKEN_ADDRESS',
   'MNEMONIC',
-  'MARKETS',
+  // TODO: important to uncoment after the tests in DEV
+  // 'MARKETS',
   'MINIMUM_SELL_VOLUME_USD',
   'API_PORT',
   'API_HOST'
