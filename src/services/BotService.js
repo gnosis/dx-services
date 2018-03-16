@@ -203,8 +203,8 @@ keeps happening`
       buyToken,
       amount: amountInSellTokens,
       auctionIndex,
-      from,
-      gasPrice: gasPrice.average
+      from
+      // gasPrice: gasPrice.safeLow
     })
 
     return {
