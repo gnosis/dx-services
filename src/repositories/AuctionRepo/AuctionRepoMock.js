@@ -116,18 +116,18 @@ class AuctionRepoMock {
   async getPriceFromUSDInTokens ({token, amountOfUsd}) {
     const ethUsdPrice = await this.getPriceEthUsd()
     debug('Eth/Usd Price for %s: %d', token, ethUsdPrice)
-    let amountInETH = amountOfUsd.div(ethUsdPrice)
+    let amountInEth = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
     if (token === 'ETH') {
-      amountInToken = amountInETH
+      amountInToken = amountInEth
     } else {
-      const priceTokenETH = await this.getPriceInEth({ token })
+      const priceTokenEth = await this.getPriceInEth({ token })
       debug('Price of token %s in ETH: %d', token,
-        priceTokenETH.numerator.div(priceTokenETH.denominator))
-      amountInToken = amountInETH
-        .mul(priceTokenETH.denominator)
-        .div(priceTokenETH.numerator)
+        priceTokenEth.numerator.div(priceTokenEth.denominator))
+      amountInToken = amountInEth
+        .mul(priceTokenEth.denominator)
+        .div(priceTokenEth.numerator)
     }
 
     return amountInToken.mul(1e18)
