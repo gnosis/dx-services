@@ -47,17 +47,16 @@ class Logger {
     contextData = {}
   }) {
     const logger = this._getLogger(level, sufix)
-    if (logger.enabled) {
+    const isErrorOrWarning = (level === 'WARN' || level === 'ERROR')
+    if (isErrorOrWarning || logger.enabled) {
       logger(msg, ...params)
-
       if (error) {
         console.error(error)
       }
 
       const doNotify = (
         notify ||
-        level === 'WARN' ||
-        level === 'ERROR'
+        isErrorOrWarning
       ) && messageNotifier.isEnabled()
       if (doNotify) {
         new Promise((resolve, reject) => {

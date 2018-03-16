@@ -8,6 +8,9 @@ const HDWalletProvider = require('truffle-hdwallet-provider')
 const got = require('got')
 const ROOT_DIR = '../../'
 
+const environment = process.env.NODE_ENV
+const isPro = environment === 'pro'
+
 // See: https://ethgasstation.info/json/ethgasAPI.json
 const URL_GAS_PRICE_PROVIDER = 'https://ethgasstation.info/json/ethgasAPI.json'
 const DEFAULT_GAS_PRICES = {
@@ -56,18 +59,40 @@ class EthereumClient {
   }
 
   async getGasPrices () {
-    return this
-      ._doGetPrices()
+    // In the test nets, we don't have ETH Gas Estation
+    let getGasPricePromise
+    if (isPro) {
+      getGasPricePromise = this._doGetPricesFromFeed()
+    } else {
+      getGasPricePromise = this._doGetPricesFromWeb3()
+    }
+
+    return getGasPricePromise
       // In case of error, return the default (and notify error)
-      .catch(error => _handlePriceFeedError(error))
+      .catch(error => _handleGetGasPriceError(error))
   }
 
-  async _doGetPrices () {
+  async _doGetPricesFromFeed () {
     const response = await got(URL_GAS_PRICE_PROVIDER, {
       json: true
     })
 
-    return _toDto(response.body)
+    return _toGasPricesDto(response.body)
+  }
+
+  async _doGetPricesFromWeb3 () {
+    const gasPrice = await _promisify(this._web3.eth.gasPrice)
+
+    return {
+      safeLow: gasPrice * 0.9,
+      safeLowWait: DEFAULT_GAS_PRICES.safeLowWait,
+
+      average: gasPrice,
+      averageWait: DEFAULT_GAS_PRICES.averageWait,
+
+      fast: gasPrice * 2,
+      fastWait: DEFAULT_GAS_PRICES.fastWait
+    }
   }
 
   async getBlock (blockNumber) {
@@ -88,6 +113,7 @@ class EthereumClient {
   async geLastBlockTime () {
     // const blockNumber = this.getBlockNumber()
     // return this._promisify(this._web3.eth.getBlock, blockNumber)
+
     return this.getBlock()
       .then(block => new Date(block.timestamp * 1000))
   }
@@ -199,7 +225,7 @@ async function _promisify (fn, param) {
   })
 }
 
-function _handlePriceFeedError (error) {
+function _handleGetGasPriceError (error) {
   // Notify error
   logger.error({
     msg: 'Error getting the price from ETH Gas Station: %s',
@@ -208,10 +234,10 @@ function _handlePriceFeedError (error) {
   })
 
   // Return fallback default gas price
-  return _toDto(DEFAULT_GAS_PRICES)
+  return _toGasPricesDto(DEFAULT_GAS_PRICES)
 }
 
-function _toDto (gasPrices) {
+function _toGasPricesDto (gasPrices) {
   return {
     safeLow: gasPrices.safeLow / 10,
     safeLowWait: gasPrices.safeLowWait,
