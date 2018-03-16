@@ -4,13 +4,13 @@ const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
 
 const numberUtil = require('../../src/helpers/numberUtil')
-
 const formatUtil = require('../../src/helpers/formatUtil')
+
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
 
 const NUM_TEST_USERS = 1
 const TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS = 6 * 60 * 60 * 1000
-const environment = process.env.NODE_ENV
-const isLocal = environment === 'local'
 
 const INITIAL_AMOUNTS = {
   ETH: 20,
@@ -42,7 +42,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts
-  const mainAccount = isLocal ? user1 : owner
+  const botAccount = isLocal ? user1 : owner
 
   const supportedTokens = config.MARKETS.reduce((acc, market) => {
     if (!acc.includes(market.tokenA)) acc.push(market.tokenA)
@@ -706,7 +706,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
   return {
     web3,
     address,
-    mainAccount,
+    botAccount,
     owner,
     user1,
     user2,

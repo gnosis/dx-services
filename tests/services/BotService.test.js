@@ -36,34 +36,51 @@ test.skip('If both auctions are closed, and not enough liquidity. We buy the mis
 test('It should ensureSellLiquidity', async () => {
   const { botService } = await setupPromise
 
-  function _isValidSellVolume (sellVolume, fundingSellVolume) {
-    return sellVolume.greaterThan(fundingSellVolume)
-  }
-
-  // GIVEN a not RUNNING auction, without enough sell liquidiy
   // we mock the auction repo
   botService._auctionRepo = new AuctionRepoMock({
     auctions: _getAuctionsWithUnderFundingEthOmg()
   })
 
+  async function _isUnderFundingAuction ({ tokenA, tokenB }) {
+    const auctionIndex = await botService._auctionRepo.getAuctionIndex({
+      sellToken: tokenA, buyToken: tokenB })
+    const { fundingA, fundingB } = await botService._auctionRepo.getFundingInUSD({
+      tokenA, tokenB, auctionIndex
+    })
+
+    return fundingA.lessThan(MINIMUM_SELL_VOLUME) &&
+    fundingB.lessThan(MINIMUM_SELL_VOLUME)
+  }
+
+  function _isValidSellVolume (sellVolume, fundingSellVolume) {
+    return sellVolume.greaterThan(fundingSellVolume)
+  }
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'ETH' }))
+    .toBeTruthy()
+
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await botService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
 
-  // THEN bot sells 523$ in OMG-ETH
+  // THEN bot sells in OMG-ETH, the pair market we expect
   const expectedBotSell = {
-    // FIXME: do not use magic numbers :) (test the values)
-    amountInUSD: new BigNumber('523.97'),
     buyToken: 'OMG',
-    sellToken: 'ETH',
-    amount: new BigNumber('522943983903581174')
+    sellToken: 'ETH'
   }
   expect(ensureLiquidityState).toMatchObject(expectedBotSell)
 
   // THEN new sell volume is valid
-  let newSellVolume = await botService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
-  expect(_isValidSellVolume(newSellVolume, UNDER_MINIMUM_FUNDING_ETH))
+  let currentSellVolume = await botService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
+  expect(_isValidSellVolume(currentSellVolume, UNDER_MINIMUM_FUNDING_ETH))
     .toBeTruthy()
+  expect(_isValidSellVolume(currentSellVolume, ensureLiquidityState.amount))
+    .toBeTruthy()
+
+  // THEN is not underfunding auction
+  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'ETH' }))
+    .toBeFalsy()
 })
 
 test('It should detect concurrency when ensuring liquidiy', async () => {
@@ -127,6 +144,11 @@ test('It should not ensure liquidity if auction has enough funds', async () => {
     expect(e).toBeInstanceOf(Error)
   }
 })
+
+// DX Fee up to 0.5%
+// const MAXIMUM_DX_FEE = 0.005
+
+const MINIMUM_SELL_VOLUME = 1000
 
 const UNDER_MINIMUM_FUNDING_ETH = new BigNumber('0.5e18')
 

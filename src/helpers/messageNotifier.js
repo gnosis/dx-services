@@ -11,7 +11,7 @@ function init ({ sentryDsn: sentryDsnAux }) {
     const environment = process.env.NODE_ENV
     // enabled = (environment !== 'local')
     // For the time being, we just use the DEV
-    enabled = (environment !== 'dev')
+    enabled = (environment === 'dev')
   }
   if (enabled && !initialized) {
     initialized = true

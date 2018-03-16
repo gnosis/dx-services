@@ -7,8 +7,8 @@ const testSetup = require('../../helpers/testSetup')
 // const BigNumber = require('bignumber.js')
 const BOT_CLI_SCRIPT = 'npm run cli --'
 
-const environment = process.env.NODE_ENV
-const isLocal = environment === 'local'
+// const environment = process.env.NODE_ENV
+// const isLocal = environment === 'local'
 
 testSetup()
   .then(run)
@@ -24,7 +24,7 @@ async function run ({
   auctionRepo,
   ethereumClient,
 
-  mainAccount,
+  botAccount,
   owner,
   user1,
 
@@ -111,7 +111,7 @@ async function run ({
     // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
     // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
     // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
-    await printBalances({ accountName: 'Main user', account: mainAccount, verbose: false })
+    await printBalances({ accountName: 'Bot account', account: botAccount, verbose: false })
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
@@ -123,7 +123,7 @@ async function run ({
     const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
     const amount = parseFloat(amountString)
     const fromAddress = fromAddressOpc || owner
-    const toAddress = toAddressOpc || mainAccount
+    const toAddress = toAddressOpc || botAccount
 
     await printBalances({
       accountName: 'Balance before funding',
@@ -135,7 +135,7 @@ async function run ({
       token,
       amount,
       fromAddress: fromAddress || owner,
-      toAddress: toAddress || mainAccount
+      toAddress: toAddress || botAccount
     })
 
     await printBalances({
@@ -147,7 +147,7 @@ async function run ({
     // Fund account
     const [ token, amountString, accountAddressOpt ] = commander.fund
     const amount = parseFloat(amountString)
-    const accountAddress = accountAddressOpt || mainAccount
+    const accountAddress = accountAddressOpt || botAccount
 
     await printBalances({
       accountName: 'Balance before funding',
@@ -185,7 +185,7 @@ async function run ({
     const amount = parseFloat(amountString)
 
     await deposit({
-      account: user1,
+      account: botAccount,
       token,
       amount
     })
@@ -233,7 +233,7 @@ async function run ({
     const [sellToken, buyToken, amountString, ...extra] = commander.buy
     const auctionIndex = (extra.lenth === 1) ? extra[0] : null
     await buySell('postBuyOrder', {
-      from: mainAccount,
+      from: botAccount,
       sellToken,
       buyToken,
       amount: parseFloat(amountString),
@@ -246,7 +246,7 @@ async function run ({
     console.log('auctionIndex', extra, auctionIndex)
 
     await buySell('postSellOrder', {
-      from: mainAccount,
+      from: botAccount,
       sellToken,
       buyToken,
       amount: parseFloat(amountString),
