@@ -1,5 +1,8 @@
 const debug = require('debug')('dx-service:conf')
 
+// TODO: important to set a false after the testing
+const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = false
+
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
   'DEFAULT_GAS',
@@ -7,11 +10,10 @@ const ENV_VAR_LIST = [
   'DX_CONTRACT_ADDRESS',
   'GNO_TOKEN_ADDRESS',
   'MNEMONIC',
-  // TODO: important to uncoment after the tests in DEV
-  // 'MARKETS',
   'MINIMUM_SELL_VOLUME_USD',
   'API_PORT',
   'API_HOST'
+  // alseo: MARKETS
   // also: <token>_TOKEN_ADDRESS
 ]
 const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
@@ -39,7 +41,7 @@ const network = process.env.NETWORK // Optional: RINKEBY, KOVAN
 const networkConfig = network ? require(`./network/${network}-config`) : {}
 
 // Get token list and env vars
-const envMarkets = getEnvMarkets()
+const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
 const markets = envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 const envVars = getEnvVars(tokens)
