@@ -1279,8 +1279,8 @@ volume: ${state}`)
         gasPrice
       }).catch(error => {
         logger.error({
-          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Error: %s',
-          params: [ operation, from, params, error ],
+          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
+          params: [ operation, from, params, gas, gasPrice, error ],
           error
         })
         // Rethrow error after logging
