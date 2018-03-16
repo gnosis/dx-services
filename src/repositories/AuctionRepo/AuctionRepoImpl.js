@@ -453,7 +453,9 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
 
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
-    return tokenContract.approve(this._dx.address, amount, { from })
+    return tokenContract
+      .approve(this._dx.address, amount, { from })
+      // .then(toTransactionNumber)
   }
 
   async transferERC20Token ({ token, from, to, amount }) {
@@ -493,7 +495,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         args: [ amount ], // new BigNumber(amount)
         checkToken: false
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async withdraw ({ token, amount, from }) {
@@ -508,7 +510,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         token,
         args: [ amount ]
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async postSellOrder ({
@@ -579,7 +581,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         args: [ amount ],
         gasPrice
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
@@ -626,7 +628,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         auctionIndex,
         args: [ amount ]
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async claimSellerFunds ({
@@ -644,7 +646,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         buyToken,
         args: [ from, auctionIndex ]
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async claimBuyerFunds ({ sellToken, buyToken, from, auctionIndex }) {
@@ -659,7 +661,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         buyToken,
         args: [ from, auctionIndex ]
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
@@ -750,7 +752,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         from,
         params
       })
-      .then(toTransactionNumber)
+      // .then(toTransactionNumber)
   }
 
   async _assertBalanceERC20Token ({ token, address, amount }) {
