@@ -1252,8 +1252,8 @@ volume: ${state}`)
     } else {
       // Get safe low gas price by default
       gasPricePromise = this._ethereumClient
-        .getGasPrices()
-        .then(gasPrices => gasPrices.safeLow)
+        .getGasPricesGWei()
+        .then(gasPricesGWei => gasPricesGWei.safeLow.mul(1e9))
     }
 
     const [ gasPrice, estimatedGas ] = await Promise.all([
@@ -1271,6 +1271,7 @@ volume: ${state}`)
     })
     const gas = Math.ceil(estimatedGas * 2) // 1.15
 
+    // TODO: Implement solution for: Transaction with the same hash was already imported
     return this
       ._dx[operation](...params, {
         from,

@@ -4,6 +4,11 @@ testSetup()
   .catch(console.error)
 
 async function run ({ ethereumClient }) {
-  const gasPrices = await ethereumClient.getGasPrices()
-  console.log(`GasPrices:\n`, gasPrices)
+  const gasPrices = await ethereumClient.getGasPricesGWei()
+  console.log(
+    `GasPrices (safeLow: %d, average: %d, fast: %d):\n`,
+    gasPrices.safeLow.toNumber(),
+    gasPrices.average.toNumber(),
+    gasPrices.fast.toNumber()
+  )
 }

@@ -1,5 +1,6 @@
 const loggerNamespace = 'dx-service:repositories:EthereumClient'
 const Logger = require('../helpers/Logger')
+const numberUtil = require('../helpers/numberUtil')
 const logger = new Logger(loggerNamespace)
 
 const Web3 = require('web3')
@@ -58,7 +59,7 @@ class EthereumClient {
     return this._url
   }
 
-  async getGasPrices () {
+  async getGasPricesGWei () {
     // In the test nets, we don't have ETH Gas Estation
     let getGasPricePromise
     if (isPro) {
@@ -73,24 +74,25 @@ class EthereumClient {
   }
 
   async _doGetPricesFromFeed () {
-    const response = await got(URL_GAS_PRICE_PROVIDER, {
+    const gasPriceResponse = await got(URL_GAS_PRICE_PROVIDER, {
       json: true
     })
+    console.log('gasPrice', gasPriceResponse.body)
 
-    return _toGasPricesDto(response.body)
+    return _toGasPricesDto(gasPriceResponse.body)
   }
 
   async _doGetPricesFromWeb3 () {
-    const gasPrice = await _promisify(this._web3.eth.gasPrice)
+    const gasPrice = await _promisify(this._web3.eth.getGasPrice)
 
     return {
-      safeLow: gasPrice * 0.9,
+      safeLow: gasPrice.div(1e9).mul(0.9).ceil(),
       safeLowWait: DEFAULT_GAS_PRICES.safeLowWait,
 
-      average: gasPrice,
-      averageWait: DEFAULT_GAS_PRICES.averageWait,
+      average: gasPrice.div(1e9).ceil(),
+      averageWait: DEFAULT_GAS_PRICES.avgWait,
 
-      fast: gasPrice * 2,
+      fast: gasPrice.div(1e9).mul(2).ceil(),
       fastWait: DEFAULT_GAS_PRICES.fastWait
     }
   }
@@ -238,14 +240,18 @@ function _handleGetGasPriceError (error) {
 }
 
 function _toGasPricesDto (gasPrices) {
+  // De prices are not provided in GWei
+  //  * for some reason, they are 10 times bigger than GWei :)
+  //  * So 20 y 2GWei
+
   return {
-    safeLow: gasPrices.safeLow / 10,
+    safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(10),
     safeLowWait: gasPrices.safeLowWait,
 
-    average: gasPrices.average / 10,
+    average: numberUtil.toBigNumber(gasPrices.average, 10),
     averageWait: gasPrices.avgWait,
 
-    fast: gasPrices.fast / 10,
+    fast: numberUtil.toBigNumber(gasPrices.fast, 10),
     fastWait: gasPrices.fastWait
   }
 }

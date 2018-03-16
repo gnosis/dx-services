@@ -189,8 +189,6 @@ keeps happening`
       // Round up
       .ceil()
 
-    const gasPrice = await this._ethereumRepo.getGasPrices()
-
     // Sell the missing difference
     auctionLogger.info({
       sellToken,
@@ -204,7 +202,6 @@ keeps happening`
       amount: amountInSellTokens,
       auctionIndex,
       from
-      // gasPrice: gasPrice.safeLow
     })
 
     return {

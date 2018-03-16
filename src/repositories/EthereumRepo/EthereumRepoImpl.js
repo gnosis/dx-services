@@ -73,9 +73,9 @@ class EthereumRepoImpl {
     */
   }
 
-  async getGasPrices () {
+  async getGasPricesGWei () {
     // this._ethereumClient.doCall('eth.gasPrice')
-    return this._ethereumClient.getGasPrices()
+    return this._ethereumClient.getGasPricesGWei()
   }
 
   async getAbout () {
