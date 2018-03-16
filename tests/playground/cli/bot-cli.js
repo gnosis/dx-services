@@ -7,8 +7,8 @@ const testSetup = require('../../helpers/testSetup')
 // const BigNumber = require('bignumber.js')
 const BOT_CLI_SCRIPT = 'npm run cli --'
 
-const environment = process.env.NODE_ENV
-const isLocal = environment === 'local'
+// const environment = process.env.NODE_ENV
+// const isLocal = environment === 'local'
 
 testSetup()
   .then(run)
@@ -24,6 +24,7 @@ async function run ({
   auctionRepo,
   ethereumClient,
 
+  botAccount,
   owner,
   user1,
 
@@ -110,15 +111,7 @@ async function run ({
     // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
     // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
     // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
-    let account, accountName
-    if (isLocal) {
-      account = user1
-      accountName = 'User 1 (account index 2)'
-    } else {
-      account = owner
-      accountName = 'User 1 (account index 1)'
-    }
-    await printBalances({ accountName, account, verbose: false })
+    await printBalances({ accountName: 'Bot account', account: botAccount, verbose: false })
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
@@ -130,7 +123,7 @@ async function run ({
     const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
     const amount = parseFloat(amountString)
     const fromAddress = fromAddressOpc || owner
-    const toAddress = toAddressOpc || user1
+    const toAddress = toAddressOpc || botAccount
 
     await printBalances({
       accountName: 'Balance before funding',
@@ -142,7 +135,7 @@ async function run ({
       token,
       amount,
       fromAddress: fromAddress || owner,
-      toAddress: toAddress || user1
+      toAddress: toAddress || botAccount
     })
 
     await printBalances({
@@ -154,8 +147,7 @@ async function run ({
     // Fund account
     const [ token, amountString, accountAddressOpt ] = commander.fund
     const amount = parseFloat(amountString)
-    const defaultAccountAddress = isLocal ? user1 : owner
-    const accountAddress = accountAddressOpt || defaultAccountAddress
+    const accountAddress = accountAddressOpt || botAccount
 
     await printBalances({
       accountName: 'Balance before funding',
@@ -193,7 +185,7 @@ async function run ({
     const amount = parseFloat(amountString)
 
     await deposit({
-      account: user1,
+      account: botAccount,
       token,
       amount
     })
@@ -241,7 +233,7 @@ async function run ({
     const [sellToken, buyToken, amountString, ...extra] = commander.buy
     const auctionIndex = (extra.lenth === 1) ? extra[0] : null
     await buySell('postBuyOrder', {
-      from: user1,
+      from: botAccount,
       sellToken,
       buyToken,
       amount: parseFloat(amountString),
@@ -254,7 +246,7 @@ async function run ({
     console.log('auctionIndex', extra, auctionIndex)
 
     await buySell('postSellOrder', {
-      from: user1,
+      from: botAccount,
       sellToken,
       buyToken,
       amount: parseFloat(amountString),
