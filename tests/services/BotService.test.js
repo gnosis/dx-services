@@ -52,7 +52,12 @@ test('It should ensureSellLiquidity', async () => {
 
   // THEN bot sells 523$ in OMG-ETH
   const expectedBotSell = {
-    amount: new BigNumber('523.97'), buyToken: 'OMG', sellToken: 'ETH' }
+    // FIXME: do not use magic numbers :) (test the values)
+    amountInUSD: new BigNumber('523.97'),
+    buyToken: 'OMG',
+    sellToken: 'ETH',
+    amount: new BigNumber('522943983903581174')
+  }
   expect(ensureLiquidityState).toMatchObject(expectedBotSell)
 
   // THEN new sell volume is valid
