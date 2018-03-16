@@ -6,7 +6,7 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
-const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 60 * 1000
 
 class SellLiquidityBot extends Bot {
   constructor ({ name, eventBus, botService, botAddress, markets }) {
@@ -74,7 +74,7 @@ class SellLiquidityBot extends Bot {
               msg: "I've sold %d %s (%d USD) to ensure liquidity",
               params: [
                 soldTokens.amount,
-                soldTokens.sellToken,
+                soldTokens.sellToken.div(1e18),
                 soldTokens.amountInUSD
               ],
               notify: true
