@@ -1,43 +1,34 @@
-FROM node:8.9.4-alpine
-
-RUN apk update && \
-apk add --no-cache bash git openssh wget ca-certificates
-
-RUN apk add --no-cache --virtual .gyp \
-  python \
-  make \
-  g++
+FROM node:8-alpine
 
 # Create app directory
 WORKDIR /usr/src/app/
 
-# Setup init process
-#   - For more info see: https://github.com/Yelp/dumb-init
-RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64
-RUN chmod +x /usr/local/bin/dumb-init
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
-COPY package*.json ./
-COPY yarn.lock ./
+COPY package*.json truffle.js yarn.lock ./
+COPY contracts contracts
 
-RUN yarn install --pure-lockfile
-# If you are building your code for production
-# RUN npm install --only=production
+# Compile necesary contracts for app and cleanup unnecesary files
+RUN apk add --update --no-cache --virtual build-dependencies git python make g++ ca-certificates && \
+    yarn install --pure-lockfile && \
+    npm run contracts-compile && \
+    rm -rf node_modules/@gnosis.pm/dutch-exchange/node_modules && \
+    yarn cache clean && \
+    apk del build-dependencies && \
+    apk add --no-cache tini git
 
-# Bundle app source
 COPY . .
 
-# Compile necesary contracts for app
-RUN npm run contracts-compile
-#Cleanup unnecesary files
-RUN rm -rf /usr/src/app/node_modules/@gnosis.pm/dutch-exchange/node_modules
-RUN yarn cache clean
+# If you are building your code for production
+# RUN npm install --only=production
 
 # Expose container port
 EXPOSE 8080
 
-# Run Node app as child of dumb-init
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+# Run Node app as child of tini
+# Signal handling for PID1 https://github.com/krallin/tini
+ENTRYPOINT ["/sbin/tini", "--"]
+
 CMD [ "npm", "start" ]
