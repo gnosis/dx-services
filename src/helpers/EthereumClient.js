@@ -5,7 +5,28 @@ const logger = new Logger(loggerNamespace)
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
 const HDWalletProvider = require('truffle-hdwallet-provider')
+const got = require('got')
 const ROOT_DIR = '../../'
+
+// See: https://ethgasstation.info/json/ethgasAPI.json
+const URL_GAS_PRICE_PROVIDER = 'https://ethgasstation.info/json/ethgasAPI.json'
+const DEFAULT_GAS_PRICES = {
+  safeLowWait: 5.4,
+  safelow_calc: 20,
+  fastest: 200,
+  fastWait: 0.6,
+  average_calc: 40,
+  fastestWait: 0.6,
+  average_txpool: 30,
+  avgWait: 5.4,
+  safelow_txpool: 30,
+  block_time: 16.596774193548388,
+  blockNum: 5258971,
+  speed: 0.7752244319000815,
+  average: 30,
+  safeLow: 30,
+  fast: 40
+}
 
 // TODO: Check eventWatcher in DX/test/utils.js
 
@@ -34,38 +55,20 @@ class EthereumClient {
     return this._url
   }
 
-  /*
-  loadContracts ({ contractNames, contractsBaseDir }) {
-    // Load contract as an array of objects (props: name, instance)
-    // TODO: Refactor to support also contract at an address? c..at("0x1234...")
-    // TODO: Interesting: MyContract.setNetwork(network_id)
-    const contractPromises = Promise.all(
-      contractNames.map(contractName => {
-        const contract = this._contractCache[contractName]
-        if (contract) {
-          // The contract was preciously loaded
-          debug('Got contract %s from cache', contractName)
-          return Promise.resolve(contract)
-        } else {
-          // Load contract
-          return this._loadContract(contractName, contractsBaseDir)
-            .then(contract => {
-              this._contractCache[contract.name] = contract.instance
-              return contract
-            })
-        }
-      })
-    )
-
-    // Convert array into an object (name => instance)
-    return contractPromises.then(contracts => {
-      return contracts.reduce((contractsObject, contract) => {
-        contractsObject[contract.name] = contract.instance
-        return contractsObject
-      }, {})
-    })
+  async getGasPrices () {
+    return this
+      ._doGetPrices()
+      // In case of error, return the default (and notify error)
+      .catch(error => _handlePriceFeedError(error))
   }
-  */
+
+  async _doGetPrices () {
+    const response = await got(URL_GAS_PRICE_PROVIDER, {
+      json: true
+    })
+
+    return _toDto(response.body)
+  }
 
   async getBlock (blockNumber) {
     if (!blockNumber) {
@@ -176,26 +179,6 @@ class EthereumClient {
 
     return contract
   }
-
-  /*
-  _loadContract (contractName, contractsBaseDir) {
-    const contractsDir = ROOT_DIR + contractsBaseDir
-    const contractJson = require(`${contractsDir}/${contractName}`)
-    const contract = truffleContract(contractJson)
-    contract.setProvider(this._provider)
-
-    return contract
-      .deployed()
-      // TODO: Using at <address> depending on the config
-      .then(contractInstance => {
-        debug('Loaded contract %s. Defaults: %o', contractName, contract.defaults())
-        return {
-          name: contractName,
-          instance: contractInstance
-        }
-      })
-  }
-  */
 }
 
 async function _promisify (fn, param) {
@@ -214,6 +197,31 @@ async function _promisify (fn, param) {
       fn(callback)
     }
   })
+}
+
+function _handlePriceFeedError (error) {
+  // Notify error
+  logger.error({
+    msg: 'Error getting the price from ETH Gas Station: %s',
+    params: [ URL_GAS_PRICE_PROVIDER ],
+    error
+  })
+
+  // Return fallback default gas price
+  return _toDto(DEFAULT_GAS_PRICES)
+}
+
+function _toDto (gasPrices) {
+  return {
+    safeLow: gasPrices.safeLow / 10,
+    safeLowWait: gasPrices.safeLowWait,
+
+    average: gasPrices.average / 10,
+    averageWait: gasPrices.avgWait,
+
+    fast: gasPrices.fast / 10,
+    fastWait: gasPrices.fastWait
+  }
 }
 
 module.exports = EthereumClient

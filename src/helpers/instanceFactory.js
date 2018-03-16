@@ -183,12 +183,13 @@ function _getExchangePriceRepo (config) {
   return new ExchangePriceRepoMock({})
 }
 
-function _getBotService ({ config, auctionRepo, exchangePriceRepo }) {
+function _getBotService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
   const BotService = require('../services/BotService')
   return new BotService({
     // Repos
     auctionRepo,
     exchangePriceRepo,
+    ethereumRepo,
 
     // Config
     minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD

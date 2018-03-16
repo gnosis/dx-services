@@ -5,7 +5,6 @@ const assert = require('assert')
 
 const numberUtil = require('../../src/helpers/numberUtil')
 
-
 class CliService {
   constructor ({ auctionRepo, ethereumRepo, markets }) {
     this._auctionRepo = auctionRepo

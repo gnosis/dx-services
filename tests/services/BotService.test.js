@@ -41,25 +41,58 @@ test('It should ensureSellLiquidity', async () => {
   }
 
   // GIVEN a not RUNNING auction, without enough sell liquidiy
-  const updatedAuction = Object.assign({}, auctionsMockData.auctions['ETH-OMG'],
-    { sellVolume: new BigNumber('0.5e18') })
-  const auctions = Object.assign({}, auctionsMockData.auctions,
-    { 'ETH-OMG': updatedAuction })
   // we mock the auction repo
-  botService._auctionRepo = new AuctionRepoMock({ auctions })
+  botService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWithUnderFundingEthOmg()
+  })
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await botService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
 
-  // THEN
-  expect(ensureLiquidityState)
-    .toMatchObject({ amount: new BigNumber('523.97'), buyToken: 'OMG', sellToken: 'ETH' })
+  // THEN bot sells 523$ in OMG-ETH
+  const expectedBotSell = {
+    // FIXME: do not use magic numbers :) (test the values)
+    amountInUSD: new BigNumber('523.97'),
+    buyToken: 'OMG',
+    sellToken: 'ETH',
+    amount: new BigNumber('522943983903581174')
+  }
+  expect(ensureLiquidityState).toMatchObject(expectedBotSell)
 
   // THEN new sell volume is valid
   let newSellVolume = await botService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
-  expect(_isValidSellVolume(newSellVolume, new BigNumber('0.5e18')))
+  expect(_isValidSellVolume(newSellVolume, UNDER_MINIMUM_FUNDING_ETH))
     .toBeTruthy()
+})
+
+test('It should detect concurrency when ensuring liquidiy', async () => {
+  const { botService } = await setupPromise
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  // we mock the auction repo
+  botService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWithUnderFundingEthOmg()
+  })
+
+  // we wrap postSellOrder with jest mock functionalities
+  const postSellOrder = jest.fn(botService._auctionRepo.postSellOrder)
+  botService._auctionRepo.postSellOrder = postSellOrder
+
+  // GIVEN no calls to postSellOrder function
+  expect(postSellOrder.mock.calls.length).toBe(0)
+
+  // WHEN we ensure sell liquidity twice
+  let ensureLiquidityPromise1 = botService.ensureSellLiquidity({
+    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+  let ensureLiquidityPromise2 = botService.ensureSellLiquidity({
+    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+
+  await ensureLiquidityPromise1
+  await ensureLiquidityPromise2
+
+  // THEN expect 1 call to postSellOrder function
+  expect(postSellOrder.mock.calls.length).toBe(1)
 })
 
 test('It should not ensure liquidity if auction is not waiting for funding', async () => {
@@ -94,3 +127,13 @@ test('It should not ensure liquidity if auction has enough funds', async () => {
     expect(e).toBeInstanceOf(Error)
   }
 })
+
+const UNDER_MINIMUM_FUNDING_ETH = new BigNumber('0.5e18')
+
+function _getAuctionsWithUnderFundingEthOmg () {
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  const updatedAuction = Object.assign({}, auctionsMockData.auctions['ETH-OMG'],
+    { sellVolume: new BigNumber('0.5e18') })
+  return Object.assign({}, auctionsMockData.auctions,
+    { 'ETH-OMG': updatedAuction })
+}
