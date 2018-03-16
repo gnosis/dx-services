@@ -71,8 +71,12 @@ class SellLiquidityBot extends Bot {
             auctionLogger.info({
               sellToken,
               buyToken,
-              msg: "I've sold %d %s tokens to ensure liquidity",
-              params: [ soldTokens.amount, soldTokens.sellToken ],
+              msg: "I've sold %d %s (%d USD) to ensure liquidity",
+              params: [
+                soldTokens.amount,
+                soldTokens.sellToken,
+                soldTokens.amountInUSD
+              ],
               notify: true
             })
 
