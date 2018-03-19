@@ -6,7 +6,7 @@ const logger = new Logger(loggerNamespace)
 const MINIMUM_AMOUNT_IN_USD = 2500
 const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000
 
-class BuyLiquidityBot extends Bot {
+class BalanceCheckBot extends Bot {
   constructor ({ name, eventBus, botService, botAddress, markets }) {
     super(name)
     this._eventBus = eventBus
@@ -31,6 +31,7 @@ class BuyLiquidityBot extends Bot {
     logger.debug({ msg: 'Initialized bot' })
 
     // Check the bots balance periodically
+    this._checkBalance()
     setInterval(() => {
       return this._checkBalance()
     }, PERIODIC_CHECK_MILLISECONDS)
@@ -108,4 +109,4 @@ class BuyLiquidityBot extends Bot {
   }
 }
 
-module.exports = BuyLiquidityBot
+module.exports = BalanceCheckBot
