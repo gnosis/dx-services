@@ -975,8 +975,8 @@ volume: ${state}`)
     return this
       ._callForAuction({
         operation: 'getPriceInPastAuctionExt',
-        token1,
-        token2,
+        sellToken: token1,
+        buyToken: token2,
         auctionIndex
       })
   }
