@@ -49,6 +49,17 @@ class BotService {
     return this._auctionRepo.getPrice({ tokenA, tokenB })
   }
 
+  async ensureBuyLiquidity ({ sellToken, buyToken, from }) {
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Ensure the buy liquidity',
+      params: [ this._minimumSellVolume ]
+    })
+    
+    return null
+  }
+
   async ensureSellLiquidity ({ sellToken, buyToken, from }) {
     auctionLogger.debug({
       sellToken,

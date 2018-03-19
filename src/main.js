@@ -108,7 +108,7 @@ class App {
   }
 
   _createBotsAndApi (botAddress) {
-    // Liquidity bot
+    // Sell Liquidity bot
     const SellLiquidityBot = require('./bots/SellLiquidityBot')
     const sellLiquidityBot = new SellLiquidityBot({
       name: 'SellLiquidityBot',
@@ -118,8 +118,18 @@ class App {
       markets: this._config.MARKETS
     })
 
+    // Buy Liquidity Bot
+    const BuyLiquidityBot = require('./bots/BuyLiquidityBot')
+    const buyLiquidityBot = new BuyLiquidityBot({
+      name: 'BuyLiquidityBot',
+      eventBus: this._eventBus,
+      botService: this._botService,
+      botAddress,
+      markets: this._config.MARKETS
+    })
+
     // Initialize bot list
-    this._bots = [ sellLiquidityBot ]
+    this._bots = [ sellLiquidityBot, buyLiquidityBot ]
     this._apiService.setBots(this._bots)
 
     // Create server
