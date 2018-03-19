@@ -969,14 +969,14 @@ volume: ${state}`)
       .then(toFraction)
   }
 
-  async getPastAuctionPrice ({ token1, token2, auctionIndex }) {
-    assertAuction(token1, token2, auctionIndex)
+  async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
 
     return this
       ._callForAuction({
         operation: 'getPriceInPastAuctionExt',
-        sellToken: token1,
-        buyToken: token2,
+        sellToken,
+        buyToken,
         auctionIndex
       })
   }
