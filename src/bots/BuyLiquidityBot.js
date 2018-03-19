@@ -110,7 +110,7 @@ class BuyLiquidityBot extends Bot {
     return {
       botAddress: this._botAddress,
       lastCheck: this._lastCheck,
-      lastSell: this._lastBuy,
+      lastBuy: this._lastBuy,
       lastError: this._lastError
     }
   }
