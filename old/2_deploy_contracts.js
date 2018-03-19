@@ -26,7 +26,7 @@ const Medianizer = artifacts.require('Medianizer')
 const currentETHPrice = (902 * (10 ** 18))
 
 module.exports = function deploy(deployer, networks, accounts) {
-  // let TULInstance;
+  // let MGNInstance;
   deployer.deploy(Math)
   // StandardToken is NECESSARRY to deploy here as it is LINKED w/Math
   deployer.link(Math, [DutchExchange, StandardToken, EtherToken, TokenGNO, TokenMGN, TokenOWL])

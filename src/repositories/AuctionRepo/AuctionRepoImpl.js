@@ -34,7 +34,7 @@ class AuctionRepoImpl {
     this._tokens = Object.assign({
       GNO: contracts.gno,
       ETH: contracts.eth,
-      TUL: contracts.tul,
+      MGN: contracts.mgn,
       OWL: contracts.owl
     }, contracts.erc20TokenContracts)
     logger.debug({

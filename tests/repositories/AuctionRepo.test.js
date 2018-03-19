@@ -391,7 +391,7 @@ const INITIAL_MARKET_STATE = {
 const INITIAL_USER1_BALANCE = [
   {'amount': new BigNumber('750e18'), 'token': 'GNO'},
   {'amount': new BigNumber('20e18'), 'token': 'ETH'},
-  {'amount': new BigNumber('0'), 'token': 'TUL'},
+  {'amount': new BigNumber('0'), 'token': 'MGN'},
   {'amount': new BigNumber('1000e18'), 'token': 'OWL'},
   {'amount': new BigNumber('12000e18'), 'token': 'RDN'},
   {'amount': new BigNumber('1500e18'), 'token': 'OMG'}

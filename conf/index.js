@@ -16,7 +16,7 @@ const ENV_VAR_LIST = [
   // alseo: MARKETS
   // also: <token>_TOKEN_ADDRESS
 ]
-const SPECIAL_TOKENS = ['ETH', 'TUL', 'OWL', 'GNO']
+const SPECIAL_TOKENS = ['ETH', 'MGN', 'OWL', 'GNO']
 
 // Get environment: local, dev, pro
 let environment = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : 'local'

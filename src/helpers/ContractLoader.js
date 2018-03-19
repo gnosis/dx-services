@@ -119,7 +119,7 @@ class ContractLoader {
     const etherTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.EtherToken)
 
-    const tulTokenContract = this._ethereumClient
+    const mgnTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.TokenMGN)
 
     /* TODO: Get GNO from OWL address? ? */
@@ -134,7 +134,7 @@ class ContractLoader {
     const priceOracleContract = this._ethereumClient
       .loadContract(this._contractDefinitions.PriceOracleInterface)
 
-    const [ priceOracle, eth, tul, owl, gno ] = await Promise.all([
+    const [ priceOracle, eth, mgn, owl, gno ] = await Promise.all([
       // load addresses from DX
       dx.ethUSDOracle.call(),
       dx.ethToken.call(),
@@ -142,11 +142,11 @@ class ContractLoader {
       dx.owlToken.call() // TODO: Is this the PROXY??
     ])
       // load instances of the contract
-      .then(([ priceOracleAddress, ethAddress, tulAddress, owlAddress ]) => (
+      .then(([ priceOracleAddress, ethAddress, mgnAddress, owlAddress ]) => (
         Promise.all([
           priceOracleContract.at(priceOracleAddress),
           etherTokenContract.at(ethAddress),
-          tulTokenContract.at(tulAddress),
+          mgnTokenContract.at(mgnAddress),
           owlTokenContract.at(owlAddress),
           this._loadGnoContract()
         ]))
@@ -154,7 +154,7 @@ class ContractLoader {
     return {
       priceOracle,
       eth,
-      tul,
+      mgn,
       owl,
       gno
     }

@@ -16,7 +16,7 @@ const INITIAL_AMOUNTS = {
   ETH: 20,
   GNO: 750,
   OWL: 1000,
-  TUL: 0,
+  MGN: 0,
   RDN: 12000,
   OMG: 1500
 }
@@ -170,7 +170,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       { token: 'ETH', amount: INITIAL_AMOUNTS['ETH'] },
       { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] },
       { token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
-      // { token: 'TUL', amount: 2 },
+      // { token: 'MGN', amount: 2 },
     ]
     const approveERC20Tokens = ['ETH', 'OWL']
     if (supportedTokens.includes('RDN')) {
