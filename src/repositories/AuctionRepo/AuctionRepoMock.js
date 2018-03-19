@@ -200,7 +200,7 @@ class AuctionRepoMock {
     this._notImplementedYet()
   }
 
-  async getPrice ({ sellToken, buyToken, auctionIndex }) {
+  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     debug('Get price for auction %d', auctionIndex)
     this._notImplementedYet()
   }

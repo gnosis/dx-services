@@ -206,7 +206,7 @@ describe('Market interacting tests', async () => {
     })
 
     // THEN the new state matches that one auction has closed, with a closing price
-    // let price = await _getPrice({})
+    // let price = await _getCurrentAuctionPrice({})
     let updatedAuction = {
       // TODO check correct price
       // closingPrice: {
@@ -415,7 +415,7 @@ async function _getState ({ sellToken = 'RDN', buyToken = 'ETH' }) {
   return auctionRepo.getState({ sellToken, buyToken })
 }
 
-async function _getPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
+async function _getCurrentAuctionPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
   const { auctionRepo } = await setupPromise
 
   const auctionIndex = await auctionRepo.getAuctionIndex({
@@ -423,7 +423,7 @@ async function _getPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
     sellToken
   })
 
-  return auctionRepo.getPrice({sellToken, buyToken, auctionIndex})
+  return auctionRepo.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex})
 }
 
 async function _buySell (operation, { from, buyToken, sellToken, amount }) {

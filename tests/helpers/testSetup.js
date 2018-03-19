@@ -311,7 +311,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('\n\tState info:')
     debug('\t\t- auctionIndex: %s', stateInfo.auctionIndex)
     debug('\t\t- auctionStart: %s', formatUtil.formatDateTime(stateInfo.auctionStart))
-    
+
     if (stateInfo.auctionStart) {
       // debug('\t\t- Blockchain time: %s', formatUtil.formatDateTime(now))
       const now = await ethereumClient.geLastBlockTime()
@@ -323,7 +323,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
           stateInfo.auctionStart.getTime() +
           TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS
         )
-  
+
         // debug('\t\t- Market price time: %s', formatUtil.formatDateTime(marketPriceTime))
         if (marketPriceTime > now) {
           debug('\t\t- It will reached market price in: %s', formatUtil.formatDatesDifference(now, marketPriceTime))
@@ -381,11 +381,11 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug(`\t\t\tsellVolume: %d %s`, formatFromWei(auction.sellVolume), tokenA)
     debug(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
 
-    const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
+    const price = await auctionRepo.getCurrentAuctionPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
     if (price) {
-      const closingPrice = await auctionRepo.getPrice({
-        sellToken: tokenA,
-        buyToken: tokenB,
+      const closingPrice = await auctionRepo.getPastAuctionPrice({
+        token1: tokenA,
+        token2: tokenB,
         auctionIndex: auctionIndex - 1
       })
 
@@ -406,7 +406,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       }
       const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
       // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
-      
+
       debug(`\t\tPrice:`)
       debug(`\t\t\tPrevious Closing Price: %s %s/%s`, fractionFormatter(closingPrice),
         tokenB, tokenA)

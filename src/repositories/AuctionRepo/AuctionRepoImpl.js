@@ -919,7 +919,7 @@ volume: ${state}`)
       buyToken
     })
 
-    const price = await this.getPrice({
+    const price = await this.getCurrentAuctionPrice({
       sellToken,
       buyToken,
       auctionIndex
@@ -956,7 +956,7 @@ volume: ${state}`)
 
   */
 
-  async getPrice ({ sellToken, buyToken, auctionIndex }) {
+  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
     return this
@@ -967,6 +967,18 @@ volume: ${state}`)
         auctionIndex
       })
       .then(toFraction)
+  }
+
+  async getPastAuctionPrice ({ token1, token2, auctionIndex }) {
+    assertAuction(token1, token2, auctionIndex)
+
+    return this
+      ._callForAuction({
+        operation: 'getPriceInPastAuctionExt',
+        token1,
+        token2,
+        auctionIndex
+      })
   }
 
   async getPriceInEth ({ token }) {
@@ -1014,7 +1026,7 @@ volume: ${state}`)
     )
     */
 
-    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
+    const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
     if (price) {
       /*

@@ -108,7 +108,7 @@ class ApiService {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({sellToken, buyToken})
-    return this._auctionRepo.getPrice({sellToken, buyToken, auctionIndex})
+    return this._auctionRepo.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex})
   }
 
   async getBalances ({accountAddress}) {
