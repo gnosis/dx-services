@@ -16,7 +16,9 @@ class SellLiquidityBot extends Bot {
     this._botAddress = botAddress
     this._markets = markets
 
-    this._lastSellLiquidityCheck = null
+    this._lastCheck = null
+    this._lastSell = null
+    this._lastError = null
   }
 
   async _doStart () {
@@ -49,7 +51,7 @@ class SellLiquidityBot extends Bot {
     auctionLogger.info({
       sellToken,
       buyToken,
-      msg: "Auction ended. Let's ensure liquidity"
+      msg: "Auction ended. Let's ensure sell liquidity"
     })
     return this._ensureSellLiquidity({
       sellToken,
@@ -59,7 +61,7 @@ class SellLiquidityBot extends Bot {
   }
 
   async _ensureSellLiquidity ({ sellToken, buyToken, from, isRoutineCheck = false }) {
-    this._lastSellLiquidityCheck = new Date()
+    this._lastCheck = new Date()
     let liquidityWasEnsured
     try {
       liquidityWasEnsured = await this._botService
@@ -70,11 +72,12 @@ class SellLiquidityBot extends Bot {
           //  * An object with {amount, sellToken, buyToken} when the botService
           //    had to sell tokens
           if (soldTokens) {
+            this._lastSell = new Date()
             // The bot sold some tokens
             auctionLogger.info({
               sellToken,
               buyToken,
-              msg: "I've sold %d %s (%d USD) to ensure liquidity",
+              msg: "I've sold %d %s (%d USD) to ensure sell liquidity",
               params: [
                 soldTokens.amount,
                 soldTokens.sellToken.div(1e18),
@@ -87,7 +90,7 @@ class SellLiquidityBot extends Bot {
               auctionLogger.warn({
                 sellToken,
                 buyToken,
-                msg: "The liquidity was enssured by the routine check. Make sure there's no problem getting events"
+                msg: "The sell liquidity was enssured by the routine check. Make sure there's no problem getting events"
               })
             }
           } else {
@@ -101,11 +104,8 @@ class SellLiquidityBot extends Bot {
 
           return true
         })
-        .catch(error => {
-          liquidityWasEnsured = false
-          this._handleError(sellToken, buyToken, error)
-        })
     } catch (error) {
+      this._lastError = new Date()
       liquidityWasEnsured = false
       this._handleError(sellToken, buyToken, error)
     }
@@ -118,7 +118,7 @@ class SellLiquidityBot extends Bot {
     auctionLogger.debug({
       sellToken,
       buyToken,
-      msg: "Doing a routine check. Let's see if we need to ensure the liquidity"
+      msg: "Doing a routine check. Let's see if we need to ensure the sell liquidity"
     })
     return this._ensureSellLiquidity({
       sellToken,
@@ -132,7 +132,7 @@ class SellLiquidityBot extends Bot {
     auctionLogger.error({
       sellToken,
       buyToken,
-      msg: 'There was an error ensuring liquidity with the account %s: %s',
+      msg: 'There was an error ensuring sell liquidity with the account %s: %s',
       params: [ this._botAddress, error ],
       error
     })
@@ -141,7 +141,9 @@ class SellLiquidityBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
-      lastSellLiquidityCheck: this._lastSellLiquidityCheck
+      lastCheck: this._lastCheck,
+      lastSell: this._lastSell,
+      lastError: this._lastError
     }
   }
 }
