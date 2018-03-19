@@ -17,7 +17,7 @@ class BuyLiquidityBot extends Bot {
     this._markets = markets
 
     this._lastCheck = null
-    this._lastSell = null
+    this._lastBuy = null
     this._lastError = null
   }
 
@@ -59,12 +59,12 @@ class BuyLiquidityBot extends Bot {
       liquidityWasEnsured = await this._botService
         .ensureBuyLiquidity({ sellToken, buyToken, from })
         .then(soldTokens => {
-          this._lastSell = new Date()
           // soldTokens is:
           //  * NULL when nothing was sold
           //  * An object with {amount, sellToken, buyToken} when the botService
           //    had to sell tokens
           if (soldTokens) {
+            this._lastBuy = new Date()
             // The bot sold some tokens
             auctionLogger.info({
               sellToken,
@@ -111,7 +111,7 @@ class BuyLiquidityBot extends Bot {
     return {
       botAddress: this._botAddress,
       lastCheck: this._lastCheck,
-      lastSell: this._lastSell,
+      lastSell: this._lastBuy,
       lastError: this._lastError
     }
   }
