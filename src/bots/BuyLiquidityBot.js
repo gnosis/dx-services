@@ -5,7 +5,6 @@ const Logger = require('../helpers/Logger')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
-const events = require('../helpers/events')
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
 
 class BuyLiquidityBot extends Bot {

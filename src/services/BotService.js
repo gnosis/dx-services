@@ -53,8 +53,7 @@ class BotService {
     auctionLogger.debug({
       sellToken,
       buyToken,
-      msg: 'Ensure the buy liquidity',
-      params: [ this._minimumSellVolume ]
+      msg: 'Ensure the buy liquidity'
     })
     
     return null
@@ -105,6 +104,21 @@ check should be done`
         })
       return this.concurrencyCheck[lockName]
     }
+  }
+
+  async getBalances ({ tokens, address }) {
+    const balancesPromises = tokens.map(async token => {
+      const amount = await this._auctionRepo.getBalance({ token, address })
+      const anmountInUSD = await this._auctionRepo.getPriceInUSD({
+        token,
+        amount
+      })
+      return {
+        token, amount, anmountInUSD
+      }
+    })
+
+    return Promise.all(balancesPromises)
   }
 
   async _doEnsureSellLiquidity ({ tokenA, tokenB, from }) {

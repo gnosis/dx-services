@@ -128,8 +128,18 @@ class App {
       markets: this._config.MARKETS
     })
 
+    // Buy Liquidity Bot
+    const BalanceCheckBot = require('./bots/BalanceCheckBot')
+    const balanceCheckBot = new BalanceCheckBot({
+      name: 'BalanceCheckBot',
+      eventBus: this._eventBus,
+      botService: this._botService,
+      botAddress,
+      markets: this._config.MARKETS
+    })
+
     // Initialize bot list
-    this._bots = [ sellLiquidityBot, buyLiquidityBot ]
+    this._bots = [ sellLiquidityBot, buyLiquidityBot, balanceCheckBot ]
     this._apiService.setBots(this._bots)
 
     // Create server
