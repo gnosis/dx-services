@@ -424,18 +424,17 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
         debug('\t\tBuy volume:')
         debug(`\t\t\tbuyVolume: %d %s`, formatFromWei(auction.buyVolume), tokenB)
         debug(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
-        if (state.indexOf('WAITING') === -1) {
-          // Show outstanding volumen if we are not in a waiting period
-          const outstandingVolume = await auctionRepo.getOutstandingVolume({
-            sellToken: tokenA,
-            buyToken: tokenB,
-            auctionIndex
-          })
-          debug(`\t\t\tOutstanding volume: %d %s`,
-            formatFromWei(outstandingVolume), tokenB)
-        }
       }
-      
+      if (state.indexOf('WAITING') === -1) {
+        // Show outstanding volumen if we are not in a waiting period
+        const outstandingVolume = await auctionRepo.getOutstandingVolume({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex
+        })
+        debug(`\t\t\tOutstanding volume: %d %s`,
+          formatFromWei(outstandingVolume), tokenB)
+      }
     }
   }
 
