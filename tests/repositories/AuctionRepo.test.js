@@ -80,6 +80,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should allow to add a new token pair', async () => {
+    debug('Launching \'It should allow to add a new token pair\'')
     // GIVEN a not approved token pair
     let isRdnEthApproved = await _getIsApprovedMarket({})
     expect(isRdnEthApproved).toBeFalsy()
@@ -115,6 +116,7 @@ describe('Market interacting tests', async () => {
 
   // Add funds to auction (sell tokens in auction)
   test('It should allow to add funds to an auction', async () => {
+    debug('Launching \'It should allow to add funds to an auction\'')
     const { user1 } = await setupPromise
 
     // GIVEN a new token pair

@@ -6,7 +6,7 @@ import "@gnosis.pm/dutch-exchange/contracts/DutchExchange.sol";
 // Tokens
 import "@gnosis.pm/dutch-exchange/contracts/Tokens/EtherToken.sol";
 import "@gnosis.pm/dutch-exchange/contracts/Tokens/TokenGNO.sol";
-import "@gnosis.pm/dutch-exchange/contracts/Tokens/TokenTUL.sol";
+import "@gnosis.pm/dutch-exchange/contracts/Tokens/TokenMGN.sol";
 
 
 import "@gnosis.pm/dutch-exchange/contracts/InternalTests.sol";

@@ -27,16 +27,16 @@ class ContractLoader {
       this._loadDx(),
       this._loadTokenContracts()
     ])
-  
+
     const dxContracts = await this._loadDxContracts(dx)
-  
+
     return { dx, ...dxContracts, erc20TokenContracts }
   }
-  
+
   async _loadDx () {
     const dxContract = this._ethereumClient
       .loadContract(this._contractDefinitions.DutchExchange)
-  
+
     let dxContractAddress
     if (this._dxContractAddress) {
       dxContractAddress = this._dxContractAddress
@@ -45,27 +45,27 @@ class ContractLoader {
       // For local, we get the address from the contract definition
       const proxyContract = this._ethereumClient
         .loadContract(this._contractDefinitions.DutchExchangeProxy)
-  
+
       dxContractAddress = await this._getDeployedAddress('DX Proxy', proxyContract)
       this._dxMaster = await this._getDeployedAddress('DX', dxContract)
     } else {
       throw new Error('The DX address is mandatory for the environment ' + environment)
     }
     const dxContractInstance = dxContract.at(dxContractAddress)
-  
+
     // no public :(
     // this._dxMaster = dxContractInstance.masterCopy
-  
+
     return dxContractInstance
   }
-  
+
   async _loadERC20tokenContract (token, tokenContract) {
     let address = this._erc20TokenAddresses[token]
     if (!address) {
       if (isLocal) {
         const contract = await this._ethereumClient
           .loadContract(`${this._devContractsBaseDir}/Token${token}`)
-        
+
         address = await this._getDeployedAddress('Token ' + token, contract)
       } else {
         throw new Error(`The Token address for ${token} is mandatory for the environment ${environment}`)
@@ -76,11 +76,11 @@ class ContractLoader {
       contract: tokenContract.at(address)
     }
   }
-  
+
   async _loadGnoContract () {
     const gnoTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.TokenGNO)
-  
+
     // GNO can be pulled from the OWLAirdrop (the minter of the OWLToken)
     // For now, we jsut assume we get the address in the config file
     let address = this._gnoTokenAddress
@@ -91,16 +91,16 @@ class ContractLoader {
         throw new Error(`The Token address for GNO is mandatory for the environment ${environment}`)
       }
     }
-  
+
     return gnoTokenContract.at(address)
   }
-  
+
   async _loadTokenContracts () {
     const standardTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.StandardToken)
 
     logger.debug('this._erc20TokenAddresses: %s', this._erc20TokenAddresses)
-  
+
     const tokenContractList = await Promise.all(
       Object
         .keys(this._erc20TokenAddresses)
@@ -108,38 +108,38 @@ class ContractLoader {
           return this._loadERC20tokenContract(token, standardTokenContract)
         })
     )
-  
+
     return tokenContractList.reduce((tokenContractsAux, contractInfo) => {
       tokenContractsAux[contractInfo.token] = contractInfo.contract
       return tokenContractsAux
     }, {})
   }
-  
+
   async _loadDxContracts (dx) {
     const etherTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.EtherToken)
-  
+
     const tulTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.TokenTUL)
-  
+      .loadContract(this._contractDefinitions.TokenMGN)
+
     /* TODO: Get GNO from OWL address? ? */
     const owlTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.TokenOWL)
-  
+
     /*
     const gnoTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.TokenGNO)
     */
-  
+
     const priceOracleContract = this._ethereumClient
       .loadContract(this._contractDefinitions.PriceOracleInterface)
-  
+
     const [ priceOracle, eth, tul, owl, gno ] = await Promise.all([
       // load addresses from DX
-      dx.ETHUSDOracle.call(),
-      dx.ETH.call(),
-      dx.TUL.call(),
-      dx.OWL.call() // TODO: Is this the PROXY??
+      dx.ethUSDOracle.call(),
+      dx.ethToken.call(),
+      dx.frtToken.call(),
+      dx.owlToken.call() // TODO: Is this the PROXY??
     ])
       // load instances of the contract
       .then(([ priceOracleAddress, ethAddress, tulAddress, owlAddress ]) => (

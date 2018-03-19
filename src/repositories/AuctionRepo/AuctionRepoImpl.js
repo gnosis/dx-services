@@ -961,7 +961,7 @@ volume: ${state}`)
 
     return this
       ._callForAuction({
-        operation: 'getPriceExt',
+        operation: 'getCurrentAuctionPriceExt',
         sellToken,
         buyToken,
         auctionIndex
@@ -980,7 +980,7 @@ volume: ${state}`)
 
     return this
       ._callForToken({
-        operation: 'priceOracleExt',
+        operation: 'getPriceOfTokenInLastAuctionExt',
         token,
         checkToken: false
       })
