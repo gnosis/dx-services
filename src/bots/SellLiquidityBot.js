@@ -15,6 +15,8 @@ class SellLiquidityBot extends Bot {
     this._botService = botService
     this._botAddress = botAddress
     this._markets = markets
+
+    this._lastSellLiquidityCheck = null
   }
 
   async _doStart () {
@@ -57,6 +59,7 @@ class SellLiquidityBot extends Bot {
   }
 
   async _ensureSellLiquidity ({ sellToken, buyToken, from, isRoutineCheck = false }) {
+    this._lastSellLiquidityCheck = new Date()
     let liquidityWasEnsured
     try {
       liquidityWasEnsured = await this._botService
@@ -137,7 +140,8 @@ class SellLiquidityBot extends Bot {
 
   async getInfo () {
     return {
-      botAddress: this._botAddress
+      botAddress: this._botAddress,
+      lastSellLiquidityCheck: this._lastSellLiquidityCheck
     }
   }
 }

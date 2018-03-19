@@ -7,11 +7,11 @@
     "test": "test"
   },
   "scripts": {
-    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* node src/main.js",
-    "kovan": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
-    "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
+    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/main.js",
+    "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
+    "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
     "dev": "DEBUG=*-dx-service:* node src/main.js",
-    "pro": "DEBUG=ERROR-*,WARN-*,INFO-*,*:bots:* NODE_ENV=PRO node src/main.js",
+    "pro": "DEBUG=ERROR-*,WARN-*,INFO-* NODE_ENV=PRO node src/main.js",
     "trace": "DEBUG=* node src/main.js",
     "test": "NODE_ENV=test jest",
     "test-coverage": "NODE_ENV=test jest --coverage && cat ./coverage/lcov.info | coveralls",
