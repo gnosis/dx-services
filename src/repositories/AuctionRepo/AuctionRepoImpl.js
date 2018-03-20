@@ -979,6 +979,7 @@ volume: ${state}`)
         buyToken,
         auctionIndex
       })
+      .then(toFraction)
   }
 
   async getPriceInEth ({ token }) {
