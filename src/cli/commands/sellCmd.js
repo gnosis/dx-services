@@ -1,7 +1,7 @@
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'buy <sellToken> <buyToken> <amount> [auctionIndex]',
-    'Buy in a auction for a token pair',
+    'sell <sellToken> <buyToken> <amount> [auctionIndex]',
+    'Sell in a auction for a token pair',
     yargs => {
       yargs.positional('sellToken', {
         type: 'string',
@@ -40,20 +40,20 @@ function registerCommand ({ cli, instances, logger }) {
         })
       }
 
-      logger.info(`Buy %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
+      logger.info(`Sell %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
         amount,
         buyToken,
         'auction ' + auctionIndex,
         botAccount
       )
-      const buyResult = await dxTradeService.buy({
+      const buyResult = await dxTradeService.sell({
         sellToken,
         buyToken,
         auctionIndex,
         amount: amount * 1e18,
         from: botAccount
       })
-      logger.info('The buy was succesful. Transaction: %s', buyResult.tx)
+      logger.info('The sell was succesful. Transaction: %s', buyResult.tx)
     })
 }
 
