@@ -39,18 +39,26 @@ class App {
     // Services
     liquidityService,
     dxInfoService,
+    dxTradeService,
+    botsService,
+
     // Events
     eventBus,
     ethereumClient,
     auctionEventWatcher
   }) {
     this._config = config
-    this._liquidityService = liquidityService
-    this._dxInfoService = dxInfoService
     this._eventBus = eventBus
     this._auctionEventWatcher = auctionEventWatcher
     this._ethereumClient = ethereumClient
 
+    // Services
+    this._liquidityService = liquidityService
+    this._dxInfoService = dxInfoService
+    this._dxTradeService = dxTradeService
+    this._botsService = botsService
+    
+    // Bots and API
     this._bots = null
     this._dxApiServer = null
 
@@ -140,14 +148,17 @@ class App {
 
     // Initialize bot list
     this._bots = [ sellLiquidityBot, buyLiquidityBot, balanceCheckBot ]
-    this._dxInfoService.setBots(this._bots)
+    this._botsService.setBots(this._bots)
 
     // Create server
     const DxApiServer = require('./web/DxApiServer')
     this._dxApiServer = new DxApiServer({
       port: this._config.API_PORT,
       host: this._config.API_HOST,
-      dxInfoService: this._dxInfoService
+      dxInfoService: this._dxInfoService,
+      dxTradeService: this._dxTradeService,
+      botsService: this._botsService,
+      bots: this._bots
     })
   }
 

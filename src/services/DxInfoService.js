@@ -25,10 +25,6 @@ class DxInfoService {
     return this._version
   }
 
-  setBots (bots) {
-    this._bots = bots
-  }
-
   async getHealthEthereum () {
     return this._ethereumRepo.getHealth()
   }
@@ -43,21 +39,10 @@ class DxInfoService {
       markets: this._markets
     }
 
-    const bots = await Promise.all(
-      this._bots.map(async bot => {
-        const botInfo = await bot.getInfo()
-        return Object.assign({
-          name: bot.name,
-          startTime: bot.startTime
-        }, botInfo)
-      })
-    )
-
     return {
       name: 'Dutch Exchange - Services',
       version: this._version,
       auctions: auctionAbout,
-      bots,
       ethereum: ethereumAbout,
       config,
       git: this._gitInfo

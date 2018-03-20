@@ -10,10 +10,18 @@ const DEFAULT_HOST = '0.0.0.0'
 const CONTEXT_PATH = ''
 
 class DxApiServer {
-  constructor ({ port = DEFAULT_PORT, host = DEFAULT_HOST, dxInfoService }) {
+  constructor ({
+    port = DEFAULT_PORT,
+    host = DEFAULT_HOST,
+    dxInfoService,
+    dxTradeService,
+    botsService
+  }) {
     this._port = port
     this._host = host
     this._dxInfoService = dxInfoService
+    this._dxTradeService = dxTradeService
+    this._botsService = botsService
     this._poweredByHeader = null
   }
 
@@ -37,7 +45,9 @@ class DxApiServer {
 
     // Define all the routes
     const routes = require('./routes')({
-      dxInfoService: this._dxInfoService
+      dxInfoService: this._dxInfoService,
+      dxTradeService: this._dxTradeService,
+      botsService: this._botsService
     })
     Object.keys(routes).forEach(path => {
       const fullPath = CONTEXT_PATH + path

@@ -3,7 +3,7 @@ const router = express.Router()
 
 // const debug = require('debug')('DEBUG-dx-services:web:api')
 
-function getRouter ({ dxInfoService }) {
+function getRouter ({ dxInfoService, botsService }) {
   router.get([ '/', '/version' ], async (req, res) => {
     const version = await dxInfoService.getVersion()
     res.send(version)
@@ -34,7 +34,9 @@ function getRouter ({ dxInfoService }) {
   */
   
   router.get('/about', async (req, res) => {
-    res.send(await dxInfoService.getAbout())
+    const dxAbout = await dxInfoService.getAbout()
+    const botsAbout = await botsService.getAbout()
+    res.send(Object.assign({}, dxAbout, botsAbout))
   })
   
   router.get('/markets', async (req, res) => {

@@ -10,7 +10,6 @@ const EventBus = require('./EventBus')
 
 async function createInstances ({
   test = false,
-  createDxTradeService = false,
   config: configOverride = {}
 }) {
   const config = Object.assign({}, originalConfig, configOverride)
@@ -33,7 +32,7 @@ async function createInstances ({
   const auctionRepo = _getAuctionRepo(config, ethereumClient, contracts)
   const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
-  // Service: Bot service
+  // Service: Liquidity service
   const liquidityService = _getLiquidityService({
     config: config,
     exchangePriceRepo,
@@ -41,7 +40,7 @@ async function createInstances ({
     ethereumRepo
   })
 
-  // Service: Api service
+  // Service: DX info service
   const dxInfoService = _getDxInfoService({
     config: config,
     exchangePriceRepo,
@@ -49,13 +48,18 @@ async function createInstances ({
     ethereumRepo
   })
 
-  // Service: CLI service
-  const dxTradeService = createDxTradeService ? null : _getDxTradeService({
+  // Service: DX trade service
+  const dxTradeService = _getDxTradeService({
     config: config,
     auctionRepo,
     ethereumRepo
   })
 
+  // Service: Bots service
+  const botsService = _getBotsService({
+    config: config
+  })
+  
   // Event Watcher
   const auctionEventWatcher = _getAuctionEventWatcher(
     config, eventBus, contracts
@@ -71,7 +75,8 @@ async function createInstances ({
     // services
     liquidityService,
     dxInfoService,
-    dxTradeService
+    dxTradeService,
+    botsService
   }
 
   if (test) {
@@ -215,6 +220,11 @@ function _getDxTradeService ({ config, auctionRepo, ethereumRepo }) {
     markets: config.MARKETS,
     ethereumRepo
   })
+}
+
+function _getBotsService ({ config }) {
+  const BotsService = require('../services/BotsService')
+  return new BotsService()
 }
 
 module.exports = createInstances
