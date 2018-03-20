@@ -14,12 +14,12 @@ const MARKETS = [
 let sellLiquidityBot
 
 beforeEach(async () => {
-  const { botService } = await setupPromise
+  const { liquidityService } = await setupPromise
 
   sellLiquidityBot = new SellLiquidityBot({
     name: 'SellLiquidityBot',
     eventBus: new EventBus(),
-    botService,
+    liquidityService,
     botAddress: '0x123',
     markets: MARKETS
   })
@@ -33,27 +33,27 @@ afterEach(() => {
 
 test('It should trigger ensure liquidity from eventBus trigger', () => {
   // we mock ensureSellLiquidity function
-  sellLiquidityBot._botService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
+  sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
 
   // we wrap expected eventBus triggered function with mock
   sellLiquidityBot._onAuctionCleared = jest.fn(sellLiquidityBot._onAuctionCleared)
 
   // GIVEN uncalled liquidity functions
   expect(sellLiquidityBot._onAuctionCleared).toHaveBeenCalledTimes(0)
-  expect(sellLiquidityBot._botService.ensureSellLiquidity).toHaveBeenCalledTimes(0)
+  expect(sellLiquidityBot._liquidityService.ensureSellLiquidity).toHaveBeenCalledTimes(0)
 
   // WHEN we trigger 'auction:cleared' event
   sellLiquidityBot._eventBus.trigger('auction:cleared', {buyToken: 'RDN', sellToken: 'ETH'})
 
   // THEN liquidity ensuring functions have been called
   expect(sellLiquidityBot._onAuctionCleared).toHaveBeenCalledTimes(1)
-  expect(sellLiquidityBot._botService.ensureSellLiquidity).toHaveBeenCalledTimes(1)
+  expect(sellLiquidityBot._liquidityService.ensureSellLiquidity).toHaveBeenCalledTimes(1)
 })
 
 test('It should not ensure liquidity if already ensuring liquidity.', () => {
   expect.assertions(1)
   // we mock ensureSellLiquidity function
-  sellLiquidityBot._botService.ensureSellLiquidity = _concurrentLiquidityEnsured
+  sellLiquidityBot._liquidityService.ensureSellLiquidity = _concurrentLiquidityEnsured
 
   // GIVEN a running bot
 
@@ -70,10 +70,10 @@ test('It should not ensure liquidity if already ensuring liquidity.', () => {
 test('It should ensure liquidity.', () => {
   expect.assertions(3)
   // we mock ensureSellLiquidity function
-  sellLiquidityBot._botService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
+  sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
 
   // GIVEN
-  expect(sellLiquidityBot._botService.ensureSellLiquidity).toHaveBeenCalledTimes(0)
+  expect(sellLiquidityBot._liquidityService.ensureSellLiquidity).toHaveBeenCalledTimes(0)
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._onAuctionCleared('auction:cleared',
@@ -83,15 +83,15 @@ test('It should ensure liquidity.', () => {
   ENSURE_LIQUIDITY.then(result => {
     expect(result).toBeTruthy()
   })
-  expect(sellLiquidityBot._botService.ensureSellLiquidity).toHaveBeenCalledTimes(1)
+  expect(sellLiquidityBot._liquidityService.ensureSellLiquidity).toHaveBeenCalledTimes(1)
 })
 
 test.skip('It should do a routine check.', async () => {
   // we mock ensureSellLiquidity function
-  sellLiquidityBot._botService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
+  sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
 
   // GIVEN
-  expect(sellLiquidityBot._botService.ensureSellLiquidity).toHaveBeenCalledTimes(0)
+  expect(sellLiquidityBot._liquidityService.ensureSellLiquidity).toHaveBeenCalledTimes(0)
 
   // const spy = jest.spyOn(sellLiquidityBot, '_doRoutineLiquidityCheck')
   // WHEN we ensure liquidity
@@ -104,7 +104,7 @@ test.skip('It should do a routine check.', async () => {
   // THEN liquidiy is ensured correctly
   // expect(await ENSURE_LIQUIDITY).toBeTruthy()
   // expect(await spy).toHaveBeenCalled()
-  expect(sellLiquidityBot._botService.ensureSellLiquidity).toHaveBeenCalledTimes(1)
+  expect(sellLiquidityBot._liquidityService.ensureSellLiquidity).toHaveBeenCalledTimes(1)
 })
 
 // const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 60 * 1000
