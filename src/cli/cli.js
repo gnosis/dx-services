@@ -19,6 +19,7 @@ async function run (instances) {
   require('./commands/printStateCmd')(commandParams)
 
   // Trade commands
+  require('./commands/sendCmd')(commandParams)
   require('./commands/buyCmd')(commandParams)
   require('./commands/sellCmd')(commandParams)
 

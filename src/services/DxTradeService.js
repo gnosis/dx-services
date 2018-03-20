@@ -47,7 +47,7 @@ class DxTradeService {
       params: [ amount, token, fromAddress, toAddress ]
     })
 
-    return transactionResult.tx
+    return transactionResult
   }
 
   async fundAccount ({ token, amount, accountAddress }) {
