@@ -1,5 +1,3 @@
-const printState = require('../helpers/printState')
-
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'buy-liquidity <sellToken> <buyToken>',

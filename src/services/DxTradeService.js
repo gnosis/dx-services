@@ -12,6 +12,18 @@ class DxTradeService {
     this._markets = markets
   }
 
+  async buy ({ sellToken, buyToken, auctionIndex, from, amount }) {
+    return this._auctionRepo.postBuyOrder({
+      sellToken, buyToken, auctionIndex, from, amount
+    })
+  }
+
+  async sell ({ sellToken, buyToken, auctionIndex, from, amount }) {
+    return this._auctionRepo.postSellOrder({
+      sellToken, buyToken, auctionIndex, from, amount
+    })
+  }
+
   async sendTokens ({ token, amount, fromAddress, toAddress }) {
     const amountInWei = numberUtil.toWei(amount)
 

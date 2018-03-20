@@ -29,6 +29,10 @@ class DxInfoService {
     return this._ethereumRepo.getHealth()
   }
 
+  async getAuctionIndex ({ sellToken, buyToken }) {
+    return this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
+  }
+
   async getMarketDetails ({ sellToken, buyToken }) {
     const tokenPair = { sellToken, buyToken }
     const [
