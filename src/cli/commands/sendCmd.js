@@ -19,20 +19,20 @@ function registerCommand ({ cli, instances, logger }) {
     }, async function (argv) {
       const { amount, token, account } = argv
       const {
-        botAccount,
+        owner,
         dxTradeService
       } = instances
 
       logger.info(`Send %d %s from %s to %s`,
         amount,
         token,
-        botAccount,
+        owner,
         account
       )
       const sendTokensResult = await dxTradeService.sendTokens({
         token,
         amount: amount * 1e18,
-        fromAddress: botAccount,
+        fromAddress: owner,
         toAddress: account
       })
       logger.info('The delivery was succesful. Transaction: %s', sendTokensResult.tx)

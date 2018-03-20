@@ -133,7 +133,7 @@ async function run ({
 
     await dxTradeService.sendTokens({
       token,
-      amount,
+      amount: amount * 1e18,
       fromAddress: fromAddress || owner,
       toAddress: toAddress || botAccount
     })
@@ -155,9 +155,9 @@ async function run ({
       verbose: false
     })
 
-    const newBalance = await dxTradeService.fundAccount({
+    const newBalance = await dxTradeService.deposit({
       token,
-      amount,
+      amount: amount * 1e18,
       accountAddress
     })
     debug('New Balance: %d %s', newBalance, token)

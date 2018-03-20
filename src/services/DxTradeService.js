@@ -25,12 +25,13 @@ class DxTradeService {
   }
 
   async sendTokens ({ token, amount, fromAddress, toAddress }) {
-    const amountInWei = numberUtil.toWei(amount)
-
+    // const amountInWei = numberUtil.toWei(amount)
+    const amountInEther = numberUtil.toBigNumber(amount).div(1e18)
+    
     if (token === 'ETH') {
       // In case of the ETH, we make sure we have enough EtherTokens
       await this._depositEtherIfRequired({
-        amountInWei,
+        amount,
         accountAddress: fromAddress
       })
     }
@@ -39,18 +40,19 @@ class DxTradeService {
       from: fromAddress,
       to: toAddress,
       token,
-      amount: amountInWei
+      amount
     })
 
     logger.info({
       msg: 'Transfered %d %s from %s to %s. Transaction: %s',
-      params: [ amount, token, fromAddress, toAddress ]
+      params: [ amountInEther, token, fromAddress, toAddress, transactionResult.tx ]
     })
 
     return transactionResult
   }
 
   async deposit ({ token, amount, accountAddress }) {
+    const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
     // Get the account we want to fund
     // const accountAddress = await this._getAccountAddress(accountIndex)
     logger.info({
@@ -59,32 +61,32 @@ class DxTradeService {
     })
 
     let transactionResult
-    const amountInWei = numberUtil.toWei(amount)
+    // const amountInWei = numberUtil.toWei(amount)
     if (token === 'ETH') {
       // In case of the ETH, we make sure we have enough EtherTokens
-      await this._depositEtherIfRequired({ amountInWei, accountAddress })
+      await this._depositEtherIfRequired({ amount, accountAddress })
     }
 
     // Approce DX to use the tokens
     transactionResult = await this._auctionRepo.approveERC20Token({
       from: accountAddress,
       token,
-      amount: amountInWei
+      amount
     })
     logger.info({
       msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
-      params: [ amount, token, transactionResult.tx ]
+      params: [ amountInEth, token, transactionResult.tx ]
     })
 
     // Deposit the tokens into the user account balance
     transactionResult = await this._auctionRepo.deposit({
       from: accountAddress,
       token,
-      amount: amountInWei
+      amount
     })
     logger.info({
       msg: 'Deposited %d %s into DX account balances for the user. Transaction: %s',
-      params: [ amount, token, transactionResult.tx ]
+      params: [ amountInEth, token, transactionResult.tx ]
     })
 
     return this._auctionRepo.getBalance({
@@ -94,25 +96,28 @@ class DxTradeService {
   }
 
 
-  async _depositEtherIfRequired ({ accountAddress, amountInWei }) {
+  async _depositEtherIfRequired ({ accountAddress, amount }) {
     let transactionResult
-
+    
     // Check if the user has already enogh EtherTokens
     const etherTokenBalance = await this._auctionRepo.getBalanceERC20Token({
       token: 'ETH',
       address: accountAddress
     })
-
-    if (etherTokenBalance.lessThan(amountInWei)) {
-      const missingDifferenceInWeis = amountInWei.minus(etherTokenBalance)
+    const amountInWei = numberUtil.toBigNumber(amount)
+    
+    if (etherTokenBalance.lessThan(amount)) {
+      const missingDifference = amountInWei
+        .minus(etherTokenBalance)
+        
       logger.info({
         msg: `We don't have enogth EtherTokens, so we need to deposit: %d ETH`,
-        params: [ missingDifferenceInWeis.div(1e18) ]
+        params: [ missingDifference.div(1e18) ]
       })
 
       transactionResult = await this._auctionRepo.depositEther({
         from: accountAddress,
-        amount: missingDifferenceInWeis
+        amount: missingDifference
       })
       logger.info({
         msg: 'Wrapped %d ETH in a ERC20 ETH token. Transaction: %s',
