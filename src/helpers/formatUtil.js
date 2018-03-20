@@ -1,3 +1,4 @@
+const numberUtil = require('./numberUtil')
 const moment = require('moment')
 
 function formatDateTime (date) {
@@ -12,8 +13,48 @@ function formatBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
 
+function formatFromWei (wei) {
+  if (wei) {
+    return numberUtil.toBigNumber(wei).div(1e18)
+  } else {
+    return null
+  }
+}
+
+function formatNumber (number) {
+  // TODO: Improve
+  return number.toString()
+}
+
+function formatFraction (fraction, inDecimal = true) {
+  if (fraction === null) {
+    return null
+  } else {
+    const fractionBigNumber = {
+      numerator: numberUtil.toBigNumber(fraction.numerator),
+      denominator: numberUtil.toBigNumber(fraction.denominator)
+    }
+
+    if (inDecimal) {
+      // In decimal format
+      const decimalumber = fractionBigNumber
+        .numerator
+        .div(fractionBigNumber.denominator)
+        
+      return formatNumber(decimalumber)
+    } else {
+      // In fractional format
+      return formatNumber(fractionBigNumber.numerator) +
+        ' / ' +
+        formatNumber(fractionBigNumber.denominator)
+    }
+  }
+}
+
 module.exports = {
   formatDateTime,
   formatDatesDifference,
-  formatBoolean
+  formatBoolean,
+  formatFromWei,
+  formatFraction
 }

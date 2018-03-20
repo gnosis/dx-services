@@ -62,8 +62,8 @@ class DxInfoService {
     if (stateInfo.auction) {
       result.auction = await this._getAuctionDetails({
         auction: stateInfo.auctionOpp,
-        tokenA: buyToken,
-        tokenB: sellToken,
+        tokenA: sellToken,
+        tokenB: buyToken,
         auctionIndex,
         state
       })

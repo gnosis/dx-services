@@ -18,6 +18,7 @@
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
     "cli2": "DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
+    "cli2-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NODE_ENV=dev NETWORK=rinkeby node src/cli/cli.js",    
     "cli": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService node tests/playground/cli/bot-cli.js",
     "cli-kovan": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=kovan node tests/playground/cli/bot-cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=rinkeby node tests/playground/cli/bot-cli.js",

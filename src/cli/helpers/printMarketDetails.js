@@ -1,8 +1,6 @@
-const BigNumber = require('bignumber.js')
-
 const TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS = 6 * 60 * 60 * 1000
 
-const numberUtil = require('../../helpers/numberUtil')
+// const numberUtil = require('../../helpers/numberUtil')
 const formatUtil = require('../../helpers/formatUtil')
 
 module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) {
@@ -55,7 +53,8 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
       tokenA: sellToken,
       tokenB: buyToken,
       auctionIndex,
-      state
+      state,
+      logger
     })
   }
 
@@ -65,91 +64,66 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
       tokenA: buyToken,
       tokenB: sellToken,
       auctionIndex,
-      state
+      state,
+      logger
     })
   }
 }
 
-function _printAuctionDetails({ auction, tokenA, tokenB, auctionIndex, state }) {
-  /*
+function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, logger }) {
+  const {
+    isClosed,
+    price,
+    closingPrice,
+    isTheoreticalClosed,
+    sellVolume,
+    buyVolume,
+    // buyVolumesInSellTokens,
+    priceRelationshipPercentage,
+    boughtPercentage,
+    outstandingVolume
+  } = auction
+
   logger.info(`\n\tAuction ${tokenA}-${tokenB}:`)
-
+  
   // printProps('\t\t', auctionProps, auction, formatters)
-  let closed
-  if (auction.isClosed) {
-    closed = 'Yes'
-    if (auction.sellVolume.isZero()) {
-      closed += ' (closed from start)'
+  let closedStatus
+  if (isClosed) {
+    closedStatus = 'Yes'
+    if (sellVolume.isZero()) {
+      closedStatus += ' (closed from start)'
     }
-  } else if (auction.isTheoreticalClosed) {
-    closed = 'Theoretically closed'
+  } else if (isTheoreticalClosed) {
+    closedStatus = 'Theoretically closed'
   } else {
-    closed = 'No'
+    closedStatus = 'No'
   }
-  logger.info('\t\tIs closed: %s', closed)
-
-  const fundingInUSD = await auctionRepo.getFundingInUSD({
-    tokenA, tokenB, auctionIndex
-  })
-
+  
+  logger.info('\t\tIs closed: %s', closedStatus)
   logger.info('\t\tSell volume:')
-  logger.info(`\t\t\tsellVolume: %d %s`, formatFromWei(auction.sellVolume), tokenA)
-  logger.info(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
+  logger.info(`\t\t\tsellVolume: %d %s`, formatUtil.formatFromWei(sellVolume), tokenA)
+  if (auction.fundingInUSD) {
+    logger.info(`\t\t\tsellVolume: %d USD`, auction.fundingInUSD)
+  }
 
-  const price = await auctionRepo.getCurrentAuctionPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
   if (price) {
-    let closingPrice
-    if (auctionIndex > 1) {
-      auctionIndex = await auctionRepo.getPastAuctionPrice({
-        sellToken: tokenA,
-        buyToken: tokenB,
-        auctionIndex: auctionIndex - 1
-      })
-    } else {
-      closingPrice = null
-    }
-
     logger.info(`\t\tPrice:`)
     if (!closingPrice) {
-      logger.info(`\t\t\tCurrent Price: %s %s/%s`, fractionFormatter(price),
-        tokenB, tokenA)
+      logger.info(`\t\t\tCurrent Price: %s %s/%s`,
+        formatUtil.formatFraction(price), tokenB, tokenA)
     } else {
-      let buyVolumesInSellTokens, priceRelationshipPercentage
-      if (price.numerator.isZero()) {
-        // The auction runned for too long
-        buyVolumesInSellTokens = auction.sellVolume
-        priceRelationshipPercentage = 'N/A'
-      } else {
-        // Get the number of sell tokens that we can get for the buyVolume
-        buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
-        priceRelationshipPercentage = price.numerator
-          .mul(closingPrice.denominator)
-          .div(price.denominator)
-          .div(closingPrice.numerator)
-          .mul(100)
-          .toFixed(2) + ' %'
-      }
-      const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
-      // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
+      logger.info(`\t\t\tPrevious Closing Price: %s %s/%s`,
+        formatUtil.formatFraction(closingPrice), tokenB, tokenA)
 
-      logger.info(`\t\t\tPrevious Closing Price: %s %s/%s`, fractionFormatter(closingPrice),
-        tokenB, tokenA)
-
-      logger.info(`\t\t\tPrice relation: %s`, priceRelationshipPercentage)
+      logger.info(`\t\t\tPrice relation: %s`,
+        priceRelationshipPercentage ? priceRelationshipPercentage + '%' : 'N/A')
       logger.info('\t\tBuy volume:')
-      logger.info(`\t\t\tbuyVolume: %d %s`, formatFromWei(auction.buyVolume), tokenB)
+      logger.info(`\t\t\tbuyVolume: %d %s`, formatUtil.formatFromWei(buyVolume), tokenB)
       logger.info(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
     }
     if (state.indexOf('WAITING') === -1) {
-      // Show outstanding volumen if we are not in a waiting period
-      const outstandingVolume = await auctionRepo.getOutstandingVolume({
-        sellToken: tokenA,
-        buyToken: tokenB,
-        auctionIndex
-      })
       logger.info(`\t\t\tOutstanding volume: %d %s`,
-        formatFromWei(outstandingVolume), tokenB)
+        formatUtil.formatFromWei(outstandingVolume), tokenB)
     }
   }
-  */
 }

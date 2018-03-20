@@ -5,6 +5,7 @@ const BigNumber = require('bignumber.js')
 
 const numberUtil = require('../../src/helpers/numberUtil')
 const formatUtil = require('../../src/helpers/formatUtil')
+const printStateNew = require('../../src/cli/helpers/printState')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -37,7 +38,7 @@ async function getContracts ({ ethereumClient, auctionRepo }) {
   }
 }
 
-async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }, { dx, dxMaster, priceOracle, tokens }) {
+async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereumRepo, config }, { dx, dxMaster, priceOracle, tokens }) {
   const address = await ethereumClient.doCall('eth.getCoinbase')
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
@@ -290,152 +291,18 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug(message + ':\t', time.toUTCString())
   }
 
-  async function printState (message, { sellToken, buyToken }) {
-    const isSellTokenApproved = await auctionRepo.isApprovedToken({ token: sellToken })
-    const isBuyTokenApproved = await auctionRepo.isApprovedToken({ token: buyToken })
-
-    const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })
-    const state = await auctionRepo.getState({ sellToken, buyToken })
-    const isApprovedMarket = await auctionRepo.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
-    const auctionIndex = await auctionRepo.getAuctionIndex({ buyToken, sellToken })
-
-    debug(`\n**********  ${message}  **********\n`)
-    debug(`\tToken pair: ${sellToken}-${buyToken}`)
-    debug('\n\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
-    debug(`\tState: ${state}`)
-
-    debug(`\n\tAre tokens Approved?`)
-    debug('\t\t- %s: %s', sellToken, formatUtil.formatBoolean(isSellTokenApproved))
-    debug('\t\t- %s: %s', buyToken, formatUtil.formatBoolean(isBuyTokenApproved))
-
-    debug('\n\tState info:')
-    debug('\t\t- auctionIndex: %s', stateInfo.auctionIndex)
-    debug('\t\t- auctionStart: %s', formatUtil.formatDateTime(stateInfo.auctionStart))
-
-    if (stateInfo.auctionStart) {
-      // debug('\t\t- Blockchain time: %s', formatUtil.formatDateTime(now))
-      const now = await ethereumClient.geLastBlockTime()
-      if (now < stateInfo.auctionStart) {
-        debug('\t\t- It will start in: %s', formatUtil.formatDatesDifference(stateInfo.auctionStart, now))
-      } else {
-        debug('\t\t- It started: %s ago', formatUtil.formatDatesDifference(now, stateInfo.auctionStart))
-        const marketPriceTime = new Date(
-          stateInfo.auctionStart.getTime() +
-          TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS
-        )
-
-        // debug('\t\t- Market price time: %s', formatUtil.formatDateTime(marketPriceTime))
-        if (marketPriceTime > now) {
-          debug('\t\t- It will reached market price in: %s', formatUtil.formatDatesDifference(now, marketPriceTime))
-        } else {
-          debug('\t\t- It has reached market price: %s ago', formatUtil.formatDatesDifference(marketPriceTime, now))
-        }
-      }
-    }
-
-    if (stateInfo.auction) {
-      await _printAuction({
-        auction: stateInfo.auction,
-        tokenA: sellToken,
-        tokenB: buyToken,
-        auctionIndex,
-        state
-      })
-    }
-
-    if (stateInfo.auctionOpp) {
-      await _printAuction({
-        auction: stateInfo.auctionOpp,
-        tokenA: buyToken,
-        tokenB: sellToken,
-        auctionIndex,
-        state
-      })
-    }
-
-    debug('\n**************************************\n\n')
-  }
-
-  async function _printAuction ({ auction, tokenA, tokenB, auctionIndex, state }) {
-    debug(`\n\tAuction ${tokenA}-${tokenB}:`)
-
-    // printProps('\t\t', auctionProps, auction, formatters)
-    let closed
-    if (auction.isClosed) {
-      closed = 'Yes'
-      if (auction.sellVolume.isZero()) {
-        closed += ' (closed from start)'
-      }
-    } else if (auction.isTheoreticalClosed) {
-      closed = 'Theoretically closed'
-    } else {
-      closed = 'No'
-    }
-    debug('\t\tIs closed: %s', closed)
-
-    const fundingInUSD = await auctionRepo.getFundingInUSD({
-      tokenA, tokenB, auctionIndex
+  async function printState (message, tokenPair) {
+    const now = await ethereumClient.geLastBlockTime()
+    const marketDetails = await dxInfoService.getMarketDetails(tokenPair)
+    printStateNew({
+      message,
+      tokenPair,
+      logger: {
+        info: debug
+      },
+      now,
+      marketDetails
     })
-
-    debug('\t\tSell volume:')
-    debug(`\t\t\tsellVolume: %d %s`, formatFromWei(auction.sellVolume), tokenA)
-    debug(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
-
-    const price = await auctionRepo.getCurrentAuctionPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
-    if (price) {
-      let closingPrice
-      if (auctionIndex > 1) {
-        closingPrice = await auctionRepo.getPastAuctionPrice({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          auctionIndex: auctionIndex - 1
-        })
-      } else {
-        closingPrice = null
-      }
-
-      debug(`\t\tPrice:`)
-      if (!closingPrice) {
-        debug(`\t\t\tCurrent Price: %s %s/%s`, fractionFormatter(price),
-          tokenB, tokenA)
-      } else {
-        let buyVolumesInSellTokens, priceRelationshipPercentage
-        if (price.numerator.isZero()) {
-          // The auction runned for too long
-          buyVolumesInSellTokens = auction.sellVolume
-          priceRelationshipPercentage = 'N/A'
-        } else {
-          // Get the number of sell tokens that we can get for the buyVolume
-          buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
-          priceRelationshipPercentage = price.numerator
-            .mul(closingPrice.denominator)
-            .div(price.denominator)
-            .div(closingPrice.numerator)
-            .mul(100)
-            .toFixed(2) + ' %'
-        }
-        const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
-        // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
-
-        debug(`\t\t\tPrevious Closing Price: %s %s/%s`, fractionFormatter(closingPrice),
-          tokenB, tokenA)
-
-        debug(`\t\t\tPrice relation: %s`, priceRelationshipPercentage)
-        debug('\t\tBuy volume:')
-        debug(`\t\t\tbuyVolume: %d %s`, formatFromWei(auction.buyVolume), tokenB)
-        debug(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
-      }
-      if (state.indexOf('WAITING') === -1) {
-        // Show outstanding volumen if we are not in a waiting period
-        const outstandingVolume = await auctionRepo.getOutstandingVolume({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          auctionIndex
-        })
-        debug(`\t\t\tOutstanding volume: %d %s`,
-          formatFromWei(outstandingVolume), tokenB)
-      }
-    }
   }
 
   async function printAddresses () {
