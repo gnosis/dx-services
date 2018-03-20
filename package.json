@@ -17,6 +17,7 @@
     "test-coverage": "NODE_ENV=test jest --coverage && cat ./coverage/lcov.info | coveralls",
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
+    "cli2": "DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
     "cli": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService node tests/playground/cli/bot-cli.js",
     "cli-kovan": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=kovan node tests/playground/cli/bot-cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
@@ -52,7 +53,8 @@
     "qs": "^6.5.1",
     "raven": "^2.4.2",
     "truffle-contract": "^3.0.3",
-    "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2"
+    "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2",
+    "yargs": "^11.0.0"
   },
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/SmartContractAudit1.0",

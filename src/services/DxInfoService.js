@@ -29,6 +29,119 @@ class DxInfoService {
     return this._ethereumRepo.getHealth()
   }
 
+  async getMarketDetails ({ sellToken, buyToken }) {
+    const tokenPair = { sellToken, buyToken }
+    const [
+      isSellTokenApproved,
+      isBuyTokenApproved,
+      stateInfo,
+      state,
+      isApprovedMarket,
+      auctionIndex
+    ] = await Promise.all([
+      this._auctionRepo.isApprovedToken({ token: sellToken }),
+      this._auctionRepo.isApprovedToken({ token: buyToken }),
+      this._auctionRepo.getStateInfo(tokenPair),
+      this._auctionRepo.getState(tokenPair),
+      this._auctionRepo.isApprovedMarket({
+        tokenA: sellToken,
+        tokenB: buyToken
+      }),
+      this._auctionRepo.getAuctionIndex(tokenPair)
+    ])
+
+    const result = {
+      isApprovedMarket,
+      state,
+      isSellTokenApproved,
+      isBuyTokenApproved,
+      auctionIndex: stateInfo.auctionIndex,
+      auctionStart: stateInfo.auctionStart
+    }
+
+    if (stateInfo.auction) {
+      result.auction = await this._getAuctionDetails({
+        auction: stateInfo.auctionOpp,
+        tokenA: buyToken,
+        tokenB: sellToken,
+        auctionIndex,
+        state
+      })
+    }
+
+    if (stateInfo.auctionOpp) {
+      result.auctionOpp = await this._getAuctionDetails({
+        auction: stateInfo.auctionOpp,
+        tokenA: buyToken,
+        tokenB: sellToken,
+        auctionIndex,
+        state
+      })
+    }
+
+    return result
+  }
+
+  async _getAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state }) {
+    const fundingInUSD = await this._auctionRepo.getFundingInUSD({
+      tokenA, tokenB, auctionIndex
+    })
+    
+    const price = await this._auctionRepo.getCurrentAuctionPrice({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      auctionIndex
+    })
+
+    let closingPrice, buyVolumesInSellTokens, priceRelationshipPercentage,
+      boughtPercentage, outstandingVolume
+    
+    if (price) {
+      if (auctionIndex > 1) {
+        closingPrice = await this._auctionRepo.getPastAuctionPrice({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex: auctionIndex - 1
+        })
+      }
+
+      if (closingPrice) {
+        if (price.numerator.isZero()) {
+          // The auction runned for too long
+          buyVolumesInSellTokens = auction.sellVolume
+          priceRelationshipPercentage = null
+        } else {
+          // Get the number of sell tokens that we can get for the buyVolume
+          buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
+          priceRelationshipPercentage = price.numerator
+            .mul(closingPrice.denominator)
+            .div(price.denominator)
+            .div(closingPrice.numerator)
+            .mul(100)
+        }
+        boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
+      }
+      if (state.indexOf('WAITING') === -1) {
+        // Show outstanding volumen if we are not in a waiting period
+        outstandingVolume = await this._auctionRepo.getOutstandingVolume({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex
+        })
+      }
+    }
+
+    return Object.assign({
+      fundingInUSD: fundingInUSD.fundingA,
+      price,
+      closingPrice,
+      buyVolumesInSellTokens,
+      priceRelationshipPercentage,
+      boughtPercentage,
+      outstandingVolume
+    }, auction)
+  }
+
   async getAbout () {
     const auctionAbout = await this._auctionRepo.getAbout()
     const ethereumAbout = await this._ethereumRepo.getAbout()
