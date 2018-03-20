@@ -1,4 +1,4 @@
-const loggerNamespace = 'dx-service:services:BotService'
+const loggerNamespace = 'dx-service:services:LiquidityService'
 // const Logger = require('../helpers/Logger')
 // const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../helpers/AuctionLogger')
@@ -10,7 +10,7 @@ const assert = require('assert')
 const BigNumber = require('bignumber.js')
 const MAXIMUM_DX_FEE = 0.05 // 5%
 
-class BotService {
+class LiquidityService {
   constructor ({ auctionRepo, ethereumRepo, exchangePriceRepo, minimumSellVolume }) {
     this._auctionRepo = auctionRepo
     this._exchangePriceRepo = exchangePriceRepo
@@ -240,4 +240,4 @@ keeps happening`
   }
 }
 
-module.exports = BotService
+module.exports = LiquidityService

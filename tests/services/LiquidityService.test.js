@@ -9,17 +9,17 @@ const BigNumber = require('bignumber.js')
 const setupPromise = testSetup()
 
 test('It should ensureSellLiquidity', async () => {
-  const { botService } = await setupPromise
+  const { liquidityService } = await setupPromise
 
   // we mock the auction repo
-  botService._auctionRepo = new AuctionRepoMock({
+  liquidityService._auctionRepo = new AuctionRepoMock({
     auctions: _getAuctionsWithUnderFundingEthOmg()
   })
 
   async function _isUnderFundingAuction ({ tokenA, tokenB }) {
-    const auctionIndex = await botService._auctionRepo.getAuctionIndex({
+    const auctionIndex = await liquidityService._auctionRepo.getAuctionIndex({
       sellToken: tokenA, buyToken: tokenB })
-    const { fundingA, fundingB } = await botService._auctionRepo.getFundingInUSD({
+    const { fundingA, fundingB } = await liquidityService._auctionRepo.getFundingInUSD({
       tokenA, tokenB, auctionIndex
     })
 
@@ -36,7 +36,7 @@ test('It should ensureSellLiquidity', async () => {
     .toBeTruthy()
 
   // WHEN we ensure sell liquidity
-  const ensureLiquidityState = await botService.ensureSellLiquidity({
+  const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
 
   // THEN bot sells in OMG-ETH, the pair market we expect
@@ -47,7 +47,7 @@ test('It should ensureSellLiquidity', async () => {
   expect(ensureLiquidityState).toMatchObject(expectedBotSell)
 
   // THEN new sell volume is valid
-  let currentSellVolume = await botService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
+  let currentSellVolume = await liquidityService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
   expect(_isValidSellVolume(currentSellVolume, UNDER_MINIMUM_FUNDING_ETH))
     .toBeTruthy()
   expect(_isValidSellVolume(currentSellVolume, ensureLiquidityState.amount))
@@ -59,25 +59,25 @@ test('It should ensureSellLiquidity', async () => {
 })
 
 test('It should detect concurrency when ensuring liquidiy', async () => {
-  const { botService } = await setupPromise
+  const { liquidityService } = await setupPromise
 
   // GIVEN a not RUNNING auction, without enough sell liquidiy
   // we mock the auction repo
-  botService._auctionRepo = new AuctionRepoMock({
+  liquidityService._auctionRepo = new AuctionRepoMock({
     auctions: _getAuctionsWithUnderFundingEthOmg()
   })
 
   // we wrap postSellOrder with jest mock functionalities
-  const postSellOrder = jest.fn(botService._auctionRepo.postSellOrder)
-  botService._auctionRepo.postSellOrder = postSellOrder
+  const postSellOrder = jest.fn(liquidityService._auctionRepo.postSellOrder)
+  liquidityService._auctionRepo.postSellOrder = postSellOrder
 
   // GIVEN no calls to postSellOrder function
   expect(postSellOrder.mock.calls.length).toBe(0)
 
   // WHEN we ensure sell liquidity twice
-  let ensureLiquidityPromise1 = botService.ensureSellLiquidity({
+  let ensureLiquidityPromise1 = liquidityService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
-  let ensureLiquidityPromise2 = botService.ensureSellLiquidity({
+  let ensureLiquidityPromise2 = liquidityService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
 
   await ensureLiquidityPromise1
@@ -88,14 +88,14 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
 })
 
 test('It should not ensure liquidity if auction is not waiting for funding', async () => {
-  const { botService } = await setupPromise
+  const { liquidityService } = await setupPromise
   // we mock the auction repo
-  botService._auctionRepo = auctionRepoMock
+  liquidityService._auctionRepo = auctionRepoMock
 
   // GIVEN a running auction
 
   // WHEN we ensure sell liquidity
-  const ensureLiquidityState = await botService.ensureSellLiquidity({
+  const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
     sellToken: 'RDN', buyToken: 'ETH', from: '0x123' })
 
   // THEN we shouldn't be adding funds
@@ -103,16 +103,16 @@ test('It should not ensure liquidity if auction is not waiting for funding', asy
 })
 
 test('It should not ensure liquidity if auction has enough funds', async () => {
-  const { botService } = await setupPromise
+  const { liquidityService } = await setupPromise
   expect.assertions(1)
   // we mock the auction repo
-  botService._auctionRepo = auctionRepoMock
+  liquidityService._auctionRepo = auctionRepoMock
 
   // GIVEN an auction with enough funds
 
   try {
     // WHEN we ensure sell liquidity
-    await botService.ensureSellLiquidity({
+    await liquidityService.ensureSellLiquidity({
       sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
   } catch (e) {
     // THEN we get an error becuse we shouldn't ensure liquidity

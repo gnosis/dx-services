@@ -37,7 +37,7 @@ class App {
   constructor ({
     config,
     // Services
-    botService,
+    liquidityService,
     apiService,
     // Events
     eventBus,
@@ -45,7 +45,7 @@ class App {
     auctionEventWatcher
   }) {
     this._config = config
-    this._botService = botService
+    this._liquidityService = liquidityService
     this._apiService = apiService
     this._eventBus = eventBus
     this._auctionEventWatcher = auctionEventWatcher
@@ -64,7 +64,7 @@ class App {
     await this.isReadyPromise
 
     // Display some basic info
-    const about = await this._botService.getAbout()
+    const about = await this._liquidityService.getAbout()
     logger.info({
       msg: 'Loading app in %s environment with %o ...',
       params: [ this._config.ENVIRONMENT, about ]
@@ -113,7 +113,7 @@ class App {
     const sellLiquidityBot = new SellLiquidityBot({
       name: 'SellLiquidityBot',
       eventBus: this._eventBus,
-      botService: this._botService,
+      liquidityService: this._liquidityService,
       botAddress,
       markets: this._config.MARKETS
     })
@@ -123,7 +123,7 @@ class App {
     const buyLiquidityBot = new BuyLiquidityBot({
       name: 'BuyLiquidityBot',
       eventBus: this._eventBus,
-      botService: this._botService,
+      liquidityService: this._liquidityService,
       botAddress,
       markets: this._config.MARKETS
     })
@@ -133,7 +133,7 @@ class App {
     const balanceCheckBot = new BalanceCheckBot({
       name: 'BalanceCheckBot',
       eventBus: this._eventBus,
-      botService: this._botService,
+      liquidityService: this._liquidityService,
       botAddress,
       markets: this._config.MARKETS
     })

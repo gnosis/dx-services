@@ -34,7 +34,7 @@ async function createInstances ({
   const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
   // Service: Bot service
-  const botService = _getBotService({
+  const liquidityService = _getLiquidityService({
     config: config,
     exchangePriceRepo,
     auctionRepo,
@@ -69,7 +69,7 @@ async function createInstances ({
     ethereumClient,
 
     // services
-    botService,
+    liquidityService,
     apiService,
     cliService
   }
@@ -183,9 +183,9 @@ function _getExchangePriceRepo (config) {
   return new ExchangePriceRepoMock({})
 }
 
-function _getBotService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
-  const BotService = require('../services/BotService')
-  return new BotService({
+function _getLiquidityService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
+  const LiquidityService = require('../services/LiquidityService')
+  return new LiquidityService({
     // Repos
     auctionRepo,
     exchangePriceRepo,

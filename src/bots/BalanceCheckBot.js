@@ -7,10 +7,10 @@ const MINIMUM_AMOUNT_IN_USD = 2500
 const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000
 
 class BalanceCheckBot extends Bot {
-  constructor ({ name, eventBus, botService, botAddress, markets }) {
+  constructor ({ name, eventBus, liquidityService, botAddress, markets }) {
     super(name)
     this._eventBus = eventBus
-    this._botService = botService
+    this._liquidityService = liquidityService
     this._botAddress = botAddress
     this._tokens = markets.reduce((accumulator, tokenPair) => {
       if (!accumulator.includes(tokenPair.tokenA)) {
@@ -45,7 +45,7 @@ class BalanceCheckBot extends Bot {
     this._lastCheck = new Date()
     let botHasEnoughTokens
     try {
-      botHasEnoughTokens = await this._botService
+      botHasEnoughTokens = await this._liquidityService
         .getBalances({
           tokens: this._tokens,
           address: this._botAddress

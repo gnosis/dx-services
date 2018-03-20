@@ -8,10 +8,10 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
 
 class BuyLiquidityBot extends Bot {
-  constructor ({ name, eventBus, botService, botAddress, markets }) {
+  constructor ({ name, eventBus, liquidityService, botAddress, markets }) {
     super(name)
     this._eventBus = eventBus
-    this._botService = botService
+    this._liquidityService = liquidityService
     this._botAddress = botAddress
     this._markets = markets
 
@@ -55,12 +55,12 @@ class BuyLiquidityBot extends Bot {
     this._lastCheck = new Date()
     let liquidityWasEnsured
     try {
-      liquidityWasEnsured = await this._botService
+      liquidityWasEnsured = await this._liquidityService
         .ensureBuyLiquidity({ sellToken, buyToken, from })
         .then(soldTokens => {
           // soldTokens is:
           //  * NULL when nothing was sold
-          //  * An object with {amount, sellToken, buyToken} when the botService
+          //  * An object with {amount, sellToken, buyToken} when the liquidityService
           //    had to sell tokens
           if (soldTokens) {
             this._lastBuy = new Date()
