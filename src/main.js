@@ -142,6 +142,7 @@ class App {
       name: 'BalanceCheckBot',
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
+      dxInfoService: this._dxInfoService,
       botAddress,
       markets: this._config.MARKETS
     })

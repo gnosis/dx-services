@@ -4,15 +4,12 @@ const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')
 
 const numberUtil = require('../../src/helpers/numberUtil')
-const formatUtil = require('../../src/helpers/formatUtil')
 const printStateNew = require('../../src/cli/helpers/printState')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
 const NUM_TEST_USERS = 1
-const TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS = 6 * 60 * 60 * 1000
-
 const INITIAL_AMOUNTS = {
   ETH: 20,
   GNO: 750,

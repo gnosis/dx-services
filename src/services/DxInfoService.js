@@ -202,15 +202,19 @@ class DxInfoService {
     }
   }
 
-  async getCurrentPrice ({sellToken, buyToken}) {
+  async getCurrentPrice ({ sellToken, buyToken }) {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({sellToken, buyToken})
     return this._auctionRepo.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex})
   }
 
-  async getBalances ({accountAddress}) {
+  async getBalances ({ accountAddress }) {
     return this._auctionRepo.getBalances({accountAddress})
+  }
+
+  async getBalanceOfEther ({ account }) {
+    return this._ethereumRepo.balanceOf({ account })
   }
 }
 
