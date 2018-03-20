@@ -385,7 +385,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     if (price) {
       let closingPrice
       if (auctionIndex > 1) {
-        auctionIndex = await auctionRepo.getPastAuctionPrice({
+        closingPrice = await auctionRepo.getPastAuctionPrice({
           sellToken: tokenA,
           buyToken: tokenB,
           auctionIndex: auctionIndex - 1
