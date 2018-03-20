@@ -1,4 +1,4 @@
-const loggerNamespace = 'dx-service:services:ApiService'
+const loggerNamespace = 'dx-service:services:DxInfoService'
 // const Logger = require('../helpers/Logger')
 // const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../helpers/AuctionLogger')
@@ -7,7 +7,7 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
-class ApiService {
+class DxInfoService {
   constructor ({ auctionRepo, ethereumRepo, markets }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
@@ -116,4 +116,4 @@ class ApiService {
   }
 }
 
-module.exports = ApiService
+module.exports = DxInfoService

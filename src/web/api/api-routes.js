@@ -3,9 +3,9 @@ const router = express.Router()
 
 // const debug = require('debug')('DEBUG-dx-services:web:api')
 
-function getRouter ({ apiService }) {
+function getRouter ({ dxInfoService }) {
   router.get([ '/', '/version' ], async (req, res) => {
-    const version = await apiService.getVersion()
+    const version = await dxInfoService.getVersion()
     res.send(version)
   })
   
@@ -15,7 +15,7 @@ function getRouter ({ apiService }) {
   })
 
   router.get('/health', async (req, res) => {
-    const healthEthereum = await apiService.getHealthEthereum()
+    const healthEthereum = await dxInfoService.getHealthEthereum()
     res.status(200).send({
       ethereum: healthEthereum
     })
@@ -23,40 +23,40 @@ function getRouter ({ apiService }) {
 
   /*
   router.get('/health/ethereum-connected', async (req, res) => {
-    const isConnectedToEthereum = await apiService.isConnectedToEthereum()
+    const isConnectedToEthereum = await dxInfoService.isConnectedToEthereum()
     res.status(200).send(isConnectedToEthereum)
   })
 
   router.get('/ethereum/ethereum-syncing', async (req, res) => {
-    const syncing = await apiService.getSyncing()
+    const syncing = await dxInfoService.getSyncing()
     res.status(200).send(syncing)
   })
   */
   
   router.get('/about', async (req, res) => {
-    res.send(await apiService.getAbout())
+    res.send(await dxInfoService.getAbout())
   })
   
   router.get('/markets', async (req, res) => {
-    res.send(await apiService.getMarkets())
+    res.send(await dxInfoService.getMarkets())
   })
   
   router.get('/auctions/:currencyA/:currencyB/current', async (req, res) => {
-    res.send(await apiService.getAuctions({
+    res.send(await dxInfoService.getAuctions({
       currencyA: req.params.currencyA,
       currencyB: req.params.currencyB
     }))
   })
   
   router.get('/auctions/:sellToken/:buyToken/current-price', async (req, res) => {
-    res.send(await apiService.getCurrentPrice({
+    res.send(await dxInfoService.getCurrentPrice({
       currencyA: req.params.currencyA,
       currencyB: req.params.currencyB
     }))
   })
   
   router.get('/balances/:address', async (req, res) => {
-    res.send(await apiService.getBalances({address: req.params.address}))
+    res.send(await dxInfoService.getBalances({address: req.params.address}))
   })
 
   return router

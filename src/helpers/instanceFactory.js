@@ -42,7 +42,7 @@ async function createInstances ({
   })
 
   // Service: Api service
-  const apiService = _getApiService({
+  const dxInfoService = _getDxInfoService({
     config: config,
     exchangePriceRepo,
     auctionRepo,
@@ -70,7 +70,7 @@ async function createInstances ({
 
     // services
     liquidityService,
-    apiService,
+    dxInfoService,
     dxTradeService
   }
 
@@ -196,9 +196,9 @@ function _getLiquidityService ({ config, auctionRepo, exchangePriceRepo, ethereu
   })
 }
 
-function _getApiService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
-  const ApiService = require('../services/ApiService')
-  return new ApiService({
+function _getDxInfoService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
+  const DxInfoService = require('../services/DxInfoService')
+  return new DxInfoService({
     // Repos
     auctionRepo,
     exchangePriceRepo,
