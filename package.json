@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/main.js",
+    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/main.js",    
     "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
     "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
     "dev": "DEBUG=*-dx-service:* node src/main.js",
@@ -18,7 +18,7 @@
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
     "cli2": "DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
-    "cli2-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NODE_ENV=dev NETWORK=rinkeby node src/cli/cli.js",    
+    "cli2-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NODE_ENV=dev NETWORK=rinkeby node src/cli/cli.js",
     "cli": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService node tests/playground/cli/bot-cli.js",
     "cli-kovan": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=kovan node tests/playground/cli/bot-cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
@@ -35,7 +35,8 @@
     "contracts-setup": "node tests/playground/cli/bot-cli.js --setup; node tests/playground/cli/bot-cli.js --add-tokens",
     "contracts": "npm run contracts-clean; npm run contracts-deploy; npm run contracts-setup",
     "travis-contracts-deploy-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; truffle deploy",
-    "travis-contracts-deploy": "npm run travis-contracts-deploy-dx; npm run contracts-deploy-project"
+    "travis-contracts-deploy": "npm run travis-contracts-deploy-dx; npm run contracts-deploy-project",
+    "doc": "esdoc"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,8 @@
   "devDependencies": {
     "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/SmartContractAudit1.0",
     "coveralls": "^3.0.0",
+    "esdoc": "^1.0.4",
+    "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^4.19.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.9.0",
