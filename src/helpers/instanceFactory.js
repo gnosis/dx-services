@@ -10,7 +10,7 @@ const EventBus = require('./EventBus')
 
 async function createInstances ({
   test = false,
-  createCliService = false,
+  createDxTradeService = false,
   config: configOverride = {}
 }) {
   const config = Object.assign({}, originalConfig, configOverride)
@@ -50,7 +50,7 @@ async function createInstances ({
   })
 
   // Service: CLI service
-  const cliService = createCliService ? null : _getCliService({
+  const dxTradeService = createDxTradeService ? null : _getDxTradeService({
     config: config,
     auctionRepo,
     ethereumRepo
@@ -71,7 +71,7 @@ async function createInstances ({
     // services
     liquidityService,
     apiService,
-    cliService
+    dxTradeService
   }
 
   if (test) {
@@ -207,9 +207,9 @@ function _getApiService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo 
   })
 }
 
-function _getCliService ({ config, auctionRepo, ethereumRepo }) {
-  const CliService = require('../services/CliService')
-  return new CliService({
+function _getDxTradeService ({ config, auctionRepo, ethereumRepo }) {
+  const DxTradeService = require('../services/DxTradeService')
+  return new DxTradeService({
     // Repos
     auctionRepo,
     markets: config.MARKETS,

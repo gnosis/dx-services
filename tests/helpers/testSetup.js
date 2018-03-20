@@ -1,4 +1,4 @@
-// TODO: Move amd refactor logic into CliService.
+// TODO: Move amd refactor logic into DxTradeService.
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const BigNumber = require('bignumber.js')

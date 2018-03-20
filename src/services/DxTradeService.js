@@ -1,11 +1,11 @@
-const loggerNamespace = 'dx-service:services:CliService'
+const loggerNamespace = 'dx-service:services:DxTradeService'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
 const numberUtil = require('../../src/helpers/numberUtil')
 
-class CliService {
+class DxTradeService {
   constructor ({ auctionRepo, ethereumRepo, markets }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
@@ -121,4 +121,4 @@ ${accountIndex} accounts, but there's just ${accounts}`)
   // TODO: Bring and refactor the `testSetup` logic that the bot-cli uses
 }
 
-module.exports = CliService
+module.exports = DxTradeService

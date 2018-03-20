@@ -19,7 +19,7 @@ function list (val) {
 }
 
 async function run ({
-  cliService,
+  dxTradeService,
   // TODO: Repos and ethereumClient should disapear (we should move logic to serviceCli)
   auctionRepo,
   ethereumClient,
@@ -131,7 +131,7 @@ async function run ({
       verbose: false
     })
 
-    await cliService.sendTokens({
+    await dxTradeService.sendTokens({
       token,
       amount,
       fromAddress: fromAddress || owner,
@@ -155,7 +155,7 @@ async function run ({
       verbose: false
     })
 
-    const newBalance = await cliService.fundAccount({
+    const newBalance = await dxTradeService.fundAccount({
       token,
       amount,
       accountAddress
