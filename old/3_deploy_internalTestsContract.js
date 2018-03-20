@@ -9,11 +9,11 @@ module.exports = function deploy(deployer) {
     .then(() => DutchExchange.deployed())
     .then((dx) => {
       const initParams = Promise.all([
-        dx.TUL.call(),
-        dx.OWL.call(),
+        dx.frtToken.call(),
+        dx.owlToken.call(),
         dx.owner.call(),
-        dx.ETH.call(),
-        dx.ETHUSDOracle.call(),
+        dx.ethToken.call(),
+        dx.ethUSDOracle.call(),
         dx.thresholdNewTokenPair.call(),
         dx.thresholdNewAuction.call(),
       ])

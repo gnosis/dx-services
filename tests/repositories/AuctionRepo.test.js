@@ -80,6 +80,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should allow to add a new token pair', async () => {
+    debug('Launching \'It should allow to add a new token pair\'')
     // GIVEN a not approved token pair
     let isRdnEthApproved = await _getIsApprovedMarket({})
     expect(isRdnEthApproved).toBeFalsy()
@@ -115,6 +116,7 @@ describe('Market interacting tests', async () => {
 
   // Add funds to auction (sell tokens in auction)
   test('It should allow to add funds to an auction', async () => {
+    debug('Launching \'It should allow to add funds to an auction\'')
     const { user1 } = await setupPromise
 
     // GIVEN a new token pair
@@ -204,7 +206,7 @@ describe('Market interacting tests', async () => {
     })
 
     // THEN the new state matches that one auction has closed, with a closing price
-    // let price = await _getPrice({})
+    // let price = await _getCurrentAuctionPrice({})
     let updatedAuction = {
       // TODO check correct price
       // closingPrice: {
@@ -389,7 +391,7 @@ const INITIAL_MARKET_STATE = {
 const INITIAL_USER1_BALANCE = [
   {'amount': new BigNumber('750e18'), 'token': 'GNO'},
   {'amount': new BigNumber('20e18'), 'token': 'ETH'},
-  {'amount': new BigNumber('0'), 'token': 'TUL'},
+  {'amount': new BigNumber('0'), 'token': 'MGN'},
   {'amount': new BigNumber('1000e18'), 'token': 'OWL'},
   {'amount': new BigNumber('12000e18'), 'token': 'RDN'},
   {'amount': new BigNumber('1500e18'), 'token': 'OMG'}
@@ -413,7 +415,7 @@ async function _getState ({ sellToken = 'RDN', buyToken = 'ETH' }) {
   return auctionRepo.getState({ sellToken, buyToken })
 }
 
-async function _getPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
+async function _getCurrentAuctionPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
   const { auctionRepo } = await setupPromise
 
   const auctionIndex = await auctionRepo.getAuctionIndex({
@@ -421,7 +423,7 @@ async function _getPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
     sellToken
   })
 
-  return auctionRepo.getPrice({sellToken, buyToken, auctionIndex})
+  return auctionRepo.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex})
 }
 
 async function _buySell (operation, { from, buyToken, sellToken, amount }) {

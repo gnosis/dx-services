@@ -16,7 +16,7 @@ const INITIAL_AMOUNTS = {
   ETH: 20,
   GNO: 750,
   OWL: 1000,
-  TUL: 0,
+  MGN: 0,
   RDN: 12000,
   OMG: 1500
 }
@@ -170,7 +170,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
       { token: 'ETH', amount: INITIAL_AMOUNTS['ETH'] },
       { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] },
       { token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
-      // { token: 'TUL', amount: 2 },
+      // { token: 'MGN', amount: 2 },
     ]
     const approveERC20Tokens = ['ETH', 'OWL']
     if (supportedTokens.includes('RDN')) {
@@ -311,7 +311,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug('\n\tState info:')
     debug('\t\t- auctionIndex: %s', stateInfo.auctionIndex)
     debug('\t\t- auctionStart: %s', formatUtil.formatDateTime(stateInfo.auctionStart))
-    
+
     if (stateInfo.auctionStart) {
       // debug('\t\t- Blockchain time: %s', formatUtil.formatDateTime(now))
       const now = await ethereumClient.geLastBlockTime()
@@ -323,7 +323,7 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
           stateInfo.auctionStart.getTime() +
           TIME_TO_REACH_MARKET_PRICE_MILLISECONNDS
         )
-  
+
         // debug('\t\t- Market price time: %s', formatUtil.formatDateTime(marketPriceTime))
         if (marketPriceTime > now) {
           debug('\t\t- It will reached market price in: %s', formatUtil.formatDatesDifference(now, marketPriceTime))
@@ -381,41 +381,50 @@ async function getHelpers ({ ethereumClient, auctionRepo, ethereumRepo, config }
     debug(`\t\t\tsellVolume: %d %s`, formatFromWei(auction.sellVolume), tokenA)
     debug(`\t\t\tsellVolume: %d USD`, fundingInUSD.fundingA)
 
-    const price = await auctionRepo.getPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
+    const price = await auctionRepo.getCurrentAuctionPrice({ sellToken: tokenA, buyToken: tokenB, auctionIndex })
     if (price) {
-      const closingPrice = await auctionRepo.getPrice({
-        sellToken: tokenA,
-        buyToken: tokenB,
-        auctionIndex: auctionIndex - 1
-      })
-
-      let buyVolumesInSellTokens, priceRelationshipPercentage
-      if (price.numerator.isZero()) {
-        // The auction runned for too long
-        buyVolumesInSellTokens = auction.sellVolume
-        priceRelationshipPercentage = 'N/A'
+      let closingPrice
+      if (auctionIndex > 1) {
+        auctionIndex = await auctionRepo.getPastAuctionPrice({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex: auctionIndex - 1
+        })
       } else {
-        // Get the number of sell tokens that we can get for the buyVolume
-        buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
-        priceRelationshipPercentage = price.numerator
-          .mul(closingPrice.denominator)
-          .div(price.denominator)
-          .div(closingPrice.numerator)
-          .mul(100)
-          .toFixed(2) + ' %'
+        closingPrice = null
       }
-      const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
-      // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
-      
+
       debug(`\t\tPrice:`)
-      debug(`\t\t\tPrevious Closing Price: %s %s/%s`, fractionFormatter(closingPrice),
-        tokenB, tokenA)
-      debug(`\t\t\tCurrent Price: %s %s/%s`, fractionFormatter(price),
-        tokenB, tokenA)
-      debug(`\t\t\tPrice relation: %s`, priceRelationshipPercentage)
-      debug('\t\tBuy volume:')
-      debug(`\t\t\tbuyVolume: %d %s`, formatFromWei(auction.buyVolume), tokenB)
-      debug(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
+      if (!closingPrice) {
+        debug(`\t\t\tCurrent Price: %s %s/%s`, fractionFormatter(price),
+          tokenB, tokenA)
+      } else {
+        let buyVolumesInSellTokens, priceRelationshipPercentage
+        if (price.numerator.isZero()) {
+          // The auction runned for too long
+          buyVolumesInSellTokens = auction.sellVolume
+          priceRelationshipPercentage = 'N/A'
+        } else {
+          // Get the number of sell tokens that we can get for the buyVolume
+          buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
+          priceRelationshipPercentage = price.numerator
+            .mul(closingPrice.denominator)
+            .div(price.denominator)
+            .div(closingPrice.numerator)
+            .mul(100)
+            .toFixed(2) + ' %'
+        }
+        const boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
+        // debug(`\t\tBuy volume (in sell tokens):`, formatFromWei(buyVolumesInSellTokens.toNumber()))
+
+        debug(`\t\t\tPrevious Closing Price: %s %s/%s`, fractionFormatter(closingPrice),
+          tokenB, tokenA)
+
+        debug(`\t\t\tPrice relation: %s`, priceRelationshipPercentage)
+        debug('\t\tBuy volume:')
+        debug(`\t\t\tbuyVolume: %d %s`, formatFromWei(auction.buyVolume), tokenB)
+        debug(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
+      }
       if (state.indexOf('WAITING') === -1) {
         // Show outstanding volumen if we are not in a waiting period
         const outstandingVolume = await auctionRepo.getOutstandingVolume({

@@ -210,7 +210,7 @@ async function run ({
   } else if (commander.price) {
     // Price
     const [sellToken, buyToken, auctionIndex] = commander.price
-    const price = await auctionRepo.getPrice({ sellToken, buyToken, auctionIndex })
+    const price = await auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     console.log(`Price for ${sellToken}-${buyToken} (${auctionIndex}): ${fractionFormatter(price)}`)
   } else if (commander.oracle) {
     // Oracle price

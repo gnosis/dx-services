@@ -34,7 +34,7 @@ class AuctionRepoImpl {
     this._tokens = Object.assign({
       GNO: contracts.gno,
       ETH: contracts.eth,
-      TUL: contracts.tul,
+      MGN: contracts.mgn,
       OWL: contracts.owl
     }, contracts.erc20TokenContracts)
     logger.debug({
@@ -919,7 +919,7 @@ volume: ${state}`)
       buyToken
     })
 
-    const price = await this.getPrice({
+    const price = await this.getCurrentAuctionPrice({
       sellToken,
       buyToken,
       auctionIndex
@@ -956,17 +956,29 @@ volume: ${state}`)
 
   */
 
-  async getPrice ({ sellToken, buyToken, auctionIndex }) {
+  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
     return this
       ._callForAuction({
-        operation: 'getPriceExt',
+        operation: 'getCurrentAuctionPriceExt',
         sellToken,
         buyToken,
         auctionIndex
       })
       .then(toFraction)
+  }
+
+  async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
+
+    return this
+      ._callForAuction({
+        operation: 'getPriceInPastAuctionExt',
+        sellToken,
+        buyToken,
+        auctionIndex
+      })
   }
 
   async getPriceInEth ({ token }) {
@@ -980,7 +992,7 @@ volume: ${state}`)
 
     return this
       ._callForToken({
-        operation: 'priceOracleExt',
+        operation: 'getPriceOfTokenInLastAuctionExt',
         token,
         checkToken: false
       })
@@ -1014,7 +1026,7 @@ volume: ${state}`)
     )
     */
 
-    const price = await this.getPrice({ sellToken, buyToken, auctionIndex })
+    const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
     if (price) {
       /*

@@ -35,7 +35,7 @@ class AuctionEventWatcher {
     this._watchingFilter = null
     this._tokenContracts = Object.assign({}, contracts.erc20TokenContracts, {
       ETH: contracts.eth,
-      TUL: contracts.tul,
+      MGN: contracts.mgn,
       OWL: contracts.owl,
       GNO: contracts.gno
     })

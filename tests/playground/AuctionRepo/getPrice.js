@@ -11,7 +11,7 @@ function run ({
   const buyToken = 'ETH'
   const auctionIndex = 0
   return auctionRepo
-    .getPrice({ sellToken, buyToken, auctionIndex })
+    .getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     .then(price => {
       console.log(`The price for auction ${auctionIndex} of ${sellToken}-${buyToken} pair is ${price.numerator}/${price.denominator}`)
     })

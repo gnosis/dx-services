@@ -45,17 +45,13 @@ class BotService {
     }
   }
 
-  async testToDelete ({ tokenA, tokenB }) {
-    return this._auctionRepo.getPrice({ tokenA, tokenB })
-  }
-
   async ensureBuyLiquidity ({ sellToken, buyToken, from }) {
     auctionLogger.debug({
       sellToken,
       buyToken,
       msg: 'Ensure the buy liquidity'
     })
-    
+
     return null
   }
 
