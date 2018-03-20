@@ -22,13 +22,15 @@ async function run (instances) {
   // buy, sell, ..
 
   // Liquidity commands
+  require('./commands/sellLiquidityCmd')(commandParams)
   require('./commands/buyLiquidityCmd')(commandParams)
 
   // Setup commands (we might need to move this ones to `setup` cli)
   // add-token-pair, add-funding-for-test-user,...
-
-  var argv = cli
-    .help()
+  const width = Math.min(100, yargs.terminalWidth())
+  const argv = cli
+    .wrap(width)
+    .help('h')
     .strict()
     .argv
 
