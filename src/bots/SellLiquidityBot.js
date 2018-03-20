@@ -79,8 +79,8 @@ class SellLiquidityBot extends Bot {
               buyToken,
               msg: "I've sold %d %s (%d USD) to ensure sell liquidity",
               params: [
-                soldTokens.amount,
-                soldTokens.sellToken.div(1e18),
+                soldTokens.amount.div(1e18),
+                soldTokens.sellToken,
                 soldTokens.amountInUSD
               ],
               notify: true
