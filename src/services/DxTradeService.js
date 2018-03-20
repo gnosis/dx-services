@@ -50,7 +50,7 @@ class DxTradeService {
     return transactionResult
   }
 
-  async fundAccount ({ token, amount, accountAddress }) {
+  async deposit ({ token, amount, accountAddress }) {
     // Get the account we want to fund
     // const accountAddress = await this._getAccountAddress(accountIndex)
     logger.info({
