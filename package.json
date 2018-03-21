@@ -36,8 +36,6 @@
     "contracts-clean": "rm -rf build",
     "contracts-setup": "node tests/playground/cli/bot-cli.js --setup; node tests/playground/cli/bot-cli.js --add-tokens",
     "contracts": "npm run contracts-clean; npm run contracts-deploy; npm run contracts-setup",
-    "travis-contracts-deploy-dx": "cd node_modules/@josojo/dutch-exchange-smartcontracts/; truffle deploy",
-    "travis-contracts-deploy": "npm run travis-contracts-deploy-dx; npm run contracts-deploy-project",
     "doc": "esdoc"
   },
   "repository": {
