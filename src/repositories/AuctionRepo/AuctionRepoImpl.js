@@ -463,7 +463,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     assert(from, 'The from param is required')
     assert(to, 'The to param is required')
     assert(amount, 'The amount is required')
-    
+
     // Let DX use the ether
     const tokenContract = this._getTokenContract(token)
     return tokenContract.transfer(to, amount, { from })

@@ -38,6 +38,78 @@ class AuctionRepoMock {
     }
   }
 
+  async getStateInfo ({ sellToken, buyToken }) {
+    debug('Get state info for %s-%s', sellToken, buyToken)
+    const auctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
+
+    let auctionStart, auction, auctionOpp
+    if (auctionIndex === 0) {
+      // The token pair doesn't exist
+      auctionStart = null
+      auction = null
+      auctionOpp = null
+    } else {
+      auctionStart = await this.getAuctionStart({ sellToken, buyToken })
+      let [ auctionState, auctionOppState ] = await Promise.all([
+        this._getAuctionState({ sellToken, buyToken, auctionIndex }),
+        this._getAuctionState({ sellToken: buyToken, buyToken: sellToken, auctionIndex })
+      ])
+      auction = auctionState
+      auctionOpp = auctionOppState
+    }
+    return {
+      auctionIndex,
+      auctionStart,
+
+      auction,
+      auctionOpp
+    }
+  }
+
+  async getState ({ sellToken, buyToken }) {
+    const {
+      auctionIndex,
+      auctionStart,
+      auction,
+      auctionOpp
+    } = await this.getStateInfo({ sellToken, buyToken })
+
+    if (auctionIndex === 0) {
+      return 'UNKNOWN_TOKEN_PAIR'
+    } else {
+      const {
+        isClosed,
+        isTheoreticalClosed,
+        sellVolume
+      } = auction
+
+      const {
+        isClosed: isClosedOpp,
+        isTheoreticalClosed: isTheoreticalClosedOpp,
+        sellVolume: sellVolumeOpp
+      } = auctionOpp
+
+      const now = await this._getTime()
+      if (auctionStart === null) {
+        // We havent surplus the threshold (or it's the first auction)
+        return 'WAITING_FOR_FUNDING'
+      } else if (auctionStart >= now) {
+        return 'WAITING_FOR_AUCTION_TO_START'
+      } else if (
+        (isTheoreticalClosed && !isClosed) ||
+        (isTheoreticalClosedOpp && !isClosedOpp)) {
+        return 'PENDING_CLOSE_THEORETICAL'
+      } else if (
+        // If one side is closed (by clearing, not by having no sellVolume)
+        (isClosed && !sellVolume.isZero() && !isClosedOpp) ||
+        (!isClosed && isClosedOpp && !sellVolumeOpp.isZero())) {
+        return 'ONE_AUCTION_HAS_CLOSED'
+      } else {
+        return 'RUNNING'
+      }
+    }
+  }
+
   async getAuctionIndex ({ sellToken, buyToken }) {
     debug('Get current auction index for %s-%s', sellToken, buyToken)
 
@@ -54,6 +126,25 @@ class AuctionRepoMock {
   async _getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     debug('Get sell volume for %s-%s', sellToken, buyToken)
     return this._getAuction({ sellToken, buyToken }).closingPrice
+  }
+
+  async isApprovedToken ({ token }) {
+    debug('Check isApprovedToken %s', token)
+    const elementIndex = this._pricesInUSD.findIndex(price => {
+      return price.token === token
+    })
+    return elementIndex >= 0
+  }
+
+  async isApprovedMarket ({ tokenA, tokenB }) {
+    debug('CHeck is approved market %s-%s', tokenA, tokenB)
+
+    const auctionIndex = await this.getAuctionIndex({
+      sellToken: tokenA,
+      buyToken: tokenB
+    })
+
+    return auctionIndex > 0
   }
 
   async getSellVolume ({ sellToken, buyToken }) {
@@ -200,13 +291,104 @@ class AuctionRepoMock {
     this._notImplementedYet()
   }
 
+  async getOutstandingVolume ({ sellToken, buyToken, auctionIndex }) {
+    // const state = this.getState({ sellToken, buyToken, auctionIndex })
+
+    const sellVolume = await this.getSellVolume({
+      sellToken,
+      buyToken
+    })
+
+    const buyVolume = await this.getBuyVolume({
+      sellToken,
+      buyToken
+    })
+
+    const price = await this.getCurrentAuctionPrice({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+
+    const sellVolumeInBuyTokens = sellVolume
+      .mul(price.numerator)
+      .div(price.denominator)
+
+    const outstandingVolume = sellVolumeInBuyTokens.minus(buyVolume)
+    return outstandingVolume.lessThan(0) ? 0 : outstandingVolume
+  }
+
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
-    debug('Get price for auction %d', auctionIndex)
-    this._notImplementedYet()
+    debug('Get price for auction %d %s-%s', auctionIndex, buyToken, sellToken)
+    return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+    // this._notImplementedYet()
+  }
+
+  async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
+    debug('Get price for past auction %d %s-%s', auctionIndex, buyToken, sellToken)
+    return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+  }
+
+  async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+    debug('Get closing price for auction %d %s-%s', auctionIndex, sellToken, buyToken)
+    return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+    // this._notImplementedYet()
   }
 
   _notImplementedYet () {
     throw new Error('Not implemented yet!')
+  }
+
+  async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
+    debug('Get auction state for auction %d', auctionIndex)
+
+    const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+    const sellVolume = await this.getSellVolume({ sellToken, buyToken })
+
+    const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+    let isTheoreticalClosed = null
+    if (price) {
+      // (Pn x SV) / (Pd x BV)
+      // example:
+      isTheoreticalClosed = price.numerator
+        .mul(sellVolume)
+        .sub(price.denominator
+          .mul(buyVolume)
+        ).toNumber() === 0
+    } else {
+      isTheoreticalClosed = false
+    }
+
+    const closingPrice = await this.getClosingPrices({
+      sellToken, buyToken, auctionIndex
+    })
+
+    // There's to ways a auction can be closed
+    //  (1) Because it has cleared, so it has a closing price
+    //  (2) Because when the auction started, it didn't have sellVolume, so i
+    //      is considered, autoclosed since the start
+    let isClosed
+    if (sellVolume.isZero()) {
+      const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
+      const now = await this._getTime()
+
+      // closed if sellVolume=0 and the auction has started and hasn't been cleared
+      isClosed = auctionStart && auctionStart < now
+    } else {
+      isClosed = closingPrice !== null
+    }
+
+    return {
+      buyVolume,
+      sellVolume,
+      closingPrice,
+      isClosed,
+      isTheoreticalClosed
+    }
+  }
+
+  async _getTime () {
+    return new Date()
   }
 
   _getAuction ({ sellToken, buyToken }) {

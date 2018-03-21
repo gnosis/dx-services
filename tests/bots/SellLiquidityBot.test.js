@@ -38,10 +38,10 @@ test('It should do a routine check.', async () => {
   sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
   const ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity
 
-  // GIVEN never ensured liquidity  market
+  // GIVEN never ensured liquidity market
   expect(ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
 
-  // WHEN we wait form an expected time
+  // WHEN we wait for an expected time
   jest.runOnlyPendingTimers()
 
   // THEN bot autochecked liquidity for all markets just in case
