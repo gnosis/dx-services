@@ -51,7 +51,7 @@ class AuctionRepoMock {
     return this._getAuction({ sellToken, buyToken }).auctionStart
   }
 
-  async getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
+  async _getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     debug('Get sell volume for %s-%s', sellToken, buyToken)
     return this._getAuction({ sellToken, buyToken }).closingPrice
   }

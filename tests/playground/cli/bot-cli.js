@@ -203,7 +203,7 @@ async function run ({
   } else if (commander.closingPrice) {
     // closing price
     const [sellToken, buyToken, auctionIndex] = commander.closingPrice
-    const closingPrice = await auctionRepo.getClosingPrices({
+    const closingPrice = await auctionRepo.getPastAuctionPrice({
       sellToken, buyToken, auctionIndex
     })
     console.log('Closing price: ' + fractionFormatter(closingPrice))

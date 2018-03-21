@@ -4,6 +4,8 @@ const loggerNamespace = 'dx-service:services:DxInfoService'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
+const numberUtil = require('../helpers/numberUtil.js')
+
 const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
@@ -63,30 +65,52 @@ class DxInfoService {
       auctionStart: stateInfo.auctionStart
     }
 
+    // Get auction details for one of the auctions
+    const auctionDetailPromises = []
     if (stateInfo.auction) {
-      result.auction = await this._getAuctionDetails({
-        auction: stateInfo.auctionOpp,
+      const getAuctionDetailsPromise = this._getAuctionDetails({
+        auction: stateInfo.auction,
         tokenA: sellToken,
         tokenB: buyToken,
         auctionIndex,
         state
+      }).then(auctionDetails => {
+        result.auction = auctionDetails
       })
+      auctionDetailPromises.push(getAuctionDetailsPromise)
     }
 
+    // Get auction details for the other one
     if (stateInfo.auctionOpp) {
-      result.auctionOpp = await this._getAuctionDetails({
+      const getAuctionDetailsPromise = this._getAuctionDetails({
         auction: stateInfo.auctionOpp,
         tokenA: buyToken,
         tokenB: sellToken,
         auctionIndex,
         state
+      }).then(auctionDetails => {
+        result.auctionOpp = auctionDetails
       })
+      auctionDetailPromises.push(getAuctionDetailsPromise)
+    }
+
+    // If we have pending promises, we wait for them
+    if (auctionDetailPromises.length > 0) {
+      await Promise.all(auctionDetailPromises)
     }
 
     return result
   }
 
   async _getAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state }) {
+    const {
+      sellVolume,
+      buyVolume,
+      isClosed,
+      isTheoreticalClosed,
+      closingPrice
+    } = auction
+
     const fundingInUSD = await this._auctionRepo.getFundingInUSD({
       tokenA, tokenB, auctionIndex
     })
@@ -97,34 +121,61 @@ class DxInfoService {
       auctionIndex
     })
 
-    let closingPrice, buyVolumesInSellTokens, priceRelationshipPercentage,
+    let buyVolumesInSellTokens, priceRelationshipPercentage,
       boughtPercentage, outstandingVolume
-    
-    if (price) {
-      if (auctionIndex > 1) {
-        closingPrice = await this._auctionRepo.getPastAuctionPrice({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          auctionIndex: auctionIndex - 1
-        })
-      }
 
-      if (closingPrice) {
-        if (price.numerator.isZero()) {
-          // The auction runned for too long
-          buyVolumesInSellTokens = auction.sellVolume
-          priceRelationshipPercentage = null
-        } else {
-          // Get the number of sell tokens that we can get for the buyVolume
-          buyVolumesInSellTokens = price.denominator.times(auction.buyVolume).div(price.numerator)
+    if (price) {
+      if (price.numerator.isZero()) {
+        // The auction runned for too long
+        buyVolumesInSellTokens = sellVolume
+      } else {
+        // Get the number of sell tokens that we can get for the buyVolume
+        buyVolumesInSellTokens = price.denominator
+          .times(buyVolume)
+          .div(price.numerator)
+
+        // If we have a closing price, we compare the prices
+        if (closingPrice) {
           priceRelationshipPercentage = price.numerator
             .mul(closingPrice.denominator)
             .div(price.denominator)
             .div(closingPrice.numerator)
             .mul(100)
         }
-        boughtPercentage = 100 - 100 * (auction.sellVolume - buyVolumesInSellTokens) / auction.sellVolume
       }
+
+      if (!sellVolume.isZero()) {
+        // Get the bought percentage:
+        //    100 - 100 * (sellVolume - soldTokens) / sellVolume
+        const hundred = numberUtil.toBigNumber(100)
+        boughtPercentage = hundred.minus(
+          hundred.mul(
+            sellVolume
+              .minus(buyVolumesInSellTokens)
+              .div(sellVolume)
+          )
+        )
+      }
+
+      if (closingPrice) {
+        if (price.numerator.isZero()) {
+          // The auction runned for too long
+          buyVolumesInSellTokens = sellVolume
+          priceRelationshipPercentage = null
+        } else {
+          // Get the number of sell tokens that we can get for the buyVolume
+          buyVolumesInSellTokens = price.denominator
+            .times(buyVolume)
+            .div(price.numerator)
+
+          priceRelationshipPercentage = price.numerator
+            .mul(closingPrice.denominator)
+            .div(price.denominator)
+            .div(closingPrice.numerator)
+            .mul(100)
+        }
+      }
+
       if (state.indexOf('WAITING') === -1) {
         // Show outstanding volumen if we are not in a waiting period
         outstandingVolume = await this._auctionRepo.getOutstandingVolume({
@@ -135,15 +186,19 @@ class DxInfoService {
       }
     }
 
-    return Object.assign({
-      fundingInUSD: fundingInUSD.fundingA,
-      price,
+    return {
+      sellVolume,
+      buyVolume,
+      isClosed,
+      isTheoreticalClosed,
       closingPrice,
+      price,
+      fundingInUSD: fundingInUSD.fundingA,
       buyVolumesInSellTokens,
       priceRelationshipPercentage,
       boughtPercentage,
       outstandingVolume
-    }, auction)
+    }
   }
 
   async getAbout () {

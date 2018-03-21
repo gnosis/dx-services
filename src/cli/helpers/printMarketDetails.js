@@ -98,30 +98,42 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
   } else {
     closedStatus = 'No'
   }
-  
+
   logger.info('\t\tIs closed: %s', closedStatus)
-  logger.info('\t\tSell volume:')
-  logger.info(`\t\t\tsellVolume: %d %s`, formatUtil.formatFromWei(sellVolume), tokenA)
-  if (auction.fundingInUSD) {
-    logger.info(`\t\t\tsellVolume: %d USD`, auction.fundingInUSD)
+
+  if (!sellVolume.isZero()) {
+    logger.info('\t\tSell volume:')
+    logger.info(`\t\t\tsellVolume: %d %s`, formatUtil.formatFromWei(sellVolume), tokenA)
+    if (auction.fundingInUSD) {
+      logger.info(`\t\t\tsellVolume: %d USD`, auction.fundingInUSD)
+    }
+  } else {
+    logger.info('\t\tSell volume: 0')
   }
 
   if (price) {
     logger.info(`\t\tPrice:`)
-    if (!closingPrice) {
-      logger.info(`\t\t\tCurrent Price: %s %s/%s`,
-        formatUtil.formatFraction(price), tokenB, tokenA)
-    } else {
-      logger.info(`\t\t\tPrevious Closing Price: %s %s/%s`,
-        formatUtil.formatFraction(closingPrice), tokenB, tokenA)
+    logger.info(
+      `\t\t\tCurrent Price: %s %s/%s`,
+      formatUtil.formatFraction(price), tokenB, tokenA
+    )
+    if (closingPrice) {
+      logger.info(`\t\t\tClosing Price: %s %s/%s`,
+        formatUtil.formatFraction(closingPrice), tokenB, tokenA
+      )
 
       logger.info(`\t\t\tPrice relation: %s`,
-        priceRelationshipPercentage ? priceRelationshipPercentage + '%' : 'N/A')
-      logger.info('\t\tBuy volume:')
-      logger.info(`\t\t\tbuyVolume: %d %s`, formatUtil.formatFromWei(buyVolume), tokenB)
-      logger.info(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
+        priceRelationshipPercentage ? priceRelationshipPercentage.toFixed(2) + '%' : 'N/A'
+      )
     }
-    if (state.indexOf('WAITING') === -1) {
+  }
+  if (!sellVolume.isZero()) {
+    logger.info('\t\tBuy volume:')
+    logger.info(`\t\t\tbuyVolume: %d %s`, formatUtil.formatFromWei(buyVolume), tokenB)
+    logger.info(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
+
+    const isNotInWaitingPeriod = (state.indexOf('WAITING') === -1)
+    if (isNotInWaitingPeriod) {
       logger.info(`\t\t\tOutstanding volume: %d %s`,
         formatUtil.formatFromWei(outstandingVolume), tokenB)
     }
