@@ -6,8 +6,11 @@
   "directories": {
     "test": "test"
   },
+  "bin": {
+    "dutch-exchange": "./src/cli/cli.js"
+  },
   "scripts": {
-    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/main.js",    
+    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/main.js",
     "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
     "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
     "dev": "DEBUG=*-dx-service:* node src/main.js",
@@ -24,17 +27,15 @@
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
     "cli-debug": "DEBUG=* node tests/playground/cli/bot-cli.js",
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'",
-    "console": "cd node_modules/@gnosis.pm/dutch-exchange; truffle console",
-    "contracts-compile-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; yarn install --production; truffle compile;",
-    "contracts-compile-project": "truffle compile",
-    "contracts-compile": "npm run contracts-compile-dx; npm run contracts-compile-project",
-    "contracts-deploy-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; yarn install --production; truffle deploy",
+    "console": "cd node_modules/@josojo/dutch-exchange-smartcontracts; truffle console",
+    "contracts-compile": "truffle compile",
+    "contracts-deploy-dx": "cd node_modules/@josojo/dutch-exchange-smartcontracts/; truffle deploy",
     "contracts-deploy-project": "truffle deploy",
     "contracts-deploy": "npm run contracts-deploy-dx; npm run contracts-deploy-project",
-    "contracts-clean": "rm -rf build; rm -rf node_modules/@gnosis.pm/dutch-exchange/build",
+    "contracts-clean": "rm -rf build",
     "contracts-setup": "node tests/playground/cli/bot-cli.js --setup; node tests/playground/cli/bot-cli.js --add-tokens",
     "contracts": "npm run contracts-clean; npm run contracts-deploy; npm run contracts-setup",
-    "travis-contracts-deploy-dx": "cd node_modules/@gnosis.pm/dutch-exchange/; truffle deploy",
+    "travis-contracts-deploy-dx": "cd node_modules/@josojo/dutch-exchange-smartcontracts/; truffle deploy",
     "travis-contracts-deploy": "npm run travis-contracts-deploy-dx; npm run contracts-deploy-project",
     "doc": "esdoc"
   },
@@ -59,7 +60,7 @@
     "yargs": "^11.0.0"
   },
   "devDependencies": {
-    "@gnosis.pm/dutch-exchange": "https://github.com/gnosis/dutch-exchange.git#contracts/SmartContractAudit1.0",
+    "@josojo/dutch-exchange-smartcontracts": "^0.2.3",
     "coveralls": "^3.0.0",
     "esdoc": "^1.0.4",
     "esdoc-standard-plugin": "^1.0.0",
