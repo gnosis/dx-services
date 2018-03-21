@@ -27,7 +27,7 @@ function formatNumber (number) {
 }
 
 function formatFraction (fraction, inDecimal = true) {
-  if (fraction === null) {
+  if (!fraction) {
     return null
   } else {
     const fractionBigNumber = {
