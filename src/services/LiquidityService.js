@@ -46,25 +46,45 @@ class LiquidityService {
   }
 
   async ensureBuyLiquidity ({ sellToken, buyToken, from }) {
-    auctionLogger.debug({
+    return this._ensureLiquidityAux({
       sellToken,
       buyToken,
-      msg: 'Ensure the buy liquidity'
+      from,
+      liquidityCheckName: 'buy'
     })
-
-    return null
   }
 
   async ensureSellLiquidity ({ sellToken, buyToken, from }) {
+    return this._ensureLiquidityAux({
+      sellToken,
+      buyToken,
+      from,
+      liquidityCheckName: 'sell'
+    })
+  }
+
+  async _ensureLiquidityAux ({ sellToken, buyToken, from, liquidityCheckName }) {
+    // Define some variables to refacor sell/buy liquidity checks
+    let doEnsureLiquidityFnName, baseLockName
+    if (liquidityCheckName === 'sell') {
+      doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
+      baseLockName = 'SELL-LIQUIDITY'
+    } else if (liquidityCheckName === 'buy') {
+      doEnsureLiquidityFnName = '_doEnsureBuyLiquidity'
+      baseLockName = 'BUY-LIQUIDITY'
+    } else {
+      throw new Error('No known liquidity check named: ' + liquidityCheckName)
+    }
+
+    assert(from, 'The "from" account is required')
     auctionLogger.debug({
       sellToken,
       buyToken,
-      msg: 'Ensure that sell liquidity is over $%d',
-      params: [ this._minimumSellVolume ]
+      msg: 'Ensure that %s liquidity is over $%d',
+      params: [ liquidityCheckName, this._minimumSellVolume ]
     })
-    assert(from, 'The "from" account is required')
 
-    const lockName = this._getAuctionLockName('SELL-LIQUIDITY', sellToken, buyToken)
+    const lockName = this._getAuctionLockName(baseLockName, sellToken, buyToken)
 
     // Check if there's an ongoing liquidity check
     if (this.concurrencyCheck[lockName]) {
@@ -79,13 +99,11 @@ check should be done`
       return Promise.resolve(null)
     } else {
       // Ensure liquidity + Create concurrency lock
-      this.concurrencyCheck[lockName] = this
-        // Do ensure liquidiy
-        ._doEnsureSellLiquidity({
-          tokenA: sellToken,
-          tokenB: buyToken,
-          from
-        })
+      this.concurrencyCheck[lockName] = this[doEnsureLiquidityFnName]({
+        tokenA: sellToken,
+        tokenB: buyToken,
+        from
+      })
         .then(result => {
           // Success
           // Clear concurrency lock and resolve proise
@@ -174,6 +192,10 @@ keeps happening`
     }
 
     return sellLiquidityResult
+  }
+
+  async _doEnsureBuyLiquidity ({ tokenA, tokenB, from }) {
+    return null
   }
 
   async _sellTokenToCreateLiquidity ({ tokenA, fundingA, tokenB, fundingB, auctionIndex, from }) {
