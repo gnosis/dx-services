@@ -3,11 +3,13 @@ module.exports = {
   testMatch: [
     // '**/__tests__/**/*.js?(x)',
     '**/?(*.)(spec|test).js?(x)'
-  ]
-  /*,
+  ],
   collectCoverageFrom: [
-    'src/** /*.js',
-    '!src/main.js' // Exclude files
+    'src/**/*.js',
+    // Exclude files
+    '!**/*Mock.js',
+    '!src/main.js',
+    '!src/cli/**',
+    '!src/web/**'
   ]
-  */
 }
