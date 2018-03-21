@@ -15,7 +15,7 @@ COPY contracts contracts
 RUN apk add --update --no-cache --virtual build-dependencies git python make g++ ca-certificates && \
     yarn install --pure-lockfile && \
     npm run contracts-compile && \
-    rm -rf node_modules/@gnosis.pm/dutch-exchange/node_modules && \
+    rm -rf node_modules/@josojo/dutch-exchange-smartcontracts/node_modules && \
     yarn cache clean && \
     apk del build-dependencies && \
     apk add --no-cache tini git
