@@ -16,7 +16,7 @@ async function run (instances) {
   const commandParams = { cli, instances, logger }
 
   // Info commands
-  require('./commands/printStateCmd')(commandParams)
+  require('./commands/stateCmd')(commandParams)
 
   // Trade commands
   require('./commands/sendCmd')(commandParams)

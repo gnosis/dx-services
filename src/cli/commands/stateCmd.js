@@ -1,19 +1,15 @@
 const printState = require('../helpers/printState')
 
 function registerCommand ({ cli, instances, logger }) {
-  cli.command('state <sellToken> <buyToken>', 'Get the state for a given pair', yargs => {
-    yargs.positional('sellToken', {
+  cli.command('state <token-pair>', 'Get the state for a given pair (i.e. ETH-RDN)', yargs => {
+    yargs.positional('token-pair', {
       type: 'string',
-      default: 'ETH',
-      describe: 'Name of the sell token'
-    })
-    yargs.positional('buyToken', {
-      type: 'string',
-      default: 'RDN',
-      describe: 'Name of the buy token'
+      default: 'ETH-RDN',
+      describe: 'The token pair of the auction'
     })
   }, async function (argv) {
-    const { sellToken, buyToken } = argv
+    const { tokenPair: tokenPairString } = argv
+    const [ sellToken, buyToken ] = tokenPairString.split('-')
     const {
       ethereumClient, // TODO: use services instead
       dxInfoService

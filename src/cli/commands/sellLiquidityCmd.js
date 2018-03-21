@@ -1,20 +1,16 @@
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'sell-liquidity <sellToken> <buyToken>',
+    'sell-liquidity <token-pair>',
     'Ensure the sell liquidity for a token pair',
     yargs => {
-      yargs.positional('sellToken', {
+      yargs.positional('token-pair', {
         type: 'string',
-        default: 'ETH',
-        describe: 'Name of the sell token'
-      })
-      yargs.positional('buyToken', {
-        type: 'string',
-        default: 'RDN',
-        describe: 'Name of the buy token'
+        default: 'ETH-RDN',
+        describe: 'The token pair of the auction'
       })
     }, async function (argv) {
-      const { sellToken, buyToken } = argv
+      const { tokenPair } = argv
+      const [ sellToken, buyToken ] = tokenPair.split('-')
       const {
         botAccount,
         liquidityService

@@ -1,21 +1,16 @@
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'buy <sellToken> <buyToken> <amount> [auctionIndex]',
+    'buy <amount> <token-pair> [auctionIndex]',
     'Buy in a auction for a token pair',
     yargs => {
-      yargs.positional('sellToken', {
-        type: 'string',
-        default: 'ETH',
-        describe: 'Name of the sell token'
-      })
-      yargs.positional('buyToken', {
-        type: 'string',
-        default: 'RDN',
-        describe: 'Name of the buy token'
-      })
       yargs.positional('amount', {
         type: 'float',
         describe: 'Amount to buy'
+      })
+      yargs.positional('token-pair', {
+        type: 'string',
+        default: 'ETH-RDN',
+        describe: 'The token pair of the auction'
       })
       yargs.positional('auctionIndex', {
         type: 'integer',
@@ -23,7 +18,8 @@ function registerCommand ({ cli, instances, logger }) {
         describe: 'Index of the auction'
       })
     }, async function (argv) {
-      const { sellToken, buyToken, amount, auctionIndex: auctionIndexAux } = argv
+      const { amount, tokenPair, auctionIndex: auctionIndexAux } = argv
+      const [ sellToken, buyToken ] = tokenPair.split('-')
       const {
         botAccount,
         dxInfoService,
