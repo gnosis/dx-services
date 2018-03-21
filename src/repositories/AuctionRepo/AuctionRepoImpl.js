@@ -1050,7 +1050,7 @@ volume: ${state}`)
       isTheoreticalClosed = false
     }
 
-    const closingPrice = await this.getPastAuctionPrice({
+    const closingPrice = await this._getClosingPrices({
       sellToken, buyToken, auctionIndex
     })
 
