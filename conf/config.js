@@ -83,6 +83,7 @@ const SENTRY_DSN = 'https://471f4b8740094aa0bdd13e08533115b5:67f2a995c8df48bebd6
 
 const AUCTION_REPO_IMPL = 'impl' // mock, impl
 const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
+const EXCHANGE_PRICE_REPO_IMPL = 'mock' // mock. impl
 
 module.exports = {
   ENVIRONMENT,
@@ -107,6 +108,7 @@ module.exports = {
   // REPO
   AUCTION_REPO_IMPL,
   ETHEREUM_REPO_IMPL,
+  EXCHANGE_PRICE_REPO_IMPL,
 
   // CONTRACTS
   RDN_TOKEN_ADDRESS,

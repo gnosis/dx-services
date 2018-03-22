@@ -59,7 +59,13 @@ async function createInstances ({
   const botsService = _getBotsService({
     config: config
   })
-  
+
+  // Service: Bots service
+  const marketService = _getMarketService({
+    config: config,
+    exchangePriceRepo
+  })
+
   // Event Watcher
   const auctionEventWatcher = _getAuctionEventWatcher(
     config, eventBus, contracts
@@ -76,7 +82,8 @@ async function createInstances ({
     liquidityService,
     dxInfoService,
     dxTradeService,
-    botsService
+    botsService,
+    marketService
   }
 
   if (test) {
@@ -182,10 +189,23 @@ function _getAuctionRepo (config, ethereumClient, contracts) {
 }
 
 function _getExchangePriceRepo (config) {
-  const ExchangePriceRepoMock =
-    require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
+  let exchangePriceRepo, ExchangePriceRepo
+  switch (config.EXCHANGE_PRICE_REPO_IMPL) {
+    case 'mock':
+      ExchangePriceRepo = require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
+      exchangePriceRepo = new ExchangePriceRepo({})
+      break
 
-  return new ExchangePriceRepoMock({})
+    case 'impl':
+      ExchangePriceRepo = require('../repositories/ExchangePriceRepo/ExchangePriceRepoHuobi')
+      exchangePriceRepo = new ExchangePriceRepo({})
+      break
+      
+    default:
+      throw new Error('Unkown implementation for ExchangePriceRepo: ' + config.EXCHANGE_PRICE_REPO_IMPL)
+  }
+
+  return exchangePriceRepo
 }
 
 function _getLiquidityService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
@@ -226,6 +246,13 @@ function _getDxTradeService ({ config, auctionRepo, ethereumRepo }) {
 function _getBotsService ({ config }) {
   const BotsService = require('../services/BotsService')
   return new BotsService()
+}
+
+function _getMarketService ({ config, exchangePriceRepo }) {
+  const MarketService = require('../services/MarketService')
+  return new MarketService({
+    exchangePriceRepo
+  })
 }
 
 module.exports = createInstances

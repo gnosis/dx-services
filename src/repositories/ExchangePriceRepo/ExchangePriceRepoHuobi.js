@@ -7,7 +7,7 @@ class ExchangePriceRepoHuobi {
     this._baseUrl = url
   }
 
-  async getPrice ({tokenA, tokenB}) {
+  async getPrice ({ tokenA, tokenB }) {
     debug('Get price for %s-%s', tokenA, tokenB)
 
     const url = this._baseUrl + '/market/detail/merged?symbol=' + tokenA.toLowerCase() + tokenB.toLowerCase()
