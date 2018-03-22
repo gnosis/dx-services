@@ -329,10 +329,15 @@ class AuctionRepoMock {
     return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
   }
 
-  async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+  async _getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     debug('Get closing price for auction %d %s-%s', auctionIndex, sellToken, buyToken)
-    return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
-    // this._notImplementedYet()
+
+    const auction = this._getAuction({ sellToken, buyToken })
+    if (auction.buyVolume < auction.sellVolume) {
+      return null
+    } else {
+      return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+    }
   }
 
   _notImplementedYet () {
@@ -359,7 +364,7 @@ class AuctionRepoMock {
       isTheoreticalClosed = false
     }
 
-    const closingPrice = await this.getClosingPrices({
+    const closingPrice = await this._getClosingPrices({
       sellToken, buyToken, auctionIndex
     })
 

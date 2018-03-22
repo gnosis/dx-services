@@ -29,30 +29,24 @@ test('It should return auction index', async () => {
   expect(rdnEthAuctionIndex).toBe(77)
 })
 
-test.skip('It should return market details', async () => {
+test('It should return market details', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
 
-  expect(await dxInfoService.getMarketDetails({ sellToken: 'RDN', buyToken: 'ETH' })).toBe('')
+  let rdnEthMarketDetails = await dxInfoService.getMarketDetails({
+    sellToken: 'RDN', buyToken: 'ETH' })
+  expect(rdnEthMarketDetails).toMatchObject(EXPECTED_RDN_ETH_MARKET)
 })
 
-test.skip('It should return auction details', async () => {
+test('It should return auction details', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
 
-  let rdnEthAuction = auctionsMockData.auctions['RDN-ETH']
-  let rdnEthAuctions = {
-    auctionIndex: rdnEthAuction.index,
-    auctionInfo: {
-      auction: {
-        buyVolume: rdnEthAuction.buyVolume
-      }
-    }
-  }
-
-  expect(await dxInfoService.getAuctions({currencyA: 'RDN', currencyB: 'ETH'})).toBe(rdnEthAuctions)
+  let rdnEthAuctions = await dxInfoService.getAuctions({
+    currencyA: 'RDN', currencyB: 'ETH' })
+  expect(rdnEthAuctions).toMatchObject(EXPECTED_RDN_ETH_AUCTIONS)
 })
 
 test('It should return current auction price', async () => {
@@ -75,3 +69,48 @@ test('It should return current auction price', async () => {
 //
 //   expect(await dxInfoService.getBalances({address: '0xAbasdlkjasdkljg231lkjmn123'})).toBe('')
 // })
+
+const RDN_ETH_AUCTION = auctionsMockData.auctions['RDN-ETH']
+
+const EXPECTED_RDN_ETH_MARKET = {
+  auction: {
+    buyVolume: RDN_ETH_AUCTION.buyVolume,
+    closingPrice: null,
+    isClosed: false,
+    isTheoreticalClosed: false,
+    sellVolume: RDN_ETH_AUCTION.sellVolume
+  },
+  auctionOpp: {
+    buyVolume: new BigNumber(0),
+    closingPrice: null,
+    isClosed: false,
+    isTheoreticalClosed: false,
+    sellVolume: new BigNumber('0.2894321e18')
+  },
+  isApprovedMarket: true,
+  state: 'RUNNING',
+  isSellTokenApproved: true,
+  isBuyTokenApproved: true,
+  auctionIndex: RDN_ETH_AUCTION.index
+}
+
+const EXPECTED_RDN_ETH_AUCTIONS = {
+  auctionIndex: RDN_ETH_AUCTION.index,
+  auctionInfo: {
+    auctionIndex: RDN_ETH_AUCTION.index,
+    auction: {
+      buyVolume: RDN_ETH_AUCTION.buyVolume,
+      closingPrice: null,
+      isClosed: false,
+      isTheoreticalClosed: false,
+      sellVolume: RDN_ETH_AUCTION.sellVolume
+    },
+    auctionOpp: {}
+  },
+  // buyVolume: RDN_ETH_AUCTION.buyVolume,
+  currencyA: 'RDN',
+  currencyB: 'ETH',
+  isAuctionRunning: true,
+  sellVolume: RDN_ETH_AUCTION.sellVolume,
+  sellVolumeNext: RDN_ETH_AUCTION.sellVolumeNext
+}
