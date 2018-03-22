@@ -8,7 +8,7 @@ const BigNumber = require('bignumber.js')
 
 const setupPromise = testSetup()
 
-test('It should ensureSellLiquidity', async () => {
+test.skip('It should ensureSellLiquidity', async () => {
   const { liquidityService } = await setupPromise
 
   // we mock the auction repo
@@ -87,7 +87,7 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
   expect(postSellOrder.mock.calls.length).toBe(1)
 })
 
-test('It should not ensure liquidity if auction is not waiting for funding', async () => {
+test.skip('It should not ensure liquidity if auction is not waiting for funding', async () => {
   const { liquidityService } = await setupPromise
   // we mock the auction repo
   liquidityService._auctionRepo = auctionRepoMock

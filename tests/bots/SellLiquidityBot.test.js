@@ -33,7 +33,7 @@ afterEach(() => {
   sellLiquidityBot.stop()
 })
 
-test('It should do a routine check.', async () => {
+test.only('It should do a routine check.', async () => {
   // we mock ensureSellLiquidity function
   sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
   const ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity

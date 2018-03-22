@@ -29,7 +29,7 @@ test('It should return auction index', async () => {
   expect(rdnEthAuctionIndex).toBe(77)
 })
 
-test('It should return market details', async () => {
+test.skip('It should return market details', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
