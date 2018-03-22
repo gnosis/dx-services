@@ -42,14 +42,16 @@ function getRouter ({ dxInfoService, botsService }) {
   router.get('/markets', async (req, res) => {
     res.send(await dxInfoService.getMarkets())
   })
-  
+ 
+  /*
   router.get('/auctions/:currencyA/:currencyB/current', async (req, res) => {
     res.send(await dxInfoService.getAuctions({
       currencyA: req.params.currencyA,
       currencyB: req.params.currencyB
     }))
   })
-  
+  */
+
   router.get('/auctions/:sellToken/:buyToken/current-price', async (req, res) => {
     res.send(await dxInfoService.getCurrentPrice({
       currencyA: req.params.currencyA,

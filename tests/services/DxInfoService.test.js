@@ -39,6 +39,7 @@ test('It should return market details', async () => {
   expect(rdnEthMarketDetails).toMatchObject(EXPECTED_RDN_ETH_MARKET)
 })
 
+/*
 test('It should return auction details', async () => {
   const { dxInfoService } = await setupPromise
 
@@ -63,6 +64,7 @@ test('It should return current auction price', async () => {
     sellToken: 'RDN', buyToken: 'ETH' })
   expect(rdnEthCurrentPrice).toMatchObject(RDN_ETH_CURRENT_PRICE)
 })
+*/
 
 // test('Get balances for all currencies of an account', async () => {
 // const { dxInfoService } = await setupPromise

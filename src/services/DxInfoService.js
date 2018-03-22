@@ -227,6 +227,7 @@ class DxInfoService {
 
   async getCurrencies () {}
 
+  /*
   async getAuctions ({ currencyA, currencyB }) {
     auctionLogger.debug({
       sellToken: currencyA,
@@ -234,21 +235,20 @@ class DxInfoService {
       msg: 'Get auctions'
     })
     const auctionInfo = await this._auctionRepo.getStateInfo({
-      sellToken: currencyA, buyToken: currencyB
+      sellToken: currencyA,
+      buyToken: currencyB
     })
-    const sellVolumeNext = await this._auctionRepo.getSellVolumeNext({sellToken: currencyA, buyToken: currencyB})
+    const sellVolumeNext = await this._auctionRepo.getSellVolumeNext({
+      sellToken: currencyA,
+      buyToken: currencyB
+    })
 
-    return {
-      auctionInfo,
-      auctionIndex: auctionInfo.auctionIndex,
+    return Object.assign({
       currencyA,
       currencyB,
-      // nextAuctionDate, TODO not in repo yet
       isAuctionRunning: this._isAuctionRunning(auctionInfo),
-      buyVolume: auctionInfo.auction.sellVolume,
-      sellVolume: auctionInfo.auction.sellVolume,
       sellVolumeNext
-    }
+    }, auctionInfo)
   }
 
   _isAuctionRunning (auction) {
@@ -260,6 +260,7 @@ class DxInfoService {
       return true
     }
   }
+  */
 
   async getCurrentPrice ({ sellToken, buyToken }) {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
