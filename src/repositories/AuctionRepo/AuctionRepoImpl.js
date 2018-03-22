@@ -12,7 +12,7 @@ const MAXIMUM_FUNDING = 10 ** 30
 // TODO load thresfolds from contract
 const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
-const { toBigNumber } = require('../../helpers/numberUtil.js')
+const numberUtil = require('../../helpers/numberUtil.js')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -431,7 +431,7 @@ class AuctionRepoImpl {
     assert(from, 'The amount is required')
 
     const balance = await this._ethereumClient.balanceOf(from)
-    const amountBigNumber = toBigNumber(amount)
+    const amountBigNumber = numberUtil.toBigNumber(amount)
     assert(balance.greaterThanOrEqualTo(amountBigNumber), `The user ${from} has \
 just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH)`)
 
@@ -776,7 +776,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
         address
       })
     }
-    const amountBigNumber = toBigNumber(amount)
+    const amountBigNumber = numberUtil.toBigNumber(amount)
     assert(
       balance.greaterThanOrEqualTo(amountBigNumber),
       `The user ${address} has just ${balance.div(1e18)} ${token} \

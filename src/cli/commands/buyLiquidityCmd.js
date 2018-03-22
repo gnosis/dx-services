@@ -21,23 +21,25 @@ function registerCommand ({ cli, instances, logger }) {
         liquidityService
       } = instances
       logger.info(`Ensure the BUY liquidity for ${sellToken}-${buyToken}`)
-      const soldTokens = await liquidityService.ensureBuyLiquidity({
+      const boughtTokens = await liquidityService.ensureBuyLiquidity({
         sellToken,
         buyToken,
         from: botAccount
       })
 
-      if (soldTokens) {
-        // The bot sold some tokens
-        logger.info({
-          sellToken,
-          buyToken,
-          msg: "I've bought %d %s (%d USD) to ensure liquidity",
-          params: [
-            soldTokens.amount.div(1e18),
-            soldTokens.sellToken,
-            soldTokens.amountInUSD
-          ]
+      if (boughtTokens.length > 0) {
+        boughtTokens.forEach(buyOrder => {
+          // The bot sold some tokens
+          logger.info({
+            sellToken,
+            buyToken,
+            msg: "I've bought %d %s (%d USD) to ensure liquidity",
+            params: [
+              buyOrder.amount.div(1e18),
+              buyOrder.buyToken,
+              buyOrder.amountInUSD
+            ]
+          })
         })
       } else {
         // The bot didn't have to do anything

@@ -22,22 +22,24 @@ function registerCommand ({ cli, instances, logger }) {
         from: botAccount
       })
 
-      if (soldTokens) {
-        // The bot sold some tokens
-        logger.info({
-          sellToken,
-          buyToken,
-          msg: "I've sold %d %s (%d USD) to ensure liquidity",
-          params: [
-            soldTokens.amount.div(1e18),
-            soldTokens.sellToken,
-            soldTokens.amountInUSD
-          ]
+      if (soldTokens.length > 0) {
+        soldTokens.forEach(sellOrder => {
+          // The bot sold some tokens
+          logger.info({
+            sellToken,
+            buyToken,
+            msg: "I've sold %d %s (%d USD) to ensure liquidity",
+            params: [
+              sellOrder.amount.div(1e18),
+              sellOrder.sellToken,
+              sellOrder.amountInUSD
+            ]
+          })
         })
       } else {
         // The bot didn't have to do anything
         logger.info({
-          msg: 'There\'s no need to ensure buy liquidity'
+          msg: 'There\'s no need to ensure sell liquidity'
         })
       }
     })

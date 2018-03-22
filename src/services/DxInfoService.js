@@ -111,16 +111,24 @@ class DxInfoService {
       closingPrice
     } = auction
 
-    const fundingInUSD = await this._auctionRepo.getFundingInUSD({
-      tokenA, tokenB, auctionIndex
-    })
-
-    const price = await this._auctionRepo.getCurrentAuctionPrice({
-      sellToken: tokenA,
-      buyToken: tokenB,
-      auctionIndex
-    })
-
+    const [ fundingInUSD, price, closingPriceSafe ] = await Promise.all([
+      // Get the funding of the market
+      this._auctionRepo.getFundingInUSD({
+        tokenA, tokenB, auctionIndex
+      }),
+      // Get the actual price
+      this._auctionRepo.getCurrentAuctionPrice({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        auctionIndex
+      }),
+      // Get the last "official" closing price
+      this._auctionRepo.getPastAuctionPrice({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        auctionIndex
+      })
+    ])
     let buyVolumesInSellTokens, priceRelationshipPercentage,
       boughtPercentage, outstandingVolume
 
@@ -135,11 +143,11 @@ class DxInfoService {
           .div(price.numerator)
 
         // If we have a closing price, we compare the prices
-        if (closingPrice) {
+        if (closingPriceSafe) {
           priceRelationshipPercentage = price.numerator
-            .mul(closingPrice.denominator)
+            .mul(closingPriceSafe.denominator)
             .div(price.denominator)
-            .div(closingPrice.numerator)
+            .div(closingPriceSafe.numerator)
             .mul(100)
         }
       }
@@ -147,9 +155,8 @@ class DxInfoService {
       if (!sellVolume.isZero()) {
         // Get the bought percentage:
         //    100 - 100 * (sellVolume - soldTokens) / sellVolume
-        const hundred = numberUtil.toBigNumber(100)
-        boughtPercentage = hundred.minus(
-          hundred.mul(
+        boughtPercentage = numberUtil.HUNDRED.minus(
+          numberUtil.HUNDRED.mul(
             sellVolume
               .minus(buyVolumesInSellTokens)
               .div(sellVolume)
@@ -191,7 +198,7 @@ class DxInfoService {
       buyVolume,
       isClosed,
       isTheoreticalClosed,
-      closingPrice,
+      closingPrice: closingPriceSafe, // official closing price (no 0)
       price,
       fundingInUSD: fundingInUSD.fundingA,
       buyVolumesInSellTokens,

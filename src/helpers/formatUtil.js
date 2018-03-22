@@ -30,23 +30,15 @@ function formatFraction (fraction, inDecimal = true) {
   if (!fraction) {
     return null
   } else {
-    const fractionBigNumber = {
-      numerator: numberUtil.toBigNumber(fraction.numerator),
-      denominator: numberUtil.toBigNumber(fraction.denominator)
-    }
-
     if (inDecimal) {
       // In decimal format
-      const decimalumber = fractionBigNumber
-        .numerator
-        .div(fractionBigNumber.denominator)
-        
+      const decimalumber = numberUtil.toBigNumberFraction(fraction, true)
       return formatNumber(decimalumber)
     } else {
       // In fractional format
-      return formatNumber(fractionBigNumber.numerator) +
+      return formatNumber(fraction.numerator) +
         ' / ' +
-        formatNumber(fractionBigNumber.denominator)
+        formatNumber(fraction.denominator)
     }
   }
 }

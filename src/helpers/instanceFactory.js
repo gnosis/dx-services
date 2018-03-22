@@ -197,7 +197,8 @@ function _getLiquidityService ({ config, auctionRepo, exchangePriceRepo, ethereu
     ethereumRepo,
 
     // Config
-    minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD
+    minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD,
+    buyLiquidityRules: config.BUY_LIQUIDITY_RULES
   })
 }
 

@@ -5,7 +5,7 @@ const Logger = require('../helpers/Logger')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
-const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 30 * 1000
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 60 * 1000
 
 class BuyLiquidityBot extends Bot {
   constructor ({ name, eventBus, liquidityService, botAddress, markets }) {
@@ -57,24 +57,23 @@ class BuyLiquidityBot extends Bot {
     try {
       liquidityWasEnsured = await this._liquidityService
         .ensureBuyLiquidity({ sellToken, buyToken, from })
-        .then(soldTokens => {
-          // soldTokens is:
-          //  * NULL when nothing was sold
-          //  * An object with {amount, sellToken, buyToken} when the liquidityService
-          //    had to sell tokens
-          if (soldTokens) {
+        .then(boughtTokens => {
+          let liquidityWasEnsured = boughtTokens.length > 0
+          if (liquidityWasEnsured) {
+            // The bot bought some tokens
             this._lastBuy = new Date()
-            // The bot sold some tokens
-            auctionLogger.info({
-              sellToken,
-              buyToken,
-              msg: "I've bought %d %s (%d USD) to ensure liquidity",
-              params: [
-                soldTokens.amount.div(1e18),
-                soldTokens.sellToken,
-                soldTokens.amountInUSD
-              ],
-              notify: true
+            boughtTokens.forEach(buyOrder => {
+              auctionLogger.info({
+                sellToken,
+                buyToken,
+                msg: "I've bought %d %s (%d USD) to ensure sell liquidity",
+                params: [
+                  buyOrder.amount.div(1e18),
+                  buyOrder.sellToken,
+                  buyOrder.amountInUSD
+                ],
+                notify: true
+              })
             })
           } else {
             // The bot didn't have to do anything

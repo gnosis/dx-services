@@ -5,16 +5,43 @@ const MARKETS = [
   { tokenA: 'ETH', tokenB: 'RDN' },
   { tokenA: 'ETH', tokenB: 'OMG' }
 ]
-const BUY_THRESHOLDS = [{
-  marketPriceRatio: 1,
-  buyRatio: 1 / 3
-}, {
-  marketPriceRatio: 0.98,
-  buyRatio: 2 / 3
-}, {
-  marketPriceRatio: 0.96,
-  buyRatio: 1
-}]
+const BUY_LIQUIDITY_RULES = [
+  // Buy 1/3 if price equals market price
+  {
+    marketPriceRatio: {
+      numerator: 1,
+      denominator: 1
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 3
+    }
+  },
+
+  // Buy 2/3 if price equals market price
+  {
+    marketPriceRatio: {
+      numerator: 98,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 2,
+      denominator: 3
+    }
+  },
+
+  // Buy the 100% if price equals market price
+  {
+    marketPriceRatio: {
+      numerator: 96,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }
+]
 
 const DEFAULT_GAS = 6700000
 const GAS_PRICE_GWEI = 100
@@ -62,7 +89,7 @@ module.exports = {
 
   // bot config
   MINIMUM_SELL_VOLUME_USD,
-  BUY_THRESHOLDS,
+  BUY_LIQUIDITY_RULES,
   MARKETS,
 
   // Gas
