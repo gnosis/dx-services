@@ -18,7 +18,7 @@ class LiquidityService {
     auctionRepo,
     ethereumRepo,
     exchangePriceRepo,
-    
+
     // config
     minimumSellVolume,
     buyLiquidityRules
@@ -201,7 +201,7 @@ check should be done`,
           params: [ auctionIndex, tokenA, fundingA, tokenB, fundingB ],
           notify: true
         })
-        // Do sell in the correct auction        
+        // Do sell in the correct auction
         const soldToken = await this._sellTokenToCreateLiquidity({
           tokenA, fundingA, tokenB, fundingB, auctionIndex, from
         })
@@ -254,7 +254,7 @@ keeps happening`
           denominator: numberUtil.ONE
         }))
       ])
-      
+
       // Get the auction B prices (from the auction A ones)
       const currentMarketPriceB = {
         numerator: currentMarketPriceA.denominator,
@@ -345,18 +345,18 @@ keeps happening`
         const sellVolumeInBuyTokes = sellVolume
           .mul(price.numerator)
           .div(price.denominator)
-  
+
         // Get the buyTokens that should have been bought
         const expectedBuyVolume = percentageThatShouldBeBought
           .mul(sellVolumeInBuyTokes)
-  
+
         // Get the difference between the buyVolume and the buyVolume that we
         // should have
         const buyTokensRequiredToMeetLiquidity = expectedBuyVolume
           .minus(buyVolume)
           .mul(numberUtil.ONE.plus(MAXIMUM_DX_FEE))
           .ceil()
-  
+
         // (1 - (sellVolumeInBuyTokes - buyVolume / sellVolumeInBuyTokes)) * 100
         const boughtPercentage = numberUtil
           .ONE.minus(
@@ -382,13 +382,13 @@ keeps happening`
               remainPercentage.toFixed(2)
             ]
           })
-          
+
           // Get the price in USD for the tokens we are buying
           const amountToBuyInUSD = await this._auctionRepo.getPriceInUSD({
             token: buyToken,
             amount: buyTokensRequiredToMeetLiquidity
           })
-  
+
           // We need to ensure liquidity
           // Sell the missing difference
           auctionLogger.info({
@@ -410,7 +410,7 @@ keeps happening`
             msg: 'Posted a buy order. Transaction: %s',
             params: [ buyOrder.tx ]
           })
-  
+
           buyLiquidityOperation = {
             sellToken,
             buyToken,
@@ -437,7 +437,7 @@ keeps happening`
         })
       }
     }
-    
+
     return buyLiquidityOperation
   }
 
@@ -445,13 +445,13 @@ keeps happening`
     // Get the relation between prices
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
-    
-    // Get the matching rule with the highest 
+
+    // Get the matching rule with the highest
     //  * note that the rules aresorted by buyRatio (in descendant order)
     const buyRule = this._buyLiquidityRules.find(threshold => {
       return threshold.marketPriceRatio.greaterThanOrEqualTo(priceRatio)
     })
-    
+
     return buyRule ? buyRule.buyRatio : numberUtil.ZERO
   }
 
