@@ -18,7 +18,7 @@ const BUY_LIQUIDITY_RULES = [
     }
   },
 
-  // Buy 2/3 if price equals market price
+  // Buy 2/3 if price falls below 98%
   {
     marketPriceRatio: {
       numerator: 98,
@@ -30,7 +30,7 @@ const BUY_LIQUIDITY_RULES = [
     }
   },
 
-  // Buy the 100% if price equals market price
+  // Buy the 100% if price falls below 96%
   {
     marketPriceRatio: {
       numerator: 96,
