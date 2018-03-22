@@ -33,7 +33,7 @@ afterEach(() => {
   sellLiquidityBot.stop()
 })
 
-test.only('It should do a routine check.', async () => {
+test('It should do a routine check.', async () => {
   // we mock ensureSellLiquidity function
   sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
   const ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity
@@ -51,21 +51,23 @@ test.only('It should do a routine check.', async () => {
 test('It should trigger ensure liquidity from eventBus trigger', () => {
   // we mock ensureSellLiquidity function
   sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
-  const ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity
+  const SERVICE_ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity
 
   // we wrap expected eventBus triggered function with mock
-  sellLiquidityBot._onAuctionCleared = jest.fn(sellLiquidityBot._onAuctionCleared)
+  sellLiquidityBot._ensureSellLiquidity = jest.fn(sellLiquidityBot._ensureSellLiquidity)
+  const BOT_ENSURE_SELL_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity
 
   // GIVEN uncalled liquidity functions
-  expect(sellLiquidityBot._onAuctionCleared).toHaveBeenCalledTimes(0)
-  expect(ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
+  expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
+  expect(SERVICE_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
 
   // WHEN we trigger 'auction:cleared' event
-  sellLiquidityBot._eventBus.trigger('auction:cleared', {buyToken: 'RDN', sellToken: 'ETH'})
+  sellLiquidityBot._eventBus.trigger('auction:cleared', {
+    buyToken: 'RDN', sellToken: 'ETH' })
 
   // THEN liquidity ensuring functions have been called
-  expect(sellLiquidityBot._onAuctionCleared).toHaveBeenCalledTimes(1)
-  expect(ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(1)
+  expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(1)
+  expect(SERVICE_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(1)
 })
 
 test('It should not ensure liquidity if already ensuring liquidity.', () => {
@@ -76,12 +78,12 @@ test('It should not ensure liquidity if already ensuring liquidity.', () => {
   // GIVEN a running bot
 
   // WHEN we ensure liquidity
-  const ENSURE_LIQUIDITY = sellLiquidityBot._onAuctionCleared('auction:cleared',
-    {buyToken: 'RDN', sellToken: 'ETH'})
+  const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
+    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
 
   // THEN liquidiy is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
-    expect(result).toBeTruthy()
+    expect(result).toBeFalsy()
   })
 })
 
@@ -95,8 +97,8 @@ test('It should ensure liquidity.', () => {
   expect(ENSURE_SELL_LIQUIDITY_FN).toHaveBeenCalledTimes(0)
 
   // WHEN we ensure liquidity
-  const ENSURE_LIQUIDITY = sellLiquidityBot._onAuctionCleared('auction:cleared',
-    {buyToken: 'RDN', sellToken: 'ETH'})
+  const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
+    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
 
   // THEN liquidiy is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -106,14 +108,14 @@ test('It should ensure liquidity.', () => {
 })
 
 function _concurrentLiquidityEnsured ({ sellToken, buyToken, from }) {
-  return Promise.resolve(null)
+  return Promise.resolve([])
 }
 
 function _ensureLiquidity ({ sellToken, buyToken, from }) {
-  return Promise.resolve({
+  return Promise.resolve([{
     sellToken,
     buyToken,
     amount: new BigNumber('522943983903581200'),
     amountInUSD: new BigNumber('523.97')
-  })
+  }])
 }
