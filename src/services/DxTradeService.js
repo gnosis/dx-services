@@ -89,10 +89,7 @@ class DxTradeService {
       params: [ amountInEth, token, transactionResult.tx ]
     })
 
-    return this._auctionRepo.getBalance({
-      token,
-      address: accountAddress
-    })
+    return transactionResult
   }
 
   async _depositEtherIfRequired ({ accountAddress, amount }) {
