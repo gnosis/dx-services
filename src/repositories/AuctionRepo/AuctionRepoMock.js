@@ -7,16 +7,22 @@ const auctionsMockData = require('../../../tests/data/auctions')
 
 const balances = {
   'RDN': {
+    '0x424a46612794dbb8000194937834250Dc723fFa5': 517.345, // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 30.20,   // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1000.0,   // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 601.112  // Dani
+  },
+  'ETH': {
+    '0x424a46612794dbb8000194937834250Dc723fFa5': 3.44716, // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 2.23154, // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 3.88130, // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 4.01234  // Dani
+  },
+  'OMG': {
     '0x424a46612794dbb8000194937834250Dc723fFa5': 267.345, // Anxo
     '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 15.20,   // Pepe
     '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 500.0,   // Ganache
     '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 301.112  // Dani
-  },
-  'ETH': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 1.44716, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 0.23154, // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1.88130, // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 2.01234  // Dani
   }
 }
 
@@ -27,6 +33,7 @@ class AuctionRepoMock {
   }) {
     this._auctions = auctions || auctionsMockData.auctions
     this._pricesInUSD = pricesInUSD || auctionsMockData.pricesInUSD
+    this._tokens = {ETH: '', RDN: '', OMG: ''}
   }
 
   async getAbout () {
@@ -164,10 +171,25 @@ class AuctionRepoMock {
     return this._getAuction({ sellToken, buyToken }).buyVolume
   }
 
-  async getBalance ({ token, address }) {
-    debug('Get balance of %s for %s', token, address)
+  async getBalances ({ accountAddress }) {
+    debug('Get balances for %s', accountAddress)
+
+    const balancePromises =
+      // for every token
+      Object.keys(this._tokens)
+        // get it's balance
+        .map(async token => {
+          const amount = await this.getBalance({ token, accountAddress })
+          return { token, amount }
+        })
+
+    return Promise.all(balancePromises)
+  }
+
+  async getBalance ({ token, accountAddress }) {
+    debug('Get balance of %s for %s', token, accountAddress)
     // balances
-    return balances[token][address]
+    return balances[token][accountAddress]
   }
 
   async getSellerBalance ({ sellToken, buyToken, address }) {

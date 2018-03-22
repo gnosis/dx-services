@@ -49,6 +49,7 @@ test('It should return auction details', async () => {
     currencyA: 'RDN', currencyB: 'ETH' })
   expect(rdnEthAuctions).toMatchObject(EXPECTED_RDN_ETH_AUCTIONS)
 })
+*/
 
 test('It should return current auction price', async () => {
   const { dxInfoService } = await setupPromise
@@ -64,13 +65,22 @@ test('It should return current auction price', async () => {
     sellToken: 'RDN', buyToken: 'ETH' })
   expect(rdnEthCurrentPrice).toMatchObject(RDN_ETH_CURRENT_PRICE)
 })
-*/
 
-// test('Get balances for all currencies of an account', async () => {
-// const { dxInfoService } = await setupPromise
-//
-//   expect(await dxInfoService.getBalances({address: '0xAbasdlkjasdkljg231lkjmn123'})).toBe('')
-// })
+test('Get balances for all currencies of an account', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  const EXPECTED_ACCOUNT_BALANCES = [
+    {amount: 3.44716, token: 'ETH'},
+    {amount: 517.345, token: 'RDN'},
+    {amount: 267.345, token: 'OMG'}
+  ]
+
+  let accountBalance = await dxInfoService.getBalances({
+    accountAddress: '0x424a46612794dbb8000194937834250Dc723fFa5' })
+  expect(accountBalance).toEqual(EXPECTED_ACCOUNT_BALANCES)
+})
 
 const RDN_ETH_AUCTION = auctionsMockData.auctions['RDN-ETH']
 
@@ -94,25 +104,4 @@ const EXPECTED_RDN_ETH_MARKET = {
   isSellTokenApproved: true,
   isBuyTokenApproved: true,
   auctionIndex: RDN_ETH_AUCTION.index
-}
-
-const EXPECTED_RDN_ETH_AUCTIONS = {
-  auctionIndex: RDN_ETH_AUCTION.index,
-  auctionInfo: {
-    auctionIndex: RDN_ETH_AUCTION.index,
-    auction: {
-      buyVolume: RDN_ETH_AUCTION.buyVolume,
-      closingPrice: null,
-      isClosed: false,
-      isTheoreticalClosed: false,
-      sellVolume: RDN_ETH_AUCTION.sellVolume
-    },
-    auctionOpp: {}
-  },
-  // buyVolume: RDN_ETH_AUCTION.buyVolume,
-  currencyA: 'RDN',
-  currencyB: 'ETH',
-  isAuctionRunning: true,
-  sellVolume: RDN_ETH_AUCTION.sellVolume,
-  sellVolumeNext: RDN_ETH_AUCTION.sellVolumeNext
 }
