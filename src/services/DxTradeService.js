@@ -27,7 +27,7 @@ class DxTradeService {
   async sendTokens ({ token, amount, fromAddress, toAddress }) {
     // const amountInWei = numberUtil.toWei(amount)
     const amountInEther = numberUtil.toBigNumber(amount).div(1e18)
-    
+
     if (token === 'ETH') {
       // In case of the ETH, we make sure we have enough EtherTokens
       await this._depositEtherIfRequired({
@@ -95,21 +95,20 @@ class DxTradeService {
     })
   }
 
-
   async _depositEtherIfRequired ({ accountAddress, amount }) {
     let transactionResult
-    
+
     // Check if the user has already enogh EtherTokens
     const etherTokenBalance = await this._auctionRepo.getBalanceERC20Token({
       token: 'ETH',
       address: accountAddress
     })
     const amountInWei = numberUtil.toBigNumber(amount)
-    
+
     if (etherTokenBalance.lessThan(amount)) {
       const missingDifference = amountInWei
         .minus(etherTokenBalance)
-        
+
       logger.info({
         msg: `We don't have enogth EtherTokens, so we need to deposit: %d ETH`,
         params: [ missingDifference.div(1e18) ]

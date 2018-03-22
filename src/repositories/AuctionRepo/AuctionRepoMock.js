@@ -281,15 +281,19 @@ class AuctionRepoMock {
     return amount
   }
 
-  async buy ({ sellToken, buyToken, auctionIndex, amount }) {
+  async postBuyOrder ({ sellToken, buyToken, auctionIndex, amount }) {
     debug(
       'Buy %d %s using %s for auction %d',
       amount, buyToken,
       sellToken,
       auctionIndex
     )
-    // postBuyOrder
-    this._notImplementedYet()
+
+    let auction = this._auctions[sellToken + '-' + buyToken]
+    let newBuyVolume = auction.buyVolume.add(amount)
+    Object.assign(auction.buyVolume, newBuyVolume)
+
+    return amount
   }
 
   async claimSellerFunds ({ sellToken, buyToken, address, auctionIndex }) {
