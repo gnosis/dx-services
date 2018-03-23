@@ -94,17 +94,67 @@ class DxInfoService {
       .reverse()
   }
 
-  // TODO: Review names
+  // TODO: This method I think is not very useful for us...
   async getSellerBalancesOfCurrentAuctions ({ tokenPairs, address }) {
     return this._auctionRepo.getSellerBalancesOfCurrentAuctions({
       tokenPairs, address
     })
   }
 
-  async getIndicesWithClaimableTokens ({ tokenPairs, address }) {
-    return this._auctionRepo.getIndicesWithClaimableTokens({
-      tokenPairs, address
+  async getClaimableAuctions ({ tokenA, tokenB, address, count }) {
+    const auctionIndex = await this._auctionRepo.getAuctionIndex({
+      sellToken: tokenA,
+      buyToken: tokenB
     })
+
+    const balancesPromises = []
+    const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count + 1 : 0
+    for (var i = startAuctionIndex; i <= auctionIndex; i++) {
+      const auctionIndexAux = i
+      const balancePromise = Promise.all([
+        this._auctionRepo.getSellerBalance({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex: auctionIndexAux,
+          address
+        }),
+        this._auctionRepo.getSellerBalance({
+          sellToken: tokenB,
+          buyToken: tokenA,
+          auctionIndex: auctionIndexAux,
+          address
+        }),
+        this._auctionRepo.getBuyerBalance({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex: auctionIndexAux,
+          address
+        }),
+        this._auctionRepo.getBuyerBalance({
+          sellToken: tokenB,
+          buyToken: tokenA,
+          auctionIndex: auctionIndexAux,
+          address
+        })
+      ]).then(([
+        sellerBalanceA,
+        sellerBalanceB,
+        buyerBalanceA,
+        buyerBalanceB
+      ]) => ({
+        auctionIndex: auctionIndexAux,
+        sellerBalanceA,
+        sellerBalanceB,
+        buyerBalanceA,
+        buyerBalanceB
+      }))
+
+      balancesPromises.push(balancePromise)
+    }
+
+    return Promise
+      .all(balancesPromises)
+      .then(balances => balances.reverse())
   }
 
   async getMarketDetails ({ sellToken, buyToken }) {

@@ -62,7 +62,17 @@ function tokenize (value) {
   }
 }
 
+function toTokenPairs (tokenPairString) {
+  const tokenPairsTokenized = tokenize(tokenPairString)
+  
+  return tokenPairsTokenized.map(tokenPairString => {
+    const [ sellToken, buyToken ] = tokenPairString.split('-')
+    return { sellToken, buyToken }
+  })
+}
+
 module.exports = {
   getPositionalByName,
-  tokenize
+  tokenize,
+  toTokenPairs
 }

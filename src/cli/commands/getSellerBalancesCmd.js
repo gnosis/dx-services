@@ -6,12 +6,8 @@ function registerCommand ({ cli, instances, logger }) {
     cliUtils.getPositionalByName('token-pairs', yargs)
   }, async function (argv) {
     const { tokenPairs: tokenPairString } = argv
-    const tokenPairsTokenized = cliUtils.tokenize(tokenPairString)
-    const tokenPairs = tokenPairsTokenized.map(tokenPairString => {
-      const [ sellToken, buyToken ] = tokenPairString.split('-')
-      return { sellToken, buyToken }
-    })
-    
+    const tokenPairs = cliUtils.toTokenPairs(tokenPairString)
+
     const {
       botAccount,
       dxInfoService
