@@ -43,6 +43,54 @@ class DxInfoService {
     })
   }
 
+  async getLastClosingPrices ({ sellToken, buyToken, count }) {
+    // Get data
+    const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
+    const closingPricesPromises = []
+    const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count : 0
+    for (var i = startAuctionIndex; i < auctionIndex; i++) {
+      const auctionIndexAux = i
+      const closingPricePromise = this._auctionRepo.getClosingPrices({
+        sellToken,
+        buyToken,
+        auctionIndex: auctionIndexAux
+      })
+        .then(price => ({
+          price,
+          auctionIndex: auctionIndexAux
+        }))
+
+      closingPricesPromises.push(closingPricePromise)
+    }
+
+    const closingPrices = await Promise.all(closingPricesPromises)
+    return closingPrices
+      .map((closingPrice, i) => {
+        let percentage
+        if (i > 0) {
+          let previousClosingPrice = numberUtil
+            .toBigNumberFraction(closingPrices[i - 1].price, true)
+          let currentClosingPrice = numberUtil
+            .toBigNumberFraction(closingPrice.price, true)
+
+          if (!currentClosingPrice.isZero() && !previousClosingPrice.isZero()) {
+            percentage = numberUtil.ONE.plus(
+              currentClosingPrice
+                .minus(previousClosingPrice)
+                .div(previousClosingPrice)
+            ).mul(100)
+          }
+        }
+
+        return {
+          auctionIndex: closingPrice.auctionIndex,
+          price: closingPrice.price,
+          percentage
+        }
+      })
+      .reverse()
+  }
+
   async getMarketDetails ({ sellToken, buyToken }) {
     const tokenPair = { sellToken, buyToken }
     const [
