@@ -1,17 +1,12 @@
+const cliUtils = require('../helpers/cliUtils')
+
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'deposit <amount> <token>',
     'Deposit the DX account depositing tokens into it',
     yargs => {
-      yargs.positional('amount', {
-        type: 'float',
-        describe: 'Amount to buy'
-      })
-      yargs.positional('token', {
-        type: 'string',
-        default: 'ETH',
-        describe: 'Name of the token'
-      })
+      cliUtils.getPositionalByName('amount', yargs)
+      cliUtils.getPositionalByName('token', yargs)
     }, async function (argv) {
       const { amount, token } = argv
       const {

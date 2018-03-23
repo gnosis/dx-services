@@ -1,18 +1,11 @@
+const cliUtils = require('../helpers/cliUtils')
+
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'market-price <token-pair>',
     'Get the market price for a token pair',
     yargs => {
-      yargs.positional('token-pair', {
-        type: 'string',
-        default: 'ETH-RDN',
-        describe: 'The token pair of the auction'
-      })
-      yargs.positional('auctionIndex', {
-        type: 'integer',
-        default: null,
-        describe: 'Index of the auction'
-      })
+      cliUtils.getPositionalByName('token-pair', yargs)
     }, async function (argv) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')

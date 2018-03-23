@@ -5,10 +5,32 @@ const POSITIONALS_BY_NAME = {
     describe: 'The token pair of the auction'
   },
 
+  'token': {
+    type: 'string',
+    default: 'ETH',
+    describe: 'Name of the token'
+  },
+
+  'auction-index': {
+    type: 'integer',
+    default: null,
+    describe: 'Index of the auction'
+  },
+
   'count': {
     type: 'number',
     default: 5,
     describe: 'The token pair of the auction'
+  },
+
+  'amount': {
+    type: 'float',
+    describe: 'Amount to buy'
+  },
+
+  'account': {
+    type: 'string',
+    describe: 'Address were you send the tokens'
   }
 }
 

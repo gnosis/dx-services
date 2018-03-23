@@ -1,12 +1,9 @@
+const cliUtils = require('../helpers/cliUtils')
 const printState = require('../helpers/printState')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('state <token-pair>', 'Get the state for a given pair (i.e. ETH-RDN)', yargs => {
-    yargs.positional('token-pair', {
-      type: 'string',
-      default: 'ETH-RDN',
-      describe: 'The token pair of the auction'
-    })
+    cliUtils.getPositionalByName('token-pair', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')

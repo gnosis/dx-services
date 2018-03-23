@@ -1,13 +1,11 @@
+const cliUtils = require('../helpers/cliUtils')
+
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'sell-liquidity <token-pair>',
     'Ensure the sell liquidity for a token pair',
     yargs => {
-      yargs.positional('token-pair', {
-        type: 'string',
-        default: 'ETH-RDN',
-        describe: 'The token pair of the auction'
-      })
+      cliUtils.getPositionalByName('token-pair', yargs)
     }, async function (argv) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')

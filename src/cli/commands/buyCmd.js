@@ -1,22 +1,13 @@
+const cliUtils = require('../helpers/cliUtils')
+
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'buy <amount> <token-pair> [auctionIndex]',
+    'buy <amount> <token-pair> [auction-index]',
     'Buy in a auction for a token pair',
     yargs => {
-      yargs.positional('amount', {
-        type: 'float',
-        describe: 'Amount to buy'
-      })
-      yargs.positional('token-pair', {
-        type: 'string',
-        default: 'ETH-RDN',
-        describe: 'The token pair of the auction'
-      })
-      yargs.positional('auctionIndex', {
-        type: 'integer',
-        default: null,
-        describe: 'Index of the auction'
-      })
+      cliUtils.getPositionalByName('amount', yargs)
+      cliUtils.getPositionalByName('token-pair', yargs)
+      cliUtils.getPositionalByName('auction-index', yargs)
     }, async function (argv) {
       const { amount, tokenPair, auctionIndex: auctionIndexAux } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
