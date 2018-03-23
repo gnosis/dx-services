@@ -47,8 +47,8 @@ class DxInfoService {
     // Get data
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
     const closingPricesPromises = []
-    const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count : 0
-    for (var i = startAuctionIndex; i < auctionIndex; i++) {
+    const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count + 1 : 0
+    for (var i = startAuctionIndex; i <= auctionIndex; i++) {
       const auctionIndexAux = i
       const closingPricePromise = this._auctionRepo.getClosingPrices({
         sellToken,
@@ -73,7 +73,10 @@ class DxInfoService {
           let currentClosingPrice = numberUtil
             .toBigNumberFraction(closingPrice.price, true)
 
-          if (!currentClosingPrice.isZero() && !previousClosingPrice.isZero()) {
+          if (currentClosingPrice &&
+            !currentClosingPrice.isZero() &&
+            !previousClosingPrice.isZero()
+          ) {
             percentage = numberUtil.ONE.plus(
               currentClosingPrice
                 .minus(previousClosingPrice)

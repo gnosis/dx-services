@@ -1,18 +1,10 @@
 const formatUtil = require('../../helpers/formatUtil')
-const numberUtil = require('../../helpers/numberUtil')
+const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('closing-prices <token-pair> [count]', 'Get the closing prices for a given pair (i.e. ETH-RDN)', yargs => {
-    yargs.positional('token-pair', {
-      type: 'string',
-      default: 'ETH-RDN',
-      describe: 'The token pair of the auction'
-    })
-    yargs.positional('count', {
-      type: 'number',
-      default: 5,
-      describe: 'The token pair of the auction'
-    })
+    cliUtils.getPositionalByName('token-pair', yargs)
+    cliUtils.getPositionalByName('count', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString, count } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')
@@ -43,9 +35,9 @@ function registerCommand ({ cli, instances, logger }) {
       }
 
       logger.info(
-        '\t%d. %d%s',
+        '\t%d. %s%s',
         auctionIndex,
-        formatUtil.formatFraction(price),
+        price ? formatUtil.formatFraction(price) : 'No closed yet',
         percentageMessage
       )
     })
