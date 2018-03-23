@@ -32,7 +32,7 @@ class SellLiquidityBot extends Bot {
       auctionLogger.info({
         sellToken,
         buyToken,
-        msg: "Auction ended. Let's ensure sell liquidity"
+        msg: "Auction ended. Let's ensure SELL liquidity"
       })
       this._ensureSellLiquidity({
         sellToken,

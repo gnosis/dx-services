@@ -66,7 +66,7 @@ class BuyLiquidityBot extends Bot {
               auctionLogger.info({
                 sellToken,
                 buyToken,
-                msg: "I've bought %d %s (%d USD) to ensure sell liquidity",
+                msg: "I've bought %d %s (%d USD) to ensure BUY liquidity",
                 params: [
                   buyOrder.amount.div(1e18),
                   buyOrder.sellToken,
