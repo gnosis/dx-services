@@ -2,36 +2,15 @@ const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
 const BigNumber = require('bignumber.js')
 
 const auctionsMockData = require('../../../tests/data/auctions')
-// const auctions = auctionsMockData.auctions
-// const pricesInUSD = auctionsMockData.pricesInUSD
-
-const balances = {
-  'RDN': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 517.345, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 30.20,   // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1000.0,  // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 601.112  // Dani
-  },
-  'ETH': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 3.44716, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 2.23154, // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 3.88130, // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 4.01234  // Dani
-  },
-  'OMG': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 267.345, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 15.20,   // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 500.0,   // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 301.112  // Dani
-  }
-}
 
 class AuctionRepoMock {
   constructor ({
     auctions,
+    balances,
     pricesInUSD
   }) {
     this._auctions = auctions || auctionsMockData.auctions
+    this._balances = balances || auctionsMockData.balances
     this._pricesInUSD = pricesInUSD || auctionsMockData.pricesInUSD
     this._tokens = {ETH: '', RDN: '', OMG: ''}
   }
@@ -144,7 +123,7 @@ class AuctionRepoMock {
   }
 
   async isApprovedMarket ({ tokenA, tokenB }) {
-    debug('CHeck is approved market %s-%s', tokenA, tokenB)
+    debug('Check is approved market %s-%s', tokenA, tokenB)
 
     const auctionIndex = await this.getAuctionIndex({
       sellToken: tokenA,
@@ -189,7 +168,7 @@ class AuctionRepoMock {
   async getBalance ({ token, accountAddress }) {
     debug('Get balance of %s for %s', token, accountAddress)
     // balances
-    return balances[token][accountAddress]
+    return this._balances[token][accountAddress]
   }
 
   async getSellerBalance ({ sellToken, buyToken, address }) {
