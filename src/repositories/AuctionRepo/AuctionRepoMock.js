@@ -9,7 +9,7 @@ const balances = {
   'RDN': {
     '0x424a46612794dbb8000194937834250Dc723fFa5': 517.345, // Anxo
     '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 30.20,   // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1000.0,   // Ganache
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1000.0,  // Ganache
     '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 601.112  // Dani
   },
   'ETH': {
@@ -355,7 +355,7 @@ class AuctionRepoMock {
     return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
   }
 
-  async _getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+  async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     debug('Get closing price for auction %d %s-%s', auctionIndex, sellToken, buyToken)
 
     const auction = this._getAuction({ sellToken, buyToken })
@@ -390,7 +390,7 @@ class AuctionRepoMock {
       isTheoreticalClosed = false
     }
 
-    const closingPrice = await this._getClosingPrices({
+    const closingPrice = await this.getClosingPrices({
       sellToken, buyToken, auctionIndex
     })
 

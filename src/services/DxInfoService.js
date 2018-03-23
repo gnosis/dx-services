@@ -35,6 +35,14 @@ class DxInfoService {
     return this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
   }
 
+  async getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
+    return this._auctionRepo.getClosingPrices({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+  }
+
   async getMarketDetails ({ sellToken, buyToken }) {
     const tokenPair = { sellToken, buyToken }
     const [
@@ -279,6 +287,7 @@ class DxInfoService {
   async getBalances ({ accountAddress }) {
     return this._auctionRepo.getBalances({ accountAddress })
   }
+  
 
   async getBalanceOfEther ({ account }) {
     return this._ethereumRepo.balanceOf({ account })

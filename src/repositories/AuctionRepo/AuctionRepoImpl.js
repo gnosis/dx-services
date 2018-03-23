@@ -1002,7 +1002,7 @@ volume: ${state}`)
 
   // I make ot private because 'getPastAuctionPrice' is safer
   //  (handles the price 0 problem)
-  async _getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
+  async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
     return this
       ._callForAuction({
@@ -1050,7 +1050,7 @@ volume: ${state}`)
       isTheoreticalClosed = false
     }
 
-    const closingPrice = await this._getClosingPrices({
+    const closingPrice = await this.getClosingPrices({
       sellToken, buyToken, auctionIndex
     })
 
@@ -1093,7 +1093,7 @@ volume: ${state}`)
 
   _hasClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
-    const closingPrice = this._getClosingPrices({ sellToken, buyToken, auctionIndex })
+    const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
 
     return closingPrice.denominator !== 0
   }
