@@ -5,6 +5,12 @@ const POSITIONALS_BY_NAME = {
     describe: 'The token pair of the auction'
   },
 
+  'token-pairs': {
+    type: 'string', // TODO: See how to make this a list :)
+    default: 'ETH-RDN,ETH-OMG',
+    describe: 'The token pair of the auction'
+  },
+
   'token': {
     type: 'string',
     default: 'ETH',
@@ -43,6 +49,20 @@ function getPositionalByName (name, yargs) {
   }
 }
 
+function tokenize (value) {
+  if (!value) {
+    return null
+  }
+
+  const tokenized = value.split(',')
+  if (typeof tokenized === 'string') {
+    return [ tokenized ]
+  } else {
+    return tokenized
+  }
+}
+
 module.exports = {
-  getPositionalByName
+  getPositionalByName,
+  tokenize
 }

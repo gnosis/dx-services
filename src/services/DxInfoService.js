@@ -94,6 +94,19 @@ class DxInfoService {
       .reverse()
   }
 
+  // TODO: Review names
+  async getSellerBalancesOfCurrentAuctions ({ tokenPairs, address }) {
+    return this._auctionRepo.getSellerBalancesOfCurrentAuctions({
+      tokenPairs, address
+    })
+  }
+
+  async getIndicesWithClaimableTokens ({ tokenPairs, address }) {
+    return this._auctionRepo.getIndicesWithClaimableTokens({
+      tokenPairs, address
+    })
+  }
+
   async getMarketDetails ({ sellToken, buyToken }) {
     const tokenPair = { sellToken, buyToken }
     const [

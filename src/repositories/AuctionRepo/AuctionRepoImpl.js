@@ -400,6 +400,72 @@ class AuctionRepoImpl {
     })
   }
 
+  async getIndicesWithClaimableTokens ({ sellToken, buyToken, address, lastNAuctions }) {
+    assertPair(sellToken, buyToken)
+    assert(address, 'The "address" is required')
+    assert(lastNAuctions, 'The "lastNAuctions" is required')
+
+    return this._callForPair({
+      operation: 'getIndicesWithClaimableTokens',
+      sellToken,
+      buyToken,
+      args: [ address, lastNAuctions ]
+    })
+  }
+
+  async getSellerBalancesOfCurrentAuctions ({ tokenPairs, address }) {
+    // Transfor the tokenPairs into addresses
+    const tokenPairsInfoPromises = tokenPairs.map(({ sellToken, buyToken }) => {
+      return Promise.all([
+        this._getTokenAddress(sellToken),
+        this._getTokenAddress(buyToken)
+      ]).then(([ sellTokenAddress, buyTokenAddress ]) => ({
+        sellToken,
+        buyToken,
+        sellTokenAddress,
+        buyTokenAddress
+      }))
+    })
+    const tokenPairsInfo = await Promise.all(tokenPairsInfoPromises)
+    
+    // Transfor the addresses into the DX param format (two addresses arrays)
+    const {
+      auctionSellTokens,
+      auctionBuyTokens,
+      sellTokens,
+      buyTokens
+    } = tokenPairsInfo.reduce((acc, tokenPairInfo) => {
+      const {
+        sellToken,
+        buyToken,
+        sellTokenAddress,
+        buyTokenAddress
+      } = tokenPairInfo
+
+      acc.auctionSellTokens.push(sellTokenAddress)
+      acc.auctionBuyTokens.push(buyTokenAddress)
+      acc.sellTokens.push(sellToken)
+      acc.buyTokens.push(buyToken)
+      return acc
+    }, {
+      auctionSellTokens: [],
+      auctionBuyTokens: [],
+      sellTokens: [],
+      buyTokens: []
+    })
+
+    const sellersBalances = await this._debugOperation({
+      operation: 'getSellerBalancesOfCurrentAuctions',
+      params: [ auctionSellTokens, auctionBuyTokens, address ]
+    })
+
+    return sellersBalances.map((balance, index) => ({
+      sellToken: sellTokens[index],
+      buyToken: buyTokens[index],
+      balance: sellersBalances[index]
+    }))
+  }
+
   async getBuyerBalance ({ sellToken, buyToken, auctionIndex, address }) {
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(address, 'The address is required')

@@ -19,6 +19,8 @@ async function run (instances) {
   require('./commands/stateCmd')(commandParams)
   require('./commands/marketPriceCmd')(commandParams)
   require('./commands/closingPricesCmd')(commandParams)
+  require('./commands/getSellerBalancesCmd')(commandParams)
+  // require('./commands/claimableTokensCmd')(commandParams)
 
   // Trade commands
   require('./commands/sendCmd')(commandParams)
@@ -37,6 +39,7 @@ async function run (instances) {
     .wrap(width)
     .help('h')
     .strict()
+    // .showHelpOnFail(false, 'Specify --help for available options')
     .argv
 
   if (!argv._[0]) {
