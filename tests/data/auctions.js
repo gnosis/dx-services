@@ -40,7 +40,7 @@ const auctions = {
     // https://walletinvestor.com/converter/usd/raiden-network-token/315
     sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
     sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
-    buyVolume: new BigNumber('0e18')                // ETH
+    buyVolume: new BigNumber('0e18')                 // ETH
   },
   'ETH-RDN': {
     index: 77,

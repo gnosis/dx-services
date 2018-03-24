@@ -2,6 +2,9 @@ const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
 
+const ExchangePriceRepoMock = require('../../src/repositories/ExchangePriceRepo/ExchangePriceRepoMock')
+const exchangePriceRepo = new ExchangePriceRepoMock()
+
 const auctionsMockData = require('../data/auctions')
 
 const BigNumber = require('bignumber.js')
@@ -58,6 +61,44 @@ test('It should ensureSellLiquidity', async () => {
     .toBeFalsy()
 })
 
+test('It should ensureBuyLiquidity', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWhereBotShouldBuyEthRdn()
+  })
+  // we mock the exchange price repo
+  liquidityService._exchangePriceRepo = exchangePriceRepo
+
+  async function _hasLowBuyVolume ({ sellToken, buyToken }) {
+    const auctionRepo = liquidityService._auctionRepo
+
+    let buyVolume = await auctionRepo.getBuyVolume({ buyToken, sellToken })
+    let sellVolume = await auctionRepo.getSellVolume({ buyToken, sellToken })
+    return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
+  }
+
+  // GIVEN a RUNNING auction, nearly to close but many tokens to sold
+  expect(await _hasLowBuyVolume({ sellToken: 'ETH', buyToken: 'RDN' }))
+    .toBeTruthy()
+
+  // WHEN we ensure sell liquidity
+  const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
+    sellToken: 'ETH', buyToken: 'RDN', from: '0x123' })
+
+  // THEN bot buys in ETH-RDN market, the pair market we expect
+  const expectedBotBuy = [{
+    buyToken: 'RDN',
+    sellToken: 'ETH'
+  }]
+  expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
+
+  // THEN auction hasn't got low buy volume
+  expect(await _hasLowBuyVolume({ sellToken: 'ETH', buyToken: 'RDN' }))
+    .toBeFalsy()
+})
+
 test('It should detect concurrency when ensuring liquidiy', async () => {
   const { liquidityService } = await setupPromise
 
@@ -102,7 +143,7 @@ test('It should not ensure liquidity if auction is not waiting for funding', asy
   expect(ensureLiquidityState).toEqual([])
 })
 
-test('It should not ensure liquidity if auction has enough funds', async () => {
+test('It should not ensure sell liquidity if auction has enough funds', async () => {
   const { liquidityService } = await setupPromise
   expect.assertions(1)
   // we mock the auction repo
@@ -133,4 +174,20 @@ function _getAuctionsWithUnderFundingEthOmg () {
     { sellVolume: new BigNumber('0.5e18') })
   return Object.assign({}, auctionsMockData.auctions,
     { 'ETH-OMG': updatedAuction })
+}
+
+function _getAuctionsWhereBotShouldBuyEthRdn () {
+  // GIVEN a RUNNING auction, nearly to close but many tokens to sold
+  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['ETH-RDN'],
+    { price: {
+      numerator: new BigNumber('1000000'),
+      denominator: new BigNumber('4579') }
+    })
+  const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-ETH'],
+    { price: {
+      numerator: new BigNumber('4579'),
+      denominator: new BigNumber('1000000') }
+    })
+  return Object.assign({}, auctionsMockData.auctions,
+    { 'ETH-RDN': updatedAuctionEthRdn, 'RDN-ETH': updatedAuctionRdnEth })
 }

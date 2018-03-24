@@ -134,9 +134,12 @@ class AuctionRepoMock {
   }
 
   async getSellVolume ({ sellToken, buyToken }) {
-    debug('Get sell volume for %s-%s', sellToken, buyToken)
+    // debug('Get sell volume for %s-%s', sellToken, buyToken)
     // sellVolumesCurrent
-    return this._getAuction({ sellToken, buyToken }).sellVolume
+    let sellVolume = this._getAuction({ sellToken, buyToken }).sellVolume
+    debug('Get sell volume for %s-%s: %d', sellToken, buyToken, sellVolume)
+
+    return sellVolume
   }
 
   async getSellVolumeNext ({ sellToken, buyToken }) {
@@ -146,8 +149,9 @@ class AuctionRepoMock {
   }
 
   async getBuyVolume ({ sellToken, buyToken }) {
-    debug('Get buy volume for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).buyVolume
+    let buyVolume = this._getAuction({ sellToken, buyToken }).buyVolume
+    debug('Get buy volume for %s-%s: %d', sellToken, buyToken, buyVolume)
+    return buyVolume
   }
 
   async getBalances ({ accountAddress }) {
@@ -324,14 +328,23 @@ class AuctionRepoMock {
   }
 
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
-    debug('Get price for auction %d %s-%s', auctionIndex, buyToken, sellToken)
-    return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
-    // this._notImplementedYet()
+    let auction = this._getAuction({ sellToken, buyToken })
+    let price
+    auction.price ? price = auction.price
+      : price = { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+
+    debug('Get price for auction %d %s-%s: %o', auctionIndex, buyToken, sellToken, price)
+    return price
   }
 
   async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
-    debug('Get price for past auction %d %s-%s', auctionIndex, buyToken, sellToken)
-    return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+    let auction = this._getAuction({ sellToken, buyToken })
+    let closingPrice
+    auction.closingPrice ? closingPrice = auction.closingPrice
+      : closingPrice = { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+
+    debug('Get price for past auction %d %s-%s: %o', auctionIndex, buyToken, sellToken, closingPrice)
+    return closingPrice
   }
 
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
