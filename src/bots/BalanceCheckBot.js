@@ -15,7 +15,7 @@ class BalanceCheckBot extends Bot {
     this._dxInfoService = dxInfoService
 
     this._botAddress = botAddress
-    
+
     this._tokens = markets.reduce((accumulator, tokenPair) => {
       if (!accumulator.includes(tokenPair.tokenA)) {
         accumulator.push(tokenPair.tokenA)
@@ -79,7 +79,7 @@ class BalanceCheckBot extends Bot {
 
       // Check if there are tokens below the minimun amount
       const tokenBelowMinimun = balancesOfTokens.filter(balanceInfo => {
-        return balanceInfo.anmountInUSD.lessThan(MINIMUM_AMOUNT_IN_USD_FOR_TOKENS)
+        return balanceInfo.amountInUSD.lessThan(MINIMUM_AMOUNT_IN_USD_FOR_TOKENS)
       })
 
       if (tokenBelowMinimun.length > 0) {
@@ -90,7 +90,7 @@ class BalanceCheckBot extends Bot {
         const tokenBelowMinimunValue = tokenBelowMinimun.map(balanceInfo => {
           return Object.assign(balanceInfo, {
             amount: balanceInfo.amount.valueOf(),
-            anmountInUSD: balanceInfo.anmountInUSD.valueOf()
+            amountInUSD: balanceInfo.amountInUSD.valueOf()
           })
         })
         const tokenNames = tokenBelowMinimun.map(balanceInfo => balanceInfo.token).join(', ')

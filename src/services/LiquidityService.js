@@ -156,12 +156,12 @@ check should be done`,
   async getBalances ({ tokens, address }) {
     const balancesPromises = tokens.map(async token => {
       const amount = await this._auctionRepo.getBalance({ token, address })
-      const anmountInUSD = await this._auctionRepo.getPriceInUSD({
+      const amountInUSD = await this._auctionRepo.getPriceInUSD({
         token,
         amount
       })
       return {
-        token, amount, anmountInUSD
+        token, amount, amountInUSD
       }
     })
 
