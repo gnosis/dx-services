@@ -161,6 +161,33 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   }
 })
 
+test('It should return token balance for an account', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = auctionRepoMock
+
+  // GIVEN
+
+  // WHEN
+  let rdnEthAccountBalance = await liquidityService.getBalances({
+    tokens: ['RDN', 'ETH'],
+    address: '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7'
+  })
+
+  // THEN
+  let expectedRdnEthAccountBalance = [{
+    amount: new BigNumber('601.112e18'),
+    amountInUSD: new BigNumber('2473.57588'),
+    token: 'RDN'
+  }, {
+    amount: new BigNumber('4.01234e18'),
+    amountInUSD: new BigNumber('4020.21221108'),
+    token: 'ETH'
+  }]
+  expect(rdnEthAccountBalance).toEqual(expectedRdnEthAccountBalance)
+})
+
 // DX Fee up to 0.5%
 // const MAXIMUM_DX_FEE = 0.005
 

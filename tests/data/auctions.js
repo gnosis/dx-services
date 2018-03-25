@@ -13,22 +13,22 @@ const pricesInUSD = [{
 
 const balances = {
   'RDN': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 517.345, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 30.20,   // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 1000.0,  // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 601.112  // Dani
+    '0x424a46612794dbb8000194937834250Dc723fFa5': new BigNumber('517.345e18'), // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': new BigNumber('30.20e18'),   // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': new BigNumber('1000.0e18'),  // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': new BigNumber('601.112e18')  // Dani
   },
   'ETH': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 3.44716, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 2.23154, // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 3.88130, // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 4.01234  // Dani
+    '0x424a46612794dbb8000194937834250Dc723fFa5': new BigNumber('3.44716e18'), // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': new BigNumber('2.23154e18'), // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': new BigNumber('3.88130e18'), // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': new BigNumber('4.01234e18')  // Dani
   },
   'OMG': {
-    '0x424a46612794dbb8000194937834250Dc723fFa5': 267.345, // Anxo
-    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': 15.20,   // Pepe
-    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': 500.0,   // Ganache
-    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': 301.112  // Dani
+    '0x424a46612794dbb8000194937834250Dc723fFa5': new BigNumber('267.345e18'), // Anxo
+    '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': new BigNumber('15.20e18'),   // Pepe
+    '0x627306090abaB3A6e1400e9345bC60c78a8BEf57': new BigNumber('500.0e18'),   // Ganache
+    '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': new BigNumber('301.112e18')  // Dani
   }
 }
 

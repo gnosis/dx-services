@@ -169,10 +169,10 @@ class AuctionRepoMock {
     return Promise.all(balancePromises)
   }
 
-  async getBalance ({ token, accountAddress }) {
-    debug('Get balance of %s for %s', token, accountAddress)
+  async getBalance ({ token, address }) {
+    debug('Get balance of %s for %s', token, address)
     // balances
-    return this._balances[token][accountAddress]
+    return this._balances[token][address]
   }
 
   async getSellerBalance ({ sellToken, buyToken, address }) {
