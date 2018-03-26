@@ -9,6 +9,9 @@ const numberUtil = require('../helpers/numberUtil.js')
 
 const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
+const getAuctionsBalances = require('./helpers/getAuctionsBalances')
+const getClaimableTokens = require('./helpers/getClaimableTokens')
+
 
 class DxInfoService {
   constructor ({ auctionRepo, ethereumRepo, config }) {
@@ -83,11 +86,10 @@ class DxInfoService {
             !currentClosingPrice.isZero() &&
             !previousClosingPrice.isZero()
           ) {
-            percentage = numberUtil.ONE.plus(
-              currentClosingPrice
-                .minus(previousClosingPrice)
-                .div(previousClosingPrice)
-            ).mul(100)
+            percentage = currentClosingPrice
+              .minus(previousClosingPrice)
+              .div(previousClosingPrice)
+              .mul(100)
           }
         }
 
@@ -124,60 +126,24 @@ class DxInfoService {
     })
   }
 
-  async getClaimableAuctions ({ tokenA, tokenB, address, count }) {
-    const auctionIndex = await this._auctionRepo.getAuctionIndex({
-      sellToken: tokenA,
-      buyToken: tokenB
+  async getAuctionsBalances ({ tokenA, tokenB, address, count }) {
+    return getAuctionsBalances({
+      auctionRepo: this._auctionRepo,
+      tokenA,
+      tokenB,
+      address,
+      count
     })
+  }
 
-    const balancesPromises = []
-    const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count + 1 : 0
-    for (var i = startAuctionIndex; i <= auctionIndex; i++) {
-      const auctionIndexAux = i
-      const balancePromise = Promise.all([
-        this._auctionRepo.getSellerBalance({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          auctionIndex: auctionIndexAux,
-          address
-        }),
-        this._auctionRepo.getSellerBalance({
-          sellToken: tokenB,
-          buyToken: tokenA,
-          auctionIndex: auctionIndexAux,
-          address
-        }),
-        this._auctionRepo.getBuyerBalance({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          auctionIndex: auctionIndexAux,
-          address
-        }),
-        this._auctionRepo.getBuyerBalance({
-          sellToken: tokenB,
-          buyToken: tokenA,
-          auctionIndex: auctionIndexAux,
-          address
-        })
-      ]).then(([
-        sellerBalanceA,
-        sellerBalanceB,
-        buyerBalanceA,
-        buyerBalanceB
-      ]) => ({
-        auctionIndex: auctionIndexAux,
-        sellerBalanceA,
-        sellerBalanceB,
-        buyerBalanceA,
-        buyerBalanceB
-      }))
-
-      balancesPromises.push(balancePromise)
-    }
-
-    return Promise
-      .all(balancesPromises)
-      .then(balances => balances.reverse())
+  async getClaimableTokens ({ tokenA, tokenB, address, count }) {
+    return getClaimableTokens({
+      auctionRepo: this._auctionRepo,
+      tokenA,
+      tokenB,
+      address,
+      count
+    })
   }
 
   async getMarketDetails ({ sellToken, buyToken }) {

@@ -1,5 +1,4 @@
 const cliUtils = require('../helpers/cliUtils')
-const printState = require('../helpers/printState')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('claimable-tokens <token-pairs> [count]', 'Get the claimable tokens for a list of token pair (i.e. claimable-tokens WETH-RDN,WETH-OMG)', yargs => {
@@ -18,56 +17,34 @@ function registerCommand ({ cli, instances, logger }) {
       count, botAccount)
     tokenPairs.forEach(async tokenPair => {
       const { sellToken, buyToken } = tokenPair
-      const sellerBalances = await dxInfoService.getClaimableAuctions({
+      const [ sellerClaims, buyerClaims ] = await dxInfoService.getClaimableTokens({
         tokenA: sellToken,
         tokenB: buyToken,
         address: botAccount,
         count
       })
-      sellerBalances.forEach(({
-        sellerBalanceA,
-        buyerBalanceA,
-        sellerBalanceB,
-        buyerBalanceB,
-        auctionIndex
-      }) => {
-        _printBalances({
-          auctionIndex,
-          sellToken,
-          buyToken,
-          sellerBalance: sellerBalanceA,
-          buyerBalance: buyerBalanceA,
-          logger
-        })
-        _printBalances({
-          auctionIndex,
-          sellToken: buyToken,
-          buyToken: sellToken,
-          sellerBalance: sellerBalanceB,
-          buyerBalance: buyerBalanceB,
-          logger
-        })
-      })
+
+      logger.info('Seller claimable tokens:')
+      _printClaims(sellerClaims, sellToken, logger)
+
+      logger.info('Buyer claimable tokens:')
+      _printClaims(buyerClaims, buyToken, logger)
     })
   })
 }
 
-function _printBalances ({
-  auctionIndex,
+function _printClaims ({
   sellToken,
   buyToken,
-  sellerBalance,
-  buyerBalance,
-  logger
-}) {
-  logger.info(`\t- %d. %s-%s balances: (%d %s) + (%d %s)`,
+  auctionIndex,
+  amount
+}, token, logger) {
+  logger.info(`\t- %d. %s-%s: %d %s`,
     auctionIndex,
     sellToken,
     buyToken,
-    sellerBalance ? sellerBalance.div(1e18) : 0,
-    sellToken,
-    buyerBalance ? buyerBalance.div(1e18) : 0,
-    buyToken
+    amount.div(1e18),
+    token
   )
 }
 

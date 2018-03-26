@@ -2,6 +2,7 @@ const loggerNamespace = 'dx-service:services:DxTradeService'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
+const getAuctionsBalances = require('./helpers/getAuctionsBalances')
 
 const numberUtil = require('../../src/helpers/numberUtil')
 
@@ -22,6 +23,34 @@ class DxTradeService {
     return this._auctionRepo.postSellOrder({
       sellToken, buyToken, auctionIndex, from, amount
     })
+  }
+
+  async claimAll ({ tokenA, tokenB, address, count }) {
+    // TODO: Do for any number of tokenPairs
+    /*
+    // We transform the balances in the claim seller and buyer params required
+    // by the DX
+    auctionsBalances
+      .reduce(({
+        sellerBalanceA,
+        buyerBalanceA,
+        sellerBalanceB,
+        buyerBalanceB,
+        auctionIndex
+      }) => {
+        address[] auctionSellTokens,
+        address[] auctionBuyTokens,
+        uint[] auctionIndices
+      }, {
+        // we use for the reduce, a structure s
+        claimSeller: {
+          sellTokens: [],
+          buyTokens: [],
+          auctionIndex: []
+        },
+        claimBuyer: []
+      })
+    */
   }
 
   async sendTokens ({ token, amount, fromAddress, toAddress }) {
