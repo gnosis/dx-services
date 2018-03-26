@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/gnosis/gnosisdb/badge.svg?branch=master)](https://coveralls.io/github/gnosis/gnosisdb?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/gnosis/dx-services/badge.svg?branch=master)](https://coveralls.io/github/gnosis/dx-services?branch=master)
 
 # Dutch Exchange Services
 
