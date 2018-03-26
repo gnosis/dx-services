@@ -72,13 +72,13 @@ test('Get balances for all currencies of an account', async () => {
   dxInfoService._auctionRepo = auctionRepoMock
 
   const EXPECTED_ACCOUNT_BALANCES = [
-    {amount: 3.44716, token: 'ETH'},
-    {amount: 517.345, token: 'RDN'},
-    {amount: 267.345, token: 'OMG'}
+    {amount: new BigNumber('3.44716e18'), token: 'ETH'},
+    {amount: new BigNumber('517.345e18'), token: 'RDN'},
+    {amount: new BigNumber('267.345e18'), token: 'OMG'}
   ]
 
   let accountBalance = await dxInfoService.getBalances({
-    accountAddress: '0x424a46612794dbb8000194937834250Dc723fFa5' })
+    address: '0x424a46612794dbb8000194937834250Dc723fFa5' })
   expect(accountBalance).toEqual(EXPECTED_ACCOUNT_BALANCES)
 })
 

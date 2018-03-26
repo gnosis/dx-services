@@ -99,6 +99,39 @@ test('It should ensureBuyLiquidity', async () => {
     .toBeFalsy()
 })
 
+test('It should not ensureBuyLiquidity if enough buy volume', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWhereBotShouldBuyEthRdn()
+  })
+  // we mock the exchange price repo
+  liquidityService._exchangePriceRepo = exchangePriceRepo
+
+  async function _hasLowBuyVolume ({ sellToken, buyToken }) {
+    const auctionRepo = liquidityService._auctionRepo
+
+    let buyVolume = await auctionRepo.getBuyVolume({ buyToken, sellToken })
+    let sellVolume = await auctionRepo.getSellVolume({ buyToken, sellToken })
+    return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
+  }
+
+  // GIVEN a RUNNING auction, with enough buy volume
+  await liquidityService.ensureBuyLiquidity({
+    sellToken: 'ETH', buyToken: 'RDN', from: '0x123' })
+  expect(await _hasLowBuyVolume({ sellToken: 'ETH', buyToken: 'RDN' }))
+    .toBeFalsy()
+
+  // WHEN we ensure sell liquidity
+  const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
+    sellToken: 'ETH', buyToken: 'RDN', from: '0x123' })
+
+  // THEN the bot don't buy anything
+  const expectedBotBuy = []
+  expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
+})
+
 test('It should detect concurrency when ensuring liquidiy', async () => {
   const { liquidityService } = await setupPromise
 
@@ -208,11 +241,11 @@ function _getAuctionsWhereBotShouldBuyEthRdn () {
   const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['ETH-RDN'],
     { price: {
       numerator: new BigNumber('1000000'),
-      denominator: new BigNumber('4579') }
+      denominator: new BigNumber('4275') }
     })
   const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-ETH'],
     { price: {
-      numerator: new BigNumber('4579'),
+      numerator: new BigNumber('4275'),
       denominator: new BigNumber('1000000') }
     })
   return Object.assign({}, auctionsMockData.auctions,

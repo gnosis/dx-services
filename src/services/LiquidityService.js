@@ -451,7 +451,6 @@ keeps happening`
     const buyRule = this._buyLiquidityRules.find(threshold => {
       return threshold.marketPriceRatio.greaterThanOrEqualTo(priceRatio)
     })
-
     return buyRule ? buyRule.buyRatio : numberUtil.ZERO
   }
 

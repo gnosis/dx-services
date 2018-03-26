@@ -154,15 +154,15 @@ class AuctionRepoMock {
     return buyVolume
   }
 
-  async getBalances ({ accountAddress }) {
-    debug('Get balances for %s', accountAddress)
+  async getBalances ({ address }) {
+    debug('Get balances for %s', address)
 
     const balancePromises =
       // for every token
       Object.keys(this._tokens)
         // get it's balance
         .map(async token => {
-          const amount = await this.getBalance({ token, accountAddress })
+          const amount = await this.getBalance({ token, address })
           return { token, amount }
         })
 
@@ -351,11 +351,18 @@ class AuctionRepoMock {
     debug('Get closing price for auction %d %s-%s', auctionIndex, sellToken, buyToken)
 
     const auction = this._getAuction({ sellToken, buyToken })
-    if (auction.buyVolume < auction.sellVolume) {
-      return null
-    } else {
-      return { numerator: new BigNumber(10), denominator: new BigNumber(233) }
+    if (auction.price) {
+      let isTheoreticalClosed = auction.price.numerator
+        .mul(auction.sellVolume)
+        .sub(auction.price.denominator
+          .mul(auction.buyVolume)
+        ).toNumber() === 0
+
+      if (isTheoreticalClosed) {
+        return auction.price
+      }
     }
+    return null
   }
 
   _notImplementedYet () {

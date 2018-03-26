@@ -398,10 +398,9 @@ class DxInfoService {
     return this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
   }
 
-  async getBalances ({ accountAddress }) {
-    return this._auctionRepo.getBalances({ accountAddress })
+  async getBalances ({ address }) {
+    return this._auctionRepo.getBalances({ address })
   }
-  
 
   async getBalanceOfEther ({ account }) {
     return this._ethereumRepo.balanceOf({ account })
