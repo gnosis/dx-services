@@ -107,26 +107,28 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
     if (auction.fundingInUSD) {
       logger.info(`\t\t\tsellVolume: %d USD`, auction.fundingInUSD)
     }
+    
+    if (price) {
+      logger.info(`\t\tPrice:`)
+      logger.info(
+        `\t\t\tCurrent Price: %s %s/%s`,
+        formatUtil.formatFraction(price), tokenB, tokenA
+      )
+      if (closingPrice) {
+        logger.info(`\t\t\tClosing Price: %s %s/%s`,
+          formatUtil.formatFraction(closingPrice), tokenB, tokenA
+        )
+  
+        logger.info(`\t\t\tPrice relation: %s`,
+          priceRelationshipPercentage ? priceRelationshipPercentage.toFixed(2) + '%' : 'N/A'
+        )
+      }
+    }
   } else {
     logger.info('\t\tSell volume: 0')
   }
 
-  if (price) {
-    logger.info(`\t\tPrice:`)
-    logger.info(
-      `\t\t\tCurrent Price: %s %s/%s`,
-      formatUtil.formatFraction(price), tokenB, tokenA
-    )
-    if (closingPrice) {
-      logger.info(`\t\t\tClosing Price: %s %s/%s`,
-        formatUtil.formatFraction(closingPrice), tokenB, tokenA
-      )
 
-      logger.info(`\t\t\tPrice relation: %s`,
-        priceRelationshipPercentage ? priceRelationshipPercentage.toFixed(2) + '%' : 'N/A'
-      )
-    }
-  }
   if (!sellVolume.isZero()) {
     logger.info('\t\tBuy volume:')
     logger.info(`\t\t\tbuyVolume: %d %s`, formatUtil.formatFromWei(buyVolume), tokenB)
