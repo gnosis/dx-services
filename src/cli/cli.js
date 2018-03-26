@@ -17,6 +17,7 @@ async function run (instances) {
 
   // Info commands
   require('./commands/stateCmd')(commandParams)
+  require('./commands/priceCmd')(commandParams)
   require('./commands/marketPriceCmd')(commandParams)
   require('./commands/closingPricesCmd')(commandParams)
   require('./commands/getSellerBalancesCmd')(commandParams)

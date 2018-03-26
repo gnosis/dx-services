@@ -242,11 +242,11 @@ keeps happening`
     if (state === 'RUNNING') {
       // Get prices and market price for auctionA
       const [ priceA, currentMarketPriceA ] = await Promise.all([
-        // Get the market price
+        // Get the current price for the auction
         this._auctionRepo.getCurrentAuctionPrice({
           sellToken: tokenA, buyToken: tokenB, auctionIndex, from
         }),
-        // Get the current price for the auction
+        // Get the market price
         this._exchangePriceRepo.getPrice({
           tokenA, tokenB
         }).then(price => ({
