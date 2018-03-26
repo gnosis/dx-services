@@ -1025,7 +1025,7 @@ volume: ${state}`)
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
-    return this
+    let currentAuctionPrice = await this
       ._callForAuction({
         operation: 'getCurrentAuctionPriceExt',
         sellToken,
@@ -1033,6 +1033,34 @@ volume: ${state}`)
         auctionIndex
       })
       .then(toFraction)
+
+    if (!currentAuctionPrice) {
+      // Handle the sellVolume=0 case
+      //    * Given an auction that is closed from the begining (sellVolume=0)
+      //    * It will return null if you request the price
+      //    * It's not hanled this case in the SC
+      //    * So, for the time being, it's handled in this repo
+      // TODO: Remove this logic, if the SC implements this check
+      currentAuctionPrice = await this
+        ._callForAuction({
+          operation: 'getCurrentAuctionPriceExt',
+          sellToken: buyToken,
+          buyToken: sellToken,
+          auctionIndex
+        })
+        .then(toFraction)
+
+      if (currentAuctionPrice) {
+        currentAuctionPrice = {
+          numerator: currentAuctionPrice.denominator,
+          denominator: currentAuctionPrice.numerator
+        }
+      } else {
+        currentAuctionPrice = null
+      }
+    }
+
+    return currentAuctionPrice
   }
 
   async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
