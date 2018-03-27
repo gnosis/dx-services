@@ -427,7 +427,7 @@ class AuctionRepoImpl {
       }))
     })
     const tokenPairsInfo = await Promise.all(tokenPairsInfoPromises)
-    
+
     // Transfor the addresses into the DX param format (two addresses arrays)
     const {
       auctionSellTokens,
@@ -1025,7 +1025,8 @@ volume: ${state}`)
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
-    let currentAuctionPrice = await this
+    // let currentAuctionPrice
+    return this
       ._callForAuction({
         operation: 'getCurrentAuctionPriceExt',
         sellToken,
@@ -1034,33 +1035,34 @@ volume: ${state}`)
       })
       .then(toFraction)
 
-    if (!currentAuctionPrice) {
-      // Handle the sellVolume=0 case
-      //    * Given an auction that is closed from the begining (sellVolume=0)
-      //    * It will return null if you request the price
-      //    * It's not hanled this case in the SC
-      //    * So, for the time being, it's handled in this repo
-      // TODO: Remove this logic, if the SC implements this check
-      currentAuctionPrice = await this
-        ._callForAuction({
-          operation: 'getCurrentAuctionPriceExt',
-          sellToken: buyToken,
-          buyToken: sellToken,
-          auctionIndex
-        })
-        .then(toFraction)
+    // TODO: breaking many places for now
+    // if (!currentAuctionPrice) {
+    //   // Handle the sellVolume=0 case
+    //   //    * Given an auction that is closed from the begining (sellVolume=0)
+    //   //    * It will return null if you request the price
+    //   //    * It's not hanled this case in the SC
+    //   //    * So, for the time being, it's handled in this repo
+    //   // TODO: Remove this logic, if the SC implements this check
+    //   currentAuctionPrice = await this
+    //     ._callForAuction({
+    //       operation: 'getCurrentAuctionPriceExt',
+    //       sellToken: buyToken,
+    //       buyToken: sellToken,
+    //       auctionIndex
+    //     })
+    //     .then(toFraction)
+    //
+    //   if (currentAuctionPrice) {
+    //     currentAuctionPrice = {
+    //       numerator: currentAuctionPrice.denominator,
+    //       denominator: currentAuctionPrice.numerator
+    //     }
+    //   } else {
+    //     currentAuctionPrice = null
+    //   }
+    // }
 
-      if (currentAuctionPrice) {
-        currentAuctionPrice = {
-          numerator: currentAuctionPrice.denominator,
-          denominator: currentAuctionPrice.numerator
-        }
-      } else {
-        currentAuctionPrice = null
-      }
-    }
-
-    return currentAuctionPrice
+    // return currentAuctionPrice
   }
 
   async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
