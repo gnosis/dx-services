@@ -17,8 +17,7 @@ script:
     --net host dx-services /bin/sh -c "npm run contracts-deploy; npm run test-coverage"
 after_success:
 - # Create Docker image if branch master or develop and not on pull requests
-  # Also check that tests ended successfully
-  if [ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_TEST_RESULT" == "0" ]; then
+  if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
     if [ "$TRAVIS_BRANCH" == "master" ]; then
       docker tag dx-services gnosispm/dx-services:staging;
