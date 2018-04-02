@@ -42,7 +42,8 @@ class EthereumClient {
       this._provider = new HDWalletProvider(mnemonic, url, 0, 5)
       this._provider.engine.on('error', error => {
         logger.error({
-          msg: 'Error in Web3 engine: ' + error.toString(),
+          msg: 'Error in Web3 engine %s: %s',
+          params: [ url, error.toString() ],
           error
         })
       })
