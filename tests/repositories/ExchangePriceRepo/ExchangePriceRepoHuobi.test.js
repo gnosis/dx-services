@@ -3,7 +3,7 @@ const exchangePriceRepo = new ExchangePriceRepoHuobi({})
 
 // class HTTPError extends Error {}
 
-test.skip('It should return a price for known Crypto markets', async () => {
+test('It should return a price for known Crypto markets', async () => {
   jest.setTimeout(10000)
   expect.assertions(2)
   // WHEN we query for RDN-ETH pair (being ETH tokenB)
@@ -19,7 +19,7 @@ test.skip('It should return a price for known Crypto markets', async () => {
   expect(ethRDNPrice).toMatch(/\d*\.?\d+/)
 })
 
-test.skip('It should throw an error for unknown Crypto markets', async () => {
+test('It should throw an error for unknown Crypto markets', async () => {
   expect.assertions(1)
   try {
     await exchangePriceRepo.getPrice({tokenA: 'XBT', tokenB: 'OMG'})
