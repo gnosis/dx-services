@@ -29,7 +29,7 @@ test('It should return auction index', async () => {
   expect(rdnEthAuctionIndex).toBe(77)
 })
 
-test.skip('It should return market details', async () => {
+test('It should return market details', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
@@ -38,18 +38,6 @@ test.skip('It should return market details', async () => {
     sellToken: 'RDN', buyToken: 'ETH' })
   expect(rdnEthMarketDetails).toMatchObject(EXPECTED_RDN_ETH_MARKET)
 })
-
-/*
-test('It should return auction details', async () => {
-  const { dxInfoService } = await setupPromise
-
-  dxInfoService._auctionRepo = auctionRepoMock
-
-  let rdnEthAuctions = await dxInfoService.getAuctions({
-    currencyA: 'RDN', currencyB: 'ETH' })
-  expect(rdnEthAuctions).toMatchObject(EXPECTED_RDN_ETH_AUCTIONS)
-})
-*/
 
 test('It should return current auction price', async () => {
   const { dxInfoService } = await setupPromise
@@ -84,20 +72,22 @@ test('Get balances for all currencies of an account', async () => {
 
 const RDN_ETH_AUCTION = auctionsMockData.auctions['RDN-ETH']
 
+const ETH_RDN_AUCTION = auctionsMockData.auctions['ETH-RDN']
+
 const EXPECTED_RDN_ETH_MARKET = {
   auction: {
     buyVolume: RDN_ETH_AUCTION.buyVolume,
-    closingPrice: null,
+    closingPrice: {},
     isClosed: false,
     isTheoreticalClosed: false,
     sellVolume: RDN_ETH_AUCTION.sellVolume
   },
   auctionOpp: {
-    buyVolume: new BigNumber(0),
-    closingPrice: null,
+    buyVolume: ETH_RDN_AUCTION.buyVolume,
+    closingPrice: {},
     isClosed: false,
     isTheoreticalClosed: false,
-    sellVolume: new BigNumber('0.2894321e18')
+    sellVolume: ETH_RDN_AUCTION.sellVolume
   },
   isApprovedMarket: true,
   state: 'RUNNING',
