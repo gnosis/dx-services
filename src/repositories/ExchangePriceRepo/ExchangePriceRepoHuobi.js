@@ -63,9 +63,9 @@ class ExchangePriceRepoHuobi {
     const tokenALower = tokenA.toLowerCase()
     const tokenBLower = tokenB.toLowerCase()
 
-    const SYMBOLS = await this.getSymbols()
+    const symbols = await this.getSymbols()
 
-    let pairOrder = SYMBOLS.filter(pair => {
+    let matchingPairs = symbols.filter(pair => {
       const baseCurrency = pair['base-currency']
       const quoteCurrency = pair['quote-currency']
       return (
@@ -76,13 +76,14 @@ class ExchangePriceRepoHuobi {
         quoteCurrency === tokenBLower)
     })
 
-    if (pairOrder.length === 0) {
+    if (matchingPairs.length === 0) {
       throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB)
     }
 
-    debug('Pair order result: %s', pairOrder)
-    return tokenA.toLowerCase() === pairOrder[0]['quote-currency'] &&
-      tokenB.toLowerCase() === pairOrder[0]['base-currency']
+    debug('Pair order result: %s', matchingPairs)
+    const [ pair ] = matchingPairs
+    return tokenALower === pair['quote-currency'] &&
+    tokenBLower === pair['base-currency']
   }
 }
 
