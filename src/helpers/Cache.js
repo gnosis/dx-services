@@ -18,7 +18,7 @@ class Cache {
 
   get ({ key, time, fetchFn }) {
     let value = this._cache.get(key)
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       value = fetchFn()
       this._cache.set(key, value, time)
     }
