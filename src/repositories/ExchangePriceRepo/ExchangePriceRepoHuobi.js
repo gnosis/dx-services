@@ -1,17 +1,30 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoHuobi')
 const httpRequest = require('../../helpers/httpRequest')
+const Cache = require('../../helpers/Cache')
+const CACHE_SYMBOLS_KEY = 'ExchangePriceRepoHuobi:'
+const CACHE_SYMBOLS_TIME = 2 * 60 * 60 * 1000 // 2 hours
 
 class ExchangePriceRepoHuobi {
   constructor ({ url = 'https://api.huobi.pro', version = 'v1', timeout = 5000 }) {
     this._timeout = timeout
     this._version = version
     this._baseUrl = url
+    this._cache = new Cache('ExchangePriceRepoHuobi')
   }
 
   // Get Huobi market pairs
   async getSymbols () {
     debug('Get symbols')
+    return this._cache.get({
+      key: CACHE_SYMBOLS_KEY,
+      time: CACHE_SYMBOLS_TIME,
+      fetchFn: () => {
+        return this._getSymbols()
+      }
+    })
+  }
 
+  async _getSymbols () {
     const url = this._baseUrl + '/' + this._version + '/common/symbols'
     debug('Huobi request symbols url: ', url)
 

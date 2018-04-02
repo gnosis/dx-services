@@ -16,26 +16,11 @@ class Cache {
     caches.push(this._cache)
   }
 
-  get ({ key, time, fetchFn, onKeyExpired, reFetchOnExpiration = false }) {
+  get ({ key, time, fetchFn }) {
     let value = this._cache.get(key)
     if (value === undefined || value === null) {
       value = fetchFn()
-      let onKeyExpiredAux
-      if (reFetchOnExpiration) {
-        onKeyExpiredAux = () => {
-          // On expiration, do a get and discard result
-          this.get({
-            key,
-            time,
-            fetchFn,
-            onKeyExpired,
-            reFetchOnExpiration
-          })
-        }
-      } else {
-        onKeyExpiredAux = onKeyExpired
-      }
-      this._cache.set(key, value, time, onKeyExpiredAux)
+      this._cache.set(key, value, time)
     }
 
     return value
@@ -44,7 +29,7 @@ class Cache {
 
 function _clearAll () {
   caches.forEach(cacheInstance => {
-    cacheInstance.clear()
+    cacheInstance.close()
   })
 }
 
@@ -52,7 +37,7 @@ Cache.prototype.clearAll = _clearAll
 
 // Clear all caches
 gracefullShutdown.onShutdown(() => {
-  // _clearAll()
+  _clearAll()
 })
 
 module.exports = Cache
