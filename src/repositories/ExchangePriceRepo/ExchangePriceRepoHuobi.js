@@ -47,14 +47,20 @@ class ExchangePriceRepoHuobi {
   // Check token order to get pair info from Huobi
   async _isTokenOrderInverted ({ tokenA, tokenB }) {
     debug('Check token order for %s-%s', tokenA, tokenB)
+    const tokenALower = tokenA.toLowerCase()
+    const tokenBLower = tokenB.toLowerCase()
 
     const SYMBOLS = await this.getSymbols()
 
     let pairOrder = SYMBOLS.filter(pair => {
-      return (pair['base-currency'] === tokenA.toLowerCase() ||
-        pair['quote-currency'] === tokenA.toLowerCase()) &&
-        (pair['base-currency'] === tokenB.toLowerCase() ||
-        pair['quote-currency'] === tokenB.toLowerCase())
+      const baseCurrency = pair['base-currency']
+      const quoteCurrency = pair['quote-currency']
+      return (
+        baseCurrency === tokenALower ||
+        quoteCurrency === tokenALower
+      ) && (
+        baseCurrency === tokenBLower ||
+        quoteCurrency === tokenBLower)
     })
 
     if (pairOrder.length === 0) {
