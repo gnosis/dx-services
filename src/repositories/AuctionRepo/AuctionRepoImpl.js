@@ -1085,7 +1085,7 @@ volume: ${state}`)
       tokenA: token,
       tokenB: 'ETH'
     })
-    assert(tokenEthMarketExists, `The market ${token}-ETH doesn't`)
+    assert(tokenEthMarketExists, `The market ${token}-ETH doesn't exists`)
 
     return this
       ._callForToken({

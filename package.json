@@ -2,7 +2,7 @@
   "name": "dx-services",
   "version": "0.0.11-SNAPSHOT",
   "description": "",
-  "main": "src/main.js",
+  "main": "src/runPublicApi.js",
   "directories": {
     "test": "test"
   },
@@ -10,25 +10,36 @@
     "dutch-exchange": "./src/cli/cli.js"
   },
   "scripts": {
-    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/main.js",
-    "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/main.js",
-    "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/main.js",
-    "dev": "DEBUG=*-dx-service:* node src/main.js",
-    "pro": "DEBUG=ERROR-*,WARN-*,INFO-* NODE_ENV=PRO node src/main.js",
-    "trace": "DEBUG=* node src/main.js",
+    "start": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/runPublicApi.js",
+    "dev": "DEBUG=*-dx-service:* node src/runPublicApi.js",
+    "trace": "DEBUG=* node src/runPublicApi.js",
+    "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* PUBLIC_API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/runPublicApi.js",
+    "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/runPublicApi.js",
+    
+    "bots": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/runBots.js",
+    "bots-dev": "DEBUG=*-dx-service:* node src/runBots.js",
+    "bots-trace": "DEBUG=* node src/runBots.js",
+    "bots-kovan": "DEBUG=ERROR-*,WARN-*,INFO-* PUBLIC_API_PORT=9090 NODE_ENV=dev NETWORK=kovan node src/runBots.js",
+    "bots-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9091 NODE_ENV=dev NETWORK=rinkeby node src/runBots.js",
+
     "test": "NODE_ENV=test jest",
     "test-coverage": "NODE_ENV=test jest --coverage && cat ./coverage/lcov.info | coveralls",
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
+    
     "cli2": "DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
     "cli2-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NODE_ENV=dev NETWORK=rinkeby node src/cli/cli.js",
+
     "cli": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService node tests/playground/cli/bot-cli.js",
     "cli-kovan": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=kovan node tests/playground/cli/bot-cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NODE_ENV=dev NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
     "cli-debug": "DEBUG=* node tests/playground/cli/bot-cli.js",
+
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'",
+
     "console": "cd node_modules/@josojo/dutch-exchange-smartcontracts; truffle console",
     "copy-depenencies-so-truffle-can-deploy": "mkdir -p node_modules/@josojo/dutch-exchange-smartcontracts/node_modules/@gnosis.pm; cp -r node_modules/@gnosis.pm/* node_modules/@josojo/dutch-exchange-smartcontracts/node_modules/@gnosis.pm",
+
     "contracts-compile": "truffle compile",
     "contracts-deploy-dx": "npm run copy-depenencies-so-truffle-can-deploy; cd node_modules/@josojo/dutch-exchange-smartcontracts/; truffle deploy",
     "contracts-deploy-project": "truffle deploy",
@@ -36,13 +47,13 @@
     "contracts-clean": "rm -rf build",
     "contracts-setup": "node tests/playground/cli/bot-cli.js --setup; node tests/playground/cli/bot-cli.js --add-tokens",
     "contracts": "npm run contracts-clean; npm run contracts-deploy; npm run contracts-setup",
+    
     "doc": "esdoc"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:gnosis/dx-services.git"
   },
-  "author": "Angel Rodriguez <anxolin@gmail.com> (https://github.com/anxolin)",
   "license": "UNLICENSED",
   "dependencies": {
     "commander": "^2.15.0",

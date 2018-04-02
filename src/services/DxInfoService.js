@@ -13,14 +13,11 @@ class DxInfoService {
   constructor ({ auctionRepo, ethereumRepo, markets }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-
-    // Avoids concurrent calls that might endup buy/selling two times
-    this.concurrencyCheck = {}
+    this._markets = markets
 
     // About info
     this._gitInfo = getGitInfo()
     this._version = getVersion()
-    this._markets = markets
   }
 
   async getVersion () {
@@ -334,18 +331,10 @@ class DxInfoService {
     const auctionAbout = await this._auctionRepo.getAbout()
     const ethereumAbout = await this._ethereumRepo.getAbout()
 
-    const config = {
-      minimumSellVolume: this._minimumSellVolume,
-      botAddress: this._botAddress,
-      markets: this._markets
-    }
-
     return {
-      name: 'Dutch Exchange - Services',
       version: this._version,
       auctions: auctionAbout,
       ethereum: ethereumAbout,
-      config,
       git: this._gitInfo
     }
   }

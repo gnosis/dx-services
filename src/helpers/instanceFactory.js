@@ -57,10 +57,12 @@ async function createInstances ({
 
   // Service: Bots service
   const botsService = _getBotsService({
-    config: config
+    config: config,
+    auctionRepo,
+    ethereumRepo
   })
 
-  // Service: Bots service
+  // Service: Market service
   const marketService = _getMarketService({
     config: config,
     exchangePriceRepo
@@ -238,14 +240,23 @@ function _getDxTradeService ({ config, auctionRepo, ethereumRepo }) {
   return new DxTradeService({
     // Repos
     auctionRepo,
-    markets: config.MARKETS,
-    ethereumRepo
+    ethereumRepo,
+
+    // config
+    markets: config.MARKETS
   })
 }
 
-function _getBotsService ({ config }) {
+function _getBotsService ({ config, auctionRepo, ethereumRepo }) {
   const BotsService = require('../services/BotsService')
-  return new BotsService()
+  return new BotsService({
+    // Repos
+    auctionRepo,
+    ethereumRepo,
+
+    // config
+    markets: config.MARKETS
+  })
 }
 
 function _getMarketService ({ config, exchangePriceRepo }) {

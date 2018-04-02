@@ -50,8 +50,10 @@ const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
 const MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 // const MNEMONIC = null
 
-const API_PORT = 8080
-const API_HOST = '0.0.0.0'
+const PUBLIC_API_PORT = 8080
+const PUBLIC_API_HOST = '0.0.0.0'
+const BOTS_API_PORT = 8081
+const BOTS_API_HOST = '0.0.0.0'
 
 // contracts
 const CONTRACTS_BASE_DIR = 'build/contracts'
@@ -116,8 +118,10 @@ module.exports = {
   DX_CONTRACT_ADDRESS,
 
   // API
-  API_PORT,
-  API_HOST,
+  PUBLIC_API_PORT,
+  PUBLIC_API_HOST,
+  BOTS_API_PORT,
+  BOTS_API_HOST,
 
   // Exchanges
   KRAKEN,
