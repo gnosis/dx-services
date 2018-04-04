@@ -6,15 +6,15 @@
     "title": "DX-Services",
     "termsOfService": "http://swagger.io/terms/",
     "contact": {
-      "email": "apiteam@swagger.io"
+      "email": "apiteam@gnosis.pm"
     },
     "license": {
       "name": "Apache 2.0",
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "petstore.swagger.io",
-  "basePath": "/v2",
+  "host": "dx-services.gnosis.pm",
+  "basePath": "/api/v1",
   "tags": [
     {
       "name": "markets",
@@ -307,6 +307,265 @@
             "schema": {
               "type": "string",
               "format": "date-time"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/is-approved-market": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns if is an approved market",
+        "description": "Returns true or false depending if market is approved or not",
+        "operationId": "isApprovedMarket",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/extra-tokens": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns extra tokens for next auction",
+        "description": "Returns the number of extra tokens for next auction",
+        "operationId": "getExtraTokens",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/sell-volume": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns sell volume for current auction",
+        "description": "Returns sell volume for current auction",
+        "operationId": "getSellVolume",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/sell-volume-next": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns sell volume for next auction",
+        "description": "Returns sell volume for next auction",
+        "operationId": "getSellVolumeNext",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/buy-volume": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns buy volume for current auction",
+        "description": "Returns buy volume for current auction",
+        "operationId": "getBuyVolume",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/accounts/{accountAddress}/seller-balance": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns account seller balance for current auction",
+        "description": "Returns account seller balance for the current auction",
+        "operationId": "getSellerBalance",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "accountAddress",
+            "in": "path",
+            "description": "An ERC20 account address",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/markets/{tokenPair}/accounts/{accountAddress}/buyer-balance": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns account buyer balance for current auction",
+        "description": "Returns account buyer balance for the current auction",
+        "operationId": "getBuyerBalance",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "accountAddress",
+            "in": "path",
+            "description": "An ERC20 account address",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
             }
           }
         },
