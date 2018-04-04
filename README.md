@@ -2,6 +2,38 @@
 
 # Dutch Exchange Services
 
+# Run in Rinkeby
+Use the CLI:
+```bash
+docker run \
+  -e NODE_ENV=dev \
+  -e NETWORK=rinkeby \
+  gnosispm/dx-services:develop \
+  npm run cli -- \
+    state ETH-RDN
+```
+
+For more information about the CLI usage, refer to:
+* TODO: Document all operations
+
+Start API:
+```bash
+docker run \
+  -e NODE_ENV=dev \
+  -e NETWORK=rinkeby \
+  gnosispm/dx-services:develop \
+  npm run start
+```
+
+Start bots (not yet merged to develop, so it won't work for now)
+```bash
+docker run \
+  -e NODE_ENV=dev \
+  -e NETWORK=rinkeby \
+  gnosispm/dx-services:develop \
+  npm run bots
+```
+
 ## Run with docker-compose
 This app contains a docker-compose configuration.
 
@@ -46,7 +78,7 @@ docker logs <container id>
 yarn install
 npm run rpc
 npm run contracts-deploy
-npm run cli -- --setup
+npm run cli2 -- --setup
 ```
 
 Start app:
@@ -60,9 +92,25 @@ npm run cli
 ```
 
 Some examples:
-* `npm run cli -- --balances`
-* `npm run cli -- --approve-token RDN`
-* `npm run cli -- --deposit ETH,100`
-* `npm run cli -- --sell ETH,RDN,100`
-* `npm run cli -- --buy RDN,ETH,100`
-* `npm run cli -- --time 0.5`
+* `npm run cli -- state ETH-RDN`
+* `npm run cli -- send 0.5 ETH 0x627306090abaB3A6e1400e9345bC60c78a8BEf57`
+* `npm run cli -- deposit 0.5 ETH`
+* `npm run cli -- deposit 150 RDN`
+* `npm run cli -- sell 100 ETH-RDN`
+* `npm run cli -- buy 100 RDN-ETH`
+
+## cli2 (Deprecated)
+The `cli2`, is deprectated, but it still has some methods that were not migrated
+ to the new cli (they are methods used testing during development).
+
+Use the bot-cli2:
+```bash
+npm run cli2
+```
+
+
+Some examples:
+* `npm run cli2 -- --balances`
+* `npm run cli2 -- --approve-token RDN`
+* `npm run cli2 -- --deposit ETH,100`
+* `npm run cli2 -- --time 0.5`

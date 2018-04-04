@@ -8,8 +8,7 @@ function getRouter ({ botsService }) {
     const version = await botsService.getVersion()
     res.send(version)
   })
-  
-  // TODO Remove
+
   router.get('/ping', (req, res) => {
     res.status(204).send()
   })
