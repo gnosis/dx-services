@@ -1,12 +1,12 @@
 /*
 This file is a copy paste of:
-  ../node_modules/@josojo/dutch-exchange-smartcontracts/migrations/2_deploy_contracts
+  ../node_modules/@gnosis.pm/dutch-exchange-smartcontracts/migrations/2_deploy_contracts
 
 Tried to avoid dupplication but it looks that truffle relies on a global
 'atifact' variable.
 
 Nice if someone knows how to make it work! :)
-  const deployContractsFn = require('../node_modules/@josojo/dutch-exchange-smartcontracts/migrations/2_deploy_contracts')
+  const deployContractsFn = require('../node_modules/@gnosis.pm/dutch-exchange-smartcontracts/migrations/2_deploy_contracts')
   module.exports = deployContractsFn
 */
 

@@ -55,7 +55,7 @@ const API_HOST = '0.0.0.0'
 
 // contracts
 const CONTRACTS_BASE_DIR = 'build/contracts'
-const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@josojo/dutch-exchange-smartcontracts/build/contracts'
+const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@gnosis.pm/dutch-exchange-smartcontracts/build/contracts'
 const CONTRACT_DEFINITIONS = {
   StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
   DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',

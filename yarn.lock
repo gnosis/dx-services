@@ -16,7 +16,17 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@gnosis.pm/gnosis-core-contracts@^1.0.1":
+"@gnosis.pm/dutch-exchange-smartcontracts@^0.3.0":
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dutch-exchange-smartcontracts/-/dutch-exchange-smartcontracts-0.3.7.tgz#0e465c1fb43e7126128adf4f0e82a41b4a4b881a"
+  dependencies:
+    "@gnosis.pm/gnosis-core-contracts" "^1.0.3"
+    "@gnosis.pm/owl-token" "^0.3.0"
+    truffle-contract "^3.0.1"
+    truffle-hdwallet-provider "0.0.3"
+    web3 "^0.20.2"
+
+"@gnosis.pm/gnosis-core-contracts@^1.0.1", "@gnosis.pm/gnosis-core-contracts@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/gnosis-core-contracts/-/gnosis-core-contracts-1.0.3.tgz#b154f41deb6386c64dc38b0e7dcf7ae923fed14c"
 
@@ -25,15 +35,6 @@
   resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-0.3.0.tgz#5ff2ec6c406a1cfcf81fd9d76ca8b850c572aa76"
   dependencies:
     "@gnosis.pm/gnosis-core-contracts" "^1.0.1"
-
-"@josojo/dutch-exchange-smartcontracts@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@josojo/dutch-exchange-smartcontracts/-/dutch-exchange-smartcontracts-0.2.3.tgz#eef5550ae47873d8a827c9748ac7d63eb2474c09"
-  dependencies:
-    "@gnosis.pm/gnosis-core-contracts" "^1.0.1"
-    "@gnosis.pm/owl-token" "^0.3.0"
-    truffle-contract "^3.0.1"
-    web3 "^0.20.2"
 
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
@@ -4572,10 +4573,6 @@ memdown@^1.0.0:
     ltgt "~2.2.0"
     safe-buffer "~5.1.1"
 
-memory-cache@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/memory-cache/-/memory-cache-0.2.0.tgz#7890b01d52c00c8ebc9d533e1f8eb17e3034871a"
-
 memory-fs@^0.4.0:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/memory-fs/-/memory-fs-0.4.1.tgz#3a9a20b8462523e447cfbc7e8bb80ed667bfc552"
@@ -6523,7 +6520,7 @@ truffle-error@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/truffle-error/-/truffle-error-0.0.2.tgz#01b189b78505566ae1689c239c7ca2dd121cfe4c"
 
-"truffle-hdwallet-provider@git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2":
+truffle-hdwallet-provider@0.0.3, "truffle-hdwallet-provider@git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2":
   version "0.0.3"
   resolved "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a23c354b2c219ec12681d33e8a67fbd1887"
   dependencies:
