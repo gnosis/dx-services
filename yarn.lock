@@ -16,9 +16,9 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@gnosis.pm/dutch-exchange-smartcontracts@^0.3.0":
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dutch-exchange-smartcontracts/-/dutch-exchange-smartcontracts-0.3.7.tgz#0e465c1fb43e7126128adf4f0e82a41b4a4b881a"
+"@gnosis.pm/dutch-exchange-smartcontracts@^0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dutch-exchange-smartcontracts/-/dutch-exchange-smartcontracts-0.4.5.tgz#86b0151781fca55474b8ac42571a9ac5546e17be"
   dependencies:
     "@gnosis.pm/gnosis-core-contracts" "^1.0.3"
     "@gnosis.pm/owl-token" "^0.3.0"
