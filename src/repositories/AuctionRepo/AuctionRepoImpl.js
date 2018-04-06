@@ -1028,7 +1028,7 @@ volume: ${state}`)
     // let currentAuctionPrice
     return this
       ._callForAuction({
-        operation: 'getCurrentAuctionPriceExt',
+        operation: 'getCurrentAuctionPrice',
         sellToken,
         buyToken,
         auctionIndex
@@ -1045,7 +1045,7 @@ volume: ${state}`)
     //   // TODO: Remove this logic, if the SC implements this check
     //   currentAuctionPrice = await this
     //     ._callForAuction({
-    //       operation: 'getCurrentAuctionPriceExt',
+    //       operation: 'getCurrentAuctionPrice',
     //       sellToken: buyToken,
     //       buyToken: sellToken,
     //       auctionIndex
@@ -1070,7 +1070,7 @@ volume: ${state}`)
 
     return this
       ._callForAuction({
-        operation: 'getPriceInPastAuctionExt',
+        operation: 'getPriceInPastAuction',
         sellToken,
         buyToken,
         auctionIndex
@@ -1089,7 +1089,7 @@ volume: ${state}`)
 
     return this
       ._callForToken({
-        operation: 'getPriceOfTokenInLastAuctionExt',
+        operation: 'getPriceOfTokenInLastAuction',
         token,
         checkToken: false
       })
