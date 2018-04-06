@@ -1022,6 +1022,16 @@ volume: ${state}`)
 
   */
 
+  async getFeeRatio ({ address }) {
+    assert(address, 'The address is required')
+
+    return this
+      ._callForAuction({
+        operation: 'getFeeRatioExt',
+        address
+      })
+  }
+
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
