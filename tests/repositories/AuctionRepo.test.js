@@ -51,6 +51,17 @@ test('It should fail when unknow token is required', async () => {
   }
 })
 
+test('It should return the fee ratio', async () => {
+  const { user1, auctionRepo } = await setupPromise
+  // GIVEN a base setupTest
+
+  // WHEN we ask for the account fee ratio
+  let feeRatio = await auctionRepo.getFeeRatio({ address: user1 })
+
+  // THEN the fee ratio matches MAXIMUM_DX_FEE
+  expect(feeRatio).toEqual(MAXIMUM_DX_FEE)
+})
+
 describe('Market interacting tests', async () => {
   let beforeSetupState
 
@@ -361,7 +372,8 @@ describe('Market interacting tests', async () => {
 
 // ********* Test helpers *********
 // DX Fee up to 0.5%
-const MAXIMUM_DX_FEE = 0.005
+// The DX returns it expressed as an array of BigNumbers
+const MAXIMUM_DX_FEE = [new BigNumber('1'), new BigNumber('200')]
 
 const UNKNOWN_PAIR_MARKET_STATE = {
   'auction': null,
@@ -481,7 +493,7 @@ function _isValidBuyVolume (buyVolume, sellVolume) {
 }
 
 function _isValidSellVolume (sellVolume, fundingSellVolume) {
-  const minimumSellVolume = fundingSellVolume.mul(1 - MAXIMUM_DX_FEE)
+  const minimumSellVolume = fundingSellVolume.mul(1 - MAXIMUM_DX_FEE[0].div(MAXIMUM_DX_FEE[1]))
 
   debug('minimumSellVolume: ', minimumSellVolume)
   debug('sellVolume: ', sellVolume)

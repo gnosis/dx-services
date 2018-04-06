@@ -1026,9 +1026,9 @@ volume: ${state}`)
     assert(address, 'The address is required')
 
     return this
-      ._callForAuction({
+      ._debugOperation({
         operation: 'getFeeRatioExt',
-        address
+        params: [ address ]
       })
   }
 
