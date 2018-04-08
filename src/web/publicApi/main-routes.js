@@ -117,18 +117,24 @@ function getRouter ({ dxInfoService, dxTradeService }) {
     // res.send(feeRatio)
   })
 
-  // TODO implement getSellerBalance in service
   router.get('/accounts/:accountAddress/balances/:tokenPair/seller', async (req, res) => {
-    // let tokenPair = _tokenPairSplit(req.params.tokenPair)
-    // let sellerBalance = await dxInfoService.getSellerBalance(tokenPair)
-    // res.send(sellerBalance)
+    let tokenPair = _tokenPairSplit(req.params.tokenPair)
+    let params = Object.assign(
+      tokenPair,
+      { address: req.params.accountAddress }
+    )
+    let sellerBalance = await dxInfoService.getSellerBalanceForCurrentAuction(params)
+    res.send(sellerBalance)
   })
 
-  // TODO implement getBuyerBalance in service
   router.get('/accounts/:accountAddress/balances/:tokenPair/buyer', async (req, res) => {
-    // let tokenPair = _tokenPairSplit(req.params.tokenPair)
-    // let buyerBalance = await dxInfoService.getBuyerBalance(tokenPair)
-    // res.send(buyerBalance)
+    let tokenPair = _tokenPairSplit(req.params.tokenPair)
+    let params = Object.assign(
+      tokenPair,
+      { address: req.params.accountAddress }
+    )
+    let buyerBalance = await dxInfoService.getBuyerBalanceForCurrentAuction(params)
+    res.send(buyerBalance)
   })
 
   // TODO implement getAccountBalanceForToken in service
