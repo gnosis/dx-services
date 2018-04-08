@@ -387,6 +387,46 @@ class DxInfoService {
     return this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
   }
 
+  async getAuctionStart ({ sellToken, buyToken }) {
+    auctionLogger.debug({ sellToken, buyToken, msg: 'Get auction start' })
+
+    return this._auctionRepo.getAuctionStart({ sellToken, buyToken })
+  }
+
+  async isApprovedMarket ({ sellToken, buyToken }) {
+    return this._auctionRepo.isApprovedMarket({
+      tokenA: sellToken,
+      tokenB: buyToken
+    })
+  }
+
+  async getSellVolume ({ sellToken, buyToken }) {
+    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
+    if (state.auction) {
+      return state.auction.sellVolume
+    } else {
+      return null
+    }
+  }
+
+  async getSellVolumeNext ({ sellToken, buyToken }) {
+    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
+    if (state.auction) {
+      return state.auction.sellVolumeNext
+    } else {
+      return null
+    }
+  }
+
+  async getBuyVolume ({ sellToken, buyToken }) {
+    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
+    if (state.auction) {
+      return state.auction.buyVolume
+    } else {
+      return null
+    }
+  }
+
   async getBalances ({ address }) {
     return this._auctionRepo.getBalances({ address })
   }
