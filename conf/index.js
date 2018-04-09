@@ -11,8 +11,8 @@ const ENV_VAR_LIST = [
   'GNO_TOKEN_ADDRESS',
   'MNEMONIC',
   'MINIMUM_SELL_VOLUME_USD',
-  'API_PORT',
-  'API_HOST'
+  'PUBLIC_API_PORT',
+  'PUBLIC_API_HOST'
   // alseo: MARKETS
   // also: <token>_TOKEN_ADDRESS
 ]

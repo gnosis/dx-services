@@ -8,6 +8,13 @@ module.exports = {
       gas: 6700000
     },
 
+    ethereum: {
+      host: 'ethereum',
+      port: 8545,
+      network_id: 'ethereum', // Match any network id
+      gas: 6700000
+    },
+
     // Kovan
     //  truffle migrate --network kovan
     //  parity --mode active --chain kovan --port 8546

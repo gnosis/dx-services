@@ -13,14 +13,11 @@ class DxInfoService {
   constructor ({ auctionRepo, ethereumRepo, markets }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-
-    // Avoids concurrent calls that might endup buy/selling two times
-    this.concurrencyCheck = {}
+    this._markets = markets
 
     // About info
     this._gitInfo = getGitInfo()
     this._version = getVersion()
-    this._markets = markets
   }
 
   async getVersion () {
@@ -334,18 +331,10 @@ class DxInfoService {
     const auctionAbout = await this._auctionRepo.getAbout()
     const ethereumAbout = await this._ethereumRepo.getAbout()
 
-    const config = {
-      minimumSellVolume: this._minimumSellVolume,
-      botAddress: this._botAddress,
-      markets: this._markets
-    }
-
     return {
-      name: 'Dutch Exchange - Services',
       version: this._version,
       auctions: auctionAbout,
       ethereum: ethereumAbout,
-      config,
       git: this._gitInfo
     }
   }
@@ -356,46 +345,69 @@ class DxInfoService {
 
   async getCurrencies () {}
 
-  /*
-  async getAuctions ({ currencyA, currencyB }) {
-    auctionLogger.debug({
-      sellToken: currencyA,
-      buyToken: currencyB,
-      msg: 'Get auctions'
-    })
-    const auctionInfo = await this._auctionRepo.getStateInfo({
-      sellToken: currencyA,
-      buyToken: currencyB
-    })
-    const sellVolumeNext = await this._auctionRepo.getSellVolumeNext({
-      sellToken: currencyA,
-      buyToken: currencyB
-    })
+  async getState ({ sellToken, buyToken }) {
+    auctionLogger.debug({ sellToken, buyToken, msg: 'Get current state' })
 
-    return Object.assign({
-      currencyA,
-      currencyB,
-      isAuctionRunning: this._isAuctionRunning(auctionInfo),
-      sellVolumeNext
-    }, auctionInfo)
+    return this._auctionRepo.getState({ sellToken, buyToken })
   }
-
-  _isAuctionRunning (auction) {
-    const now = new Date()
-    if (auction.auctionStart === null || auction.auctionStart >= now ||
-      auction.auction.isClosed || auction.auctionOpp.isClosed) {
-      return false
-    } else {
-      return true
-    }
-  }
-  */
 
   async getCurrentPrice ({ sellToken, buyToken }) {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
     return this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+  }
+
+  async getAuctionStart ({ sellToken, buyToken }) {
+    auctionLogger.debug({ sellToken, buyToken, msg: 'Get auction start' })
+
+    return this._auctionRepo.getAuctionStart({ sellToken, buyToken })
+  }
+
+  async isApprovedMarket ({ sellToken, buyToken }) {
+    return this._auctionRepo.isApprovedMarket({
+      tokenA: sellToken,
+      tokenB: buyToken
+    })
+  }
+
+  async getSellVolume ({ sellToken, buyToken }) {
+    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
+    if (state.auction) {
+      return state.auction.sellVolume
+    } else {
+      return null
+    }
+  }
+
+  async getSellVolumeNext ({ sellToken, buyToken }) {
+    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
+    if (state.auction) {
+      return state.auction.sellVolumeNext
+    } else {
+      return null
+    }
+  }
+
+  async getBuyVolume ({ sellToken, buyToken }) {
+    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
+    if (state.auction) {
+      return state.auction.buyVolume
+    } else {
+      return null
+    }
+  }
+
+  async getSellerBalanceForCurrentAuction ({ sellToken, buyToken, address }) {
+    let auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
+
+    return this._auctionRepo.getSellerBalance({ sellToken, buyToken, auctionIndex, address })
+  }
+
+  async getBuyerBalanceForCurrentAuction ({ sellToken, buyToken, address }) {
+    let auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
+
+    return this._auctionRepo.getBuyerBalance({ sellToken, buyToken, auctionIndex, address })
   }
 
   async getBalances ({ address }) {

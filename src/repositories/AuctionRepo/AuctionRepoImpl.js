@@ -1022,6 +1022,16 @@ volume: ${state}`)
 
   */
 
+  async getFeeRatio ({ address }) {
+    assert(address, 'The address is required')
+
+    return this
+      ._debugOperation({
+        operation: 'getFeeRatioExt',
+        params: [ address ]
+      })
+  }
+
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
@@ -1085,7 +1095,7 @@ volume: ${state}`)
       tokenA: token,
       tokenB: 'ETH'
     })
-    assert(tokenEthMarketExists, `The market ${token}-ETH doesn't`)
+    assert(tokenEthMarketExists, `The market ${token}-ETH doesn't exists`)
 
     return this
       ._callForToken({
