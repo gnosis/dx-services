@@ -1027,7 +1027,7 @@ volume: ${state}`)
 
     return this
       ._debugOperation({
-        operation: 'getFeeRatioExt',
+        operation: 'getFeeRatio',
         params: [ address ]
       })
   }
