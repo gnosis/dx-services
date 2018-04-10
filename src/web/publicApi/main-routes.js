@@ -55,7 +55,11 @@ function getRouter ({ dxInfoService, dxTradeService }) {
 
   router.get('/markets/:tokenPair/closing-prices', async (req, res) => {
     let tokenPair = _tokenPairSplit(req.params.tokenPair)
-    res.send(await dxInfoService.getLastClosingPrices(tokenPair))
+    let count = req.query.count !== undefined ? req.query.count : 5
+    let params = Object.assign(
+      tokenPair, { count: count }
+    )
+    res.send(await dxInfoService.getLastClosingPrices(params))
   })
 
   router.get('/markets/:tokenPair/closing-prices/:auctionIndex', async (req, res) => {
