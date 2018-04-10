@@ -23,6 +23,10 @@ class PublicApiServer extends Server {
     app.use('', mainPages)
 
     // Main routes
+    // TODO delete after DevOps update liveness check
+    app.use('/api', require('./main-routes')(services))
+
+    // Main routes
     app.use('/api/v1', require('./main-routes')(services))
   }
 
