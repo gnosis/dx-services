@@ -2,6 +2,7 @@ const info = require('debug')('INFO-dx-service:Server')
 const express = require('express')
 const http = require('http')
 const cors = require('cors')
+const { requestErrorHandler } = require('./requestErrorHandler')
 
 // Constants
 const DEFAULT_PORT = 8080
@@ -49,6 +50,25 @@ class Server {
     } else {
       throw new Error('Instances of Server must implement _registerRoutes method')
     }
+
+    // catch 404 and forward to error handler
+    app.use(function (req, res, next) {
+      const err = new Error('Not Found')
+      err.status = 404
+      err.type = 'NOT_FOUND'
+      next(err)
+    })
+
+    // error handler
+    app.use(function (err, req, res, next) {
+      if (res.headersSent) {
+        return next(err)
+      } else {
+        // Add async support
+        console.log(res)
+        requestErrorHandler(err, req, res)
+      }
+    })
 
     // Version, About (getAboutInfo)
     this._server = http.createServer(app)

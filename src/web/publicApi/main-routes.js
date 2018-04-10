@@ -1,6 +1,17 @@
 const express = require('express')
 const router = express.Router()
 
+const SUCCESS_OBJ_FOR_TEST = {
+  name: 'Foo',
+  age: 12,
+  address: {
+    city: 'Baz',
+    zip: 12345,
+    address: 'Foo baz 1234'
+  },
+  validated: true
+}
+
 // const debug = require('debug')('DEBUG-dx-services:web:api')
 
 function getRouter ({ dxInfoService, dxTradeService }) {
