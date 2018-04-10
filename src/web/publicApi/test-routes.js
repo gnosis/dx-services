@@ -11,7 +11,7 @@ const SUCCESS_OBJ_FOR_TEST = {
 
 // const debug = require('debug')('DEBUG-dx-services:web:api')
 
-function createRoutes () {
+function createRoutes (services) {
   const routes = []
 
   // Text example (handled directly, the handler doesn't return anything)
@@ -46,11 +46,15 @@ function createRoutes () {
     }
   })
   
-  // Return a successful promise
+  // Return a successful promise. Better return the promise directly
   routes.push({
     path: '/promise-success',
     get (req, res) {
-      return Promise.resolve(SUCCESS_OBJ_FOR_TEST)
+      return Promise
+        .resolve(SUCCESS_OBJ_FOR_TEST)
+        .then(result => {
+          res.json(SUCCESS_OBJ_FOR_TEST)
+        })
     }
   })
   
