@@ -61,7 +61,7 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   router.get('/markets/:tokenPair/price', async (req, res) => {
     let tokenPair = _tokenPairSplit(req.params.tokenPair)
     let currentPairPrice = await dxInfoService.getCurrentPrice(tokenPair)
-    res.send(currentPairPrice.toString())
+    res.json(currentPairPrice)
   })
 
   router.get('/markets/:tokenPair/closing-prices', async (req, res) => {
@@ -70,7 +70,7 @@ function getRouter ({ dxInfoService, dxTradeService }) {
     let params = Object.assign(
       tokenPair, { count: count }
     )
-    res.send(await dxInfoService.getLastClosingPrices(params))
+    res.send(await dxInfoService.getLastClosingPricesComputed(params))
   })
 
   router.get('/markets/:tokenPair/closing-prices/:auctionIndex', async (req, res) => {
@@ -79,13 +79,13 @@ function getRouter ({ dxInfoService, dxTradeService }) {
       tokenPair,
       { auctionIndex: req.params.auctionIndex }
     )
-    res.send(await dxInfoService.getClosingPrice(params))
+    res.send(await dxInfoService.getClosingPriceComputed(params))
   })
 
   router.get('/markets/:tokenPair/current-index', async (req, res) => {
     let tokenPair = _tokenPairSplit(req.params.tokenPair)
     let auctionIndex = await dxInfoService.getAuctionIndex(tokenPair)
-    res.send(auctionIndex.toString())
+    res.json(auctionIndex)
   })
 
   router.get('/markets/:tokenPair/auction-start', async (req, res) => {
@@ -126,10 +126,10 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   })
 
   // accounts routes
-  // TODO implement getCurrentFeeRatio in service
   router.get('/accounts/:accountAddress/current-fee-ratio', async (req, res) => {
-    // let feeRatio = await dxInfoService.getCurrentFeeRatio(req.params.accountAddress)
-    // res.send(feeRatio)
+    let params = { address: req.params.accountAddress }
+    let feeRatio = await dxInfoService.getCurrentFeeRatioComputed(params)
+    res.send(feeRatio)
   })
 
   router.get('/accounts/:accountAddress/balances/:tokenPair/seller', async (req, res) => {

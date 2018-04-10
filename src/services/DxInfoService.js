@@ -40,6 +40,20 @@ class DxInfoService {
     })
   }
 
+  async getClosingPriceComputed ({ sellToken, buyToken, auctionIndex }) {
+    let closingPrice = await this.getClosingPrice({ sellToken, buyToken, auctionIndex })
+    if (closingPrice.price) {
+      Object.assign(closingPrice,
+        { price: this._computePrice(closingPrice.price) }
+      )
+    }
+    return closingPrice
+  }
+
+  _computePrice ({ numerator, denominator }) {
+    return numerator.div(denominator)
+  }
+
   async getLastClosingPrices ({ sellToken, buyToken, count }) {
     // Get data
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
@@ -89,6 +103,23 @@ class DxInfoService {
         }
       })
       .reverse()
+  }
+
+  async getLastClosingPricesComputed ({ sellToken, buyToken, count }) {
+    let closingPrices = await this.getLastClosingPrices({ sellToken, buyToken, count })
+    if (closingPrices.length > 0) {
+      return closingPrices.map(element => {
+        if (element.price) {
+          return Object.assign(element,
+            { price: this._computePrice(element.price) }
+          )
+        } else {
+          return element
+        }
+      })
+    } else {
+      return []
+    }
   }
 
   // TODO: This method I think is not very useful for us...
@@ -416,6 +447,16 @@ class DxInfoService {
 
   async getBalanceOfEther ({ account }) {
     return this._ethereumRepo.balanceOf({ account })
+  }
+
+  async getCurrentFeeRatio ({ address }) {
+    return this._auctionRepo.getFeeRatio({ address })
+  }
+
+  async getCurrentFeeRatioComputed ({ address }) {
+    let feeRatio = await this.getCurrentFeeRatio({ address })
+
+    return feeRatio[0].div(feeRatio[1])
   }
 }
 
