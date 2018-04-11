@@ -72,12 +72,16 @@ function createRoutes ({ dxInfoService }) {
     }
   })
 
-  // TODO implement method on service
+  // TODO review extra-tokens results
   routes.push({
-    path: '/:tokenPair/extra-tokens',
+    path: '/:tokenPair/extra-tokens/:auctionIndex',
     get (req, res) {
-      // let tokenPair = _tokenPairSplit(req.params.tokenPair)
-      // return dxInfoService.hasExtraTokens(tokenPair)
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let params = Object.assign(
+        tokenPair,
+        { auctionIndex: req.params.auctionIndex }
+      )
+      return dxInfoService.getExtraTokens(params)
     }
   })
 

@@ -456,6 +456,10 @@ class DxInfoService {
 
     return feeRatio[0].div(feeRatio[1])
   }
+
+  async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
+    return this._auctionRepo.getExtraTokens({ sellToken, buyToken, auctionIndex })
+  }
 }
 
 module.exports = DxInfoService
