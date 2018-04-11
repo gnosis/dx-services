@@ -39,17 +39,16 @@ class ContractLoader {
 
     let dxContractAddress
     if (this._dxContractAddress) {
+      // If the DX address is provided
       dxContractAddress = this._dxContractAddress
-      this._dxMaster = null // no public :(
-    } else if (isLocal) {
-      // For local, we get the address from the contract definition
+      this._dxMaster = null
+    } else {
+      // We load the DX address from the contract
       const proxyContract = this._ethereumClient
         .loadContract(this._contractDefinitions.DutchExchangeProxy)
 
-      dxContractAddress = await this._getDeployedAddress('DX Proxy', proxyContract)
-      this._dxMaster = await this._getDeployedAddress('DX', dxContract)
-    } else {
-      throw new Error('The DX address is mandatory for the environment ' + environment)
+      dxContractAddress = await this._getDeployedAddress('DX Proxy', proxyContract, false)
+      this._dxMaster = await this._getDeployedAddress('DX', dxContract, false)
     }
     const dxContractInstance = dxContract.at(dxContractAddress)
 
@@ -81,15 +80,9 @@ class ContractLoader {
     const gnoTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.TokenGNO)
 
-    // GNO can be pulled from the OWLAirdrop (the minter of the OWLToken)
-    // For now, we jsut assume we get the address in the config file
     let address = this._gnoTokenAddress
     if (!address) {
-      if (isLocal) {
-        address = await this._getDeployedAddress('Token GNO', gnoTokenContract)
-      } else {
-        throw new Error(`The Token address for GNO is mandatory for the environment ${environment}`)
-      }
+      address = await this._getDeployedAddress('Token GNO', gnoTokenContract, false)
     }
 
     return gnoTokenContract.at(address)
@@ -160,9 +153,11 @@ class ContractLoader {
     }
   }
 
-  async _getDeployedAddress (contractName, contract) {
-    assert(isLocal, `Getting the deployed address from the truffle contract is \
-only avaliable in LOCAL. Environment = ${environment}`)
+  async _getDeployedAddress (contractName, contract, enforceLocalOnly = true) {
+    if (enforceLocalOnly) {
+      assert(isLocal, `Getting the deployed address from the truffle contract \
+is only avaliable in LOCAL. Environment = ${environment}`)
+    }
 
     return contract
       .deployed()
