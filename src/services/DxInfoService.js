@@ -3,6 +3,7 @@ const loggerNamespace = 'dx-service:services:DxInfoService'
 // const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
+const ENVIRONMENT = process.env.NODE_ENV
 
 const numberUtil = require('../helpers/numberUtil.js')
 
@@ -364,6 +365,7 @@ class DxInfoService {
 
     return {
       version: this._version,
+      environment: ENVIRONMENT,
       auctions: auctionAbout,
       ethereum: ethereumAbout,
       git: this._gitInfo

@@ -1,5 +1,6 @@
 const getVersion = require('../helpers/getVersion')
 const getGitInfo = require('../helpers/getGitInfo')
+const ENVIRONMENT = process.env.NODE_ENV
 
 class BotsService {
   constructor ({ auctionRepo, ethereumRepo, markets }) {
@@ -40,6 +41,7 @@ class BotsService {
 
     return {
       version: this._version,
+      environment: ENVIRONMENT,
       auctions: auctionAbout,
       ethereum: ethereumAbout,
       git: this._gitInfo,
