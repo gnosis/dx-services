@@ -79,7 +79,7 @@ function getRouter ({ dxInfoService, dxTradeService }) {
       tokenPair,
       { auctionIndex: req.params.auctionIndex }
     )
-    res.send(await dxInfoService.getClosingPriceComputed(params))
+    res.send(await dxInfoService.getClosingPrice(params))
   })
 
   router.get('/markets/:tokenPair/current-index', async (req, res) => {
@@ -128,7 +128,7 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   // accounts routes
   router.get('/accounts/:accountAddress/current-fee-ratio', async (req, res) => {
     let params = { address: req.params.accountAddress }
-    let feeRatio = await dxInfoService.getCurrentFeeRatioComputed(params)
+    let feeRatio = await dxInfoService.getCurrentFeeRatio(params)
     res.send(feeRatio)
   })
 

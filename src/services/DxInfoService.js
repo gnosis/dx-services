@@ -34,15 +34,11 @@ class DxInfoService {
   }
 
   async getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
-    return this._auctionRepo.getClosingPrices({
+    let closingPrice = await this._auctionRepo.getClosingPrices({
       sellToken,
       buyToken,
       auctionIndex
     })
-  }
-
-  async getClosingPriceComputed ({ sellToken, buyToken, auctionIndex }) {
-    let closingPrice = await this.getClosingPrice({ sellToken, buyToken, auctionIndex })
     if (closingPrice.price) {
       Object.assign(closingPrice,
         { price: this._computePrice(closingPrice.price) }
@@ -452,11 +448,7 @@ class DxInfoService {
   }
 
   async getCurrentFeeRatio ({ address }) {
-    return this._auctionRepo.getFeeRatio({ address })
-  }
-
-  async getCurrentFeeRatioComputed ({ address }) {
-    let feeRatio = await this.getCurrentFeeRatio({ address })
+    let feeRatio = await this._auctionRepo.getFeeRatio({ address })
 
     return feeRatio[0].div(feeRatio[1])
   }

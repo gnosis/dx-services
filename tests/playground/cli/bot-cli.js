@@ -72,7 +72,7 @@ async function run ({
   commander.on('--help', function () {
     const examples = [
       '--now',
-      '--addres ses',
+      '--addresses',
       '--balances',
       '--setup',
       '--setup-funding',
