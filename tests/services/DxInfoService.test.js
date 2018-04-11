@@ -44,14 +44,13 @@ test('It should return current auction price', async () => {
 
   dxInfoService._auctionRepo = auctionRepoMock
 
-  const RDN_ETH_CURRENT_PRICE = {
-    denominator: new BigNumber('233'),
-    numerator: new BigNumber('10')
-  }
+  // Service returns a computed value of numerator.div(denominator)
+  // Mock values are 10 / 233
+  const RDN_ETH_CURRENT_PRICE = new BigNumber('0.0429184549356223176')
 
   let rdnEthCurrentPrice = await dxInfoService.getCurrentPrice({
     sellToken: 'RDN', buyToken: 'ETH' })
-  expect(rdnEthCurrentPrice).toMatchObject(RDN_ETH_CURRENT_PRICE)
+  expect(rdnEthCurrentPrice).toEqual(RDN_ETH_CURRENT_PRICE)
 })
 
 test('Get balances for all currencies of an account', async () => {

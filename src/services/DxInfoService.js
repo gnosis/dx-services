@@ -39,10 +39,8 @@ class DxInfoService {
       buyToken,
       auctionIndex
     })
-    if (closingPrice.price) {
-      Object.assign(closingPrice,
-        { price: this._computePrice(closingPrice.price) }
-      )
+    if (closingPrice) {
+      closingPrice = this._computePrice(closingPrice)
     }
     return closingPrice
   }
@@ -384,7 +382,13 @@ class DxInfoService {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
-    return this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+    let currentPrice = await this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+
+    if (currentPrice) {
+      currentPrice = this._computePrice(currentPrice)
+    }
+
+    return currentPrice
   }
 
   async getAuctionStart ({ sellToken, buyToken }) {

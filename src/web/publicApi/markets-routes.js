@@ -16,7 +16,6 @@ function createRoutes ({ dxInfoService }) {
     }
   })
 
-  // TODO return price computed
   routes.push({
     path: '/:tokenPair/price',
     get (req, res) {
@@ -37,7 +36,6 @@ function createRoutes ({ dxInfoService }) {
     }
   })
 
-  // TODO return price computed
   routes.push({
     path: '/:tokenPair/closing-prices/:auctionIndex',
     get (req, res) {

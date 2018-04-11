@@ -1,5 +1,4 @@
 const cliUtils = require('../helpers/cliUtils')
-const formatUtil = require('../../helpers/formatUtil')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
@@ -21,7 +20,7 @@ function registerCommand ({ cli, instances, logger }) {
         buyToken
       })
       logger.info('The current price is: %s %s/%s',
-        (price !== null ? formatUtil.formatFraction(price) : 'N/A'),
+        (price !== null ? price : 'N/A'),
         buyToken,
         sellToken
       )
