@@ -52,6 +52,9 @@ class EthereumClient {
     }
 
     this._web3 = new Web3(this._provider)
+    // var balance = this._web3.eth.getBalance('0x424a46612794dbb8000194937834250Dc723fFa5')
+    // console.log('BALANCE', balance)
+
     this._contractCache = {}
     this._contractsBaseDir = contractsBaseDir
   }

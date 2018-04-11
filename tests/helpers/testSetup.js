@@ -36,7 +36,7 @@ async function getContracts ({ ethereumClient, auctionRepo }) {
 }
 
 async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereumRepo, config }, { dx, dxMaster, priceOracle, tokens }) {
-  const address = await ethereumClient.doCall('eth.getCoinbase')
+  // const address = await ethereumClient.doCall('eth.getCoinbase')
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts
@@ -372,7 +372,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
 
   async function printBalances ({
     accountName = 'owner',
-    account = address,
+    account = botAccount,
     verbose = true
   }) {
     debug(`\n**********  Balance for ${accountName}  **********\n`)
@@ -578,7 +578,6 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
 
   return {
     web3,
-    address,
     botAccount,
     owner,
     user1,
