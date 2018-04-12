@@ -4,29 +4,31 @@ const qs = require('qs')
 // Send an API request
 const rawRequest = async (request, headers) => {
   // Set custom User-Agent string
-  headers['User-Agent'] = 'Custom Javascript API Client'
+  // Faking Mozilla because some exchanges apply API limits
+  headers['User-Agent'] = 'Mozilla/5.0'
 
-	const options = { headers }
+  const options = { headers }
 
-	Object.assign(options, {
-		body: qs.stringify(request.data),
-	}, request)
-	const { body } = await got(request.url, options);
-	const response = JSON.parse(body)
+  Object.assign(options, {
+    body: qs.stringify(request.data)
+  }, request)
 
-	if(response.error && response.error.length) {
-		const error = response.error
-			.filter((e) => e.startsWith('E'))
-			.map((e) => e.substr(1))
+  const { body } = await got(request.url, options)
+  const response = JSON.parse(body)
 
-		if(!error.length) {
-			throw new Error("Kraken API returned an unknown error")
-		}
+  if (response.error && response.error.length) {
+    const error = response.error
+      .filter(e => e.startsWith('E'))
+      .map(e => e.substr(1))
 
-		throw new Error(error.join(', '))
-	}
+    if (!error.length) {
+      throw new Error('Kraken API returned an unknown error')
+    }
 
-	return response
+    throw new Error(error.join(', '))
+  }
+
+  return response
 }
 
 module.exports = {
