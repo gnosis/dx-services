@@ -48,49 +48,7 @@ function getRouter ({ dxInfoService, dxTradeService }) {
     res.send(await dxInfoService.getAbout())
   })
 
-  // accounts routes
-  router.get('/accounts/:accountAddress/current-fee-ratio', async (req, res) => {
-    let params = { address: req.params.accountAddress }
-    let feeRatio = await dxInfoService.getCurrentFeeRatio(params)
-    res.send(feeRatio)
-  })
-
-  router.get('/accounts/:accountAddress/balances/:tokenPair/seller', async (req, res) => {
-    let tokenPair = _tokenPairSplit(req.params.tokenPair)
-    let params = Object.assign(
-      tokenPair,
-      { address: req.params.accountAddress }
-    )
-    let sellerBalance = await dxInfoService.getSellerBalanceForCurrentAuction(params)
-    res.send(sellerBalance)
-  })
-
-  router.get('/accounts/:accountAddress/balances/:tokenPair/buyer', async (req, res) => {
-    let tokenPair = _tokenPairSplit(req.params.tokenPair)
-    let params = Object.assign(
-      tokenPair,
-      { address: req.params.accountAddress }
-    )
-    let buyerBalance = await dxInfoService.getBuyerBalanceForCurrentAuction(params)
-    res.send(buyerBalance)
-  })
-
-  // TODO implement getAccountBalanceForToken in service
-  router.get('/accounts/:accountAddress/tokens/:tokenPair', async (req, res) => {
-    // let tokenPair = _tokenPairSplit(req.params.tokenPair)
-    // let accountBalance = await dxInfoService.getAccountBalanceForToken(tokenPair)
-    // res.send(accountBalance)
-  })
-
   return router
-}
-
-function _tokenPairSplit (tokenPair) {
-  let splittedPair = tokenPair.split('-')
-  return {
-    sellToken: splittedPair[0].toUpperCase(),
-    buyToken: splittedPair[1].toUpperCase()
-  }
 }
 
 module.exports = getRouter

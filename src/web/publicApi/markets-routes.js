@@ -1,3 +1,6 @@
+const routesHelper = require('../helpers/routesHelper')
+const _tokenPairSplit = routesHelper.tokenPairSplit
+
 function createRoutes ({ dxInfoService }) {
   const routes = []
 
@@ -72,7 +75,6 @@ function createRoutes ({ dxInfoService }) {
     }
   })
 
-  // TODO review extra-tokens results
   routes.push({
     path: '/:tokenPair/extra-tokens/:auctionIndex',
     get (req, res) {
@@ -111,14 +113,6 @@ function createRoutes ({ dxInfoService }) {
   })
 
   return routes
-}
-
-function _tokenPairSplit (tokenPair) {
-  let splittedPair = tokenPair.split('-')
-  return {
-    sellToken: splittedPair[0].toUpperCase(),
-    buyToken: splittedPair[1].toUpperCase()
-  }
 }
 
 module.exports = createRoutes

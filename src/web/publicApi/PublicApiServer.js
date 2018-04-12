@@ -21,6 +21,7 @@ class PublicApiServer extends Server {
     // Get routes
     const testRoutes = require('./test-routes')(services)
     const marketsRoutes = require('./markets-routes')(services)
+    const accountsRoutes = require('./accounts-routes')(services)
 
     // Static content
     const mainPages = express.Router()
@@ -37,6 +38,8 @@ class PublicApiServer extends Server {
 
     // Markets routes
     app.use('/api/v1/markets', createRouter(marketsRoutes))
+    // Accounts routes
+    app.use('/api/v1/accounts', createRouter(accountsRoutes))
   }
   async _getServiceName () {
     const version = await this._dxInfoService.getVersion()
