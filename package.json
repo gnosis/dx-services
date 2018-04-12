@@ -59,10 +59,10 @@
     "raven": "^2.4.2",
     "truffle-contract": "^3.0.3",
     "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2",
-    "yargs": "^11.0.0"
+    "yargs": "^11.0.0",
+    "@gnosis.pm/dutch-exchange-smartcontracts": "^0.4.5"
   },
   "devDependencies": {
-    "@gnosis.pm/dutch-exchange-smartcontracts": "^0.4.5",
     "coveralls": "^3.0.0",
     "esdoc": "^1.0.4",
     "esdoc-standard-plugin": "^1.0.0",

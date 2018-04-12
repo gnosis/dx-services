@@ -1,7 +1,5 @@
 const debug = require('debug')('dx-service:conf')
-
-// TODO: important to set a false after the testing
-const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = false
+const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = true
 
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
@@ -13,7 +11,7 @@ const ENV_VAR_LIST = [
   'MINIMUM_SELL_VOLUME_USD',
   'PUBLIC_API_PORT',
   'PUBLIC_API_HOST'
-  // alseo: MARKETS
+  // also: MARKETS
   // also: <token>_TOKEN_ADDRESS
 ]
 const SPECIAL_TOKENS = ['ETH', 'MGN', 'OWL', 'GNO']
