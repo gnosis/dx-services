@@ -75,7 +75,7 @@ class Server {
     return new Promise((resolve, reject) => {
       this._server.listen(this._port, this._host, () => {
         info(`Running Server on http://%s:%d`, this._host, this._port)
-        info(`Try http://%s:%d/ping to check the service is onLine`,
+        info(`Try http://%s:%d/api/v1/about to check the service is onLine`,
           this._host, this._port
         )
         resolve(this)
