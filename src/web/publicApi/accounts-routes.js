@@ -36,16 +36,15 @@ function createRoutes ({ dxInfoService }) {
     }
   })
 
-  // TODO implement getAccountBalanceForToken in service
   routes.push({
-    path: '/:accountAddress/tokens/:tokenPair',
+    path: '/:accountAddress/tokens/:tokenSymbol',
     get (req, res) {
-      // let tokenPair = _tokenPairSplit(req.params.tokenPair)
-      // let params = Object.assign(
-      //   tokenPair,
-      //   { address: req.params.accountAddress }
-      // )
-      // return dxInfoService.getAccountBalanceForToken(params)
+      let token = req.params.tokenSymbol.toUpperCase()
+      let params = Object.assign({
+        token,
+        address: req.params.accountAddress
+      })
+      return dxInfoService.getAccountBalanceForToken(params)
     }
   })
 

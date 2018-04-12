@@ -37,7 +37,9 @@ if (environment === 'pre' || environment === 'pro') {
 const envConf = require('./env/' + envConfFileName)
 
 // Load network conf
-const network = process.env.NETWORK // Optional: RINKEBY, KOVAN
+const network = process.env.NETWORK
+  ? process.env.NETWORK.toLowerCase()
+  : process.env.NETWORK// Optional: RINKEBY, KOVAN
 const networkConfig = network ? require(`./network/${network}-config`) : {}
 
 // Get token list and env vars

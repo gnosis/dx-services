@@ -451,6 +451,13 @@ class DxInfoService {
     return this._ethereumRepo.balanceOf({ account })
   }
 
+  async getAccountBalanceForToken ({ token, address }) {
+    return this._auctionRepo.getBalance({
+      token,
+      address
+    })
+  }
+
   async getCurrentFeeRatio ({ address }) {
     let feeRatio = await this._auctionRepo.getFeeRatio({ address })
 
