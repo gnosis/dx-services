@@ -11,8 +11,11 @@ const ENV_VAR_LIST = [
   'MINIMUM_SELL_VOLUME_USD',
   'PUBLIC_API_PORT',
   'PUBLIC_API_HOST'
-  // also: MARKETS
-  // also: <token>_TOKEN_ADDRESS
+  //
+  // Also:
+  //  * NODE_ENV
+  //  * MARKETS
+  //  * <token>_TOKEN_ADDRESS
 ]
 const SPECIAL_TOKENS = ['ETH', 'MGN', 'OWL', 'GNO']
 
