@@ -3,9 +3,9 @@ const _printChannels = require('./_printChannels')
 const showEmptyChannels = false
 
 slackClient
-  .getChannels()
-  .then(({ channels }) => {
-    return channels.filter(({ num_members: numMembers }) => {
+  .getPrivateChannels()
+  .then(({ groups }) => {
+    return groups.filter(({ num_members: numMembers }) => {
       return numMembers > 0 || showEmptyChannels
     })
   })

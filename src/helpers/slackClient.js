@@ -14,6 +14,7 @@ if (token) {
 
 function postMessage ({ channel, text, attachments, file }) {
   _assertEnabled()
+  _assertMandatory(['channel', 'text'], arguments[0])
 
   // See: https://api.slack.com/docs/messages/builder
   return web.chat
@@ -27,6 +28,7 @@ function postMessage ({ channel, text, attachments, file }) {
 
 function uploadFile ({ fileName, file }) {
   _assertEnabled()
+  _assertMandatory(['fileName', 'file'], arguments[0])
 
   return web.files.upload({
     filename: fileName,
@@ -36,6 +38,7 @@ function uploadFile ({ fileName, file }) {
 
 function uploadContentFile ({ fileName, content }) {
   _assertEnabled()
+  _assertMandatory(['fileName', 'content'], arguments[0])
 
   return web.files.upload({
     filename: fileName,
@@ -44,9 +47,18 @@ function uploadContentFile ({ fileName, content }) {
 }
 
 // See: https://api.slack.com/methods/channels.list
-function getChannels () {
+function getChannels ({ excludeArchived = true } = {}) {
   _assertEnabled()
-  return web.channels.list()
+  return web.channels.list({
+    exclude_archived: excludeArchived
+  })
+}
+
+function getPrivateChannels ({ excludeArchived = true } = {}) {
+  _assertEnabled()
+  return web.groups.list({
+    exclude_archived: excludeArchived
+  })
 }
 
 function isEnabled () {
@@ -57,8 +69,15 @@ function _assertEnabled () {
   assert(isEnabled(), 'Slack is disabled. Enable it using SLACK_TOKEN environment var')
 }
 
+function _assertMandatory (paramNames, params) {
+  paramNames.forEach(paramName => {
+    assert(params[paramName], `'${paramName}' is a required param`)
+  })
+}
+
 module.exports = {
   getChannels,
+  getPrivateChannels,
   postMessage,
   uploadFile,
   uploadContentFile,
