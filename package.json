@@ -47,6 +47,8 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "@gnosis.pm/dutch-exchange-smartcontracts": "^0.4.5",
+    "@slack/client": "^4.1.0",
     "commander": "^2.15.0",
     "cors": "^2.8.4",
     "debug": "^3.1.0",
@@ -59,8 +61,7 @@
     "raven": "^2.4.2",
     "truffle-contract": "^3.0.3",
     "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2",
-    "yargs": "^11.0.0",
-    "@gnosis.pm/dutch-exchange-smartcontracts": "^0.4.5"
+    "yargs": "^11.0.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
