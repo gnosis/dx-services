@@ -1,3 +1,5 @@
+const formatUtil = require('../../helpers/formatUtil')
+
 class PriceRepoImpl {
   constructor ({ priceFeedStrategiesDefault, priceFeedStrategies }) {
     this._priceFeedStrategiesDefault = priceFeedStrategiesDefault
@@ -6,8 +8,8 @@ class PriceRepoImpl {
   }
 
   async getPrice ({ tokenA, tokenB }) {
-    const marketName = _getMarketName({ tokenA, tokenB })
-    
+    const marketName = formatUtil.formatMarketDescriptor({ tokenA, tokenB })
+
     // Get best price strategy for the market
     let strategydata = this._priceFeedStrategies[marketName] || this._priceFeedStrategiesDefault
     const strategy = this._getStrategy(strategydata.strategy)
@@ -26,14 +28,8 @@ class PriceRepoImpl {
   }
 }
 
-function _getMarketName ({ tokenA, tokenB }) {
-  // TODO: There's a util for this :)
-  // Implement
-  return tokenA + '-' + tokenB
-}
-
 function _normalizeMarketName (priceFeedStrategies) {
-  // TODO: return a new object with the normalized keus
+  // TODO: return a new object with the normalized keys
   return priceFeedStrategies
 }
 

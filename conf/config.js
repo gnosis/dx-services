@@ -89,18 +89,18 @@ const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
 const EXCHANGE_PRICE_REPO_IMPL = 'impl' // mock. impl
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
-  strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ... 
-  feeds: ['binance', 'huobi', 'kraken']
+  strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex']
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
   'ETH-OMG': {
     strategy: 'sequence',
-    feeds: ['binance', 'huobi']
+    feeds: ['binance', 'huobi', 'bitfinex']
   },
   'ETH-RDN': {
     strategy: 'sequence',
-    feeds: ['huobi', 'binance']
+    feeds: ['huobi', 'binance', 'bitfinex']
   }
 }
 

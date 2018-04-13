@@ -5,6 +5,7 @@ const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const ethereumEventHelper = require('../helpers/ethereumEventHelper')
 const events = require('../helpers/events')
+const formatUtil = require('../helpers/formatUtil')
 
 const RETRY_WATCH_EVENTS_MILLISECONDS = 4 * 1000
 /*
@@ -31,7 +32,7 @@ class AuctionEventWatcher {
     this._markets = markets
     this._contracts = contracts
 
-    this._knownMarkets = markets.map(_toMarketDescriptor)
+    this._knownMarkets = markets.map(formatUtil.formatMarketDescriptor)
     this._watchingFilter = null
     this._tokenContracts = Object.assign({}, contracts.erc20TokenContracts, {
       ETH: contracts.eth,
@@ -80,7 +81,7 @@ class AuctionEventWatcher {
         msg: 'Error watching events: ' + error.toString(),
         error
       })
-      
+
       if (this._watchingFilter !== null) {
         // If there was a watchingFilter, means that we were watching
         // succesfully for events, but somthing happend (i.e. we lost connection)
@@ -145,7 +146,7 @@ error watching the blockchain): ` + errorStoppingWatch.toString(),
 
     let tokensAreKnown, market
     if (tokenA && tokenB) {
-      market = _toMarketDescriptor({ tokenA, tokenB })
+      market = formatUtil.formatMarketDescriptor({ tokenA, tokenB })
       tokensAreKnown = this._knownMarkets.includes(market)
     } else {
       tokensAreKnown = false
@@ -172,14 +173,6 @@ error watching the blockchain): ` + errorStoppingWatch.toString(),
         msg: 'One auction cleared, but it was for a known pair: %s-%s'
       })
     }
-  }
-}
-
-function _toMarketDescriptor ({ tokenA, tokenB }) {
-  if (tokenA < tokenB) {
-    return tokenA + '-' + tokenB
-  } else {
-    return tokenB + '-' + tokenA
   }
 }
 

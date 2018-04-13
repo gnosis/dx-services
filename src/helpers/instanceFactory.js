@@ -205,7 +205,7 @@ function _getPriceRepo (config) {
         priceFeedStrategies: config.EXCHANGE_PRICE_FEED_STRATEGIES
       })
       break
-      
+
     default:
       throw new Error('Unkown implementation for PriceRepo: ' + config.EXCHANGE_PRICE_REPO_IMPL)
   }

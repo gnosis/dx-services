@@ -19,7 +19,6 @@ function _getPriceRepo (feedName) {
   return priceRepo
 }
 
-
 function _doGetPrice ({ tokenA, tokenB }, feeds) {
   const [ bestFeed, ...remainingFeeds ] = feeds
 
@@ -48,4 +47,4 @@ function getPrice ({ tokenA, tokenB }, { feeds }) {
 
 module.exports = {
   getPrice
-} 
+}
