@@ -1,6 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoHuobi')
-const httpRequest = require('../../helpers/httpRequest')
-const Cache = require('../../helpers/Cache')
+const httpRequest = require('../../../helpers/httpRequest')
+const Cache = require('../../../helpers/Cache')
 const CACHE_SYMBOLS_KEY = 'PriceRepoHuobi:'
 const CACHE_SYMBOLS_TIME = 2 * 60 * 60 * 1000 // 2 hours
 

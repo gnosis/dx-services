@@ -1,5 +1,5 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoKraken')
-const httpRequest = require('../../helpers/httpRequest')
+const httpRequest = require('../../../helpers/httpRequest')
 const LAST_OPERATION_PROP_NAME = 'c'
 
 class PriceRepoKraken {

@@ -1,4 +1,4 @@
-const PriceRepoKraken = require('../../../src/repositories/feeds/PriceRepo/PriceRepoKraken')
+const PriceRepoKraken = require('../../../src/repositories/PriceRepo/feeds/PriceRepoKraken')
 const priceRepo = new PriceRepoKraken({})
 
 test.skip('It should return a price for known Crypto markets', async () => {

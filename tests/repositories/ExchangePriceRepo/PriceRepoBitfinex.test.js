@@ -1,4 +1,4 @@
-const PriceRepoBitfinex = require('../../../src/repositories/feeds/PriceRepo/PriceRepoBitfinex')
+const PriceRepoBitfinex = require('../../../src/repositories/PriceRepo/feeds/PriceRepoBitfinex')
 const priceRepo = new PriceRepoBitfinex({})
 
 // class HTTPError extends Error {}

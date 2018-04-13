@@ -1,4 +1,4 @@
-const PriceRepoHuobi = require('../../../src/repositories/feeds/PriceRepo/PriceRepoHuobi')
+const PriceRepoHuobi = require('../../../src/repositories/PriceRepo/feeds/PriceRepoHuobi')
 const priceRepo = new PriceRepoHuobi({})
 
 // class HTTPError extends Error {}
