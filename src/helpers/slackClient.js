@@ -14,7 +14,7 @@ if (token) {
 
 function postMessage ({ channel, text, attachments, file }) {
   _assertEnabled()
-  _assertMandatory(['channel', 'text'], arguments[0])
+  _assertMandatory(['channel'], arguments[0])
 
   // See: https://api.slack.com/docs/messages/builder
   return web.chat
