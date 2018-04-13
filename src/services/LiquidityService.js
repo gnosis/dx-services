@@ -17,14 +17,14 @@ class LiquidityService {
     // repos
     auctionRepo,
     ethereumRepo,
-    exchangePriceRepo,
+    priceRepo,
 
     // config
     minimumSellVolume,
     buyLiquidityRules
   }) {
     this._auctionRepo = auctionRepo
-    this._exchangePriceRepo = exchangePriceRepo
+    this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo
 
     // Config
@@ -247,7 +247,7 @@ keeps happening`
           sellToken: tokenA, buyToken: tokenB, auctionIndex, from
         }),
         // Get the market price
-        this._exchangePriceRepo.getPrice({
+        this._priceRepo.getPrice({
           tokenA, tokenB
         }).then(price => ({
           numerator: numberUtil.toBigNumber(price.toString()),

@@ -1,4 +1,4 @@
-const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoMock')
+const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoMock')
 
 const pricesInUSD = [{
   token: 'RDN',
@@ -8,7 +8,7 @@ const pricesInUSD = [{
   price: 1001.962 // $/ETH
 }]
 
-class ExchangePriceRepoMock {
+class PriceRepoMock {
   constructor () {
     // RDN/ETH: 0.004079
     //  So 1 ETH = 243.891605 RDN
@@ -58,4 +58,4 @@ class ExchangePriceRepoMock {
   }
 }
 
-module.exports = ExchangePriceRepoMock
+module.exports = PriceRepoMock

@@ -1,18 +1,18 @@
-const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoHuobi')
+const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoBinance')
 const httpRequest = require('../../helpers/httpRequest')
 const Cache = require('../../helpers/Cache')
-const CACHE_SYMBOLS_KEY = 'ExchangePriceRepoHuobi:'
+const CACHE_SYMBOLS_KEY = 'PriceRepoBinance:'
 const CACHE_SYMBOLS_TIME = 2 * 60 * 60 * 1000 // 2 hours
 
-class ExchangePriceRepoHuobi {
-  constructor ({ url = 'https://api.huobi.pro', version = 'v1', timeout = 5000 }) {
+class PriceRepoBinance {
+  constructor ({ url = 'https://api.binance.com/api', version = 'v1', timeout = 5000 }) {
     this._timeout = timeout
     this._version = version
     this._baseUrl = url
-    this._cache = new Cache('ExchangePriceRepoHuobi')
+    this._cache = new Cache('PriceRepoBinance')
   }
 
-  // Get Huobi market pairs
+  // Get Binance market pairs
   async getSymbols () {
     debug('Get symbols')
     return this._cache.get({
@@ -25,13 +25,13 @@ class ExchangePriceRepoHuobi {
   }
 
   async _getSymbols () {
-    const url = this._baseUrl + '/' + this._version + '/common/symbols'
-    debug('Huobi request symbols url: ', url)
+    const url = this._baseUrl + '/' + this._version + '/exchangeInfo'
+    debug('Binance request symbols url: ', url)
 
     const request = { url, method: 'GET', data: {}, timeout: this._timeout }
     const response = await httpRequest.rawRequest(request, {})
 
-    return response.data
+    return response.symbols
   }
 
   async getPrice ({ tokenA, tokenB }) {
@@ -41,50 +41,50 @@ class ExchangePriceRepoHuobi {
     let tokenSymbol
     invertTokens ? tokenSymbol = tokenB + tokenA
       : tokenSymbol = tokenA + tokenB
-    tokenSymbol = tokenSymbol.toLowerCase()
+    tokenSymbol = tokenSymbol.toUpperCase()
 
-    const url = this._baseUrl + '/market/detail/merged?symbol=' + tokenSymbol
-    debug('Huobi request price url: ', url)
+    const url = this._baseUrl + '/v3/ticker/price?symbol=' + tokenSymbol
+    debug('Binance request price url: ', url)
     const request = { url, method: 'GET', data: {}, timeout: this._timeout }
 
     const response = await httpRequest.rawRequest(request, {})
-    let closePrice = response.tick.close
+    let closePrice = response.price
     if (invertTokens) {
       closePrice = (1 / closePrice)
     }
 
-    debug('Huobi Response to ' + tokenSymbol + ': ', closePrice.toString())
+    debug('Binance Response to ' + tokenSymbol + ': ', closePrice.toString())
     return closePrice.toString()
   }
 
-  // Check token order to get pair info from Huobi
+  // Check token order to get pair info from Binance
   async _isTokenOrderInverted ({ tokenA, tokenB }) {
     debug('Check token order for %s-%s', tokenA, tokenB)
-    const tokenALower = tokenA.toLowerCase()
-    const tokenBLower = tokenB.toLowerCase()
+    const tokenALower = tokenA.toUpperCase()
+    const tokenBLower = tokenB.toUpperCase()
 
     const symbols = await this.getSymbols()
 
     let matchingPairs = symbols.filter(pair => {
-      const baseCurrency = pair['base-currency']
-      const quoteCurrency = pair['quote-currency']
+      const baseAsset = pair['baseAsset']
+      const quoteAsset = pair['quoteAsset']
       return (
-        baseCurrency === tokenALower ||
-        quoteCurrency === tokenALower
+        baseAsset === tokenALower ||
+        quoteAsset === tokenALower
       ) && (
-        baseCurrency === tokenBLower ||
-        quoteCurrency === tokenBLower)
+        baseAsset === tokenBLower ||
+        quoteAsset === tokenBLower)
     })
 
     if (matchingPairs.length === 0) {
-      throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB)
+      throw Error('No matching markets in Binance: ' + tokenA + '-' + tokenB)
     }
 
     debug('Pair order result: %s', matchingPairs)
     const [ pair ] = matchingPairs
-    return tokenALower === pair['quote-currency'] &&
-    tokenBLower === pair['base-currency']
+    return tokenALower === pair['quoteAsset'] &&
+    tokenBLower === pair['baseAsset']
   }
 }
 
-module.exports = ExchangePriceRepoHuobi
+module.exports = PriceRepoBinance

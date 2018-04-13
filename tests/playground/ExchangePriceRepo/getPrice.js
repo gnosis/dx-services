@@ -1,9 +1,9 @@
-const ExchangePriceRepoKraken = require('../../../src/repositories/ExchangePriceRepo/ExchangePriceRepoKraken')
+const PriceRepoKraken = require('../../../src/repositories/PriceRepo/PriceRepoKraken')
 
-const exchangePriceRepo = new ExchangePriceRepoKraken({
+const priceRepo = new PriceRepoKraken({
   timeout: 10000
 })
-exchangePriceRepo.getPrice({
+priceRepo.getPrice({
   tokenA: 'ETH',
   tokenB: 'XBT'
 })

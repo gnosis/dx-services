@@ -3,12 +3,12 @@
 // const logger = new Logger(loggerNamespace)
 
 class MarketService {
-  constructor ({ exchangePriceRepo }) {
-    this._exchangePriceRepo = exchangePriceRepo
+  constructor ({ priceRepo }) {
+    this._priceRepo = priceRepo
   }
 
   async getPrice ({ tokenA, tokenB }) {
-    return this._exchangePriceRepo.getPrice({ tokenA, tokenB })
+    return this._priceRepo.getPrice({ tokenA, tokenB })
   }
 }
 

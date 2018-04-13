@@ -2,8 +2,8 @@ const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
 
-const ExchangePriceRepoMock = require('../../src/repositories/ExchangePriceRepo/ExchangePriceRepoMock')
-const exchangePriceRepo = new ExchangePriceRepoMock()
+const PriceRepoMock = require('../../src/repositories/PriceRepo/PriceRepoMock')
+const priceRepo = new PriceRepoMock()
 
 const auctionsMockData = require('../data/auctions')
 
@@ -69,7 +69,7 @@ test('It should ensureBuyLiquidity', async () => {
     auctions: _getAuctionsWhereBotShouldBuyEthRdn()
   })
   // we mock the exchange price repo
-  liquidityService._exchangePriceRepo = exchangePriceRepo
+  liquidityService._priceRepo = priceRepo
 
   async function _hasLowBuyVolume ({ sellToken, buyToken }) {
     const auctionRepo = liquidityService._auctionRepo
@@ -107,7 +107,7 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
     auctions: _getAuctionsWhereBotShouldBuyEthRdn()
   })
   // we mock the exchange price repo
-  liquidityService._exchangePriceRepo = exchangePriceRepo
+  liquidityService._priceRepo = priceRepo
 
   async function _hasLowBuyVolume ({ sellToken, buyToken }) {
     const auctionRepo = liquidityService._auctionRepo
