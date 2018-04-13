@@ -9,6 +9,29 @@ if (token) {
   web = new WebClient(token)
 }
 
+const message = {
+  "text": "This is the what the bots has been doing latetely",
+  "attachments": [
+    {
+      "title": "Last auctions report",
+      "color": "good",
+      "text": "Please, take a look to the new report for Dutch X",
+      "fields": [
+        {
+          "title": "From:",
+          "value": "09/04/18",
+          "short": false
+        }, {
+          "title": "To:",
+          "value": "16/04/18",
+          "short": false
+        }
+      ],
+      "footer": "Dutch X Bots - v1.0",
+      "ts": 123456789
+    }]
+}
+
 // This argument can be a channel ID, a DM ID, a MPDM ID, or a group ID
 // const conversationId = 'C1232456'
 
@@ -26,15 +49,25 @@ function postMessage ({ channel, text, attachments, file }) {
     })
 }
 
-function uploadFile ({ fileName, file }) {
+function uploadFile ({ fileName, file, channels }) {
   _assertEnabled()
   _assertMandatory(['fileName', 'file'], arguments[0])
 
   return web.files.upload({
     filename: fileName,
-    file
+    file,
+    channels
   })
 }
+
+
+function shareFile ({ fileId }) {
+  _assertEnabled()
+  _assertMandatory(['fileId'], arguments[0])
+
+  return web.files.sharedPublicURL({ file: fileId })
+}
+
 
 function uploadContentFile ({ fileName, content }) {
   _assertEnabled()
@@ -81,5 +114,6 @@ module.exports = {
   postMessage,
   uploadFile,
   uploadContentFile,
+  shareFile,
   isEnabled
 }
