@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "This is a sample server Petstore server.  You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters.",
-    "version": "0.0.11",
+    "description": "Welcome to DX-Services API guide. You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters.",
+    "version": "0.0.12",
     "title": "DX-Services",
     "termsOfService": "http://swagger.io/terms/",
     "contact": {
@@ -50,7 +50,15 @@
             "schema": {
               "type": "array",
               "items": {
-                "type": "object"
+                "type": "object",
+                "properties": {
+                  "tokenA": {
+                    "type": "string"
+                  },
+                  "tokenB": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
@@ -72,7 +80,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -106,7 +114,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -136,7 +144,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           },
@@ -189,7 +197,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           },
@@ -227,7 +235,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -258,7 +266,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -289,7 +297,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -304,7 +312,7 @@
         }
       }
     },
-    "/markets/{tokenPair}/extra-tokens": {
+    "/markets/{tokenPair}/extra-tokens/{auctionIndex}": {
       "get": {
         "tags": [
           "markets"
@@ -319,9 +327,17 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "auctionIndex",
+            "in": "path",
+            "description": "Auction index",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
           }
         ],
         "responses": {
@@ -349,7 +365,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -379,7 +395,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -409,7 +425,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           }
@@ -469,7 +485,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           },
@@ -506,7 +522,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market (TOKENA-TOKENB)",
+            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
             "required": true,
             "type": "string"
           },
@@ -558,7 +574,7 @@
         }
       }
     },
-    "/accounts/{accountAddress}/tokens/{tokenAddress}": {
+    "/accounts/{accountAddress}/tokens/{tokenSymbol}": {
       "get": {
         "tags": [
           "accounts"
@@ -578,9 +594,9 @@
             "type": "string"
           },
           {
-            "name": "tokenAddress",
+            "name": "tokenSymbol",
             "in": "path",
-            "description": "ERC20 token contract address",
+            "description": "Symbol of an approved token",
             "required": true,
             "type": "string"
           }
