@@ -140,6 +140,7 @@ class App {
       liquidityService: this._liquidityService,
       botAddress,
       markets: this._config.MARKETS,
+      slackClient: this._slackClient,
       botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
 
@@ -151,6 +152,7 @@ class App {
       liquidityService: this._liquidityService,
       botAddress,
       markets: this._config.MARKETS,
+      slackClient: this._slackClient,
       botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
 
@@ -163,6 +165,7 @@ class App {
       dxInfoService: this._dxInfoService,
       botAddress,
       markets: this._config.MARKETS,
+      slackClient: this._slackClient,
       botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
 
