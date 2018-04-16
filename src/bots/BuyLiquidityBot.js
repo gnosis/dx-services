@@ -30,7 +30,7 @@ class BuyLiquidityBot extends Bot {
     this._lastBuy = null
     this._lastError = null
 
-    this._botInfo = "SellLiquidityBot - v" + getVersion()
+    this._botInfo = 'BuyLiquidityBot - v' + getVersion()
   }
 
   async _doStart () {
@@ -125,37 +125,44 @@ class BuyLiquidityBot extends Bot {
     /* eslint quotes: 0 */
     // Notify to slack
     if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
-      this._slackClient.postMessage({
-        "channel": this._botTransactionsSlackChannel,
-        "attachments": [
-          {
-            "color": "good",
-            "title": "The bot has bought " + boughtTokensString,
-            "author_name": "BuyLiquidityBot",
-            "text": "The bot has bought tokens to ensure the buy liquidity.",
-            "fields": [
-              {
-                "title": "Token pair",
-                "value": sellToken + '-' + buyToken,
-                "short": false
-              }, {
-                "title": "Auction index",
-                "value": auctionIndex,
-                "short": false
-              }, {
-                "title": "Bought tokens",
-                "value": boughtTokensString,
-                "short": false
-              }, {
-                "title": "USD worth",
-                "value": '$' + amountInUSD,
-                "short": false
-              }
-            ],
-            "footer": this._botInfo
-          }
-        ]
-      })
+      this._slackClient
+        .postMessage({
+          "channel": this._botTransactionsSlackChannel,
+          "attachments": [
+            {
+              "color": "good",
+              "title": "The bot has bought " + boughtTokensString,
+              "author_name": "BuyLiquidityBot",
+              "text": "The bot has bought tokens to ensure the buy liquidity.",
+              "fields": [
+                {
+                  "title": "Token pair",
+                  "value": sellToken + '-' + buyToken,
+                  "short": false
+                }, {
+                  "title": "Auction index",
+                  "value": auctionIndex,
+                  "short": false
+                }, {
+                  "title": "Bought tokens",
+                  "value": boughtTokensString,
+                  "short": false
+                }, {
+                  "title": "USD worth",
+                  "value": '$' + amountInUSD,
+                  "short": false
+                }
+              ],
+              "footer": this._botInfo
+            }
+          ]
+        })
+        .catch(error => {
+          logger.error({
+            msg: 'Error notifing bought tokens to Slack: ' + error.toString(),
+            error
+          })
+        })
     }
   }
 

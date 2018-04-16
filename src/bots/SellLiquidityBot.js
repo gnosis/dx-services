@@ -7,7 +7,7 @@ const getVersion = require('../helpers/getVersion')
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
-const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 10 * 1000
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 60 * 1000
 
 class SellLiquidityBot extends Bot {
   constructor ({
@@ -31,7 +31,7 @@ class SellLiquidityBot extends Bot {
     this._lastSell = null
     this._lastError = null
 
-    this._botInfo = "SellLiquidityBot - v" + getVersion()
+    this._botInfo = 'SellLiquidityBot - v' + getVersion()
   }
 
   async _doStart () {
@@ -150,37 +150,44 @@ class SellLiquidityBot extends Bot {
     /* eslint quotes: 0 */
     // Notify to slack
     if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
-      this._slackClient.postMessage({
-        "channel": this._botTransactionsSlackChannel,
-        "attachments": [
-          {
-            "color": "good",
-            "title": "The bot has sold " + soldTokensString,
-            "author_name": "SellLiquidityBot",
-            "text": "The bot has sold tokens to ensure the sell liquidity.",
-            "fields": [
-              {
-                "title": "Token pair",
-                "value": sellToken + '-' + buyToken,
-                "short": false
-              }, {
-                "title": "Auction index",
-                "value": auctionIndex,
-                "short": false
-              }, {
-                "title": "Sold tokens",
-                "value": soldTokensString,
-                "short": false
-              }, {
-                "title": "USD worth",
-                "value": '$' + amountInUSD,
-                "short": false
-              }
-            ],
-            "footer": this._botInfo
-          }
-        ]
-      })
+      this._slackClient
+        .postMessage({
+          "channel": this._botTransactionsSlackChannel,
+          "attachments": [
+            {
+              "color": "good",
+              "title": "The bot has sold " + soldTokensString,
+              "author_name": "SellLiquidityBot",
+              "text": "The bot has sold tokens to ensure the sell liquidity.",
+              "fields": [
+                {
+                  "title": "Token pair",
+                  "value": sellToken + '-' + buyToken,
+                  "short": false
+                }, {
+                  "title": "Auction index",
+                  "value": auctionIndex,
+                  "short": false
+                }, {
+                  "title": "Sold tokens",
+                  "value": soldTokensString,
+                  "short": false
+                }, {
+                  "title": "USD worth",
+                  "value": '$' + amountInUSD,
+                  "short": false
+                }
+              ],
+              "footer": this._botInfo
+            }
+          ]
+        })
+        .catch(error => {
+          logger.error({
+            msg: 'Error notifing sold tokens to Slack: ' + error.toString(),
+            error
+          })
+        })
     }
   }
 
