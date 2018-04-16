@@ -2,22 +2,35 @@ const loggerNamespace = 'dx-service:bots:BuyLiquidityBot'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
+const getVersion = require('../helpers/getVersion')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 60 * 1000
 
 class BuyLiquidityBot extends Bot {
-  constructor ({ name, eventBus, liquidityService, botAddress, markets }) {
+  constructor ({
+    name,
+    eventBus,
+    liquidityService,
+    botAddress,
+    markets,
+    slackClient,
+    botTransactionsSlackChannel
+  }) {
     super(name)
     this._eventBus = eventBus
     this._liquidityService = liquidityService
     this._botAddress = botAddress
     this._markets = markets
+    this._slackClient = slackClient
+    this._botTransactionsSlackChannel = botTransactionsSlackChannel
 
     this._lastCheck = null
     this._lastBuy = null
     this._lastError = null
+
+    this._botInfo = "SellLiquidityBot - v" + getVersion()
   }
 
   async _doStart () {
@@ -63,17 +76,7 @@ class BuyLiquidityBot extends Bot {
             // The bot bought some tokens
             this._lastBuy = new Date()
             boughtTokens.forEach(buyOrder => {
-              auctionLogger.info({
-                sellToken,
-                buyToken,
-                msg: "I've bought %d %s (%d USD) to ensure BUY liquidity",
-                params: [
-                  buyOrder.amount.div(1e18),
-                  buyOrder.sellToken,
-                  buyOrder.amountInUSD
-                ],
-                notify: true
-              })
+              this._notifyBuyedTokens(buyOrder)
             })
           } else {
             // The bot didn't have to do anything
@@ -93,6 +96,67 @@ class BuyLiquidityBot extends Bot {
     }
 
     return liquidityWasEnsured
+  }
+
+  _notifyBuyedTokens (buyOrder) {
+    const {
+      sellToken,
+      buyToken,
+      amount,
+      amountInUSD,
+      auctionIndex
+    } = buyOrder
+    // Log sold tokens
+    const amountInTokens = amount.div(1e18)
+    const boughtTokensString = amountInTokens + " " + buyToken
+
+    auctionLogger.info({
+      sellToken,
+      buyToken,
+      msg: "I've bought %s (%d USD) in auction %d to ensure BUY liquidity",
+      params: [
+        boughtTokensString,
+        amountInUSD,
+        auctionIndex
+      ],
+      notify: true
+    })
+
+    /* eslint quotes: 0 */
+    // Notify to slack
+    if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+      this._slackClient.postMessage({
+        "channel": this._botTransactionsSlackChannel,
+        "attachments": [
+          {
+            "color": "good",
+            "title": "The bot has bought " + boughtTokensString,
+            "author_name": "BuyLiquidityBot",
+            "text": "The bot has bought tokens to ensure the buy liquidity.",
+            "fields": [
+              {
+                "title": "Token pair",
+                "value": sellToken + '-' + buyToken,
+                "short": false
+              }, {
+                "title": "Auction index",
+                "value": auctionIndex,
+                "short": false
+              }, {
+                "title": "Bought tokens",
+                "value": boughtTokensString,
+                "short": false
+              }, {
+                "title": "USD worth",
+                "value": '$' + amountInUSD,
+                "short": false
+              }
+            ],
+            "footer": this._botInfo
+          }
+        ]
+      })
+    }
   }
 
   _handleError (sellToken, buyToken, error) {

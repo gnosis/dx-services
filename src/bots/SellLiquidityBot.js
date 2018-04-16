@@ -138,7 +138,7 @@ class SellLiquidityBot extends Bot {
     auctionLogger.info({
       sellToken,
       buyToken,
-      msg: "I've sold %s (%d USD) in auction %d to ensure sell liquidity",
+      msg: "I've sold %s (%d USD) in auction %d to ensure SELL liquidity",
       params: [
         soldTokensString,
         amountInUSD,
@@ -173,7 +173,7 @@ class SellLiquidityBot extends Bot {
                 "short": false
               }, {
                 "title": "USD worth",
-                "value": amountInUSD,
+                "value": '$' + amountInUSD,
                 "short": false
               }
             ],
