@@ -48,12 +48,14 @@ class App {
     // Events
     eventBus,
     ethereumClient,
-    auctionEventWatcher
+    auctionEventWatcher,
+    slackClient
   }) {
     this._config = config
     this._eventBus = eventBus
     this._auctionEventWatcher = auctionEventWatcher
     this._ethereumClient = ethereumClient
+    this._slackClient = slackClient
 
     // Services
     this._liquidityService = liquidityService
@@ -88,10 +90,7 @@ class App {
 
     // Display some basic info
     const version = await this._dxInfoService.getVersion()
-    logger.info({
-      msg: 'Loading "Bots + Bots API Server" v%s in "%s" environment...',
-      params: [ version, this._config.ENVIRONMENT ]
-    })
+    await this._notifyStart(version)
     
     // Run all the bots
     await Promise.all(
@@ -108,6 +107,8 @@ class App {
   }
 
   async stop () {
+    const version = await this._dxInfoService.getVersion()
+    await this._notifyStop(version)
     logger.info({ msg: 'Shut down App' })
 
     // Stop the Bots API Server
@@ -138,7 +139,8 @@ class App {
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       botAddress,
-      markets: this._config.MARKETS
+      markets: this._config.MARKETS,
+      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
 
     // Buy Liquidity Bot
@@ -148,7 +150,8 @@ class App {
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       botAddress,
-      markets: this._config.MARKETS
+      markets: this._config.MARKETS,
+      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
 
     // Buy Liquidity Bot
@@ -159,8 +162,11 @@ class App {
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
       botAddress,
-      markets: this._config.MARKETS
+      markets: this._config.MARKETS,
+      botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
+
+    // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_BOT_USAGE_REPORT
 
     // Return bots
     return [
@@ -186,6 +192,46 @@ class App {
           throw new Error("The ethereumClient doesn't have the bot account configured")
         }
       })
+  }
+
+  async _notifyStart (version) {
+    const message = `Starting Bots and Bots API Server v${version} in \
+"${this._config.ENVIRONMENT}" environment`
+
+    // Display some basic info
+    logger.info(message)
+
+    if (this._slackClient.isEnabled()) {
+      await this._slackClient.postMessage({
+        channel: this._config.SLACK_CHANNEL_OPERATIONS,
+        text: message
+      }).catch(error => {
+        logger.error({
+          msg: 'Error notifing API start to Slack: ' + error.toString(),
+          error
+        })
+      })
+    }
+  }
+
+  async _notifyStop (version) {
+    const message = `Stopping Bots and Bots API Server v${version} in \
+"${this._config.ENVIRONMENT}" environment`
+
+    // Display some basic info
+    logger.info(message)
+
+    if (this._slackClient.isEnabled()) {
+      await this._slackClient.postMessage({
+        channel: this._config.SLACK_CHANNEL_OPERATIONS,
+        text: message
+      }).catch(error => {
+        logger.error({
+          msg: 'Error notifing API stop to Slack: ' + error.toString(),
+          error
+        })
+      })
+    }
   }
 }
 

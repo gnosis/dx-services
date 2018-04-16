@@ -32,6 +32,9 @@ async function createInstances ({
   const auctionRepo = _getAuctionRepo(config, ethereumClient, contracts)
   const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
+  // Slack client
+  const slackClient = require('./slackClient')
+
   // Service: Liquidity service
   const liquidityService = _getLiquidityService({
     config: config,
@@ -79,6 +82,7 @@ async function createInstances ({
     contracts,
     auctionEventWatcher,
     ethereumClient,
+    slackClient,
 
     // services
     liquidityService,

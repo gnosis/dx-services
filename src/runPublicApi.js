@@ -43,11 +43,13 @@ class App {
     // Events
     eventBus,
     ethereumClient,
-    auctionEventWatcher
+    auctionEventWatcher,
+    slackClient
   }) {
     this._config = config
     this._eventBus = eventBus
     this._ethereumClient = ethereumClient
+    this._slackClient = slackClient
 
     // Services
     this._dxInfoService = dxInfoService
@@ -64,12 +66,7 @@ class App {
 
   async start () {
     const version = await this._dxInfoService.getVersion()
-
-    // Display some basic info
-    logger.info({
-      msg: 'Loading Public API Server v%s in "%s" environment...',
-      params: [ version, this._config.ENVIRONMENT ]
-    })
+    await this._notifyStart(version)
 
     // Run Api server
     await this._publicApiServer.start()
@@ -78,7 +75,8 @@ class App {
   }
 
   async stop () {
-    logger.info({ msg: 'Shut down Public API Server' })
+    const version = await this._dxInfoService.getVersion()
+    await this._notifyStop(version)
 
     // Stop the API Server
     if (this._publicApiServer) {
@@ -88,7 +86,47 @@ class App {
     if (this._eventBus) {
       this._eventBus.clearAllListeners()
     }
-    logger.info({ msg: 'Public API Server is ready to shut down' })
+    logger.info('Public API Server is ready to shut down')
+  }
+
+  async _notifyStart (version) {
+    const message = `Starting Public API Server v${version} in \
+"${this._config.ENVIRONMENT}" environment`
+
+    // Display some basic info
+    logger.info(message)
+
+    if (this._slackClient.isEnabled()) {
+      await this._slackClient.postMessage({
+        channel: this._config.SLACK_CHANNEL_OPERATIONS,
+        text: message
+      }).catch(error => {
+        logger.error({
+          msg: 'Error notifing API start to Slack: ' + error.toString(),
+          error
+        })
+      })
+    }
+  }
+
+  async _notifyStop (version) {
+    const message = `Stopping Public API Server v${version} in \
+"${this._config.ENVIRONMENT}" environment`
+
+    // Display some basic info
+    logger.info(message)
+
+    if (this._slackClient.isEnabled()) {
+      await this._slackClient.postMessage({
+        channel: this._config.SLACK_CHANNEL_OPERATIONS,
+        text: message
+      }).catch(error => {
+        logger.error({
+          msg: 'Error notifing API stop to Slack: ' + error.toString(),
+          error
+        })
+      })
+    }
   }
 }
 
