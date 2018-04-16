@@ -1,7 +1,5 @@
 const loggerNamespace = 'dx-service:repositories:priceRepo:strategies:sequence'
-const Logger = require('../../../helpers/Logger')
-const logger = new Logger(loggerNamespace)
-const AuctionLogger = require('../../helpers/AuctionLogger')
+const AuctionLogger = require('../../../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const priceRepos = {}
@@ -13,7 +11,8 @@ function _capitalizeFirstLetter (string) {
 function _getPriceRepo (feedName) {
   let priceRepo = priceRepos[feedName]
   if (!priceRepo) {
-    priceRepo = require('../feeds/PriceRepo' + _capitalizeFirstLetter(feedName))
+    const PriceRepo = require('../feeds/PriceRepo' + _capitalizeFirstLetter(feedName))
+    priceRepo = new PriceRepo({})
     priceRepos[feedName] = priceRepo
   }
   return priceRepo

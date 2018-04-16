@@ -3,7 +3,7 @@ const formatUtil = require('../../helpers/formatUtil')
 class PriceRepoImpl {
   constructor ({ priceFeedStrategiesDefault, priceFeedStrategies }) {
     this._priceFeedStrategiesDefault = priceFeedStrategiesDefault
-    this._priceFeedStrategies = _normalizeMarketName(priceFeedStrategies) // TODO: implement
+    this._priceFeedStrategies = _normalizeMarketName(priceFeedStrategies)
     this._strategies = {}
   }
 
@@ -21,7 +21,7 @@ class PriceRepoImpl {
   _getStrategy (strategyName) {
     let strategy = this._strategies[strategyName]
     if (!strategy) {
-      strategy = require('../strategies/' + strategyName)
+      strategy = require('./strategies/' + strategyName)
       this._strategies[strategyName] = strategy
     }
     return strategy
@@ -29,8 +29,14 @@ class PriceRepoImpl {
 }
 
 function _normalizeMarketName (priceFeedStrategies) {
-  // TODO: return a new object with the normalized keys
-  return priceFeedStrategies
+  return Object.keys(priceFeedStrategies).reduce((normalized, key) => {
+    let { sellToken: tokenA, buyToken: tokenB } = formatUtil.tokenPairSplit(key)
+    let normalizedKey = formatUtil.formatMarketDescriptor({
+      tokenA, tokenB })
+
+    normalized[normalizedKey] = priceFeedStrategies[key]
+    return normalized
+  }, {})
 }
 
 module.exports = PriceRepoImpl

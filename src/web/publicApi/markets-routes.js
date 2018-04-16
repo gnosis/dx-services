@@ -1,5 +1,5 @@
-const routesHelper = require('../helpers/routesHelper')
-const _tokenPairSplit = routesHelper.tokenPairSplit
+const formatUtil = require('../../helpers/formatUtil')
+const _tokenPairSplit = formatUtil.tokenPairSplit
 
 function createRoutes ({ dxInfoService }) {
   const routes = []
