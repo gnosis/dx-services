@@ -6,8 +6,8 @@ const getVersion = require('../helpers/getVersion')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 2500 // $2500
 const MINIMUM_AMOUNT_FOR_ETHER = 0.1 * 1e18 // 0.1 ETH
-// const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000 // 15 min
-const PERIODIC_CHECK_MILLISECONDS = 20 * 1000
+const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000 // 15 min
+// const PERIODIC_CHECK_MILLISECONDS = 20 * 1000
 
 class BalanceCheckBot extends Bot {
   constructor ({
