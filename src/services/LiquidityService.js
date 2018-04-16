@@ -414,6 +414,7 @@ keeps happening`
           buyLiquidityOperation = {
             sellToken,
             buyToken,
+            auctionIndex,
             amount: buyTokensRequiredToMeetLiquidity,
             amountInUSD: amountToBuyInUSD
           }
@@ -512,6 +513,7 @@ keeps happening`
     return {
       sellToken,
       buyToken,
+      auctionIndex,
       amount: amountInSellTokens,
       amountInUSD: amountToSellInUSD
     }
