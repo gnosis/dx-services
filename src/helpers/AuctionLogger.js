@@ -25,7 +25,7 @@ class AuctionLogger extends Logger {
     const tags = [ sufix ].concat(options.tags || [])
     const extra = Object.assign({ sellToken, buyToken }, contextDataAux.extra)
     const contextData = Object.assign(contextDataAux, { extra, tags })
-    
+
     const params = Object.assign(options, {
       sufix,
       contextData

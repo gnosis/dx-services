@@ -22,7 +22,7 @@ const priceRepo = new PriceRepoImpl({
 })
 
 priceRepo.getPrice({
-  tokenA: 'RDN',
+  tokenA: 'OMG',
   tokenB: 'ETH'
 })
   .then(console.log)
