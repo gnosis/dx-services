@@ -1,4 +1,6 @@
-const slackClient = require('../../../../src/helpers/slackClient')
+const SlackClient = require('../../../../src/helpers/SlackClient')
+
+const slackClient = new SlackClient()
 const _printChannels = require('./_printChannels')
 const showEmptyChannels = false
 

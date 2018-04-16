@@ -1,4 +1,4 @@
-const SlackClient = require('../../../../src/helpers/slackClient')
+const SlackClient = require('../../../../src/helpers/SlackClient')
 
 // https://api.slack.com/docs/messages/builder
 const fs = require('fs')

@@ -7,6 +7,7 @@ const isLocal = environment === 'local'
 */
 
 const EventBus = require('./EventBus')
+const SlackClient = require('./SlackClient')
 
 async function createInstances ({
   test = false,
@@ -33,7 +34,8 @@ async function createInstances ({
   const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
   // Slack client
-  const slackClient = require('./slackClient')
+  const slackClient = new SlackClient()
+
 
   // Service: Liquidity service
   const liquidityService = _getLiquidityService({
