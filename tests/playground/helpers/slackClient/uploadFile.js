@@ -1,7 +1,9 @@
-const slackClient = require('../../../../src/helpers/slackClient')
+const SlackClient = require('../../../../src/helpers/slackClient')
+
+// https://api.slack.com/docs/messages/builder
 const fs = require('fs')
 // http://slackapi.github.io/node-slack-sdk/web_api
-
+/* eslint quotes: 0 */
 const message = {
   "text": "Check out what the bot's been doing lately",
   "attachments": [
@@ -27,6 +29,7 @@ const message = {
 }
 
 message.channel = 'GA5J9F13J'
+const slackClient = new SlackClient()
 
 // const file = fs.createReadStream(`./test-file.csv`)
 // slackClient

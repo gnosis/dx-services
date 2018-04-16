@@ -1,5 +1,7 @@
-const slackClient = require('../../../../src/helpers/slackClient')
+const SlackClient = require('../../../../src/helpers/slackClient')
 
+// https://api.slack.com/docs/messages/builder
+const slackClient = new SlackClient()
 slackClient
   .postMessage({
     channel: 'GA5J9F13J',

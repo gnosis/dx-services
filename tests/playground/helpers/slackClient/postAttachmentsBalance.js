@@ -1,7 +1,8 @@
-const slackClient = require('../../../../src/helpers/slackClient')
+const SlackClient = require('../../../../src/helpers/slackClient')
 
+// https://api.slack.com/docs/messages/builder
+/* eslint quotes: 0 */
 const message = {
-   "channel": 'GA5J9F13J',
   "text": "The bot account has a balance below the threshold",
   "attachments": [
     {
@@ -42,6 +43,8 @@ const message = {
   ]
 }
 
+const slackClient = new SlackClient()
+message.channel = 'GA5J9F13J'
 slackClient.postMessage(message)
   .then(res => {
     // `res` contains information about the posted message
