@@ -43,10 +43,40 @@ function formatFraction (fraction, inDecimal = true) {
   }
 }
 
+function formatMarketDescriptor ({ tokenA, tokenB }) {
+  if (tokenA < tokenB) {
+    return tokenA + '-' + tokenB
+  } else {
+    return tokenB + '-' + tokenA
+  }
+}
+
+function tokenPairSplit (tokenPair) {
+  let splittedPair = tokenPair.toUpperCase().split('-')
+  if (splittedPair.length === 2) {
+    const [sellToken, buyToken] = splittedPair
+    return {
+      sellToken,
+      buyToken
+    }
+  } else {
+    const error = new Error('Invalid token pair format. Valid format is <sellToken>-<buyToken>')
+    error.type = 'INVALID_TOKEN_FORMAT'
+    error.status = 412
+    throw error
+  }
+}
+
+module.exports = {
+  tokenPairSplit
+}
+
 module.exports = {
   formatDateTime,
   formatDatesDifference,
   formatBoolean,
   formatFromWei,
-  formatFraction
+  formatFraction,
+  formatMarketDescriptor,
+  tokenPairSplit
 }

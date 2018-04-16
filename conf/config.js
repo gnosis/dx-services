@@ -95,6 +95,22 @@ const AUCTION_REPO_IMPL = 'impl' // mock, impl
 const ETHEREUM_REPO_IMPL = 'impl' // mock. impl
 const EXCHANGE_PRICE_REPO_IMPL = 'impl' // mock. impl
 
+const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
+  strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex']
+}
+
+const EXCHANGE_PRICE_FEED_STRATEGIES = {
+  'ETH-OMG': {
+    strategy: 'sequence',
+    feeds: ['binance', 'huobi', 'bitfinex']
+  },
+  'ETH-RDN': {
+    strategy: 'sequence',
+    feeds: ['huobi', 'binance', 'bitfinex']
+  }
+}
+
 module.exports = {
   ENVIRONMENT,
 
@@ -119,6 +135,8 @@ module.exports = {
   AUCTION_REPO_IMPL,
   ETHEREUM_REPO_IMPL,
   EXCHANGE_PRICE_REPO_IMPL,
+  EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
+  EXCHANGE_PRICE_FEED_STRATEGIES,
 
   // CONTRACTS
   DX_CONTRACT_ADDRESS,

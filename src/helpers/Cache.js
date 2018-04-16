@@ -16,10 +16,10 @@ class Cache {
     caches.push(this._cache)
   }
 
-  get ({ key, time, fetchFn }) {
+  async get ({ key, time, fetchFn }) {
     let value = this._cache.get(key)
     if (value === undefined) {
-      value = fetchFn()
+      value = await fetchFn()
       this._cache.set(key, value, time)
     }
 

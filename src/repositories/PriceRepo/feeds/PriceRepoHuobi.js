@@ -1,15 +1,15 @@
-const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoHuobi')
-const httpRequest = require('../../helpers/httpRequest')
-const Cache = require('../../helpers/Cache')
-const CACHE_SYMBOLS_KEY = 'ExchangePriceRepoHuobi:'
+const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoHuobi')
+const httpRequest = require('../../../helpers/httpRequest')
+const Cache = require('../../../helpers/Cache')
+const CACHE_SYMBOLS_KEY = 'PriceRepoHuobi:'
 const CACHE_SYMBOLS_TIME = 2 * 60 * 60 * 1000 // 2 hours
 
-class ExchangePriceRepoHuobi {
+class PriceRepoHuobi {
   constructor ({ url = 'https://api.huobi.pro', version = 'v1', timeout = 5000 }) {
     this._timeout = timeout
     this._version = version
     this._baseUrl = url
-    this._cache = new Cache('ExchangePriceRepoHuobi')
+    this._cache = new Cache('PriceRepoHuobi')
   }
 
   // Get Huobi market pairs
@@ -87,4 +87,4 @@ class ExchangePriceRepoHuobi {
   }
 }
 
-module.exports = ExchangePriceRepoHuobi
+module.exports = PriceRepoHuobi

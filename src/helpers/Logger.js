@@ -64,7 +64,7 @@ class Logger {
           let tags = this._tags.concat(contextData.tags || [])
           // TODO: Review if we should add version as data? tag?
           tags.push('v' + version)
-  
+
           const that = this
           const notifierParams = Object.assign(contextData, {
             msg: formattedMessage,
@@ -85,7 +85,7 @@ class Logger {
               */
             }
           })
-  
+
           // Notify the message
           if (error) {
             messageNotifier.handleError(notifierParams)

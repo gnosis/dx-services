@@ -1,11 +1,29 @@
-const ExchangePriceRepoKraken = require('../../../src/repositories/ExchangePriceRepo/ExchangePriceRepoKraken')
+const PriceRepoImpl = require('../../../src/repositories/PriceRepo/PriceRepoImpl')
 
-const exchangePriceRepo = new ExchangePriceRepoKraken({
-  timeout: 10000
+const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
+  strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex']
+}
+
+const EXCHANGE_PRICE_FEED_STRATEGIES = {
+  'ETH-OMG': {
+    strategy: 'sequence',
+    feeds: ['binance', 'huobi', 'bitfinex']
+  },
+  'ETH-RDN': {
+    strategy: 'sequence',
+    feeds: ['huobi', 'binance', 'bitfinex']
+  }
+}
+
+const priceRepo = new PriceRepoImpl({
+  priceFeedStrategiesDefault: EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
+  priceFeedStrategies: EXCHANGE_PRICE_FEED_STRATEGIES
 })
-exchangePriceRepo.getPrice({
-  tokenA: 'ETH',
-  tokenB: 'XBT'
+
+priceRepo.getPrice({
+  tokenA: 'OMG',
+  tokenB: 'ETH'
 })
   .then(console.log)
   .catch(console.error)

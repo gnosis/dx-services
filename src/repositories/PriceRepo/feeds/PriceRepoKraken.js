@@ -1,8 +1,8 @@
-const debug = require('debug')('DEBUG-dx-service:repositories:ExchangePriceRepoKraken')
-const httpRequest = require('../../helpers/httpRequest')
+const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoKraken')
+const httpRequest = require('../../../helpers/httpRequest')
 const LAST_OPERATION_PROP_NAME = 'c'
 
-class ExchangePriceRepoKraken {
+class PriceRepoKraken {
   constructor ({ url = 'https://api.kraken.com', version = 0, timeout = 5000 }) {
     this._timeout = timeout
     this._baseUrl = url + '/' + version
@@ -53,4 +53,4 @@ function getOperation (pair) {
   return { price, amount }
 }
 
-module.exports = ExchangePriceRepoKraken
+module.exports = PriceRepoKraken

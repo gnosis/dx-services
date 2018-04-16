@@ -28,7 +28,7 @@ async function createInstances ({
   const contracts = await _loadContracts(config, ethereumClient)
 
   // Repos
-  const exchangePriceRepo = _getExchangePriceRepo(config)
+  const priceRepo = _getPriceRepo(config)
   const auctionRepo = _getAuctionRepo(config, ethereumClient, contracts)
   const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
@@ -38,7 +38,7 @@ async function createInstances ({
   // Service: Liquidity service
   const liquidityService = _getLiquidityService({
     config: config,
-    exchangePriceRepo,
+    priceRepo,
     auctionRepo,
     ethereumRepo
   })
@@ -46,7 +46,7 @@ async function createInstances ({
   // Service: DX info service
   const dxInfoService = _getDxInfoService({
     config: config,
-    exchangePriceRepo,
+    priceRepo,
     auctionRepo,
     ethereumRepo
   })
@@ -68,7 +68,7 @@ async function createInstances ({
   // Service: Market service
   const marketService = _getMarketService({
     config: config,
-    exchangePriceRepo
+    priceRepo
   })
 
   // Event Watcher
@@ -95,7 +95,7 @@ async function createInstances ({
   if (test) {
     // For testing is handy to return also the repos, client, etc
     instances = Object.assign({}, instances, {
-      exchangePriceRepo,
+      priceRepo,
       auctionRepo,
       ethereumRepo,
       ethereumClient
@@ -194,32 +194,35 @@ function _getAuctionRepo (config, ethereumClient, contracts) {
   return auctionRepoPromise
 }
 
-function _getExchangePriceRepo (config) {
-  let exchangePriceRepo, ExchangePriceRepo
+function _getPriceRepo (config) {
+  let priceRepo, PriceRepo
   switch (config.EXCHANGE_PRICE_REPO_IMPL) {
     case 'mock':
-      ExchangePriceRepo = require('../repositories/ExchangePriceRepo/ExchangePriceRepoMock')
-      exchangePriceRepo = new ExchangePriceRepo({})
+      PriceRepo = require('../repositories/PriceRepo/PriceRepoMock')
+      priceRepo = new PriceRepo({})
       break
 
     case 'impl':
-      ExchangePriceRepo = require('../repositories/ExchangePriceRepo/ExchangePriceRepoHuobi')
-      exchangePriceRepo = new ExchangePriceRepo({})
+      PriceRepo = require('../repositories/PriceRepo/PriceRepoImpl')
+      priceRepo = new PriceRepo({
+        priceFeedStrategiesDefault: config.EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
+        priceFeedStrategies: config.EXCHANGE_PRICE_FEED_STRATEGIES
+      })
       break
-      
+
     default:
-      throw new Error('Unkown implementation for ExchangePriceRepo: ' + config.EXCHANGE_PRICE_REPO_IMPL)
+      throw new Error('Unkown implementation for PriceRepo: ' + config.EXCHANGE_PRICE_REPO_IMPL)
   }
 
-  return exchangePriceRepo
+  return priceRepo
 }
 
-function _getLiquidityService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
+function _getLiquidityService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
   const LiquidityService = require('../services/LiquidityService')
   return new LiquidityService({
     // Repos
     auctionRepo,
-    exchangePriceRepo,
+    priceRepo,
     ethereumRepo,
 
     // Config
@@ -228,12 +231,12 @@ function _getLiquidityService ({ config, auctionRepo, exchangePriceRepo, ethereu
   })
 }
 
-function _getDxInfoService ({ config, auctionRepo, exchangePriceRepo, ethereumRepo }) {
+function _getDxInfoService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
   const DxInfoService = require('../services/DxInfoService')
   return new DxInfoService({
     // Repos
     auctionRepo,
-    exchangePriceRepo,
+    priceRepo,
     markets: config.MARKETS,
     ethereumRepo
   })
@@ -263,10 +266,10 @@ function _getBotsService ({ config, auctionRepo, ethereumRepo }) {
   })
 }
 
-function _getMarketService ({ config, exchangePriceRepo }) {
+function _getMarketService ({ config, priceRepo }) {
   const MarketService = require('../services/MarketService')
   return new MarketService({
-    exchangePriceRepo
+    priceRepo
   })
 }
 
