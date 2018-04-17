@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Run cron and Bots
 /usr/sbin/crond -f -l 8 & \
