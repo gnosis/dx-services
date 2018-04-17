@@ -157,7 +157,6 @@ class SellLiquidityBot extends Bot {
             {
               "color": "good",
               "title": "The bot has sold " + soldTokensString,
-              "author_name": "SellLiquidityBot",
               "text": "The bot has sold tokens to ensure the sell liquidity.",
               "fields": [
                 {
@@ -178,7 +177,8 @@ class SellLiquidityBot extends Bot {
                   "short": false
                 }
               ],
-              "footer": this._botInfo
+              author_name: this.nameForLogging,
+              footer: this.botInfo
             }
           ]
         })

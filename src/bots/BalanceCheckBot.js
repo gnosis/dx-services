@@ -2,7 +2,6 @@ const loggerNamespace = 'dx-service:bots:BalanceCheckBot'
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
-const getVersion = require('../helpers/getVersion')
 const formatUtil = require('../helpers/formatUtil')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 5000 // $5000
@@ -45,8 +44,6 @@ class BalanceCheckBot extends Bot {
     this._lastError = null
     this._lastSlackEtherBalanceNotification = null
     this._lastSlackTokenBalanceNotification = null
-
-    this._botInfo = 'BalanceCheckBot - v' + getVersion()
   }
 
   async _doStart () {
@@ -126,15 +123,11 @@ class BalanceCheckBot extends Bot {
     const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER / 1e18
     const balance = balanceOfEther.div(1e18).valueOf()
     
-    const message = 'The bot account has ETHER balance below ' +
-    minimunAmount
+    const message = 'The bot account has ETHER balance below ' + minimunAmount
 
     // Log message
     logger.warn({
       msg: message,
-      params: [
-        minimunAmount
-      ],
       contextData: {
         extra: {
           balanceOfEther: balance
@@ -151,7 +144,6 @@ class BalanceCheckBot extends Bot {
         attachments: [{
           color: 'danger',
           title: message,
-          author_name: 'BalanceCheckBot',
           fields: [
             {
               title: 'Ether balance',
@@ -163,7 +155,8 @@ class BalanceCheckBot extends Bot {
               short: false
             }
           ],
-          footer: this._botInfo
+          author_name: this.nameForLogging,
+          footer: this.botInfo
         }]
       }
     })
@@ -207,9 +200,9 @@ class BalanceCheckBot extends Bot {
           color: 'danger',
           title: message,
           text: 'The tokens below the threshold are:',
-          author_name: 'BalanceCheckBot',
           fields: fields,
-          footer: this._botInfo
+          author_name: this.nameForLogging,
+          footer: this.botInfo
         }]
       }
     })

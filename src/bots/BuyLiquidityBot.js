@@ -2,7 +2,6 @@ const loggerNamespace = 'dx-service:bots:BuyLiquidityBot'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
-const getVersion = require('../helpers/getVersion')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
@@ -29,8 +28,6 @@ class BuyLiquidityBot extends Bot {
     this._lastCheck = null
     this._lastBuy = null
     this._lastError = null
-
-    this._botInfo = 'BuyLiquidityBot - v' + getVersion()
   }
 
   async _doStart () {
@@ -132,7 +129,6 @@ class BuyLiquidityBot extends Bot {
             {
               "color": "good",
               "title": "The bot has bought " + boughtTokensString,
-              "author_name": "BuyLiquidityBot",
               "text": "The bot has bought tokens to ensure the buy liquidity.",
               "fields": [
                 {
@@ -153,7 +149,8 @@ class BuyLiquidityBot extends Bot {
                   "short": false
                 }
               ],
-              "footer": this._botInfo
+              author_name: this.nameForLogging,
+              footer: this.botInfo
             }
           ]
         })
