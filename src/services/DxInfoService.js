@@ -370,6 +370,29 @@ class DxInfoService {
     return this._markets
   }
 
+  async getTokenList () {
+    let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
+      if (list.indexOf(tokenA) === -1) {
+        list.push(tokenA)
+      }
+
+      if (list.indexOf(tokenB) === -1) {
+        list.push(tokenB)
+      }
+      return list
+    }, [])
+
+    let detailedTokenList = await tokenList.map(async token => {
+      return {
+        symbol: token.toUpperCase(),
+        address: await this._auctionRepo.getTokenAddress({ token })
+      }
+    })
+    return Promise.all(detailedTokenList)
+    // return this._auctionRepo.getTokens()
+  }
+
+  // TODO implement
   async getCurrencies () {}
 
   async getState ({ sellToken, buyToken }) {
