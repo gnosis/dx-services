@@ -5,7 +5,7 @@ const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 5000 // $5000
-const MINIMUM_AMOUNT_FOR_ETHER = 0.4 * 1e18 // 0.4 ETH
+const MINIMUM_AMOUNT_FOR_ETHER = 0.4 * 1e18 // 0.4 WETH
 const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000 // 15 min
 const MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS = 4 * 60 * 60 * 1000 // 4h
 
@@ -65,7 +65,7 @@ class BalanceCheckBot extends Bot {
     let botHasEnoughTokens
     try {
       const [ balanceOfEther, balancesOfTokens ] = await Promise.all([
-        // Get ETH balance
+        // Get WETH balance
         this._dxInfoService.getBalanceOfEther({ account: this._botAddress }),
 
         // Get balance of ERC20 tokens
@@ -122,7 +122,7 @@ class BalanceCheckBot extends Bot {
   _notifyLackOfEther (balanceOfEther) {
     const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER / 1e18
     const balance = balanceOfEther.div(1e18).valueOf()
-    
+
     const message = 'The bot account has ETHER balance below ' + minimunAmount
 
     // Log message
@@ -147,7 +147,7 @@ class BalanceCheckBot extends Bot {
           fields: [
             {
               title: 'Ether balance',
-              value: balance + ' ETH',
+              value: balance + ' WETH',
               short: false
             }, {
               title: 'Bot account',

@@ -8,7 +8,7 @@ function run ({
   address
 }) {
   const sellToken = 'RDN'
-  const buyToken = 'ETH'
+  const buyToken = 'WETH'
   const auctionIndex = 0
   return auctionRepo
     .getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })

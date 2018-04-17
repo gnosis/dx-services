@@ -4,14 +4,14 @@ const pricesInUSD = [{
   token: 'RDN',
   price: 4.115 // $/RDN
 }, {
-  token: 'ETH',
-  price: 1001.962 // $/ETH
+  token: 'WETH',
+  price: 1001.962 // $/WETH
 }]
 
 class PriceRepoMock {
   constructor () {
-    // RDN/ETH: 0.004079
-    //  So 1 ETH = 243.891605 RDN
+    // RDN/WETH: 0.004079
+    //  So 1 WETH = 243.891605 RDN
     //  https://walletinvestor.com/converter/usd/ethereum/290
     this._priceTable = {}
 

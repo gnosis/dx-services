@@ -117,7 +117,7 @@ describe('Market interacting tests', async () => {
 
     // THEN the new state status is WAITING_FOR_AUCTION_TO_START
     // for oposite market too
-    rdnEthState = await _getState({ sellToken: 'ETH', buyToken: 'RDN' })
+    rdnEthState = await _getState({ sellToken: 'WETH', buyToken: 'RDN' })
     expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
 
     // THEN the market is now approved
@@ -137,12 +137,12 @@ describe('Market interacting tests', async () => {
     await _buySell('postSellOrder', {
       from: user1,
       sellToken: 'RDN',
-      buyToken: 'ETH',
+      buyToken: 'WETH',
       amount: parseFloat('2')
     })
 
     // THEN the new state matches the intial market state,
-    // but with sellVolume != 0 for RDN-ETH
+    // but with sellVolume != 0 for RDN-WETH
     let updatedAuction = Object.assign({}, INITIAL_MARKET_STATE.auction,
       { sellVolume: {} })
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE,
@@ -169,13 +169,13 @@ describe('Market interacting tests', async () => {
 
     // GIVEN a state status of RUNNING
     // for oposite market too
-    rdnEthState = await _getState({ sellToken: 'ETH', buyToken: 'RDN' })
+    rdnEthState = await _getState({ sellToken: 'WETH', buyToken: 'RDN' })
     expect(rdnEthState).toEqual('RUNNING')
 
     // WHEN we add a buy order
     await _buySell('postBuyOrder', {
       from: user1,
-      sellToken: 'ETH',
+      sellToken: 'WETH',
       buyToken: 'RDN',
       amount: parseFloat('0.5')
     })
@@ -212,7 +212,7 @@ describe('Market interacting tests', async () => {
     await _buySell('postBuyOrder', {
       from: user1,
       sellToken: 'RDN',
-      buyToken: 'ETH',
+      buyToken: 'WETH',
       amount: parseFloat('0.5')
     })
 
@@ -254,7 +254,7 @@ describe('Market interacting tests', async () => {
     await ethereumClient.increaseTime(6.1 * 60 * 60)
     await _buySell('postBuyOrder', {
       from: user1,
-      sellToken: 'ETH',
+      sellToken: 'WETH',
       buyToken: 'RDN',
       amount: parseFloat('9')
     })
@@ -267,7 +267,7 @@ describe('Market interacting tests', async () => {
     // WHEN we add a buy order without amount
     await _buySell('postBuyOrder', {
       from: user1,
-      sellToken: 'ETH',
+      sellToken: 'WETH',
       buyToken: 'RDN',
       amount: parseFloat('0')
     })
@@ -285,42 +285,42 @@ describe('Market interacting tests', async () => {
     await _addRdnEthTokenPair({ ethFunding: 10 })
     await ethereumClient.increaseTime(6.1 * 60 * 60)
 
-    let sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'ETH', buyToken: 'RDN' })
+    let sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'WETH', buyToken: 'RDN' })
     expect(sellVolumeNext).toEqual(new BigNumber('0'))
 
     // WHEN we add a new sell token order
     await _buySell('postSellOrder', {
       from: user1,
-      sellToken: 'ETH',
+      sellToken: 'WETH',
       buyToken: 'RDN',
       amount: parseFloat('2')
     })
 
     // THEN the volume is added to the next auction
-    sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'ETH', buyToken: 'RDN' })
+    sellVolumeNext = await auctionRepo.getSellVolumeNext({ sellToken: 'WETH', buyToken: 'RDN' })
     expect(_isValidSellVolume(sellVolumeNext, await _toBigNumberWei(2)))
       .toBeTruthy()
   })
 
   // Add a non ethereum market
-  test('It should allow to add markets between tokens different from ETH', async () => {
+  test('It should allow to add markets between tokens different from WETH', async () => {
     jest.setTimeout(10000)
     const { web3, auctionRepo, user1 } = await setupPromise
 
-    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for RDN-ETH
+    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for RDN-WETH
     let rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('UNKNOWN_TOKEN_PAIR')
-    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for OMG-ETH
+    // GIVEN a state status of UNKNOWN_TOKEN_PAIR for OMG-WETH
     let omgEthState = await _getState({ sellToken: 'OMG' })
     expect(omgEthState).toEqual('UNKNOWN_TOKEN_PAIR')
     // GIVEN a state status of UNKNOWN_TOKEN_PAIR for RDN-OMG
     let rdnOmgState = await _getState({ buyToken: 'OMG' })
     expect(rdnOmgState).toEqual('UNKNOWN_TOKEN_PAIR')
 
-    // WHEN we add ETH-RDN token pair
+    // WHEN we add WETH-RDN token pair
     await auctionRepo.addTokenPair({
       from: user1,
-      tokenA: 'ETH',
+      tokenA: 'WETH',
       tokenAFunding: web3.toWei(10, 'ether'),
       tokenB: 'RDN',
       tokenBFunding: web3.toWei(0, 'ether'),
@@ -330,12 +330,12 @@ describe('Market interacting tests', async () => {
       }
     })
 
-    // WHEN we add OMG-ETH token pair
+    // WHEN we add OMG-WETH token pair
     await auctionRepo.addTokenPair({
       from: user1,
       tokenA: 'OMG',
       tokenAFunding: web3.toWei(0, 'ether'),
-      tokenB: 'ETH',
+      tokenB: 'WETH',
       tokenBFunding: web3.toWei(10, 'ether'),
       initialClosingPrice: {
         numerator: 22200,
@@ -356,11 +356,11 @@ describe('Market interacting tests', async () => {
       }
     })
 
-    // THEN the new state status for RDN-ETH is WAITING_FOR_AUCTION_TO_START
+    // THEN the new state status for RDN-WETH is WAITING_FOR_AUCTION_TO_START
     rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
 
-    // THEN the new state status for OMG-ETH is WAITING_FOR_AUCTION_TO_START
+    // THEN the new state status for OMG-WETH is WAITING_FOR_AUCTION_TO_START
     omgEthState = await _getState({ sellToken: 'OMG' })
     expect(omgEthState).toEqual('WAITING_FOR_AUCTION_TO_START')
 
@@ -402,32 +402,32 @@ const INITIAL_MARKET_STATE = {
 
 const INITIAL_USER1_BALANCE = [
   {'amount': new BigNumber('750e18'), 'token': 'GNO'},
-  {'amount': new BigNumber('20e18'), 'token': 'ETH'},
+  {'amount': new BigNumber('20e18'), 'token': 'WETH'},
   {'amount': new BigNumber('0'), 'token': 'MGN'},
   {'amount': new BigNumber('1000e18'), 'token': 'OWL'},
   {'amount': new BigNumber('12000e18'), 'token': 'RDN'},
   {'amount': new BigNumber('1500e18'), 'token': 'OMG'}
 ]
 
-async function _getIsApprovedMarket ({ tokenA = 'RDN', tokenB = 'ETH' }) {
+async function _getIsApprovedMarket ({ tokenA = 'RDN', tokenB = 'WETH' }) {
   const { auctionRepo } = await setupPromise
 
   return auctionRepo.isApprovedMarket({ tokenA, tokenB })
 }
 
-async function _getStateInfo ({ sellToken = 'RDN', buyToken = 'ETH' }) {
+async function _getStateInfo ({ sellToken = 'RDN', buyToken = 'WETH' }) {
   const { auctionRepo } = await setupPromise
 
   return auctionRepo.getStateInfo({ sellToken, buyToken })
 }
 
-async function _getState ({ sellToken = 'RDN', buyToken = 'ETH' }) {
+async function _getState ({ sellToken = 'RDN', buyToken = 'WETH' }) {
   const { auctionRepo } = await setupPromise
 
   return auctionRepo.getState({ sellToken, buyToken })
 }
 
-async function _getCurrentAuctionPrice ({ sellToken = 'RDN', buyToken = 'ETH' }) {
+async function _getCurrentAuctionPrice ({ sellToken = 'RDN', buyToken = 'WETH' }) {
   const { auctionRepo } = await setupPromise
 
   const auctionIndex = await auctionRepo.getAuctionIndex({
@@ -470,7 +470,7 @@ async function _addRdnEthTokenPair ({ rdnFunding = 0, ethFunding = 13.123 }) {
     from: user1,
     tokenA: 'RDN',
     tokenAFunding: web3.toWei(rdnFunding, 'ether'),
-    tokenB: 'ETH',
+    tokenB: 'WETH',
     tokenBFunding: web3.toWei(ethFunding, 'ether'),
     initialClosingPrice: {
       numerator: 4079,

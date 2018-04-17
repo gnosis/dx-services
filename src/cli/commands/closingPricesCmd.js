@@ -2,7 +2,7 @@ const formatUtil = require('../../helpers/formatUtil')
 const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
-  cli.command('closing-prices <token-pair> [count]', 'Get the closing prices for a given pair (i.e. ETH-RDN)', yargs => {
+  cli.command('closing-prices <token-pair> [count]', 'Get the closing prices for a given pair (i.e. WETH-RDN)', yargs => {
     cliUtils.getPositionalByName('token-pair', yargs)
     cliUtils.getPositionalByName('count', yargs)
   }, async function (argv) {

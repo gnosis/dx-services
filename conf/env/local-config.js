@@ -1,7 +1,7 @@
 const ENVIRONMENT = 'local'
 
 const MARKETS = [
-  { tokenA: 'ETH', tokenB: 'RDN' }
+  { tokenA: 'WETH', tokenB: 'RDN' }
 ]
 
 module.exports = {

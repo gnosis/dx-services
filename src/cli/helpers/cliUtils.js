@@ -1,19 +1,19 @@
 const POSITIONALS_BY_NAME = {
   'token-pair': {
     type: 'string',
-    default: 'ETH-RDN',
+    default: 'WETH-RDN',
     describe: 'The token pair of the auction'
   },
 
   'token-pairs': {
     type: 'string', // TODO: See how to make this a list :)
-    default: 'ETH-RDN,ETH-OMG',
+    default: 'WETH-RDN,WETH-OMG',
     describe: 'The token pair of the auction'
   },
 
   'token': {
     type: 'string',
-    default: 'ETH',
+    default: 'WETH',
     describe: 'Name of the token'
   },
 
@@ -64,7 +64,7 @@ function tokenize (value) {
 
 function toTokenPairs (tokenPairString) {
   const tokenPairsTokenized = tokenize(tokenPairString)
-  
+
   return tokenPairsTokenized.map(tokenPairString => {
     const [ sellToken, buyToken ] = tokenPairString.split('-')
     return { sellToken, buyToken }

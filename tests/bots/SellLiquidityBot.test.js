@@ -7,8 +7,8 @@ const setupPromise = testSetup()
 const BigNumber = require('bignumber.js')
 
 const MARKETS = [
-  { tokenA: 'ETH', tokenB: 'RDN' },
-  { tokenA: 'ETH', tokenB: 'OMG' }
+  { tokenA: 'WETH', tokenB: 'RDN' },
+  { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
 let sellLiquidityBot
@@ -63,7 +63,7 @@ test('It should trigger ensure liquidity from eventBus trigger', () => {
 
   // WHEN we trigger 'auction:cleared' event
   sellLiquidityBot._eventBus.trigger('auction:cleared', {
-    buyToken: 'RDN', sellToken: 'ETH' })
+    buyToken: 'RDN', sellToken: 'WETH' })
 
   // THEN liquidity ensuring functions have been called
   expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(1)
@@ -79,7 +79,7 @@ test('It should not ensure liquidity if already ensuring liquidity.', () => {
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
 
   // THEN liquidiy is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -98,7 +98,7 @@ test('It should ensure liquidity.', () => {
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
 
   // THEN liquidity is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -119,7 +119,7 @@ test('It should handle errors if something goes wrong.', () => {
 
   // WHEN we ensure liquidity but an error is thrown
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
 
   // THEN liquidity can't be ensured
   ENSURE_LIQUIDITY.then(result => {

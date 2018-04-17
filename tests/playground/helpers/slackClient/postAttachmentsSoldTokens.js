@@ -12,7 +12,7 @@ const message = {
       "fields": [
         {
           "title": "Token pair",
-          "value": "ETH-RDN",
+          "value": "WETH-RDN",
           "short": false
         }, {
           "title": "Auction index",

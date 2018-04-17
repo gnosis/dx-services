@@ -10,7 +10,7 @@ docker run \
   -e NETWORK=rinkeby \
   gnosispm/dx-services:develop \
   npm run cli -- \
-    state ETH-RDN
+    state WETH-RDN
 ```
 
 For more information about the CLI usage, refer to:
@@ -92,12 +92,12 @@ npm run cli
 ```
 
 Some examples:
-* `npm run cli -- state ETH-RDN`
-* `npm run cli -- send 0.5 ETH 0x627306090abaB3A6e1400e9345bC60c78a8BEf57`
-* `npm run cli -- deposit 0.5 ETH`
+* `npm run cli -- state WETH-RDN`
+* `npm run cli -- send 0.5 WETH 0x627306090abaB3A6e1400e9345bC60c78a8BEf57`
+* `npm run cli -- deposit 0.5 WETH`
 * `npm run cli -- deposit 150 RDN`
-* `npm run cli -- sell 100 ETH-RDN`
-* `npm run cli -- buy 100 RDN-ETH`
+* `npm run cli -- sell 100 WETH-RDN`
+* `npm run cli -- buy 100 RDN-WETH`
 
 ## cli2 (Deprecated)
 The `cli2`, is deprectated, but it still has some methods that were not migrated
@@ -112,5 +112,5 @@ npm run cli2
 Some examples:
 * `npm run cli2 -- --balances`
 * `npm run cli2 -- --approve-token RDN`
-* `npm run cli2 -- --deposit ETH,100`
+* `npm run cli2 -- --deposit WETH,100`
 * `npm run cli2 -- --time 0.5`

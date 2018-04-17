@@ -9,12 +9,12 @@ async function run ({
   auctionRepo,
   owner
 }) {
-  // Add GNO-ETH pair
-  const txGNO_ETH = await auctionRepo.addTokenPair({
+  // Add GNO-WETH pair
+  const txGNO_WETH = await auctionRepo.addTokenPair({
     from: owner,
     tokenA: 'RDN',
     tokenAFunding: 0,
-    tokenB: 'ETH',
+    tokenB: 'WETH',
     tokenBFunding: 15.123,
     initialClosingPrice: {
       numerator: 4079, // ETH
@@ -22,11 +22,11 @@ async function run ({
     }
   })
 
-  const txOMG_ETH = await auctionRepo.addTokenPair({
+  const txOMG_WETH = await auctionRepo.addTokenPair({
     from: owner,
     tokenA: 'OMG',
     tokenAFunding: 0,
-    tokenB: 'ETH',
+    tokenB: 'WETH',
     tokenBFunding: 15.123,
     initialClosingPrice: {
       numerator: 4079,
@@ -47,6 +47,6 @@ async function run ({
     }
   })
   console.log('The tokens pairs has been added', {
-    txGNO_ETH, txOMG_ETH, txRDN_OMG
+    txGNO_WETH, txOMG_WETH, txRDN_OMG
   })
 }

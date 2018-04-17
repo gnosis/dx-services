@@ -35,7 +35,7 @@ class AuctionEventWatcher {
     this._knownMarkets = markets.map(formatUtil.formatMarketDescriptor)
     this._watchingFilter = null
     this._tokenContracts = Object.assign({}, contracts.erc20TokenContracts, {
-      ETH: contracts.eth,
+      WETH: contracts.eth,
       MGN: contracts.mgn,
       OWL: contracts.owl,
       GNO: contracts.gno

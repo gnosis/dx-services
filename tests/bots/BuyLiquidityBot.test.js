@@ -7,8 +7,8 @@ const setupPromise = testSetup()
 const BigNumber = require('bignumber.js')
 
 const MARKETS = [
-  { tokenA: 'ETH', tokenB: 'RDN' },
-  { tokenA: 'ETH', tokenB: 'OMG' }
+  { tokenA: 'WETH', tokenB: 'RDN' },
+  { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
 let buyLiquidityBot
@@ -57,7 +57,7 @@ test('It should not buy remaining liquidity if already buying liquidity.', () =>
 
   // WHEN we buy remaining liquidity
   const ENSURE_LIQUIDITY = buyLiquidityBot._ensureBuyLiquidity({
-    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
 
   // THEN concurrency is detected and do nothing
   ENSURE_LIQUIDITY.then(result => {
@@ -76,7 +76,7 @@ test('It should buy remaining liquidity.', () => {
 
   // WHEN we buy remaining liquidity
   const ENSURE_LIQUIDITY = buyLiquidityBot._ensureBuyLiquidity({
-    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
 
   // THEN liquidiy is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -97,7 +97,7 @@ test('It should handle errors if something goes wrong.', () => {
 
   // WHEN we ensure liquidity but an error is thrown
   const ENSURE_LIQUIDITY = buyLiquidityBot._ensureBuyLiquidity({
-    buyToken: 'RDN', sellToken: 'ETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
 
   // THEN liquidity can't be ensured
   ENSURE_LIQUIDITY.then(result => {

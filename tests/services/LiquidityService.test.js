@@ -35,29 +35,29 @@ test('It should ensureSellLiquidity', async () => {
   }
 
   // GIVEN a not RUNNING auction, without enough sell liquidiy
-  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'ETH' }))
+  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'WETH' }))
     .toBeTruthy()
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
 
-  // THEN bot sells in OMG-ETH, the pair market we expect
+  // THEN bot sells in OMG-WETH, the pair market we expect
   const expectedBotSell = [{
     buyToken: 'OMG',
-    sellToken: 'ETH'
+    sellToken: 'WETH'
   }]
   expect(ensureLiquidityState).toMatchObject(expectedBotSell)
 
   // THEN new sell volume is valid
-  let currentSellVolume = await liquidityService._auctionRepo.getSellVolume({ sellToken: 'ETH', buyToken: 'OMG' })
-  expect(_isValidSellVolume(currentSellVolume, UNDER_MINIMUM_FUNDING_ETH))
+  let currentSellVolume = await liquidityService._auctionRepo.getSellVolume({ sellToken: 'WETH', buyToken: 'OMG' })
+  expect(_isValidSellVolume(currentSellVolume, UNDER_MINIMUM_FUNDING_WETH))
     .toBeTruthy()
   expect(_isValidSellVolume(currentSellVolume, ensureLiquidityState[0].amount))
     .toBeTruthy()
 
   // THEN is not underfunding auction
-  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'ETH' }))
+  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'WETH' }))
     .toBeFalsy()
 })
 
@@ -80,22 +80,22 @@ test('It should ensureBuyLiquidity', async () => {
   }
 
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
-  expect(await _hasLowBuyVolume({ sellToken: 'ETH', buyToken: 'RDN' }))
+  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
     .toBeTruthy()
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'ETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
 
-  // THEN bot buys in ETH-RDN market, the pair market we expect
+  // THEN bot buys in WETH-RDN market, the pair market we expect
   const expectedBotBuy = [{
     buyToken: 'RDN',
-    sellToken: 'ETH'
+    sellToken: 'WETH'
   }]
   expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
 
   // THEN auction hasn't got low buy volume
-  expect(await _hasLowBuyVolume({ sellToken: 'ETH', buyToken: 'RDN' }))
+  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
     .toBeFalsy()
 })
 
@@ -119,13 +119,13 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
 
   // GIVEN a RUNNING auction, with enough buy volume
   await liquidityService.ensureBuyLiquidity({
-    sellToken: 'ETH', buyToken: 'RDN', from: '0x123' })
-  expect(await _hasLowBuyVolume({ sellToken: 'ETH', buyToken: 'RDN' }))
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
     .toBeFalsy()
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'ETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
 
   // THEN the bot don't buy anything
   const expectedBotBuy = []
@@ -150,9 +150,9 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
 
   // WHEN we ensure sell liquidity twice
   let ensureLiquidityPromise1 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
   let ensureLiquidityPromise2 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
 
   await ensureLiquidityPromise1
   await ensureLiquidityPromise2
@@ -170,7 +170,7 @@ test('It should not ensure liquidity if auction is not waiting for funding', asy
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'RDN', buyToken: 'ETH', from: '0x123' })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123' })
 
   // THEN we shouldn't be adding funds
   expect(ensureLiquidityState).toEqual([])
@@ -187,7 +187,7 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   try {
     // WHEN we ensure sell liquidity
     await liquidityService.ensureSellLiquidity({
-      sellToken: 'OMG', buyToken: 'ETH', from: '0x123' })
+      sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
   } catch (e) {
     // THEN we get an error becuse we shouldn't ensure liquidity
     expect(e).toBeInstanceOf(Error)
@@ -204,7 +204,7 @@ test('It should return token balance for an account', async () => {
 
   // WHEN
   let rdnEthAccountBalance = await liquidityService.getBalances({
-    tokens: ['RDN', 'ETH'],
+    tokens: ['RDN', 'WETH'],
     address: '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7'
   })
 
@@ -216,7 +216,7 @@ test('It should return token balance for an account', async () => {
   }, {
     amount: new BigNumber('4.01234e18'),
     amountInUSD: new BigNumber('4020.21221108'),
-    token: 'ETH'
+    token: 'WETH'
   }]
   expect(rdnEthAccountBalance).toEqual(expectedRdnEthAccountBalance)
 })
@@ -226,28 +226,28 @@ test('It should return token balance for an account', async () => {
 
 const MINIMUM_SELL_VOLUME = 1000
 
-const UNDER_MINIMUM_FUNDING_ETH = new BigNumber('0.5e18')
+const UNDER_MINIMUM_FUNDING_WETH = new BigNumber('0.5e18')
 
 function _getAuctionsWithUnderFundingEthOmg () {
   // GIVEN a not RUNNING auction, without enough sell liquidiy
-  const updatedAuction = Object.assign({}, auctionsMockData.auctions['ETH-OMG'],
+  const updatedAuction = Object.assign({}, auctionsMockData.auctions['WETH-OMG'],
     { sellVolume: new BigNumber('0.5e18') })
   return Object.assign({}, auctionsMockData.auctions,
-    { 'ETH-OMG': updatedAuction })
+    { 'WETH-OMG': updatedAuction })
 }
 
 function _getAuctionsWhereBotShouldBuyEthRdn () {
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
-  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['ETH-RDN'],
+  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['WETH-RDN'],
     { price: {
       numerator: new BigNumber('1000000'),
       denominator: new BigNumber('4275') }
     })
-  const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-ETH'],
+  const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-WETH'],
     { price: {
       numerator: new BigNumber('4275'),
       denominator: new BigNumber('1000000') }
     })
   return Object.assign({}, auctionsMockData.auctions,
-    { 'ETH-RDN': updatedAuctionEthRdn, 'RDN-ETH': updatedAuctionRdnEth })
+    { 'WETH-RDN': updatedAuctionEthRdn, 'RDN-WETH': updatedAuctionRdnEth })
 }
