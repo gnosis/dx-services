@@ -9,6 +9,10 @@ function formatDatesDifference (date1, date2) {
   return moment.duration(moment(date1).diff(moment(date2))).humanize()
 }
 
+function formatDateFromNow (date) {
+  return moment(date).fromNow()
+}
+
 function formatBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
@@ -74,6 +78,7 @@ module.exports = {
 module.exports = {
   formatDateTime,
   formatDatesDifference,
+  formatDateFromNow,
   formatBoolean,
   formatFromWei,
   formatFraction,

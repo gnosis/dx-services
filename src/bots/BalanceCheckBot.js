@@ -3,11 +3,12 @@ const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const getVersion = require('../helpers/getVersion')
+const formatUtil = require('../helpers/formatUtil')
 
-const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 2500 // $2500
-const MINIMUM_AMOUNT_FOR_ETHER = 0.1 * 1e18 // 0.1 ETH
+const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 5000 // $5000
+const MINIMUM_AMOUNT_FOR_ETHER = 0.4 * 1e18 // 0.4 ETH
 const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000 // 15 min
-// const PERIODIC_CHECK_MILLISECONDS = 20 * 1000
+const MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS = 4 * 60 * 60 * 1000 // 4h
 
 class BalanceCheckBot extends Bot {
   constructor ({
@@ -42,6 +43,8 @@ class BalanceCheckBot extends Bot {
     this._lastCheck = null
     this._lastWarnNotification = null
     this._lastError = null
+    this._lastSlackEtherBalanceNotification = null
+    this._lastSlackTokenBalanceNotification = null
 
     this._botInfo = 'BalanceCheckBot - v' + getVersion()
   }
@@ -113,18 +116,21 @@ class BalanceCheckBot extends Bot {
       botAddress: this._botAddress,
       lastCheck: this._lastCheck,
       lastWarnNotification: this._lastWarnNotification,
-      lastError: this._lastError
+      lastError: this._lastError,
+      lastSlackEtherBalanceNotification: this._lastSlackEtherBalanceNotification,
+      lastSlackTokenBalanceNotification: this._lastSlackTokenBalanceNotification
     }
   }
 
   _notifyLackOfEther (balanceOfEther) {
-    const message = 'The bot account has ETHER balance below: ' + 
+    const message = 'The bot account has ETHER balance below: ' +
       MINIMUM_AMOUNT_FOR_ETHER
 
+    // Log message
     logger.warn({
       msg: message,
       params: [
-        MINIMUM_AMOUNT_FOR_ETHER / 1.e18
+        MINIMUM_AMOUNT_FOR_ETHER
       ],
       contextData: {
         extra: {
@@ -134,37 +140,30 @@ class BalanceCheckBot extends Bot {
       notify: true
     })
 
-    /* eslint quotes: 0 */
     // Notify to slack
-    if (this._botFundingSlackChannel && this._slackClient.isEnabled()) {
-      this._slackClient
-        .postMessage({
-          "channel": this._botFundingSlackChannel,
-          "attachments": [{
-            "color": "danger",
-            "title": message,
-            "author_name": "BalanceCheckBot",
-            "fields": [
-              {
-                "title": "Ether balance",
-                "value": balanceOfEther + ' ETH',
-                "short": false
-              }, {
-                "title": "Bot account",
-                "value": this._botAddress,
-                "short": false
-              }
-            ],
-            "footer": this._botInfo
-          }]
-        })
-        .catch(error => {
-          logger.error({
-            msg: 'Error notifing lack of ether to Slack: ' + error.toString(),
-            error
-          })
-        })
-    }
+    this._notifyToSlack({
+      name: 'Ether Balance',
+      lastNotificationVariableName: '_lastSlackEtherBalanceNotification',
+      message: {
+        attachments: [{
+          color: 'danger',
+          title: message,
+          author_name: 'BalanceCheckBot',
+          fields: [
+            {
+              title: 'Ether balance',
+              value: balanceOfEther + ' ETH',
+              short: false
+            }, {
+              title: 'Bot account',
+              value: this._botAddress,
+              short: false
+            }
+          ],
+          footer: this._botInfo
+        }]
+      }
+    })
   }
 
   _notifyLackOfTokens (tokenBelowMinimun) {
@@ -172,13 +171,20 @@ class BalanceCheckBot extends Bot {
     this._lastWarnNotification = new Date()
     const tokenBelowMinimunValue = tokenBelowMinimun.map(balanceInfo => {
       return Object.assign(balanceInfo, {
-        amount: balanceInfo.amount.valueOf(),
+        amount: balanceInfo.amount.div(1e18).valueOf(),
         amountInUSD: balanceInfo.amountInUSD.valueOf()
       })
     })
 
     const message = `The bot account has tokens below the ${MINIMUM_AMOUNT_IN_USD_FOR_TOKENS} USD worth of value`
     const tokenNames = tokenBelowMinimun.map(balanceInfo => balanceInfo.token).join(', ')
+    const fields = tokenBelowMinimunValue.map(({ token, amount, amountInUSD }) => ({
+      title: token,
+      value: amount + ' ' + token + ' ($' + amountInUSD + ')',
+      short: false
+    }))
+
+    // Log message
     logger.warn({
       msg: message + ': ' + tokenNames,
       contextData: {
@@ -189,33 +195,56 @@ class BalanceCheckBot extends Bot {
       notify: true
     })
 
-    const fields = tokenBelowMinimun.map(({ token, amount, amountInUSD }) => ({
-      title: token,
-      value: amount + ' ' + token + ' ($' + amountInUSD + ')',
-      short: false
-    }))
-
-    /* eslint quotes: 0 */
     // Notify to slack
+    this._notifyToSlack({
+      name: 'Token Balances',
+      lastNotificationVariableName: '_lastSlackTokenBalanceNotification',
+      message: {
+        attachments: [{
+          color: 'danger',
+          title: message,
+          text: 'The tokens below the threshold are:',
+          author_name: 'BalanceCheckBot',
+          fields: fields,
+          footer: this._botInfo
+        }]
+      }
+    })
+  }
+
+  async _notifyToSlack ({ name, lastNotificationVariableName, message }) {
     if (this._botFundingSlackChannel && this._slackClient.isEnabled()) {
-      this._slackClient
-        .postMessage({
-          "channel": this._botFundingSlackChannel,
-          "attachments": [{
-            "color": "danger",
-            "title": message,
-            "text": "The tokens below the threshold are:",
-            "author_name": "BalanceCheckBot",
-            "fields": fields,
-            "footer": this._botInfo
-          }]
-        })
-        .catch(error => {
-          logger.error({
-            msg: 'Error notifing lack of ether to Slack: ' + error.toString(),
-            error
+      const now = new Date()
+      const lastNotification = this[lastNotificationVariableName]
+
+      let nextNotification
+      if (lastNotification) {
+        nextNotification = new Date(
+          lastNotification.getTime() +
+          MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS
+        )
+      } else {
+        nextNotification = now
+      }
+      if (nextNotification <= now) {
+        logger.info('Notifying "%s" to slack', name)
+        message.channel = this._botFundingSlackChannel
+
+        this._slackClient
+          .postMessage(message)
+          .then(() => {
+            this[lastNotificationVariableName] = now
           })
-        })
+          .catch(error => {
+            logger.error({
+              msg: 'Error notifing lack of ether to Slack: ' + error.toString(),
+              error
+            })
+          })
+      } else {
+        logger.info(`The slack notifcation for "%s" was sent too soon. Next \
+one will be %s`, name, formatUtil.formatDateFromNow(nextNotification))
+      }
     }
   }
 }
