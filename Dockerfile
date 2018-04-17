@@ -21,6 +21,8 @@ RUN apk add --update --no-cache --virtual build-dependencies git python make g++
     apk add --no-cache tini git
 
 COPY . .
+COPY src/bots/bots-cron-tasks.cfg /etc/crontabs/root
+RUN chmod +x src/bots/run-bots.sh
 
 # If you are building your code for production
 # RUN npm install --only=production
