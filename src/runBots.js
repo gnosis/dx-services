@@ -169,7 +169,7 @@ class App {
       botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
 
-    // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_BOT_USAGE_REPORT
+    // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_BOT_AUCTIONS_REPORT
 
     // Return bots
     return [

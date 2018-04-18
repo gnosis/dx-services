@@ -1,11 +1,10 @@
 version: '3.4'
 
 services:
-  api:
-    command: ./node_modules/.bin/truffle deploy --network ethereum
+  deploy_contracts:
+    command: npm run contracts-deploy -- --network docker && npm run setup
+    # command: ./node_modules/.bin/truffle deploy --network ethereum
     # command: ./node_modules/.bin/truffle deploy --network ethereum && cd node_modules/@josojo/dutch-exchange-smartcontracts && /usr/src/app/node_modules/.bin/truffle deploy --network ethereum && && npm start
-    hostname: dx
-    # command: npm run contracts-deploy -- --network docker && npm run setup && npm start
     build:
       context: '.'
     depends_on:
@@ -24,13 +23,36 @@ services:
     networks:
       - webnet
 
+  api:
+    command: npm run api
+    hostname: dx
+    build:
+      context: '.'
+    depends_on:
+      - deploy_contracts
+      - ethereum
+    links:
+      - ethereum
+    environment:
+      ETHEREUM_RPC_URL: http://ethereum:8545
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8080:8080"
+    networks:
+      - webnet
+
   bots:
-    command: npm run bots
+    command: src/run-bots.sh
     hostname: bots
     build:
       context: '.'
     depends_on:
-      - api
+      - deploy_contracts
+      - ethereum
     deploy:
       restart_policy:
         condition: on-failure
