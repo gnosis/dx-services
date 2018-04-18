@@ -16,7 +16,7 @@
     "trace": "DEBUG=* nodemon src/runPublicApi.js",
     "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* PUBLIC_API_PORT=9090 NETWORK=kovan nodemon src/runPublicApi.js",
     "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9091 NETWORK=rinkeby nodemon src/runPublicApi.js",
-    "bots-script": "./src/bots/run-bots.sh",
+    "bots-script": "./src/run-bots.sh",
     "bots": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/runBots.js",
     "bots-dev": "DEBUG=*-dx-service:* nodemon src/runBots.js",
     "bots-trace": "DEBUG=* node src/runBots.js",
@@ -41,6 +41,9 @@
     "contracts-clean": "rm -rf build",
     "contracts-setup": "node tests/playground/cli/bot-cli.js --setup && node tests/playground/cli/bot-cli.js --add-tokens",
     "contracts": "npm run contracts-clean && npm run contracts-deploy && npm run contracts-setup",
+    "tasks-claimFunds": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/claimFunds.js",
+    "tasks-generateWeeklyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateWeeklyReport.js",
+    "tasks-generateDailyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateDailyReport.js",
     "doc": "esdoc"
   },
   "repository": {
