@@ -1,5 +1,6 @@
 // const info = require('debug')('INFO-dx-service:BotsApiServer')
 const Server = require('../helpers/Server')
+const createRouter = require('../helpers/createRouter')
 
 const express = require('express')
 const path = require('path')
@@ -20,9 +21,14 @@ class BotsApiServer extends Server {
     mainPages.use(contextPath, express.static(path.join(__dirname, './static')))
     app.use('', mainPages)
 
+    // Get routes
+    const reportsRoutes = require('./reports-routes')(services)
+
     // Main routes
     // TODO delete after DevOps update liveness check
     app.use('/api', require('./main-routes')(services))
+
+    app.use('/api/v1/reports', createRouter(reportsRoutes))
 
     // Main routes
     app.use('/api/v1', require('./main-routes')(services))

@@ -5,6 +5,10 @@ function formatDateTime (date) {
   return date ? moment(date).format('MM/D/YY H:mm') : null
 }
 
+function formatDate (date) {
+  return date ? moment(date).format('MM/D/YY') : null
+}
+
 function formatDatesDifference (date1, date2) {
   return moment.duration(moment(date1).diff(moment(date2))).humanize()
 }
@@ -77,6 +81,7 @@ module.exports = {
 
 module.exports = {
   formatDateTime,
+  formatDate,
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,
