@@ -366,8 +366,16 @@ class DxInfoService {
     }
   }
 
+  // TODO refactor to do await cleanup
   async getMarkets () {
-    return this._markets
+    return Promise.all(this._markets.map(async market => {
+      let tokenAAddress = await this._auctionRepo.getTokenAddress({ token: market.tokenA })
+      let tokenBAddress = await this._auctionRepo.getTokenAddress({ token: market.tokenB })
+      return {
+        tokenA: await this._getTokenInfoByAddress(tokenAAddress),
+        tokenB: await this._getTokenInfoByAddress(tokenBAddress)
+      }
+    }))
   }
 
   async getTokenList ({ count, approved = true }) {
