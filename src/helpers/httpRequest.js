@@ -16,6 +16,7 @@ const rawRequest = async (request, headers) => {
   const { body } = await got(request.url, options)
   const response = JSON.parse(body)
 
+  // FIXME: Dani, can we extract this from the helper and move it to Kraken Repo's logic?
   if (response.error && response.error.length) {
     const error = response.error
       .filter(e => e.startsWith('E'))
