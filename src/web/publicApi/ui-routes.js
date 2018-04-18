@@ -11,7 +11,7 @@ function createRoutes ({ dxInfoService }) {
   routes.push({
     path: '/tokens',
     get (req, res) {
-      return dxInfoService.getTokenList()
+      return dxInfoService.getTokenList({})
     }
   })
 

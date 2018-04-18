@@ -61,10 +61,10 @@ class EthereumRepoImpl {
     /*
     return {
       node: this._ethereumClient._web3.version.node,
-      
+
       isConnected: await this._ethereumClient.doCall('isConnected'),
 
-      isSyncing: await 
+      isSyncing: await
       network: await this._ethereumClient.doCall('version.getNetwork'),
       ethereumVersion: await this._ethereumClient.doCall('version.ethereum'),
       whisperVersion: await this._ethereumClient.doCall('version.whisper'),
@@ -129,6 +129,21 @@ class EthereumRepoImpl {
   async tokenTotalSupply ({ tokenAddress }) {
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.totalSupply)
+  }
+
+  async tokenGetSymbol ({ tokenAddress }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.symbol)
+  }
+
+  async tokenGetName ({ tokenAddress }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.name)
+  }
+
+  async tokenGetDecimals ({ tokenAddress }) {
+    const tokenContract = this._getTokenContract(tokenAddress)
+    return promisify(tokenContract.decimals)
   }
 
   _getTokenContract (address) {

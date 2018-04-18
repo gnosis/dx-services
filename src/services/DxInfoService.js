@@ -370,7 +370,12 @@ class DxInfoService {
     return this._markets
   }
 
-  async getTokenList () {
+  async getTokenList ({ count, approved = true }) {
+    // TODO implement retrieving data from blockchain
+    return this.getFundedTokenList()
+  }
+
+  async getFundedTokenList () {
     let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
       if (list.indexOf(tokenA) === -1) {
         list.push(tokenA)
@@ -382,14 +387,26 @@ class DxInfoService {
       return list
     }, [])
 
-    let detailedTokenList = await tokenList.map(async token => {
-      return {
-        symbol: token.toUpperCase(),
-        address: await this._auctionRepo.getTokenAddress({ token })
-      }
-    })
-    return Promise.all(detailedTokenList)
+    let addressesList = await Promise.all(
+      tokenList.map(token => {
+        return this._auctionRepo.getTokenAddress({ token })
+      }))
+
+    let detailedTokenList = await Promise.all(addressesList.map(address => {
+      return this._getTokenInfoByAddress(address)
+    }))
+
+    return detailedTokenList
     // return this._auctionRepo.getTokens()
+  }
+
+  async _getTokenInfoByAddress (address) {
+    return {
+      name: await this._ethereumRepo.tokenGetName({ tokenAddress: address }),
+      symbol: await this._ethereumRepo.tokenGetSymbol({ tokenAddress: address }),
+      address: address,
+      decimals: await this._ethereumRepo.tokenGetDecimals({ tokenAddress: address })
+    }
   }
 
   // TODO implement
