@@ -154,6 +154,17 @@ class AuctionRepoMock {
     return buyVolume
   }
 
+  async getTokenAddress ({ token }) {
+    switch (token) {
+      case 'ETH':
+        return '0x123'
+      case 'RDN':
+        return '0x234'
+      case 'OMG':
+        return '0x345'
+    }
+  }
+
   async getBalances ({ address }) {
     debug('Get balances for %s', address)
 

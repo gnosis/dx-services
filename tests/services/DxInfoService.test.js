@@ -1,6 +1,8 @@
 const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
+const EthereumRepoMock = require('../../src/repositories/EthereumRepo/EthereumRepoMock')
+const ethereumRepoMock = new EthereumRepoMock({})
 
 const auctionsMockData = require('../data/auctions')
 
@@ -12,11 +14,16 @@ test('It should return available markets', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
-  const EXPECTED_MARKETS = [
-    {tokenA: 'ETH', tokenB: 'RDN'}, {tokenA: 'ETH', tokenB: 'OMG'}
-  ]
+  dxInfoService._ethereumRepo = ethereumRepoMock
+  const EXPECTED_MARKETS = [{
+    tokenA: { name: 'Ethereum Token', symbol: 'ETH', address: '0x123', decimals: '18' },
+    tokenB: { name: 'Raiden Network Token', symbol: 'RDN', address: '0x234', decimals: '18' }
+  }, {
+    tokenA: { name: 'Ethereum Token', symbol: 'ETH', address: '0x123', decimals: '18' },
+    tokenB: { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: '18' }
+  }]
 
-  expect(await dxInfoService.getMarkets()).toEqual(EXPECTED_MARKETS)
+  expect(await dxInfoService.getMarkets()).toMatchObject(EXPECTED_MARKETS)
 })
 
 test('It should return auction index', async () => {
