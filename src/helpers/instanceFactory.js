@@ -12,7 +12,7 @@ const SlackClient = require('./SlackClient')
 async function createInstances ({
   test = false,
   config: configOverride = {}
-}) {
+} = {}) {
   const config = Object.assign({}, originalConfig, configOverride)
   debug('Initializing app for %s environment...', config.ENVIRONMENT)
 
@@ -35,7 +35,6 @@ async function createInstances ({
 
   // Slack client
   const slackClient = new SlackClient()
-
 
   // Service: Liquidity service
   const liquidityService = _getLiquidityService({

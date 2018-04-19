@@ -4,6 +4,7 @@ const logger = new Logger(loggerNamespace)
 
 // const dateUtil = require('../../helpers/dateUtil')
 const formatUtil = require('../../helpers/formatUtil')
+let requestId = 1
 
 function createRoutes ({ dxInfoService }) {
   const routes = []
@@ -42,7 +43,10 @@ function createRoutes ({ dxInfoService }) {
 
       // TODO: Get XLS for the provided dates
       // TODO: Send XLS to SLACK
-      return res.json('AuctionsRepo request has been posted')
+      return res.json({
+        message: 'The report request has been submited',
+        id: requestId++
+      })
     }
   })
 

@@ -2,6 +2,8 @@ const loggerNamespace = 'dx-service:tasks:generateDailyReport'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 
+const got = require('got')
+
 // Helpers
 const gracefullShutdown = require('../helpers/gracefullShutdown')
 const instanceFactory = require('../helpers/instanceFactory')
@@ -12,11 +14,8 @@ const environment = process.env.NODE_ENV
 logger.info('Generate daily report for %s', environment)
 
 // Run app
-instanceFactory({})
-  .then(instances => {
-    logger.info('Generate daily report...')
-    logger.info('Done')
-  })
+instanceFactory()
+  .then(generateDailyReport)
   .catch(error => {
     // Handle boot errors
     handleError(error)
@@ -24,6 +23,23 @@ instanceFactory({})
     // Shutdown app
     return gracefullShutdown.shutDown()
   })
+
+async function generateDailyReport ({
+  config
+}) {
+  logger.info('Generate daily report...')
+  const fromDateSring = '18-04-18'
+  const toDateSring = '18-04-18'
+  const url = `http://localhost:${config.BOTS_API_PORT}/api/v1/reports/auctions-report/requests?from-date=${fromDateSring}&to-date=${toDateSring}18-04-18`
+  logger.info(`GET ${url}`)
+
+  const response = await got(url, {
+    json: true,
+    retries: 10
+  })
+  const { id } = response.body
+  logger.info('The report was requested. requestId=%d', id)
+}
 
 function handleError (error) {
   process.exitCode = 1
