@@ -13,7 +13,6 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "dx-services.gnosis.pm",
   "basePath": "/api/v1",
   "tags": [
     {
@@ -30,9 +29,33 @@
     }
   ],
   "schemes": [
-    "http"
+    "https"
   ],
   "paths": {
+    "/tokens": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "summary": "Returns all available tokens",
+        "description": "Returns an array of available tokens in the DX",
+        "operationId": "getTokens",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TokenDetails"
+              }
+            }
+          }
+        }
+      }
+    },
     "/markets": {
       "get": {
         "tags": [
@@ -53,10 +76,10 @@
                 "type": "object",
                 "properties": {
                   "tokenA": {
-                    "type": "string"
+                    "$ref": "#/definitions/TokenDetails"
                   },
                   "tokenB": {
-                    "type": "string"
+                    "$ref": "#/definitions/TokenDetails"
                   }
                 }
               }
@@ -613,6 +636,23 @@
     }
   },
   "definitions": {
+    "TokenDetails": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "decimals": {
+          "type": "number"
+        }
+      }
+    },
     "MarketPrice": {
       "type": "number",
       "format": "double"

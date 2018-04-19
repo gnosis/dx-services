@@ -7,7 +7,8 @@ function createRoutes ({ dxInfoService }) {
   routes.push({
     path: '/',
     get (req, res) {
-      return dxInfoService.getMarkets()
+      const count = req.query.count !== undefined ? req.query.count : 10
+      return dxInfoService.getMarkets({ count })
     }
   })
 

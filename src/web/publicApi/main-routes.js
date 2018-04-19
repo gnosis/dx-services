@@ -44,6 +44,11 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   })
   */
 
+  router.get('/tokens', async (req, res) => {
+    const count = req.query.count !== undefined ? req.query.count : 20
+    res.send(await dxInfoService.getTokenList({ count }))
+  })
+
   router.get('/about', async (req, res) => {
     res.send(await dxInfoService.getAbout())
   })

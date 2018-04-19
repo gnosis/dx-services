@@ -366,7 +366,7 @@ class DxInfoService {
     }
   }
 
-  async getMarkets () {
+  async getMarkets ({ count }) {
     const tokenPairsPromises = this._markets.map(async ({ tokenA, tokenB }) => {
       const [ tokenAAddress, tokenBAddress ] = await Promise.all([
         this._auctionRepo.getTokenAddress({
