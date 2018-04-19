@@ -43,6 +43,7 @@ class BotsService {
       version: this._version,
       environment: ENVIRONMENT,
       auctions: auctionAbout,
+      markets: this._markets,
       ethereum: ethereumAbout,
       git: this._gitInfo,
       bots
