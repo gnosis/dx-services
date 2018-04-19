@@ -385,6 +385,7 @@ class AuctionRepoMock {
 
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
+    const sellVolumeNext = await this.getSellVolumeNext({ sellToken, buyToken })
 
     const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
@@ -422,6 +423,7 @@ class AuctionRepoMock {
     return {
       buyVolume,
       sellVolume,
+      sellVolumeNext,
       closingPrice,
       isClosed,
       isTheoreticalClosed

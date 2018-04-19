@@ -26,6 +26,31 @@ test('It should return available markets', async () => {
   expect(await dxInfoService.getMarkets()).toMatchObject(EXPECTED_MARKETS)
 })
 
+test('It should return funded tokens', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+  dxInfoService._ethereumRepo = ethereumRepoMock
+  const EXPECTED_TOKENS = [
+    { name: 'Ethereum Token', symbol: 'ETH', address: '0x123', decimals: 18 },
+    { name: 'Raiden Network Token', symbol: 'RDN', address: '0x234', decimals: 18 },
+    { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 }
+  ]
+
+  let fundedTokenList = await dxInfoService.getFundedTokenList()
+  expect(fundedTokenList).toMatchObject(EXPECTED_TOKENS)
+})
+
+test('It should return auction state', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  let rdnEthAuctionState = await dxInfoService.getState({
+    sellToken: 'RDN', buyToken: 'ETH' })
+  expect(rdnEthAuctionState).toBe('RUNNING')
+})
+
 test('It should return auction index', async () => {
   const { dxInfoService } = await setupPromise
 
@@ -58,6 +83,46 @@ test('It should return current auction price', async () => {
   let rdnEthCurrentPrice = await dxInfoService.getCurrentPrice({
     sellToken: 'RDN', buyToken: 'ETH' })
   expect(rdnEthCurrentPrice).toEqual(RDN_ETH_CURRENT_PRICE)
+})
+
+test('It should return current auction start', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  let rdnEthAuctionStart = await dxInfoService.getAuctionStart({
+    sellToken: 'RDN', buyToken: 'ETH' })
+  expect(rdnEthAuctionStart).toEqual(RDN_ETH_AUCTION.auctionStart)
+})
+
+test('It should return current auction sell volume', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  let rdnEthSellVolume = await dxInfoService.getSellVolume({
+    sellToken: 'RDN', buyToken: 'ETH' })
+  expect(rdnEthSellVolume).toEqual(RDN_ETH_AUCTION.sellVolume)
+})
+
+test('It should return next auction sell volume', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  let rdnEthSellVolumeNext = await dxInfoService.getSellVolumeNext({
+    sellToken: 'RDN', buyToken: 'ETH' })
+  expect(rdnEthSellVolumeNext).toEqual(RDN_ETH_AUCTION.sellVolumeNext)
+})
+
+test('It should return current auction buy volume', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  let rdnEthBuyVolume = await dxInfoService.getBuyVolume({
+    sellToken: 'RDN', buyToken: 'ETH' })
+  expect(rdnEthBuyVolume).toEqual(RDN_ETH_AUCTION.buyVolume)
 })
 
 test('Get balances for all currencies of an account', async () => {
