@@ -1,5 +1,6 @@
 const loggerNamespace = 'dx-service:tasks:generateDailyReport'
 const Logger = require('../helpers/Logger')
+const getVersion = require('../helpers/getVersion')
 const logger = new Logger(loggerNamespace)
 
 const got = require('got')
@@ -28,14 +29,17 @@ async function generateDailyReport ({
   config
 }) {
   logger.info('Generate daily report...')
-  const fromDateSring = '18-04-18'
-  const toDateSring = '18-04-18'
-  const url = `http://localhost:${config.BOTS_API_PORT}/api/v1/reports/auctions-report/requests?from-date=${fromDateSring}&to-date=${toDateSring}18-04-18`
+  const version = getVersion()
+  const url = `http://localhost:${config.BOTS_API_PORT}/api/v1/reports/auctions-report/requests`
   logger.info(`GET ${url}`)
 
   const response = await got(url, {
     json: true,
-    retries: 10
+    retries: 10,
+    query: {
+      'period': 'yesterday',
+      'sender-info': 'Scheduled Daily Report - v' + version
+    }
   })
   const { id } = response.body
   logger.info('The report was requested. requestId=%d', id)

@@ -75,7 +75,8 @@ async function createInstances ({
   const reportService = _getReportService({
     config: config,
     auctionRepo,
-    ethereumRepo
+    ethereumRepo,
+    slackClient
   })
 
   // Event Watcher
@@ -281,11 +282,13 @@ function _getMarketService ({ config, priceRepo }) {
   })
 }
 
-function _getReportService ({ config, auctionRepo, ethereumRepo }) {
+function _getReportService ({ config, auctionRepo, ethereumRepo, slackClient }) {
   const ReportService = require('../services/ReportService')
   return new ReportService({
     auctionRepo,
-    ethereumRepo
+    ethereumRepo,
+    slackClient,
+    auctionsReportSlackChannel: config.SLACK_CHANNEL_AUCTIONS_REPORT
   })
 }
 
