@@ -366,16 +366,26 @@ class DxInfoService {
     }
   }
 
-  // TODO refactor to do await cleanup
   async getMarkets () {
-    return Promise.all(this._markets.map(async market => {
-      let tokenAAddress = await this._auctionRepo.getTokenAddress({ token: market.tokenA })
-      let tokenBAddress = await this._auctionRepo.getTokenAddress({ token: market.tokenB })
+    const tokenPairsPromises = this._markets.map(async ({ tokenA, tokenB }) => {
+      const [ tokenAAddress, tokenBAddress ] = await Promise.all([
+        this._auctionRepo.getTokenAddress({
+          token: tokenA
+        }),
+        this._auctionRepo.getTokenAddress({
+          token: tokenB
+        })
+      ])
+      const [ tokenAInfo, tokenBInfo ] = await Promise.all([
+        this._getTokenInfoByAddress(tokenAAddress),
+        this._getTokenInfoByAddress(tokenBAddress)
+      ])
       return {
-        tokenA: await this._getTokenInfoByAddress(tokenAAddress),
-        tokenB: await this._getTokenInfoByAddress(tokenBAddress)
+        tokenA: tokenAInfo, tokenB: tokenBInfo
       }
-    }))
+    })
+
+    return Promise.all(tokenPairsPromises)
   }
 
   async getTokenList ({ count, approved = true }) {
@@ -409,12 +419,7 @@ class DxInfoService {
   }
 
   async _getTokenInfoByAddress (address) {
-    return {
-      name: await this._ethereumRepo.tokenGetName({ tokenAddress: address }),
-      symbol: await this._ethereumRepo.tokenGetSymbol({ tokenAddress: address }),
-      address: address,
-      decimals: await this._ethereumRepo.tokenGetDecimals({ tokenAddress: address })
-    }
+    return this._ethereumRepo.tokenGetInfo({ tokenAddress: address })
   }
 
   // TODO implement

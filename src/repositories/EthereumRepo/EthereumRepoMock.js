@@ -7,6 +7,17 @@ class EthereumRepoMock {
     return true
   }
 
+  async tokenGetInfo ({ tokenAddress }) {
+    const [ symbol, name, decimals ] = await Promise.all([
+      this.tokenGetSymbol({ tokenAddress }),
+      this.tokenGetName({ tokenAddress }),
+      this.tokenGetDecimals({ tokenAddress })
+    ])
+    return {
+      symbol, name, address: tokenAddress, decimals
+    }
+  }
+
   async tokenGetSymbol ({ tokenAddress }) {
     switch (tokenAddress) {
       case '0x123':
@@ -30,7 +41,7 @@ class EthereumRepoMock {
   }
 
   async tokenGetDecimals ({ tokenAddress }) {
-    return '18'
+    return 18
   }
 }
 

@@ -131,6 +131,17 @@ class EthereumRepoImpl {
     return promisify(tokenContract.totalSupply)
   }
 
+  async tokenGetInfo ({ tokenAddress }) {
+    const [ symbol, name, decimals ] = await Promise.all([
+      this.tokenGetSymbol({ tokenAddress }),
+      this.tokenGetName({ tokenAddress }),
+      this.tokenGetDecimals({ tokenAddress })
+    ])
+    return {
+      symbol, name, address: tokenAddress, decimals
+    }
+  }
+
   async tokenGetSymbol ({ tokenAddress }) {
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.symbol)
@@ -144,6 +155,7 @@ class EthereumRepoImpl {
   async tokenGetDecimals ({ tokenAddress }) {
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.decimals)
+      .then(parseInt)
   }
 
   _getTokenContract (address) {
