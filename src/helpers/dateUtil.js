@@ -7,15 +7,25 @@ function addPeriod (date, amount, period) {
 }
 
 function toStartOf (date, period) {
-  return moment(date).startOf(period)
+  return moment(date)
+    .startOf(period)
+    .toDate()
 }
 
 function toEndOf (date, period) {
-  return moment(date).endOf(period)
+  return moment(date)
+    .endOf(period)
+    .toDate()
+}
+
+function diff (date1, date2, period) {
+  return moment(date2)
+    .diff(date1, period)
 }
 
 module.exports = {
   addPeriod,
   toStartOf,
-  toEndOf
+  toEndOf,
+  diff
 }
