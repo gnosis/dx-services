@@ -55,6 +55,7 @@ class ReportService {
       id, file.name)
 
     const message = {
+      channel: this._auctionsReportSlackChannel,
       text: "Check out what the bot's been doing lately",
       attachments: [
         {
@@ -110,13 +111,17 @@ class ReportService {
 
   async _sendFileToSlack ({ channel, message, id, file }) {
     const { name: fileName, content: fileContent } = file
-    const fileTest = fs.createReadStream(`../../tests/playground/helpers/slackClient/test-file.csv`)
 
     // Upload file to slack
     logger.info('[requestId=%d] Uploading file "%s" to Slack', id, fileName)
-    const { file: fileSlack } = await this._slackClient.uploadFile({
+    // const { file: fileSlack } = await this._slackClient.uploadFile({
+    //   fileName,
+    //   file: fileContent,
+    //   channels: channel
+    // })
+    const { file: fileSlack } = await this._slackClient.uploadContentFile({
       fileName,
-      file: fileTest,
+      content: 'hola;que;tal',
       channels: channel
     })
 
