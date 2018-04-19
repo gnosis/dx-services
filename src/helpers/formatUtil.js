@@ -1,12 +1,31 @@
 const numberUtil = require('./numberUtil')
 const moment = require('moment')
 
+const DATE_FORMAT = 'D/MM/YY'
+const DATE_FORMAT_FOR_PARSING = 'D/MM/YYYY' // Accepts 2 and 4 digits years
+const TIME_FORMAT = 'H:mm'
+const DATE_TIME_FORMAT = DATE_FORMAT + ' ' + TIME_FORMAT
+
 function formatDateTime (date) {
-  return date ? moment(date).format('MM/D/YY H:mm') : null
+  return date ? moment(date).format(DATE_TIME_FORMAT) : null
 }
 
 function formatDate (date) {
-  return date ? moment(date).format('MM/D/YY') : null
+  return date ? moment(date).format(DATE_FORMAT) : null
+}
+
+function parseDate (dateStr) {
+  return _parseDate(dateStr, DATE_FORMAT_FOR_PARSING, 'The required format is ' +
+    DATE_FORMAT + '. Example: 15-01-2018')
+}
+
+function parseDateTime (dateStr) {
+  return _parseDate(dateStr, DATE_TIME_FORMAT, 'The required format is ' + 
+    DATE_TIME_FORMAT + '. Example: 15-01-2018 16:35')
+}
+
+function parseDateIso (dateStr, errorMessage) {
+  return _parseDate(dateStr, null, 'Use a valid ISO 8601 format. Example: 2013-02-08')
 }
 
 function formatDatesDifference (date1, date2) {
@@ -75,6 +94,23 @@ function tokenPairSplit (tokenPair) {
   }
 }
 
+function _parseDate (dateStr, format, errorMessage) {
+  const date = format ? moment(dateStr, format) : moment(dateStr)
+
+  if (!date.isValid()) {
+    const error = new Error('Invalid date format' + errorMessage)
+    error.data = {
+      date: dateStr
+    }
+    error.type = 'DATE_FORMAT'
+    error.status = 412
+
+    throw error
+  } else {
+    return date.toDate()
+  }
+}
+
 module.exports = {
   tokenPairSplit
 }
@@ -85,6 +121,9 @@ module.exports = {
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,
+  parseDate,
+  parseDateTime,
+  parseDateIso,
   formatFromWei,
   formatFraction,
   formatMarketDescriptor,
