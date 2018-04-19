@@ -3,11 +3,17 @@ function requestErrorHandler (err, req, res) {
   // const isDev = req.app.get('env') === 'development'
   // res.locals.message = err.message
   // res.locals.error = isDev ? err : {}
+  const status = err.status || 500
   const error = {
-    status: err.status || 500,
+    status,
     type: err.type || 'INTERNAL_ERROR',
     data: err.data,
-    stackTrace: err.stack
+    message: err.message
+  }
+
+  // We add the stack trace for all errors but 4XX
+  if (error.status < 400 || error.status >= 500) {
+    error.stackTrace = err.stack
   }
 
   const response = res.status(error.status)
