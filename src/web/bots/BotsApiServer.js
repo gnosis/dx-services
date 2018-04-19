@@ -1,19 +1,22 @@
 // const info = require('debug')('INFO-dx-service:BotsApiServer')
 const Server = require('../helpers/Server')
 const createRouter = require('../helpers/createRouter')
+const formatUtil = require('../../helpers/formatUtil')
 
 const express = require('express')
 const path = require('path')
 
 class BotsApiServer extends Server {
-  constructor ({ port = 8081, host, botsService }) {
+  constructor ({ port = 8081, host, botsService, reportService }) {
     super({ port, host })
     this._botsService = botsService
+    this._reportService = reportService
   }
 
   async _registerRoutes ({ app, contextPath }) {
     const services = {
-      botsService: this._botsService
+      botsService: this._botsService,
+      reportService: this._reportService
     }
 
     // Static content

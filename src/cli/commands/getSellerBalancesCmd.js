@@ -26,9 +26,6 @@ function registerCommand ({ cli, instances, logger }) {
         balance.div(1e18)
       )
     })
-
-    // Print state
-    console.log()
   })
 }
 

@@ -1,7 +1,7 @@
 const DutchExchange = artifacts.require('DutchExchange')
 
 contract('DutchExchange', function (accounts) {
-  console.log(accounts)
+  // console.log(accounts)
 
   it('do lot of things...', function () {
     return DutchExchange.deployed().then(function (dx) {

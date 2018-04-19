@@ -44,6 +44,7 @@ class App {
     dxInfoService,
     dxTradeService,
     botsService,
+    reportService,
 
     // Events
     eventBus,
@@ -62,6 +63,7 @@ class App {
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
     this._botsService = botsService
+    this._reportService = reportService
 
     // Bots
     this._bots = null
@@ -72,7 +74,7 @@ class App {
       .then(botAddress => this._createBots(botAddress))
       .then(bots => {
         // Set bot list
-        logger.info('Initialized %d bots')
+        logger.info('Created %d bots', bots.length)
         this._bots = bots
         this._botsService.setBots(bots)
 
@@ -80,7 +82,8 @@ class App {
         this._botsApiServer = new BotsApiServer({
           port: this._config.BOTS_API_PORT,
           host: this._config.BOTS_API_HOST,
-          botsService: this._botsService
+          botsService: this._botsService,
+          reportService: this._reportService
         })
       })
   }

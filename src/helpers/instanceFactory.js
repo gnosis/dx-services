@@ -72,6 +72,12 @@ async function createInstances ({
     priceRepo
   })
 
+  const reportService = _getReportService({
+    config: config,
+    auctionRepo,
+    ethereumRepo
+  })
+
   // Event Watcher
   const auctionEventWatcher = _getAuctionEventWatcher(
     config, eventBus, contracts
@@ -90,7 +96,8 @@ async function createInstances ({
     dxInfoService,
     dxTradeService,
     botsService,
-    marketService
+    marketService,
+    reportService
   }
 
   if (test) {
@@ -271,6 +278,14 @@ function _getMarketService ({ config, priceRepo }) {
   const MarketService = require('../services/MarketService')
   return new MarketService({
     priceRepo
+  })
+}
+
+function _getReportService ({ config, auctionRepo, ethereumRepo }) {
+  const ReportService = require('../services/ReportService')
+  return new ReportService({
+    auctionRepo,
+    ethereumRepo
   })
 }
 

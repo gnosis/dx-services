@@ -65,7 +65,6 @@ class Server {
         return next(err)
       } else {
         // Add async support
-        console.log(res)
         requestErrorHandler(err, req, res)
       }
     })
