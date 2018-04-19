@@ -23,7 +23,7 @@ test('It should return available markets', async () => {
     tokenB: { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 }
   }]
 
-  expect(await dxInfoService.getMarkets()).toMatchObject(EXPECTED_MARKETS)
+  expect(await dxInfoService.getMarkets({})).toMatchObject(EXPECTED_MARKETS)
 })
 
 test('It should return funded tokens', async () => {
