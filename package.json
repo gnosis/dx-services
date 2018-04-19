@@ -50,7 +50,7 @@
     "type": "git",
     "url": "git@github.com:gnosis/dx-services.git"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@gnosis.pm/dutch-exchange-smartcontracts": "^0.4.5",
     "@slack/client": "^4.1.0",
