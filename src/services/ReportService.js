@@ -24,7 +24,10 @@ class ReportService {
     const id = requestId++
     
     // Generate report file and send it to slack (fire and forget)
-    logger.info('[requestId=%d] Error generating report...', id)
+    logger.info('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
+      id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
+      senderInfo
+    )
     this._doSendAuctionsReportToSlack({ id, senderInfo, fromDate, toDate })
       .then(() => {
         logger.info('The auctions report was sent to slack')
@@ -72,13 +75,10 @@ class ReportService {
               value: formatUtil.formatDate(toDate),
               short: false
             }
-          ]
+          ],
+          footer: senderInfo
         }
       ]
-    }
-
-    if (senderInfo) {
-      message.footer = senderInfo
     }
 
     // Send file to Slack
