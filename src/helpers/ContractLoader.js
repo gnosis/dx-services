@@ -88,7 +88,7 @@ class ContractLoader {
     const standardTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.StandardToken)
 
-    logger.debug('this._erc20TokenAddresses: %s', this._erc20TokenAddresses)
+    logger.debug('this._erc20TokenAddresses: %o', this._erc20TokenAddresses)
 
     const tokenContractList = await Promise.all(
       Object

@@ -1087,12 +1087,12 @@ volume: ${state}`)
       .then(toFraction)
   }
 
-  async getFirstAuctionIndexAfterDate ({ tokenA, tokenB }) {
+  async getFirstAuctionIndexAfterDate ({ tokenA, tokenB, date }) {
     // TODO: Implement
     return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
   }
 
-  async getLastAuctionIndexBeforeDate ({ tokenA, tokenB }) {
+  async getLastAuctionIndexBeforeDate ({ tokenA, tokenB, date }) {
     // TODO: Implement
     return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
   }

@@ -11,7 +11,10 @@ function run ({
   const fromDate = dateUtil.toStartOf(now, 'day')
   const toDate = dateUtil.toEndOf(now, 'day')
   return reportService
-    .getAuctionsReportFile({ fromDate, toDate })
+    .getAuctionsReportFile({
+      fromDate,
+      toDate
+    })
     .then(({ name, mimeType, content }) => {
       console.log('Generated file: "%s"', name)
       console.log('Mime type: "%s"', mimeType)

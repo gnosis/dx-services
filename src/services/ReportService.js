@@ -20,12 +20,16 @@ class ReportService {
     this._markets = config.MARKETS
   }
 
-  async getAuctionsReportInfo () {
+  async getAuctionsReportInfo ({ fromDate, toDate }) {
+    _assertDatesOverlap(fromDate, toDate)
+
     return new Promise((resolve, reject) => {
       const auctions = []
-      this._getAuctionsReportInfo({
+      this._generateAuctionInfoByDates({
+        fromDate,
+        toDate,
         addAuctionInfo (auctionInfo) {
-          logger.debug('Add auction info: ', auctionInfo)
+          // logger.debug('Add auction info: ', auctionInfo)
           auctions.push(auctionInfo)
         },
         end (error) {
@@ -40,48 +44,46 @@ class ReportService {
     })
   }
 
-  _getAuctionsReportInfo ({ addAuctionInfo, end }) {
-    try {
-      this._markets.forEach(market => {
-        logger.info(market)
-      })
-      addAuctionInfo({
-        auctionIndex: 1,
-        sellToken: 'WETH',
-        buyToken: 'RDN',
-        sellVolume: 0.9,
-        buyVolume: 0.9,
-        lastClosingPrice: 300,
-        priceIncrement: 'N/A',
-        botSellVolume: 0.9,
-        botBuyVolume: 0.9,
-        ensuredSellVolumePercentage: 100,
-        ensuredBuyVolumePercentage: 100
-      })
+  async getAuctionsReportFile ({ fromDate, toDate }) {
+    _assertDatesOverlap(fromDate, toDate)
 
-      addAuctionInfo({
-        auctionIndex: 1,
-        sellToken: 'WETH',
-        buyToken: 'RDN',
-        sellVolume: 0.9,
-        buyVolume: 0.9,
-        lastClosingPrice: 300,
-        priceIncrement: 'N/A',
-        botSellVolume: 0.9,
-        botBuyVolume: 0.9,
-        ensuredSellVolumePercentage: 100,
-        ensuredBuyVolumePercentage: 100
-      })
+    logger.info('Generate auction report from "%s" to "%s"',
+      formatUtil.formatDateTime(fromDate),
+      formatUtil.formatDateTime(toDate)
+    )
 
-      end()
-    } catch (error) {
-      end(error)
+    const auctionsReportRS = new AuctionsReportRS()
+    this._generateAuctionInfoByDates({
+      fromDate,
+      toDate,
+      addAuctionInfo (auctionInfo) {
+        // logger.debug('Add auction into report: ', auctionInfo)
+        auctionsReportRS.addAuction(auctionInfo)
+      },
+      end (error) {
+        logger.debug('Finished report: ', error ? 'Error' : 'Success')
+        if (error) {
+          auctionsReportRS.end(error)
+        } else {
+          auctionsReportRS.end()
+        }
+      }
+    })
+
+    auctionsReportRS.end()
+
+    return {
+      name: 'auctions-reports.csv',
+      mimeType: 'text/csv',
+      content: auctionsReportRS
     }
   }
 
   sendAuctionsReportToSlack ({ fromDate, toDate, senderInfo }) {
+    _assertDatesOverlap(fromDate, toDate)
+
     const id = requestId++
-    
+   
     // Generate report file and send it to slack (fire and forget)
     logger.info('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
       id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
@@ -105,6 +107,86 @@ class ReportService {
       message: 'The report request has been submited',
       id
     }
+  }
+
+  async _generateAuctionInfo ({ auctionIndex, tokenA, tokenB, addAuctionInfo }) {
+
+  }
+
+  async _generateAuctionInfoByMarket ({ fromDate, toDate, tokenA, tokenB, addAuctionInfo }) {
+    logger.info('Get auctions for %s-%s between %s and %s',
+      tokenA,
+      tokenB,
+      formatUtil.formatDate(fromDate),
+      formatUtil.formatDate(toDate)
+    )
+
+    const [ startAuctionIndex, endAuctionIndex ] = await Promise.all([
+      this._auctionRepo.getFirstAuctionIndexAfterDate({
+        tokenA,
+        tokenB,
+        date: fromDate
+      }),
+      this._auctionRepo.getFirstAuctionIndexAfterDate({
+        tokenA,
+        tokenB,
+        date: toDate
+      })
+    ])
+
+    addAuctionInfo({
+      auctionIndex: 1,
+      sellToken: tokenA,
+      buyToken: tokenB,
+      sellVolume: 0.9,
+      buyVolume: 0.9,
+      lastClosingPrice: 300,
+      priceIncrement: 'N/A',
+      botSellVolume: 0.9,
+      botBuyVolume: 0.9,
+      ensuredSellVolumePercentage: 100,
+      ensuredBuyVolumePercentage: 100
+    })
+
+    if (startAuctionIndex && endAuctionIndex) {
+      for (let auctionIndex = startAuctionIndex; auctionIndex <= endAuctionIndex; auctionIndex++) {
+        logger.info('Get information for auction %s of %s-%s',
+          auctionIndex,
+          tokenA,
+          tokenB
+        )
+      }
+    } else {
+      logger.info('There are no auctions for %s-%s between %s and %s',
+        tokenA,
+        tokenB,
+        formatUtil.formatDate(fromDate),
+        formatUtil.formatDate(toDate)
+      )
+    }
+  }
+
+  _generateAuctionInfoByDates ({ fromDate, toDate, addAuctionInfo, end }) {
+    // Get info for every token pair
+    const generateInfoPromises = this
+      ._markets
+      .map(({ tokenA, tokenB }) => {
+        return this._generateAuctionInfoByMarket({
+          fromDate,
+          toDate,
+          tokenA,
+          tokenB,
+          addAuctionInfo
+        })
+      })
+
+    Promise
+      .all(generateInfoPromises)
+      .then(() => {
+        logger.info('All info was generated')
+        end()
+      })
+      .catch(end)
   }
 
   async _doSendAuctionsReportToSlack ({ id, senderInfo, fromDate, toDate }) {
@@ -149,39 +231,6 @@ class ReportService {
     })
   }
 
-  async getAuctionsReportFile ({ fromDate, toDate }) {
-    assert(fromDate < toDate, "The 'toDate' must be greater than the 'fromDate'")
-
-    logger.info('Generate auction report from "%s" to "%s"',
-      formatUtil.formatDateTime(fromDate),
-      formatUtil.formatDateTime(toDate)
-    )
-
-    const auctionsReportRS = new AuctionsReportRS()
-    this._getAuctionsReportInfo({
-      addAuctionInfo (auctionInfo) {
-        // logger.debug('Add auction into report: ', auctionInfo)
-        auctionsReportRS.addAuction(auctionInfo)
-      },
-      end (error) {
-        logger.debug('Finished report: ', error ? 'Error' : 'Success')
-        if (error) {
-          auctionsReportRS.end(error)
-        } else {
-          auctionsReportRS.end()
-        }
-      }
-    })
-
-    auctionsReportRS.end()
-
-    return {
-      name: 'auctions-reports.csv',
-      mimeType: 'text/csv',
-      content: auctionsReportRS
-    }
-  }
-
   async _sendFileToSlack ({ channel, message, id, file }) {
     const { name: fileName, content: fileContent } = file
 
@@ -210,6 +259,10 @@ class ReportService {
         console.log('Message sent: ', ts)
       })
   }
+}
+
+function _assertDatesOverlap (fromDate, toDate) {
+  assert(fromDate < toDate, "The 'toDate' must be greater than the 'fromDate'")
 }
 
 module.exports = ReportService
