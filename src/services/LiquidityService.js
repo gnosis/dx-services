@@ -319,20 +319,6 @@ keeps happening`
       // Get sell/buy volume
       const tokenPair = { sellToken, buyToken }
 
-      auctionLogger.info({
-        sellToken,
-        buyToken,
-        msg: 'We need to ensure that %d % of the buy volume is bought. Market Price: %d, Price: %d, Relation: %d %',
-        params: [
-          percentageThatShouldBeBought.mul(100).toFixed(2),
-          formatUtil.formatFraction(currentMarketPrice),
-          formatUtil.formatFraction(price),
-          _getPriceRatio(price, currentMarketPrice)
-            .mul(100)
-            .toFixed(2)
-        ]
-      })
-
       // Get the buy volume, and the expected buyVolume
       const [ sellVolume, buyVolume ] = await Promise.all([
         this._auctionRepo.getSellVolume(tokenPair),
@@ -341,6 +327,20 @@ keeps happening`
 
       // We make sure there's sell volume (otherwise there's nothing to buy)
       if (sellVolume.greaterThan(0)) {
+        auctionLogger.info({
+          sellToken,
+          buyToken,
+          msg: 'We need to ensure that %d % of the buy volume is bought. Market Price: %d, Price: %d, Relation: %d %',
+          params: [
+            percentageThatShouldBeBought.mul(100).toFixed(2),
+            formatUtil.formatFraction(currentMarketPrice),
+            formatUtil.formatFraction(price),
+            _getPriceRatio(price, currentMarketPrice)
+              .mul(100)
+              .toFixed(2)
+          ]
+        })
+
         // Get the total sellVolume in buy tokens
         const sellVolumeInBuyTokes = sellVolume
           .mul(price.numerator)
@@ -431,7 +431,7 @@ keeps happening`
         }
       } else {
         // No sell volume
-        auctionLogger.info({
+        auctionLogger.debug({
           sellToken,
           buyToken,
           msg: "The auction doesn't have any sell volume, so there's nothing to buy"
