@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Welcome to DX-Services API guide. You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters.",
+    "description": "Welcome to DX-Services API guide. You can find out more about DutchX at [http://swagger.io](http://swagger.io).",
     "version": "0.0.12",
     "title": "DX-Services",
     "termsOfService": "http://swagger.io/terms/",
@@ -38,7 +38,7 @@
           "markets"
         ],
         "summary": "Returns all available tokens",
-        "description": "Returns an array of available tokens in the DX",
+        "description": "Returns an array of all the available tokens in the DutchX",
         "operationId": "getTokens",
         "produces": [
           "application/json"
@@ -62,7 +62,7 @@
           "markets"
         ],
         "summary": "Returns all available markets",
-        "description": "Returns an array of available markets in the DX",
+        "description": "Returns an array of all the available markets in the DutchX",
         "operationId": "getMarkets",
         "produces": [
           "application/json"
@@ -118,6 +118,12 @@
                 "WAITING_FOR_FUNDING"
               ]
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "Unkwon token"
           }
         }
       }
@@ -148,6 +154,9 @@
             "schema": {
               "$ref": "#/definitions/MarketPrice"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -201,6 +210,9 @@
                 }
               }
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -239,6 +251,9 @@
             "schema": {
               "$ref": "#/definitions/MarketPrice"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -270,6 +285,9 @@
               "type": "integer",
               "format": "int64"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -301,6 +319,9 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -331,6 +352,9 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -369,6 +393,9 @@
             "schema": {
               "type": "number"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -399,6 +426,9 @@
             "schema": {
               "type": "number"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -429,6 +459,9 @@
             "schema": {
               "type": "number"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -459,6 +492,9 @@
             "schema": {
               "type": "number"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
@@ -526,6 +562,9 @@
             "schema": {
               "type": "number"
             }
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
           }
         }
       }
