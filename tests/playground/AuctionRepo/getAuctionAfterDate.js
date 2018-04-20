@@ -8,7 +8,7 @@ function run ({
 }) {
   return auctionRepo
     .getFirstAuctionIndexAfterDate({
-      tokenA: 'ETH',
+      tokenA: 'WETH',
       tokenB: 'RDN'
     })
     .then(auctionIndex => {
