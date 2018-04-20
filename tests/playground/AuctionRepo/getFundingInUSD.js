@@ -7,7 +7,7 @@ function run ({
   auctionRepo
 }) {
   const tokenA = 'RDN'
-  const tokenB = 'ETH'
+  const tokenB = 'WETH'
   const auctionIndex = 1
 
   return auctionRepo

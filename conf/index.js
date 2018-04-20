@@ -22,7 +22,7 @@ const ENV_VAR_LIST = [
   //  * SLACK_CHANNEL_AUCTIONS_REPORT
   //  * SLACK_CHANNEL_OPERATIONS
 ]
-const SPECIAL_TOKENS = ['ETH', 'MGN', 'OWL', 'GNO']
+const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 
 // Get environment: local, dev, pro
 let environment = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : 'local'

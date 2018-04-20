@@ -27,7 +27,7 @@ const message = {
     }, {
       "color": "danger",
       "title": "The bot account is running out of Ether",
-      "text": "0.1345 ETH"
+      "text": "0.1345 WETH"
     }, {
       "color": "good",
       "title": "This tokens should be OK",

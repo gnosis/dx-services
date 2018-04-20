@@ -2,8 +2,8 @@ const ENVIRONMENT = 'local'
 
 const MINIMUM_SELL_VOLUME_USD = 1000
 const MARKETS = [
-  { tokenA: 'ETH', tokenB: 'RDN' },
-  { tokenA: 'ETH', tokenB: 'OMG' }
+  { tokenA: 'WETH', tokenB: 'RDN' },
+  { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 const BUY_LIQUIDITY_RULES = [
   // Buy 1/3 if price equals market price
@@ -101,11 +101,11 @@ const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
-  'ETH-OMG': {
+  'WETH-OMG': {
     strategy: 'sequence',
     feeds: ['binance', 'huobi', 'bitfinex']
   },
-  'ETH-RDN': {
+  'WETH-RDN': {
     strategy: 'sequence',
     feeds: ['huobi', 'binance', 'bitfinex']
   }

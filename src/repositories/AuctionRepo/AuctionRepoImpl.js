@@ -33,7 +33,7 @@ class AuctionRepoImpl {
     this._priceOracle = contracts.priceOracle
     this._tokens = Object.assign({
       GNO: contracts.gno,
-      ETH: contracts.eth,
+      WETH: contracts.eth,
       MGN: contracts.mgn,
       OWL: contracts.owl
     }, contracts.erc20TokenContracts)
@@ -304,7 +304,7 @@ class AuctionRepoImpl {
 
     return this.isApprovedMarket({
       tokenA: token,
-      tokenB: 'ETH'
+      tokenB: 'WETH'
     })
   }
 
@@ -502,7 +502,7 @@ class AuctionRepoImpl {
 just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH)`)
 
     // deposit ether
-    const eth = this._tokens.ETH
+    const eth = this._tokens.WETH
     return eth.deposit({ from, value: amount })
   }
 
@@ -852,12 +852,12 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
   async _assertMinimunFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
     // get the funded value in USD
     let fundedValueUSD
-    if (tokenA === 'ETH') {
+    if (tokenA === 'WETH') {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenA,
         amount: actualAFunding
       })
-    } else if (tokenB === 'ETH') {
+    } else if (tokenB === 'WETH') {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenB,
         amount: actualBFunding
@@ -926,12 +926,12 @@ currentAuctionIndex=${currentAuctionIndex}`)
       params: [ token, ethUsdPrice ]
     })
     let amountInETH
-    if (token === 'ETH') {
+    if (token === 'WETH') {
       amountInETH = amount
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
       logger.debug({
-        msg: 'Price in ETH for %s: %d',
+        msg: 'Price in WETH for %s: %d',
         params: [
           token,
           priceTokenETH.numerator.div(priceTokenETH.denominator)
@@ -953,11 +953,11 @@ currentAuctionIndex=${currentAuctionIndex}`)
     let amountInETH = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
-    if (token === 'ETH') {
+    if (token === 'WETH') {
       amountInToken = amountInETH
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
-      logger.debug('Price of token %s in ETH: %d', token,
+      logger.debug('Price of token %s in WETH: %d', token,
         priceTokenETH.numerator.div(priceTokenETH.denominator))
       amountInToken = amountInETH
         .mul(priceTokenETH.denominator)
@@ -1090,12 +1090,12 @@ volume: ${state}`)
 
   async getPriceInEth ({ token }) {
     assert(token, 'The token is required')
-    // If none of the token are ETH, we make sure the market <token>/ETH exists
+    // If none of the token are WETH, we make sure the market <token>/WETH exists
     const tokenEthMarketExists = await this.isApprovedMarket({
       tokenA: token,
-      tokenB: 'ETH'
+      tokenB: 'WETH'
     })
-    assert(tokenEthMarketExists, `The market ${token}-ETH doesn't exists`)
+    assert(tokenEthMarketExists, `The market ${token}-WETH doesn't exists`)
 
     return this
       ._callForToken({

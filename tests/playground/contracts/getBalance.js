@@ -8,7 +8,7 @@ function run ({
   dx,
   tokens
 }) {
-  const eth = tokens.ETH
+  const eth = tokens.WETH
   return dx
     .balances
     .call(eth.address, address)

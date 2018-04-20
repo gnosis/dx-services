@@ -20,7 +20,7 @@ async function run ({
   printProps,
   fractionFormatter
 }) {
-  const sellToken = 'ETH'
+  const sellToken = 'WETH'
   const buyToken = 'RDN'
   const state = await auctionRepo.getState({ sellToken, buyToken })
   const stateInfo = await auctionRepo.getStateInfo({ sellToken, buyToken })

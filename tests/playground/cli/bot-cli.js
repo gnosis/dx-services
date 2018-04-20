@@ -54,12 +54,12 @@ async function run ({
     .option('-b, --balances', 'Balances for all known tokens (i.e --balances false)')
     .option('-I, --setup', 'Basic setup for testing porpouses. Set the auction to RUNNING and ensures the user has funding')
     .option('-$, --setup-funding', 'Ensures the test user has funding')
-    .option('-M, --send <token>,<amount>[,<to-account>[,<from-account>]]', 'Send a token to an arbitrary account (i.e. --send ETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732) ', list)
-    .option('-F, --fund <token>,<amount>[,<account-index>]', 'Fund a user account (i.e. --fund ETH,0.1) ', list)
+    .option('-M, --send <token>,<amount>[,<to-account>[,<from-account>]]', 'Send a token to an arbitrary account (i.e. --send WETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732) ', list)
+    .option('-F, --fund <token>,<amount>[,<account-index>]', 'Fund a user account (i.e. --fund WETH,0.1) ', list)
     .option('-A, --approve-token <token>', 'Approve token', list)
     .option('-x --state "<sell-token>,<buy-token>"', 'Show current state', list)
-    .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit ETH,0.1)', list)
-    .option('-z --add-tokens', 'Ads RDN-ETH') //  OMG-ETH and RDN-OMG
+    .option('-D, --deposit "<token>,<amount>"', 'Deposit tokens (i.e. --deposit WETH,0.1)', list)
+    .option('-z --add-tokens', 'Ads RDN-WETH') //  OMG-WETH and RDN-OMG
     .option('-k --closing-price "<sell-token>,<buy-token>,<auction-index>"', 'Show closing price', list)
     .option('-p --price "<sell-token>,<buy-token>,<auctionIndex>"', 'Show the closing price for an auction', list)
     .option('-o --oracle <token>', 'Show oracle-price')
@@ -76,20 +76,20 @@ async function run ({
       '--balances',
       '--setup',
       '--setup-funding',
-      '--send ETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732',
-      '--fund ETH,0.5',
+      '--send WETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732',
+      '--fund WETH,0.5',
       '--approve-token RDN',
-      '--state RDN,ETH',
-      '--deposit ETH,100',
+      '--state RDN,WETH',
+      '--deposit WETH,100',
       '--add-tokens',
-      '--closing-price RDN,ETH,0',
-      '--price RDN,ETH,1',
-      '--oracle ETH',
+      '--closing-price RDN,WETH,0',
+      '--price RDN,WETH,1',
+      '--oracle WETH',
       '--mine',
       '--time 0.5',
       '--time 6',
-      '--buy RDN,ETH,100',
-      '--sell ETH,RDN,100',
+      '--buy RDN,WETH,100',
+      '--sell WETH,RDN,100',
       '--test 1'
     ]
 
@@ -193,12 +193,12 @@ async function run ({
     // add tokens
     await printState('State before add tokens', {
       buyToken: 'RDN',
-      sellToken: 'ETH'
+      sellToken: 'WETH'
     })
     await addTokens()
     await printState('State after add tokens', {
       buyToken: 'RDN',
-      sellToken: 'ETH'
+      sellToken: 'WETH'
     })
   } else if (commander.closingPrice) {
     // closing price
@@ -257,7 +257,7 @@ async function run ({
 
     switch (testNumber) {
       case 1:
-        const sellToken = 'ETH'
+        const sellToken = 'WETH'
         const buyToken = 'RDN'
         const ethToSell = 0.1
         // const ethToBuy = 0.4
@@ -270,7 +270,7 @@ async function run ({
         debug('*** Test 1 ***')
         await setAuctionRunningAndFundUser(tokenPair)
 
-        debug(`[in 3s] User1 is will try to sell ${ethToSell} ETH in current \
+        debug(`[in 3s] User1 is will try to sell ${ethToSell} WETH in current \
 auction - it must fail`)
         await delay(() => {
           return buySell('postSellOrder', {
@@ -283,7 +283,7 @@ auction - it must fail`)
           })
         }, 3000)
 
-        debug('[in 3s] User1 is will try to sell %d ETH in next auction (%d) - it must succed',
+        debug('[in 3s] User1 is will try to sell %d WETH in next auction (%d) - it must succed',
           ethToSell, auctionIndex + 1)
         await delay(() => {
           return buySell('postSellOrder', {
@@ -294,7 +294,7 @@ auction - it must fail`)
             auctionIndex: auctionIndex + 1
           }).then(() => {
             debug(`Nice! The postSellOrder succeded for the next auction. We've \
-sold ${ethToSell} ETH for auction ${auctionIndex + 1}`)
+sold ${ethToSell} WETH for auction ${auctionIndex + 1}`)
           })
         }, 3000)
 
@@ -313,7 +313,7 @@ sold ${rdnToSell} RDN for auction %d${auctionIndex + 1}`)
           })
         }, 3000)
 
-        debug('[in 3s] User1 is buying in ETH-RDN bidding %d RDN', rdnToBuy)
+        debug('[in 3s] User1 is buying in WETH-RDN bidding %d RDN', rdnToBuy)
         await delay(() => {
           return buySell('postBuyOrder', {
             from: user1,

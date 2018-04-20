@@ -21,7 +21,7 @@ class EthereumRepoMock {
   async tokenGetSymbol ({ tokenAddress }) {
     switch (tokenAddress) {
       case '0x123':
-        return 'ETH'
+        return 'WETH'
       case '0x234':
         return 'RDN'
       case '0x345':

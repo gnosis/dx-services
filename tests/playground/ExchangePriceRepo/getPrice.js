@@ -6,11 +6,11 @@ const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
-  'ETH-OMG': {
+  'WETH-OMG': {
     strategy: 'sequence',
     feeds: ['binance', 'huobi', 'bitfinex']
   },
-  'ETH-RDN': {
+  'WETH-RDN': {
     strategy: 'sequence',
     feeds: ['huobi', 'binance', 'bitfinex']
   }
@@ -23,7 +23,7 @@ const priceRepo = new PriceRepoImpl({
 
 priceRepo.getPrice({
   tokenA: 'OMG',
-  tokenB: 'ETH'
+  tokenB: 'WETH'
 })
   .then(console.log)
   .catch(console.error)

@@ -11,7 +11,7 @@ const isLocal = environment === 'local'
 
 const NUM_TEST_USERS = 1
 const INITIAL_AMOUNTS = {
-  ETH: 20,
+  WETH: 20,
   GNO: 750,
   OWL: 1000,
   MGN: 0,
@@ -48,10 +48,10 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
     return acc
   }, [])
 
-  async function setAuctionRunningAndFundUser ({ sellToken = 'ETH', buyToken = 'RDN' }) {
+  async function setAuctionRunningAndFundUser ({ sellToken = 'WETH', buyToken = 'RDN' }) {
     const tokenPair = { sellToken, buyToken }
     const ethBalance = await auctionRepo.getBalance({
-      token: 'ETH',
+      token: 'WETH',
       address: user1
     })
     if (ethBalance.lessThan(5 * 1e18)) {
@@ -165,12 +165,12 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
     debug('users: %s', users.join(', '))
 
     const initialAmounts = [
-      { token: 'ETH', amount: INITIAL_AMOUNTS['ETH'] },
+      { token: 'WETH', amount: INITIAL_AMOUNTS['WETH'] },
       { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] },
       { token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
       // { token: 'MGN', amount: 2 },
     ]
-    const approveERC20Tokens = ['ETH', 'OWL']
+    const approveERC20Tokens = ['WETH', 'OWL']
     if (supportedTokens.includes('RDN')) {
       approveERC20Tokens.push('RDN')
       initialAmounts.push({ token: 'RDN', amount: INITIAL_AMOUNTS['RDN'] })
@@ -212,7 +212,7 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
       await Promise.all(
         depositERC20Tokens
           // We don't need to give ETH to the users (they deposit it)
-          .filter(t => t !== 'ETH')
+          .filter(t => t !== 'WETH')
           .map(token => {
             const amount = getAmount(token)
 
@@ -228,7 +228,7 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
       )
 
       // User deposits ETH
-      const amountETH = getAmount('ETH')
+      const amountETH = getAmount('WETH')
       await auctionRepo.depositEther({
         from: userAddress,
         amount: numberUtil.toWei(amountETH)

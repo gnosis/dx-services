@@ -2,7 +2,7 @@ const cliUtils = require('../helpers/cliUtils')
 const printState = require('../helpers/printState')
 
 function registerCommand ({ cli, instances, logger }) {
-  cli.command('state <token-pair>', 'Get the state for a given pair (i.e. ETH-RDN)', yargs => {
+  cli.command('state <token-pair>', 'Get the state for a given pair (i.e. WETH-RDN)', yargs => {
     cliUtils.getPositionalByName('token-pair', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString } = argv

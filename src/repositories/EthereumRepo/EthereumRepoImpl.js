@@ -138,7 +138,11 @@ class EthereumRepoImpl {
       this.tokenGetDecimals({ tokenAddress })
     ])
     return {
-      symbol, name, address: tokenAddress, decimals
+      // TODO remove when ensured using EtherToken contract with WETH symbol
+      symbol: symbol !== 'ETH' ? symbol : 'WETH',
+      name,
+      address: tokenAddress,
+      decimals
     }
   }
 

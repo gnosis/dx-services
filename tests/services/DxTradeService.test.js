@@ -24,7 +24,7 @@ test('It should post a buy order', async () => {
   // WHEN we do a buy
   await dxTradeService.buy({
     sellToken: 'RDN',
-    buyToken: 'ETH',
+    buyToken: 'WETH',
     auctionIndex: 77,
     from: '0x123',
     amount: 1
@@ -50,7 +50,7 @@ test('It should post a sell order', async () => {
   // WHEN we do a sell
   await dxTradeService.sell({
     sellToken: 'RDN',
-    buyToken: 'ETH',
+    buyToken: 'WETH',
     auctionIndex: 77,
     from: '0x123',
     amount: 1

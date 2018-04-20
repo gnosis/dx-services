@@ -2,7 +2,7 @@ const cliUtils = require('../helpers/cliUtils')
 const printState = require('../helpers/printState')
 
 function registerCommand ({ cli, instances, logger }) {
-  cli.command('claimable-tokens <token-pairs> [count]', 'Get the claimable tokens for a list of token pair (i.e. claimable-tokens ETH-RDN,ETH-OMG)', yargs => {
+  cli.command('claimable-tokens <token-pairs> [count]', 'Get the claimable tokens for a list of token pair (i.e. claimable-tokens WETH-RDN,WETH-OMG)', yargs => {
     cliUtils.getPositionalByName('token-pairs', yargs)
     cliUtils.getPositionalByName('count', yargs)
   }, async function (argv) {

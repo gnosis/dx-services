@@ -7,7 +7,7 @@ function run ({
   auctionRepo,
   address
 }) {
-  const token = 'ETH'
+  const token = 'WETH'
   return auctionRepo
     .getPriceInEth({ token })
     .then(price => {

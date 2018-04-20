@@ -12,7 +12,7 @@ class AuctionRepoMock {
     this._auctions = auctions || auctionsMockData.auctions
     this._balances = balances || auctionsMockData.balances
     this._pricesInUSD = pricesInUSD || auctionsMockData.pricesInUSD
-    this._tokens = {ETH: '', RDN: '', OMG: ''}
+    this._tokens = {WETH: '', RDN: '', OMG: ''}
   }
 
   async getAbout () {
@@ -156,7 +156,7 @@ class AuctionRepoMock {
 
   async getTokenAddress ({ token }) {
     switch (token) {
-      case 'ETH':
+      case 'WETH':
         return '0x123'
       case 'RDN':
         return '0x234'
@@ -226,11 +226,11 @@ class AuctionRepoMock {
     let amountInEth = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
-    if (token === 'ETH') {
+    if (token === 'WETH') {
       amountInToken = amountInEth
     } else {
       const priceTokenEth = await this.getPriceInEth({ token })
-      debug('Price of token %s in ETH: %d', token,
+      debug('Price of token %s in WETH: %d', token,
         priceTokenEth.numerator.div(priceTokenEth.denominator))
       amountInToken = amountInEth
         .mul(priceTokenEth.denominator)
@@ -242,7 +242,7 @@ class AuctionRepoMock {
 
   async getPriceEthUsd () {
     const price = this._pricesInUSD.find(price => {
-      return price.token === 'ETH'
+      return price.token === 'WETH'
     })
 
     return new BigNumber(price.price)

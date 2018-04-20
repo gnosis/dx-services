@@ -14,8 +14,16 @@ class PriceRepoImpl {
     let strategydata = this._priceFeedStrategies[marketName] || this._priceFeedStrategiesDefault
     const strategy = this._getStrategy(strategydata.strategy)
 
+    // To check price of WETH we need to check ETH price
+    let tokenPair = { tokenA, tokenB }
+    if (tokenA === 'WETH') {
+      tokenPair.tokenA = 'ETH'
+    } else if (tokenB === 'WETH') {
+      tokenPair.tokenB = 'ETH'
+    }
+
     // Delegate to the strategy
-    return strategy.getPrice({ tokenA, tokenB }, strategydata)
+    return strategy.getPrice(tokenPair, strategydata)
   }
 
   _getStrategy (strategyName) {
