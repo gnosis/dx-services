@@ -1088,6 +1088,16 @@ volume: ${state}`)
       .then(toFraction)
   }
 
+  async getFirstAuctionIndexAfterDate ({ tokenA, tokenB }) {
+    // TODO: Implement
+    return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
+  }
+
+  async getLastAuctionIndexBeforeDate ({ tokenA, tokenB }) {
+    // TODO: Implement
+    return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
+  }
+
   async getPriceInEth ({ token }) {
     assert(token, 'The token is required')
     // If none of the token are WETH, we make sure the market <token>/WETH exists
