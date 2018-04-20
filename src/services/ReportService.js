@@ -1,15 +1,9 @@
 const loggerNamespace = 'dx-service:services:ReportService'
 const Logger = require('../helpers/Logger')
-const formatUtil = require('../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
+const formatUtil = require('../helpers/formatUtil')
+const AuctionsReportRS = require('./helpers/AuctionsReportRS')
 const assert = require('assert')
-const fs = require('fs')
-const TEST_FILE = `Auction index;Sell token;Buy token;Sell volume;Buy volume;Last closing price;Price increment;Bot sell volume;Bot buy volume;Ensured sell volume;Ensured buy volume\
-1;ETH;RDN;0,9;0,9;300;N/A;0.9;0.9;100,00%;100,00%
-1;RDN;ETH;0;0;0,003333333;N/A;0;0;0,00%;0,00%
-2;ETH;RDN;1,4;1,4;330;10,00%;0,85;0,95;60,71%;0,63%
-2;RDN;ETH;150;150;0,003030303;-10,00%;120;33;80,00%;22,00%`
-
 let requestId = 1
 
 // const AuctionLogger = require('../helpers/AuctionLogger')
@@ -103,18 +97,46 @@ class ReportService {
       formatUtil.formatDateTime(toDate)
     )
 
-    //  ReadableStream or a Buffer
-    const content = Buffer.from(TEST_FILE, 'utf8')
+    const auctionsReportRS = new AuctionsReportRS()
+    auctionsReportRS.addLine({
+      auctionIndex: 1,
+      sellToken: 'ETH',
+      buyToken: 'RDN',
+      sellVolume: 0.9,
+      buyVolume: 0.9,
+      lastClosingPrice: 300,
+      priceIncrement: 'N/A',
+      botSellVolume: 0.9,
+      botBuyVolume: 0.9,
+      ensuredSellVolumePercentage: 100,
+      ensuredBuyVolumePercentage: 100
+    })
+    auctionsReportRS.end()
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve({
           name: 'auctions-reports.csv',
           mimeType: 'text/csv',
-          content
+          content: auctionsReportRS
         })
-      }, 3000)
+      }, 2000)
     })
+  }
+
+  async _generateFile (fileReadbleStream) {
+    TEST_FILE.split('\n').forEach((line, index) => {
+      setTimeout(() => {
+        try {
+          fileReadbleStream.push(line + '\n', 'UTF-8')
+        } catch (error) {
+          fileReadbleStream.emit('error', error)
+          throw error
+        }
+      }, index * 1500)
+    })
+
+    // fileReadbleStream.push(null)
   }
 
   async _sendFileToSlack ({ channel, message, id, file }) {
@@ -129,7 +151,7 @@ class ReportService {
     })
 
     const url = fileSlack.url_private
-    logger.info('[requestId=%d] File uploaded. fileId=%d, url=%s',
+    logger.info('[requestId=%d] File uploaded. fileId=%s, url=%s',
       id, fileSlack.id, url)
 
     message.attachments[0].fields.push({
