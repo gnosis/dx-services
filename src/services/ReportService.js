@@ -70,8 +70,6 @@ class ReportService {
       }
     })
 
-    auctionsReportRS.end()
-
     return {
       name: 'auctions-reports.csv',
       mimeType: 'text/csv',
@@ -109,8 +107,20 @@ class ReportService {
     }
   }
 
-  async _generateAuctionInfo ({ auctionIndex, tokenA, tokenB, addAuctionInfo }) {
-
+  async _generateAuctionInfo ({ auctionIndex, sellToken, buyToken, addAuctionInfo }) {
+    addAuctionInfo({
+      auctionIndex: 1,
+      sellToken,
+      buyToken,
+      sellVolume: 0.9,
+      buyVolume: 0.9,
+      lastClosingPrice: 300,
+      priceIncrement: 'N/A',
+      botSellVolume: 0.9,
+      botBuyVolume: 0.9,
+      ensuredSellVolumePercentage: 100,
+      ensuredBuyVolumePercentage: 100
+    })
   }
 
   async _generateAuctionInfoByMarket ({ fromDate, toDate, tokenA, tokenB, addAuctionInfo }) {
@@ -134,28 +144,34 @@ class ReportService {
       })
     ])
 
-    addAuctionInfo({
-      auctionIndex: 1,
-      sellToken: tokenA,
-      buyToken: tokenB,
-      sellVolume: 0.9,
-      buyVolume: 0.9,
-      lastClosingPrice: 300,
-      priceIncrement: 'N/A',
-      botSellVolume: 0.9,
-      botBuyVolume: 0.9,
-      ensuredSellVolumePercentage: 100,
-      ensuredBuyVolumePercentage: 100
-    })
-
     if (startAuctionIndex && endAuctionIndex) {
+      const generateInfoPromises = []
       for (let auctionIndex = startAuctionIndex; auctionIndex <= endAuctionIndex; auctionIndex++) {
         logger.info('Get information for auction %s of %s-%s',
           auctionIndex,
           tokenA,
           tokenB
         )
+
+        // Get info for the auction tokenA-tokenB and tokenB-tokenA
+        const generateAuctionInfoPromise = this._generateAuctionInfo({
+          auctionIndex,
+          sellToken: tokenA,
+          buyToken: tokenB,
+          addAuctionInfo
+        })
+        // Get info for the auction tokenB-tokenA (opposite auction)
+        const generateAuctionInfoPromiseOpp = this._generateAuctionInfo({
+          auctionIndex,
+          sellToken: tokenB,
+          buyToken: tokenA,
+          addAuctionInfo
+        })
+        generateInfoPromises.push(generateAuctionInfoPromise)
+        generateInfoPromises.push(generateAuctionInfoPromiseOpp)
       }
+
+      return Promise.all(generateInfoPromises)
     } else {
       logger.info('There are no auctions for %s-%s between %s and %s',
         tokenA,

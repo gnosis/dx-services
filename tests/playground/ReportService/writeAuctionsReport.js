@@ -21,4 +21,5 @@ function run ({
       console.log('Content:')
       content.pipe(process.stdout)
     })
+    .catch(console.error)
 }

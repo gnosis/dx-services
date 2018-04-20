@@ -59,6 +59,10 @@ ${ensuredBuyVolumePercentage}\n`
   end (error) {
     if (error) {
       // Throw error
+      logger.error({
+        msg: 'Error ' + error.message,
+        error
+      })
       this.emit('error', error)
     } else {
       // End the stream
