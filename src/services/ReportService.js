@@ -42,7 +42,7 @@ class ReportService {
     try {
       addAuctionInfo({
         auctionIndex: 1,
-        sellToken: 'ETH',
+        sellToken: 'WETH',
         buyToken: 'RDN',
         sellVolume: 0.9,
         buyVolume: 0.9,
@@ -56,7 +56,7 @@ class ReportService {
 
       addAuctionInfo({
         auctionIndex: 1,
-        sellToken: 'ETH',
+        sellToken: 'WETH',
         buyToken: 'RDN',
         sellVolume: 0.9,
         buyVolume: 0.9,
