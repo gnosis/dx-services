@@ -27,7 +27,7 @@ class AuctionsReportRS extends Readable {
   _read (size) {
   }
 
-  addLine ({
+  addAuction ({
     auctionIndex,
     sellToken,
     buyToken,
@@ -51,13 +51,19 @@ ${priceIncrement};\
 ${botSellVolume};\
 ${botBuyVolume};\
 ${ensuredSellVolumePercentage};\
-${ensuredBuyVolumePercentage}`
+${ensuredBuyVolumePercentage}\n`
 
-    this.push(line + '\n', 'UTF-8')
+    this.push(line, 'UTF-8')
   }
 
-  end () {
-    this.push(null)
+  end (error) {
+    if (error) {
+      // Throw error
+      this.emit('error', error)
+    } else {
+      // End the stream
+      this.push(null)
+    }
   }
 }
 

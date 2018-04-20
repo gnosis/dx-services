@@ -19,6 +19,59 @@ class ReportService {
     this._auctionsReportSlackChannel = auctionsReportSlackChannel
   }
 
+  async getAuctionsReportInfo () {
+    return new Promise((resolve, reject) => {
+      const auctions = []
+      this._getAuctionsReportInfo({
+        addAuctionInfo (auctionInfo) {
+          // logger.debug('Add auction info: ', auctionInfo)
+          auctions.push(auctionInfo)
+        },
+        end (error) {
+          if (error) {
+            reject(error)
+          } else {
+            resolve(auctions)
+          }
+        }
+      })
+    })
+  }
+
+  _getAuctionsReportInfo ({ addAuctionInfo, end }) {
+    try {
+      addAuctionInfo({
+        auctionIndex: 1,
+        sellToken: 'ETH',
+        buyToken: 'RDN',
+        sellVolume: 0.9,
+        buyVolume: 0.9,
+        lastClosingPrice: 300,
+        priceIncrement: 'N/A',
+        botSellVolume: 0.9,
+        botBuyVolume: 0.9,
+        ensuredSellVolumePercentage: 100,
+        ensuredBuyVolumePercentage: 100
+      })
+
+      addAuctionInfo({
+        auctionIndex: 1,
+        sellToken: 'ETH',
+        buyToken: 'RDN',
+        sellVolume: 0.9,
+        buyVolume: 0.9,
+        lastClosingPrice: 300,
+        priceIncrement: 'N/A',
+        botSellVolume: 0.9,
+        botBuyVolume: 0.9,
+        ensuredSellVolumePercentage: 100,
+        ensuredBuyVolumePercentage: 100
+      })
+    } catch (error) {
+      end(error)
+    }
+  }
+
   sendAuctionsReportToSlack ({ fromDate, toDate, senderInfo }) {
     const id = requestId++
     
@@ -49,7 +102,7 @@ class ReportService {
 
   async _doSendAuctionsReportToSlack ({ id, senderInfo, fromDate, toDate }) {
     // Generate report file
-    const file = await this._getAuctionsReportFile({
+    const file = await this.getAuctionsReportFile({
       fromDate,
       toDate
     })
@@ -89,7 +142,7 @@ class ReportService {
     })
   }
 
-  async _getAuctionsReportFile ({ fromDate, toDate }) {
+  async getAuctionsReportFile ({ fromDate, toDate }) {
     assert(fromDate < toDate, "The 'toDate' must be greater than the 'fromDate'")
 
     logger.info('Generate auction report from "%s" to "%s"',
@@ -98,45 +151,28 @@ class ReportService {
     )
 
     const auctionsReportRS = new AuctionsReportRS()
-    auctionsReportRS.addLine({
-      auctionIndex: 1,
-      sellToken: 'ETH',
-      buyToken: 'RDN',
-      sellVolume: 0.9,
-      buyVolume: 0.9,
-      lastClosingPrice: 300,
-      priceIncrement: 'N/A',
-      botSellVolume: 0.9,
-      botBuyVolume: 0.9,
-      ensuredSellVolumePercentage: 100,
-      ensuredBuyVolumePercentage: 100
+    this._getAuctionsReportInfo({
+      addAuctionInfo (auctionInfo) {
+        // logger.debug('Add auction into report: ', auctionInfo)
+        auctionsReportRS.addAuction(auctionInfo)
+      },
+      end (error) {
+        logger.debug('Finished report: ', error ? 'Error' : 'Success')
+        if (error) {
+          auctionsReportRS.end(error)
+        } else {
+          auctionsReportRS.end()
+        }
+      }
     })
+
     auctionsReportRS.end()
 
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve({
-          name: 'auctions-reports.csv',
-          mimeType: 'text/csv',
-          content: auctionsReportRS
-        })
-      }, 2000)
-    })
-  }
-
-  async _generateFile (fileReadbleStream) {
-    TEST_FILE.split('\n').forEach((line, index) => {
-      setTimeout(() => {
-        try {
-          fileReadbleStream.push(line + '\n', 'UTF-8')
-        } catch (error) {
-          fileReadbleStream.emit('error', error)
-          throw error
-        }
-      }, index * 1500)
-    })
-
-    // fileReadbleStream.push(null)
+    return {
+      name: 'auctions-reports.csv',
+      mimeType: 'text/csv',
+      content: auctionsReportRS
+    }
   }
 
   async _sendFileToSlack ({ channel, message, id, file }) {
