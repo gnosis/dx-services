@@ -155,7 +155,6 @@ class BalanceCheckBot extends Bot {
               short: false
             }
           ],
-          author_name: this.nameForLogging,
           footer: this.botInfo
         }]
       }
@@ -201,7 +200,6 @@ class BalanceCheckBot extends Bot {
           title: message,
           text: 'The tokens below the threshold are:',
           fields: fields,
-          author_name: this.nameForLogging,
           footer: this.botInfo
         }]
       }

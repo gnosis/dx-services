@@ -149,7 +149,6 @@ class BuyLiquidityBot extends Bot {
                   "short": false
                 }
               ],
-              author_name: this.nameForLogging,
               footer: this.botInfo
             }
           ]

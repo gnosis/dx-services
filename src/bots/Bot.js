@@ -10,9 +10,6 @@ class Bot {
     if (environment !== 'pro') {
       const environmentDesc = '[' + environment.toUpperCase() + '] '
       this.botInfo = environmentDesc + this._botInfo
-      this.nameForLogging = environmentDesc + name
-    } else {
-      this.nameForLogging = name
     }
   }
 

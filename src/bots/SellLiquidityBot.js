@@ -177,7 +177,6 @@ class SellLiquidityBot extends Bot {
                   "short": false
                 }
               ],
-              author_name: this.nameForLogging,
               footer: this.botInfo
             }
           ]
