@@ -9,18 +9,14 @@ const assert = require('assert')
 class ContractLoader {
   constructor ({
     ethereumClient,
-    contractDefinitions,
-    dxContractAddress = null,
-    gnoTokenAddress = null,
-    erc20TokenAddresses = {},
-    devContractsBaseDir
+    config
   }) {
     this._ethereumClient = ethereumClient
-    this._contractDefinitions = contractDefinitions
-    this._dxContractAddress = dxContractAddress
-    this._gnoTokenAddress = gnoTokenAddress
-    this._erc20TokenAddresses = erc20TokenAddresses
-    this._devContractsBaseDir = devContractsBaseDir
+    this._contractDefinitions = config.CONTRACT_DEFINITIONS
+    this._dxContractAddress = config.DX_CONTRACT_ADDRESS
+    this._gnoTokenAddress = config.GNO_TOKEN_ADDRESS
+    this._erc20TokenAddresses = config.ERC20_TOKEN_ADDRESSES
+    this._devContractsBaseDir = config.CONTRACTS_BASE_DIR
   }
   async loadContracts () {
     const [ dx, erc20TokenContracts ] = await Promise.all([

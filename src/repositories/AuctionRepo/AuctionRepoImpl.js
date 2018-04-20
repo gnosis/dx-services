@@ -20,13 +20,12 @@ const isLocal = environment === 'local'
 class AuctionRepoImpl {
   constructor ({
     ethereumClient,
-    defaultGas,
-    gasPriceGWei,
-    contracts
+    contracts,
+    config
   }) {
     this._ethereumClient = ethereumClient
-    this._defaultGas = defaultGas
-    this._gasPrice = gasPriceGWei * 10 ** 9
+    this._defaultGas = config.DEFAULT_GAS
+    this._gasPrice = config.GAS_PRICE_GWEI * 10 ** 9
 
     // Contracts
     this._dx = contracts.dx

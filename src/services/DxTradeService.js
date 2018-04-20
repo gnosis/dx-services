@@ -6,10 +6,10 @@ const assert = require('assert')
 const numberUtil = require('../../src/helpers/numberUtil')
 
 class DxTradeService {
-  constructor ({ auctionRepo, ethereumRepo, markets }) {
+  constructor ({ auctionRepo, ethereumRepo, markets, config }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    this._markets = markets
+    this._markets = config.MARKETS
   }
 
   async buy ({ sellToken, buyToken, auctionIndex, from, amount }) {

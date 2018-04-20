@@ -1,9 +1,11 @@
 const formatUtil = require('../../helpers/formatUtil')
 
 class PriceRepoImpl {
-  constructor ({ priceFeedStrategiesDefault, priceFeedStrategies }) {
-    this._priceFeedStrategiesDefault = priceFeedStrategiesDefault
-    this._priceFeedStrategies = _normalizeMarketName(priceFeedStrategies)
+  constructor ({ config }) {
+    this._priceFeedStrategiesDefault = config.EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT
+    this._priceFeedStrategies = _normalizeMarketName(
+      config.EXCHANGE_PRICE_FEED_STRATEGIES
+    )
     this._strategies = {}
   }
 

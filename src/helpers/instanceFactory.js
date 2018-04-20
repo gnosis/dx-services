@@ -140,7 +140,7 @@ function _getEhereumClient (config) {
 function _getAuctionEventWatcher (config, eventBus, contracts) {
   const AuctionEventWatcher = require('../bots/AuctionEventWatcher')
   return new AuctionEventWatcher({
-    markets: config.MARKETS,
+    config,
     eventBus: eventBus,
     contracts
   })
@@ -150,12 +150,8 @@ async function _loadContracts (config, ethereumClient) {
   const ContractLoader = require('./ContractLoader')
 
   const contractLoader = new ContractLoader({
-    ethereumClient,
-    contractDefinitions: config.CONTRACT_DEFINITIONS,
-    dxContractAddress: config.DX_CONTRACT_ADDRESS,
-    gnoTokenAddress: config.GNO_TOKEN_ADDRESS,
-    erc20TokenAddresses: config.ERC20_TOKEN_ADDRESSES,
-    devContractsBaseDir: config.CONTRACTS_BASE_DIR // just for develop (TODO: improve)
+    config,
+    ethereumClient
   })
 
   return contractLoader.loadContracts()
@@ -165,11 +161,14 @@ function _getEthereumRepo (config, ethereumClient) {
   switch (config.ETHEREUM_REPO_IMPL) {
     case 'mock':
       const EthereumRepoMock = require('../repositories/EthereumRepo/EthereumRepoMock')
-      return new EthereumRepoMock({})
+      return new EthereumRepoMock({
+        config
+      })
 
     case 'impl':
       const EthereumRepoImpl = require('../repositories/EthereumRepo/EthereumRepoImpl')
       return new EthereumRepoImpl({
+        config,
         ethereumClient
       })
 
@@ -183,16 +182,17 @@ function _getAuctionRepo (config, ethereumClient, contracts) {
   switch (config.AUCTION_REPO_IMPL) {
     case 'mock':
       const AuctionRepoMock = require('../repositories/AuctionRepo/AuctionRepoMock')
-      auctionRepoPromise = Promise.resolve(new AuctionRepoMock({}))
+      auctionRepoPromise = Promise.resolve(new AuctionRepoMock({
+        config
+      }))
       break
 
     case 'impl':
       const AuctionRepoImpl = require('../repositories/AuctionRepo/AuctionRepoImpl')
       const auctionRepoImpl = new AuctionRepoImpl({
-        ethereumClient,
-        defaultGas: config.DEFAULT_GAS,
-        gasPriceGWei: config.GAS_PRICE_GWEI,
-        contracts
+        config,
+        contracts,
+        ethereumClient
       })
 
       return auctionRepoImpl
@@ -204,18 +204,19 @@ function _getAuctionRepo (config, ethereumClient, contracts) {
 }
 
 function _getPriceRepo (config) {
-  let priceRepo, PriceRepo
+  let priceRepo
   switch (config.EXCHANGE_PRICE_REPO_IMPL) {
     case 'mock':
-      PriceRepo = require('../repositories/PriceRepo/PriceRepoMock')
-      priceRepo = new PriceRepo({})
+      const PriceRepoMock = require('../repositories/PriceRepo/PriceRepoMock')
+      priceRepo = new PriceRepoMock({
+        config
+      })
       break
 
     case 'impl':
-      PriceRepo = require('../repositories/PriceRepo/PriceRepoImpl')
-      priceRepo = new PriceRepo({
-        priceFeedStrategiesDefault: config.EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
-        priceFeedStrategies: config.EXCHANGE_PRICE_FEED_STRATEGIES
+      const PriceRepoImpl = require('../repositories/PriceRepo/PriceRepoImpl')
+      priceRepo = new PriceRepoImpl({
+        config
       })
       break
 
@@ -229,24 +230,23 @@ function _getPriceRepo (config) {
 function _getLiquidityService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
   const LiquidityService = require('../services/LiquidityService')
   return new LiquidityService({
+    config,
+
     // Repos
     auctionRepo,
     priceRepo,
-    ethereumRepo,
-
-    // Config
-    minimumSellVolume: config.MINIMUM_SELL_VOLUME_USD,
-    buyLiquidityRules: config.BUY_LIQUIDITY_RULES
+    ethereumRepo
   })
 }
 
 function _getDxInfoService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
   const DxInfoService = require('../services/DxInfoService')
   return new DxInfoService({
+    config,
+
     // Repos
     auctionRepo,
     priceRepo,
-    markets: config.MARKETS,
     ethereumRepo
   })
 }
@@ -254,30 +254,31 @@ function _getDxInfoService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
 function _getDxTradeService ({ config, auctionRepo, ethereumRepo }) {
   const DxTradeService = require('../services/DxTradeService')
   return new DxTradeService({
+    config,
+
     // Repos
     auctionRepo,
-    ethereumRepo,
-
-    // config
-    markets: config.MARKETS
+    ethereumRepo
   })
 }
 
 function _getBotsService ({ config, auctionRepo, ethereumRepo }) {
   const BotsService = require('../services/BotsService')
   return new BotsService({
+    config,
+
     // Repos
     auctionRepo,
-    ethereumRepo,
-
-    // config
-    markets: config.MARKETS
+    ethereumRepo
   })
 }
 
 function _getMarketService ({ config, priceRepo }) {
   const MarketService = require('../services/MarketService')
   return new MarketService({
+    config,
+
+    // Repos
     priceRepo
   })
 }
@@ -285,10 +286,12 @@ function _getMarketService ({ config, priceRepo }) {
 function _getReportService ({ config, auctionRepo, ethereumRepo, slackClient }) {
   const ReportService = require('../services/ReportService')
   return new ReportService({
+    config,
+
+    // Repos
     auctionRepo,
     ethereumRepo,
-    slackClient,
-    auctionsReportSlackChannel: config.SLACK_CHANNEL_AUCTIONS_REPORT
+    slackClient
   })
 }
 

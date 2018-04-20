@@ -9,8 +9,10 @@ function run ({
   return reportService
     .getAuctionsReportInfo()
     .then(auctions => {
+      console.log('Got %d auctions:', auctions.length)
       auctions.forEach(auction => {
         console.log(JSON.stringify(auction))
       })
     })
+    .catch(console.error)
 }

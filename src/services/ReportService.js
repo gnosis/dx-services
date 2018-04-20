@@ -11,12 +11,13 @@ let requestId = 1
 // const ENVIRONMENT = process.env.NODE_ENV
 
 class ReportService {
-  constructor ({ auctionRepo, ethereumRepo, markets, slackClient, auctionsReportSlackChannel }) {
+  constructor ({ auctionRepo, ethereumRepo, markets, slackClient, config }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = markets
     this._slackClient = slackClient
-    this._auctionsReportSlackChannel = auctionsReportSlackChannel
+    this._auctionsReportSlackChannel = config.SLACK_CHANNEL_AUCTIONS_REPORT
+    this._markets = config.MARKETS
   }
 
   async getAuctionsReportInfo () {
@@ -24,10 +25,11 @@ class ReportService {
       const auctions = []
       this._getAuctionsReportInfo({
         addAuctionInfo (auctionInfo) {
-          // logger.debug('Add auction info: ', auctionInfo)
+          logger.debug('Add auction info: ', auctionInfo)
           auctions.push(auctionInfo)
         },
         end (error) {
+          logger.debug('Finish getting the info: ', error ? 'Error' : 'Success')
           if (error) {
             reject(error)
           } else {
@@ -40,6 +42,9 @@ class ReportService {
 
   _getAuctionsReportInfo ({ addAuctionInfo, end }) {
     try {
+      this._markets.forEach(market => {
+        logger.info(market)
+      })
       addAuctionInfo({
         auctionIndex: 1,
         sellToken: 'WETH',
@@ -67,6 +72,8 @@ class ReportService {
         ensuredSellVolumePercentage: 100,
         ensuredBuyVolumePercentage: 100
       })
+
+      end()
     } catch (error) {
       end(error)
     }

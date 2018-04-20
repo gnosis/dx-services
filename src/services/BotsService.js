@@ -3,10 +3,10 @@ const getGitInfo = require('../helpers/getGitInfo')
 const ENVIRONMENT = process.env.NODE_ENV
 
 class BotsService {
-  constructor ({ auctionRepo, ethereumRepo, markets }) {
+  constructor ({ auctionRepo, ethereumRepo, config }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    this._markets = markets
+    this._markets = config.MARKETS
 
     // About info
     this._gitInfo = getGitInfo()

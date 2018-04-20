@@ -11,10 +11,10 @@ const getGitInfo = require('../helpers/getGitInfo')
 const getVersion = require('../helpers/getVersion')
 
 class DxInfoService {
-  constructor ({ auctionRepo, ethereumRepo, markets }) {
+  constructor ({ auctionRepo, ethereumRepo, config }) {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    this._markets = markets
+    this._markets = config.MARKETS
 
     // About info
     this._gitInfo = getGitInfo()

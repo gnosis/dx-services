@@ -20,16 +20,15 @@ class LiquidityService {
     priceRepo,
 
     // config
-    minimumSellVolume,
-    buyLiquidityRules
+    config
   }) {
     this._auctionRepo = auctionRepo
     this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo
 
     // Config
-    this._minimumSellVolume = new BigNumber(minimumSellVolume)
-    this._buyLiquidityRules = buyLiquidityRules
+    this._minimumSellVolume = new BigNumber(config.MINIMUM_SELL_VOLUME_USD)
+    this._buyLiquidityRules = config.BUY_LIQUIDITY_RULES
       // Transform fractions to bigdecimals
       .map(threshold => ({
         marketPriceRatio: numberUtil

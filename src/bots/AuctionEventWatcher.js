@@ -27,12 +27,12 @@ const EVENTS_TO_LISTEN = [
 */
 
 class AuctionEventWatcher {
-  constructor ({ eventBus, markets, contracts }) {
+  constructor ({ config, eventBus, contracts }) {
     this._eventBus = eventBus
-    this._markets = markets
+    this._markets = config.MARKETS
     this._contracts = contracts
 
-    this._knownMarkets = markets.map(formatUtil.formatMarketDescriptor)
+    this._knownMarkets = this._markets.map(formatUtil.formatMarketDescriptor)
     this._watchingFilter = null
     this._tokenContracts = Object.assign({}, contracts.erc20TokenContracts, {
       WETH: contracts.eth,
