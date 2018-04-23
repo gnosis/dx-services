@@ -9,4 +9,5 @@ function run ({
   return auctionRepo
     .getAbout()
     .then(console.log)
+    .catch(console.error)
 }

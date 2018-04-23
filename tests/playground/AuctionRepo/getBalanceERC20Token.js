@@ -13,6 +13,7 @@ async function run ({
     return auctionRepo
       .getBalanceERC20Token({ token, address })
       .then(amount => ({ token, amount }))
+      .catch(console.error)
   })
   const balances = await Promise.all(balancePromises)
   balances.forEach(balance => console.log(`\t- ${balance.token}: ${balance.amount}`))

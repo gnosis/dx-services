@@ -15,4 +15,5 @@ function run ({
         console.log(`\t${balanceInfo.token}: ${balanceInfo.amount}`)
       })
     })
+    .catch(console.error)
 }

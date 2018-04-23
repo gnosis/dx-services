@@ -13,4 +13,5 @@ function run ({
     .then(price => {
       console.log(`The price for ${token} is ${price.numerator}/${price.denominator}`)
     })
+    .catch(console.error)
 }

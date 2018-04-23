@@ -18,4 +18,5 @@ ${tokenA}-${tokenB} pair is:
 \t* ${tokenA}: ${fundingA} USD
 \t* ${tokenB}: ${fundingB} USD`)
     })
+    .catch(console.error)
 }

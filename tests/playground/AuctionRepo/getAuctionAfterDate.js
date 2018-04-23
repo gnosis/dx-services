@@ -14,4 +14,5 @@ function run ({
     .then(auctionIndex => {
       console.log(`auctionIndex: ${auctionIndex}`)
     })
+    .catch(console.error)
 }

@@ -12,4 +12,5 @@ function run ({
     .then(price => {
       console.log(`Price: ${price} USD/ETH`)
     })
+    .catch(console.error)
 }

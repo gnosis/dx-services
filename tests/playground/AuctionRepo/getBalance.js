@@ -13,4 +13,5 @@ function run ({
     .then(balance => {
       console.log(`The balance of the account ${address} in ${token} is ${balance}`)
     })
+    .catch(console.error)
 }

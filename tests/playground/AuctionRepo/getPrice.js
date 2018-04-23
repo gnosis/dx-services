@@ -15,4 +15,5 @@ function run ({
     .then(price => {
       console.log(`The price for auction ${auctionIndex} of ${sellToken}-${buyToken} pair is ${price.numerator}/${price.denominator}`)
     })
+    .catch(console.error)
 }
