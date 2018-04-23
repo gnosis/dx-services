@@ -13,21 +13,15 @@ function run ({
   ethereumEventHelper
     .filter({
       contract: dx,
-      filters: {
-        user: botAccount
-      },
-      fromBlock: 0, // 'latest'
-      toBlock: 'latest',
-      callback (error, event) {
-        if (error) {
-          console.error(error)
-        } else {
-        }
-      },
       events: [
         'NewSellOrder',
         'NewBuyOrder'
-      ]
+      ],
+      fromBlock: 0,
+      toBlock: 'latest',
+      filters: {
+        user: botAccount
+      }
     })
     .then(events => {
       debug('%d events:', events.length)
@@ -39,7 +33,6 @@ function run ({
 \t\t- Auction Index: ${auctionIndex}
 \t\t- Token Pair: ${sellToken}-${buyToken}
 \t\t- Amount: ${amount}\n`)
-
       })
     })
     .catch(console.error)

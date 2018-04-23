@@ -2,6 +2,7 @@ const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../../helpers/AuctionLogger')
+const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const assert = require('assert')
@@ -1097,6 +1098,79 @@ volume: ${state}`)
     return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
   }
 
+  async getSellOrders (orderParams) {
+    return this._getOrders(Object.assign({
+      event: 'NewSellOrder'
+    }, orderParams))
+  }
+
+  async getBuyOrders (orderParams) {
+    return this._getOrders(Object.assign({
+      event: 'NewBuyOrder'
+    }, orderParams))
+  }
+
+  async _getOrders ({
+    event,
+    fromBlock = 0,
+    toBlock = 'latest',
+    user,
+    sellToken,
+    buyToken,
+    auctionIndex
+  }) {
+    let orders = await ethereumEventHelper
+      .filter({
+        contract: this._dx,
+        events: [ event ],
+        fromBlock,
+        toBlock,
+        filters: {
+          user,
+          sellToken,
+          buyToken
+        }
+      })
+      .then(orders => orders.map(_toEventData))
+
+    // auctionIndex is not indexed, so we filter programatically
+    if (auctionIndex) {
+      orders = orders.filter(order => order.auctionIndex === auctionIndex)
+    }
+
+    return orders
+  }
+
+  async getClearedAuctions ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    sellToken,
+    buyToken,
+    auctionIndex
+  } = {}) {
+    return ethereumEventHelper
+      .filter({
+        contract: this._dx,
+        filters: {
+          sellToken,
+          buyToken,
+          auctionIndex
+        },
+        fromBlock,
+        toBlock,
+        callback (error, event) {
+          if (error) {
+            console.error(error)
+          } else {
+          }
+        },
+        events: [
+          'AuctionCleared'
+        ]
+      })
+      .then(events => events.map(_toEventData))
+  }
+
   async getPriceInEth ({ token }) {
     assert(token, 'The token is required')
     // If none of the token are WETH, we make sure the market <token>/WETH exists
@@ -1441,9 +1515,32 @@ function toFraction ([ numerator, denominator ]) {
   }
 }
 
-function toTransactionNumber (transactionResult) {
-  return transactionResult.tx
+/*
+function _toOrderFromEvent (event) {
+  logger.debug('Event: %s', event)
+  return {
+    auctionIdex: 1
+  }
 }
+
+function _toClearedAuctionFromEvent (event) {
+  return event.args
+}
+
+function _toClearedAuctionFromEvent (event) {
+  return event.args
+}
+*/
+
+function _toEventData(event) {
+  return event.args
+}
+
+
+
+// function toTransactionNumber (transactionResult) {
+//   return transactionResult.tx
+// }
 
 function epochToDate (epoch) {
   return new Date(epoch * 1000)
