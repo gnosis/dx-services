@@ -4,14 +4,16 @@ function createRoutes ({ dxInfoService }) {
   routes.push({
     path: '/token-pairs',
     get (req, res) {
-      return dxInfoService.getMarkets()
+      const count = req.query.count !== undefined ? req.query.count : 10
+      return dxInfoService.getMarkets({ count })
     }
   })
 
   routes.push({
     path: '/tokens',
     get (req, res) {
-      return dxInfoService.getTokenList({})
+      const count = req.query.count !== undefined ? req.query.count : 20
+      return dxInfoService.getTokenList({ count })
     }
   })
 
