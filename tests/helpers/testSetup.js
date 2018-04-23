@@ -551,7 +551,7 @@ priceOracle.getUSDETHPrice().then(formatFromWei)
         from: user1,
         tokenA: 'RDN',
         tokenAFunding: 0,
-        tokenB: 'ETH',
+        tokenB: 'WETH',
         tokenBFunding: numberUtil.toWei(13.123),
         initialClosingPrice: {
           numerator: 4079,
