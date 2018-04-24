@@ -26,90 +26,97 @@ test('It should allow to get token contract info', async () => {
   expect(tokenInfo).toMatchObject(EXPECTED_TOKEN_INFO)
 })
 
+// Same test case for different values checking mid and edge cases
 const BLOCK_TEST_CASES = [{
-  block: 0,
+  blockNumber: 0,
   deltaTime: -3,
-  expectedValueLastBlockBefore: null,
-  expectedValueFirstBlockAfter: 0
+  expectedLastBlockBefore: null,
+  expectedFirstBlockAfter: 0
 }, {
-  block: 0,
+  blockNumber: 0,
   deltaTime: 0,
-  expectedValueLastBlockBefore: 0,
-  expectedValueFirstBlockAfter: 0
+  expectedLastBlockBefore: 0,
+  expectedFirstBlockAfter: 0
 }, {
-  block: 0,
+  blockNumber: 0,
   deltaTime: 3,
-  expectedValueLastBlockBefore: 0,
-  expectedValueFirstBlockAfter: 1
+  expectedLastBlockBefore: 0,
+  expectedFirstBlockAfter: 1
 }, {
-  block: 15,
+  blockNumber: 15,
   deltaTime: -3,
-  expectedValueLastBlockBefore: 14,
-  expectedValueFirstBlockAfter: 15
+  expectedLastBlockBefore: 14,
+  expectedFirstBlockAfter: 15
 }, {
-  block: 15,
+  blockNumber: 15,
   deltaTime: 0,
-  expectedValueLastBlockBefore: 15,
-  expectedValueFirstBlockAfter: 15
+  expectedLastBlockBefore: 15,
+  expectedFirstBlockAfter: 15
 }, {
-  block: 15,
+  blockNumber: 15,
   deltaTime: 3,
-  expectedValueLastBlockBefore: 15,
-  expectedValueFirstBlockAfter: 16
+  expectedLastBlockBefore: 15,
+  expectedFirstBlockAfter: 16
 }, {
-  block: 90,
+  blockNumber: 90,
   deltaTime: -3,
-  expectedValueLastBlockBefore: 89,
-  expectedValueFirstBlockAfter: 90
+  expectedLastBlockBefore: 89,
+  expectedFirstBlockAfter: 90
 }, {
-  block: 90,
+  blockNumber: 90,
   deltaTime: 0,
-  expectedValueLastBlockBefore: 90,
-  expectedValueFirstBlockAfter: 90
+  expectedLastBlockBefore: 90,
+  expectedFirstBlockAfter: 90
 }, {
-  block: 90,
+  blockNumber: 90,
   deltaTime: 3,
-  expectedValueLastBlockBefore: 90,
-  expectedValueFirstBlockAfter: 91
+  expectedLastBlockBefore: 90,
+  expectedFirstBlockAfter: 91
 }, {
-  block: 99,
+  blockNumber: 99,
   deltaTime: -3,
-  expectedValueLastBlockBefore: 98,
-  expectedValueFirstBlockAfter: 99
+  expectedLastBlockBefore: 98,
+  expectedFirstBlockAfter: 99
 }, {
-  block: 99,
+  blockNumber: 99,
   deltaTime: 0,
-  expectedValueLastBlockBefore: 99,
-  expectedValueFirstBlockAfter: 99
+  expectedLastBlockBefore: 99,
+  expectedFirstBlockAfter: 99
 }, {
-  block: 99,
+  blockNumber: 99,
   deltaTime: 3,
-  expectedValueLastBlockBefore: 99,
-  expectedValueFirstBlockAfter: null
+  expectedLastBlockBefore: 99,
+  expectedFirstBlockAfter: null
 }]
 
-BLOCK_TEST_CASES.forEach(blockTest => {
-  test('It should return for block ' + blockTest.block +
-  ' with deltaTime ' + blockTest.deltaTime +
-  ' \'' + blockTest.expectedValueLastBlockBefore + '\' as the last block before ' +
-  'and \'' + blockTest.expectedValueFirstBlockAfter + '\' as the first block after',
+// Launch parametrized test based in scenarios added to BLOCK_TEST_CASES
+BLOCK_TEST_CASES.forEach(({ blockNumber, deltaTime,
+  expectedLastBlockBefore, expectedFirstBlockAfter }) => {
+  test('It should return for block ' + blockNumber +
+  ' with deltaTime ' + deltaTime +
+  ' \'' + expectedLastBlockBefore + '\' as the last block before ' +
+  'and \'' + expectedFirstBlockAfter + '\' as the first block after',
   async () => {
     const { ethereumRepo } = await setupPromise
 
+    // We mock the getBlock function in order to mock blocks to be deterministic
     ethereumRepo._ethereumClient.getBlock = _getBlock
 
-    const blockNumber = blockTest.block
+    // GIVEN an origin block and a date
     const block = await ethereumRepo.getBlock(blockNumber)
-    let date = new Date((block.timestamp + blockTest.deltaTime) * 1000)
+    let date = new Date((block.timestamp + deltaTime) * 1000)
 
+    // WHEN we check the last block before or after the date given
     let lastBlockBeforeDate = await ethereumRepo.getLastBlockBeforeDate(date)
     let firstBlockAfterDate = await ethereumRepo.getFirstBlockAfterDate(date)
 
-    expect(lastBlockBeforeDate).toEqual(blockTest.expectedValueLastBlockBefore)
-    expect(firstBlockAfterDate).toEqual(blockTest.expectedValueFirstBlockAfter)
+    // THEN we get the expected values to our scenario
+    expect(lastBlockBeforeDate).toEqual(expectedLastBlockBefore)
+    expect(firstBlockAfterDate).toEqual(expectedFirstBlockAfter)
   })
 })
 
+// Mock function to getBlocks from data/blocks.js
 function _getBlock (blockNumber) {
   if (blockNumber === 'latest') {
     return blocks[blocks.length - 1]
