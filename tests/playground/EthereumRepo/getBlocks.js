@@ -22,7 +22,7 @@ async function run ({
 
   const blocks = await Promise.all(blockPromises)
   const blocksString = blocks.map(block => {
-    return `${block.number};${formatUtil.formatDateTime(block.date)}`
+    return `${block.number};${formatUtil.formatDateTimeWithSeconds(block.date)}`
   }).join('\n')
   console.log(blocksString)
 }

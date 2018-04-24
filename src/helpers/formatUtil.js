@@ -4,14 +4,20 @@ const moment = require('moment')
 const DATE_FORMAT = 'D/MM/YY'
 const DATE_FORMAT_FOR_PARSING = 'D/MM/YYYY' // Accepts 2 and 4 digits years
 const TIME_FORMAT = 'H:mm'
+const TIME_WITH_SECONDS_FORMAT = 'H:mm:ss'
 const DATE_TIME_FORMAT = DATE_FORMAT + ' ' + TIME_FORMAT
+const DATE_TIME_FORMAT_WITH_SECONDS = DATE_FORMAT + ' ' + TIME_WITH_SECONDS_FORMAT
+
+function formatDate (date) {
+  return date ? moment(date).format(DATE_FORMAT) : null
+}
 
 function formatDateTime (date) {
   return date ? moment(date).format(DATE_TIME_FORMAT) : null
 }
 
-function formatDate (date) {
-  return date ? moment(date).format(DATE_FORMAT) : null
+function formatDateTimeWithSeconds (date) {
+  return date ? moment(date).format(DATE_TIME_FORMAT_WITH_SECONDS) : null
 }
 
 function parseDate (dateStr) {
@@ -122,8 +128,9 @@ module.exports = {
 
 module.exports = {
   formatNumber,
-  formatDateTime,
   formatDate,
+  formatDateTime,
+  formatDateTimeWithSeconds,
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,
