@@ -12,7 +12,7 @@ COPY package*.json truffle-config.js yarn.lock ./
 COPY contracts contracts
 
 # Compile necesary contracts for app and cleanup unnecesary files
-RUN apk add --update --no-cache --virtual build-dependencies git python make g++ ca-certificates && \
+RUN apk add --update --no-cache --virtual build-dependencies git python make g++ ca-certificates tzdata && \
     yarn install --pure-lockfile && \
     npm run contracts-compile && \
 #    rm -rf node_modules/@gnosis.pm/dutch-exchange-smartcontracts/node_modules && \
