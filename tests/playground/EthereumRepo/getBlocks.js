@@ -7,8 +7,8 @@ testSetup()
 async function run ({
   ethereumRepo
 }) {
-  const fromBlock = 0
-  const toBlock = 81
+  const fromBlock = process.env.FROM || 0
+  const toBlock = process.env.TO || 81
   const blockPromises = []
   for (var blockNumber = fromBlock; blockNumber < toBlock; blockNumber++) {
     const blockPromise = ethereumRepo
