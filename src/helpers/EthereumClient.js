@@ -102,10 +102,10 @@ class EthereumClient {
   }
 
   async getBlock (blockNumber) {
-    if (!blockNumber) {
+    if (blockNumber === undefined) {
       blockNumber = await this.getBlockNumber()
     }
-    return _promisify(this._web3.eth.getBlock, blockNumber)
+    return _promisify(this._web3.eth.getBlock, blockNumber.toString())
   }
 
   async getAccounts () {

@@ -174,37 +174,51 @@ class EthereumRepoImpl {
 
   async getFirstBlockAfterDate (date) {
     logger.debug('Find first block after %s',
-      formatUtil.formatDateTime(date)
+      formatUtil.formatDateTimeWithSeconds(date)
     )
     const latestBlock = await this._ethereumClient.getBlock('latest')
     const latestBlockNumber = latestBlock.number
-
-    return this._getFirstBlockAfterDate(date, 0, latestBlockNumber,
-      latestBlockNumber, true)
+    
+    return this._getFirstBlockAfterDate({
+      date,
+      firstBlockRange: 0,
+      referenceBlock: latestBlockNumber,
+      lastBlockRange: latestBlockNumber,
+      lookingForBlockAfterDate: true,
+      bestGuess: null
+    })
   }
 
   async getLastBlockBeforeDate (date) {
-    logger.debug('Find first block after %s',
-      formatUtil.formatDateTime(date)
+    logger.debug('Find last block before %s',
+      formatUtil.formatDateTimeWithSeconds(date)
     )
     const latestBlock = await this._ethereumClient.getBlock('latest')
     const latestBlockNumber = latestBlock.number
 
-    return this._getFirstBlockAfterDate(date, 0, latestBlockNumber,
-      latestBlockNumber, false)
+    return this._getFirstBlockAfterDate({
+      date,
+      firstBlockRange: 0,
+      referenceBlock: latestBlockNumber,
+      lastBlockRange: latestBlockNumber,
+      lookingForBlockAfterDate: false,
+      bestGuess: null
+    })
   }
 
-  async _getFirstBlockAfterDate (
+  async _getFirstBlockAfterDate ({
     date,
     firstBlockRange,
     referenceBlock,
     lastBlockRange,
-    lookingForBlockAfterDate
-  ) {
+    lookingForBlockAfterDate,
+    bestGuess
+  }) {
     logger.debug('Looking between %s and %s',
       formatUtil.formatNumber(firstBlockRange),
       formatUtil.formatNumber(lastBlockRange)
     )
+    let nextBestGuess = bestGuess
     const block = await this._ethereumClient.getBlock(referenceBlock)
     const blockDate = new Date(block.timestamp * 1000)
     const seccondsDifference = dateUtil.diff(blockDate, date, 'seconds')
@@ -212,17 +226,34 @@ class EthereumRepoImpl {
 
     logger.debug(' * Reference block %s has date %s. Difference:',
       formatUtil.formatNumber(referenceBlock),
-      formatUtil.formatDateTime(blockDate),
+      formatUtil.formatDateTimeWithSeconds(blockDate),
       formatUtil.formatDatesDifference(blockDate, date)
     )
 
     let nextFirstBlockRange, nextReferenceBlock, nextLastBlockRange
     if (seccondsDifference === 0) {
+      // We found the block, the only one we've got
+      logger.debug(' * Nice we found the block, and it was exact match: %s',
+        formatUtil.formatNumber(referenceBlock)
+      )
       return referenceBlock
     } else if (seccondsDifference > 0) {
       // Between the reference and the last block
+
+      // Improve best guess, if posible
+      if (!lookingForBlockAfterDate) {
+        // We look for a block before the date. Since the reference is before the date
+        // It's our new best guess
+        logger.debug(" * There reference block is before the date, so it's our current best guess")
+        nextBestGuess = referenceBlock
+      }
+
+      // Calculate the new range
       nextFirstBlockRange = referenceBlock + (lookingForBlockAfterDate ? 1 : 0)
-      nextReferenceBlock = Math.ceil(referenceBlock + blocksDifference)
+      nextReferenceBlock = Math.min(
+        Math.ceil(referenceBlock + blocksDifference),
+        lastBlockRange
+      )
       nextLastBlockRange = lastBlockRange
 
       if (nextReferenceBlock >= lastBlockRange) {
@@ -235,8 +266,21 @@ class EthereumRepoImpl {
       }
     } else {
       // Between the first and the reference
+
+      // Improve best guess, if posible
+      if (lookingForBlockAfterDate) {
+        // We look for a block after the date. Since the reference is after the date
+        // It's our new best guess
+        logger.debug(" * There reference block is after the date, so it's our current best guess")
+        nextBestGuess = referenceBlock
+      }
+
+      // Calculate the new range
       nextFirstBlockRange = firstBlockRange
-      nextReferenceBlock = Math.floor(referenceBlock + blocksDifference)
+      nextReferenceBlock = Math.max(
+        Math.floor(referenceBlock + blocksDifference),
+        firstBlockRange
+      )
       nextLastBlockRange = referenceBlock + (lookingForBlockAfterDate ? 0 : -1)
 
       if (nextReferenceBlock <= firstBlockRange) {
@@ -250,20 +294,19 @@ class EthereumRepoImpl {
     }
 
     const numRemainingBlocks = 1 + nextLastBlockRange - nextFirstBlockRange
-    if (numRemainingBlocks < 1) {
-      // There's no block that match the criteria
-      return null
-    } else if (numRemainingBlocks === 1) {
-      // We found the block, the only one we've got
-      logger.debug(' * Nice we found the block: %s',
-        formatUtil.formatNumber(nextFirstBlockRange)
-      )
-      return nextFirstBlockRange
-    } else if (numRemainingBlocks === 2) {
-      // We found the block:
-      logger.debug(' * Nice we found the block: %s',
-        formatUtil.formatNumber(nextFirstBlockRange)
-      )
+    if (numRemainingBlocks < 1 || referenceBlock === nextReferenceBlock) {
+      // There's no blocks left to check
+      if (nextBestGuess !== null) {
+        logger.debug(" * There's not blocks left to check. The matching block is the %s",
+          formatUtil.formatNumber(nextBestGuess)
+        )
+      } else {
+        logger.debug(" * There's not blocks %s %s",
+          lookingForBlockAfterDate ? 'after' : 'before',
+          formatUtil.formatDateTimeWithSeconds(date)
+        )
+      }
+      return nextBestGuess
     } else {
       // We must continue looking
       const jumpInBlocks = nextReferenceBlock - referenceBlock
@@ -274,13 +317,14 @@ class EthereumRepoImpl {
       logger.debug(' * We have to keep looking, still %s candidate blocks',
         formatUtil.formatNumber(nextLastBlockRange - nextFirstBlockRange)
       )
-      return this._getFirstBlockAfterDate(
+      return this._getFirstBlockAfterDate({
         date,
-        nextFirstBlockRange,
-        nextReferenceBlock,
-        nextLastBlockRange,
-        lookingForBlockAfterDate
-      )
+        firstBlockRange: nextFirstBlockRange,
+        referenceBlock: nextReferenceBlock,
+        lastBlockRange: nextLastBlockRange,
+        lookingForBlockAfterDate,
+        bestGuess: nextBestGuess
+      })
     }
   }
 
