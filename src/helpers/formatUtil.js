@@ -20,7 +20,7 @@ function parseDate (dateStr) {
 }
 
 function parseDateTime (dateStr) {
-  return _parseDate(dateStr, DATE_TIME_FORMAT, 'The required format is ' + 
+  return _parseDate(dateStr, DATE_TIME_FORMAT, 'The required format is ' +
     DATE_TIME_FORMAT + '. Example: 15-01-2018 16:35')
 }
 
@@ -29,11 +29,21 @@ function parseDateIso (dateStr, errorMessage) {
 }
 
 function formatDatesDifference (date1, date2) {
-  return moment.duration(moment(date1).diff(moment(date2))).humanize()
+  const difference = moment(date1).diff(moment(date2))
+
+  return moment
+    .duration(difference)
+    .humanize()
 }
 
 function formatDateFromNow (date) {
   return moment(date).fromNow()
+}
+
+function formatNumber (x, { thousandsSeparator = ',', decimalSeparator = '.' } = {}) {
+  var parts = x.toString().split(decimalSeparator)
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandsSeparator)
+  return parts.join(decimalSeparator)
 }
 
 function formatBoolean (flag) {
@@ -46,11 +56,6 @@ function formatFromWei (wei) {
   } else {
     return null
   }
-}
-
-function formatNumber (number) {
-  // TODO: Improve
-  return number.toString()
 }
 
 function formatFraction (fraction, inDecimal = true) {
@@ -116,6 +121,7 @@ module.exports = {
 }
 
 module.exports = {
+  formatNumber,
   formatDateTime,
   formatDate,
   formatDatesDifference,
