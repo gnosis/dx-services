@@ -43,6 +43,10 @@ class EthereumRepoMock {
   async tokenGetDecimals ({ tokenAddress }) {
     return 18
   }
+
+  async getFirstBlockAfterDate (date) {}
+
+  async getLastBlockBeforeDate (date) {}
 }
 
 module.exports = EthereumRepoMock
