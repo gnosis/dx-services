@@ -201,8 +201,6 @@ class EthereumRepoImpl {
     lastBlockRange,
     lookingForBlockAfterDate
   ) {
-    return 0
-
     logger.debug('Looking between %s and %s',
       formatUtil.formatNumber(firstBlockRange),
       formatUtil.formatNumber(lastBlockRange)
@@ -265,7 +263,7 @@ class EthereumRepoImpl {
       // We found the block:
       logger.debug(' * Nice we found the block: %s',
         formatUtil.formatNumber(nextFirstBlockRange)
-      ) 
+      )
     } else {
       // We must continue looking
       const jumpInBlocks = nextReferenceBlock - referenceBlock

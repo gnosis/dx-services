@@ -17,7 +17,7 @@ async function run ({
   }
 
   return ethereumRepo
-    .getFirstBlockAfterDate(date)
+    .getLastBlockBeforeDate(date)
     .then(block => {
       console.log(`block: ${block}`)
     })

@@ -31,7 +31,7 @@ function parseDateTime (dateStr) {
 }
 
 function parseDateIso (dateStr, errorMessage) {
-  return _parseDate(dateStr, null, 'Use a valid ISO 8601 format. Example: 2013-02-08')
+  return _parseDate(dateStr, null, 'Use a valid ISO 8601 format. Examples: 2013-02-08, 2013-02-08T09:30, 2013-02-08 09:30:26')
 }
 
 function formatDatesDifference (date1, date2) {
