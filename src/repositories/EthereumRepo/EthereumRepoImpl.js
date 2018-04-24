@@ -1,11 +1,17 @@
 const loggerNamespace = 'dx-service:repositories:EthereumRepoImpl'
 const Logger = require('../../helpers/Logger')
+const dateUtil = require('../../helpers/dateUtil')
+const formatUtil = require('../../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
 // const AuctionLogger = require('../../helpers/AuctionLogger')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 
 // See: https://github.com/ethereum/eips/issues/20
 const ERC20_ABI = require('./ERC20Abi')
+
+const SECONDS_PER_BLOCK = 15
+const CLOSE_POINT_PERCENTAGE = 0.9
+const FAR_POINT_PERCENTAGE = 1 - CLOSE_POINT_PERCENTAGE
 
 const tokenContractsCache = {}
 
@@ -160,6 +166,124 @@ class EthereumRepoImpl {
     const tokenContract = this._getTokenContract(tokenAddress)
     return promisify(tokenContract.decimals)
       .then(parseInt)
+  }
+
+  async getBlock (blockNumber) {
+    return this._ethereumClient.getBlock(blockNumber)
+  }
+
+  async getFirstBlockAfterDate (date) {
+    logger.debug('Find first block after %s',
+      formatUtil.formatDateTime(date)
+    )
+    const latestBlock = await this._ethereumClient.getBlock('latest')
+    const latestBlockNumber = latestBlock.number
+
+    return this._getFirstBlockAfterDate(date, 0, latestBlockNumber,
+      latestBlockNumber, true)
+  }
+
+  async getLastBlockBeforeDate (date) {
+    logger.debug('Find first block after %s',
+      formatUtil.formatDateTime(date)
+    )
+    const latestBlock = await this._ethereumClient.getBlock('latest')
+    const latestBlockNumber = latestBlock.number
+
+    return this._getFirstBlockAfterDate(date, 0, latestBlockNumber,
+      latestBlockNumber, false)
+  }
+
+  async _getFirstBlockAfterDate (
+    date,
+    firstBlockRange,
+    referenceBlock,
+    lastBlockRange,
+    lookingForBlockAfterDate
+  ) {
+    return 0
+
+    logger.debug('Looking between %s and %s',
+      formatUtil.formatNumber(firstBlockRange),
+      formatUtil.formatNumber(lastBlockRange)
+    )
+    const block = await this._ethereumClient.getBlock(referenceBlock)
+    const blockDate = new Date(block.timestamp * 1000)
+    const seccondsDifference = dateUtil.diff(blockDate, date, 'seconds')
+    const blocksDifference = seccondsDifference / SECONDS_PER_BLOCK
+
+    logger.debug(' * Reference block %s has date %s. Difference:',
+      formatUtil.formatNumber(referenceBlock),
+      formatUtil.formatDateTime(blockDate),
+      formatUtil.formatDatesDifference(blockDate, date)
+    )
+
+    let nextFirstBlockRange, nextReferenceBlock, nextLastBlockRange
+    if (seccondsDifference === 0) {
+      return referenceBlock
+    } else if (seccondsDifference > 0) {
+      // Between the reference and the last block
+      nextFirstBlockRange = referenceBlock + (lookingForBlockAfterDate ? 1 : 0)
+      nextReferenceBlock = Math.ceil(referenceBlock + blocksDifference)
+      nextLastBlockRange = lastBlockRange
+
+      if (nextReferenceBlock >= lastBlockRange) {
+        // Time estimation can be innacurate, especially when we are closing the range
+        // In case we set as the new reference a block close to the last block
+        nextReferenceBlock = Math.ceil(
+          nextFirstBlockRange * FAR_POINT_PERCENTAGE +
+          nextLastBlockRange * CLOSE_POINT_PERCENTAGE
+        )
+      }
+    } else {
+      // Between the first and the reference
+      nextFirstBlockRange = firstBlockRange
+      nextReferenceBlock = Math.floor(referenceBlock + blocksDifference)
+      nextLastBlockRange = referenceBlock + (lookingForBlockAfterDate ? 0 : -1)
+
+      if (nextReferenceBlock <= firstBlockRange) {
+        // Time estimation can be innacurate, especially when we are closing the range
+        // In case we set as the new reference a block close to the first block
+        nextReferenceBlock = Math.floor(
+          nextFirstBlockRange * CLOSE_POINT_PERCENTAGE +
+          nextLastBlockRange * FAR_POINT_PERCENTAGE
+        )
+      }
+    }
+
+    const numRemainingBlocks = 1 + nextLastBlockRange - nextFirstBlockRange
+    if (numRemainingBlocks < 1) {
+      // There's no block that match the criteria
+      return null
+    } else if (numRemainingBlocks === 1) {
+      // We found the block, the only one we've got
+      logger.debug(' * Nice we found the block: %s',
+        formatUtil.formatNumber(nextFirstBlockRange)
+      )
+      return nextFirstBlockRange
+    } else if (numRemainingBlocks === 2) {
+      // We found the block:
+      logger.debug(' * Nice we found the block: %s',
+        formatUtil.formatNumber(nextFirstBlockRange)
+      ) 
+    } else {
+      // We must continue looking
+      const jumpInBlocks = nextReferenceBlock - referenceBlock
+      logger.debug(' * Moving %s %s positions the reference block',
+        jumpInBlocks > 0 ? 'ahead' : 'back',
+        formatUtil.formatNumber(Math.abs(jumpInBlocks))
+      )
+      logger.debug(' * We have to keep looking, still %s candidate blocks',
+        formatUtil.formatNumber(nextLastBlockRange - nextFirstBlockRange)
+      )
+      return this._getFirstBlockAfterDate(
+        date,
+        nextFirstBlockRange,
+        nextReferenceBlock,
+        nextLastBlockRange,
+        lookingForBlockAfterDate
+      )
+    }
   }
 
   _getTokenContract (address) {

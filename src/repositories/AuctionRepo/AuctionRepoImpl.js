@@ -1088,16 +1088,6 @@ volume: ${state}`)
       .then(toFraction)
   }
 
-  async getFirstAuctionIndexAfterDate ({ tokenA, tokenB, date }) {
-    // TODO: Implement
-    return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
-  }
-
-  async getLastAuctionIndexBeforeDate ({ tokenA, tokenB, date }) {
-    // TODO: Implement
-    return this.getAuctionIndex({ sellToken: tokenA, buyToken: tokenB })
-  }
-
   async getSellOrders (orderParams) {
     return this._getOrders(Object.assign({
       event: 'NewSellOrder'
