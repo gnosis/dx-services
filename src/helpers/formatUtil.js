@@ -8,6 +8,8 @@ const TIME_WITH_SECONDS_FORMAT = 'H:mm:ss'
 const DATE_TIME_FORMAT = DATE_FORMAT + ' ' + TIME_FORMAT
 const DATE_TIME_FORMAT_WITH_SECONDS = DATE_FORMAT + ' ' + TIME_WITH_SECONDS_FORMAT
 
+const getTokenOrder = require('./getTokenOrder')
+
 function formatDate (date) {
   return date ? moment(date).format(DATE_FORMAT) : null
 }
@@ -82,11 +84,8 @@ function formatFraction (fraction, inDecimal = true) {
 }
 
 function formatMarketDescriptor ({ tokenA, tokenB }) {
-  if (tokenA < tokenB) {
-    return tokenA + '-' + tokenB
-  } else {
-    return tokenB + '-' + tokenA
-  }
+  const [ sellToken, buyToken ] = getTokenOrder(tokenA, tokenB)
+  return sellToken + '-' + buyToken
 }
 
 function tokenPairSplit (tokenPair) {
