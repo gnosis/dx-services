@@ -4,6 +4,7 @@ const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../../helpers/AuctionLogger')
 const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
 const auctionLogger = new AuctionLogger(loggerNamespace)
+const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
 
 const assert = require('assert')
 
@@ -247,7 +248,7 @@ class AuctionRepoImpl {
 
   async getAuctionStart ({ sellToken, buyToken }) {
     assertPair(sellToken, buyToken)
-
+  
     const auctionStartEpoch = await this._callForPair({
       operation: 'getAuctionStart',
       sellToken,
@@ -1158,7 +1159,12 @@ volume: ${state}`)
           'AuctionCleared'
         ]
       })
-      .then(events => events.map(_toEventData))
+      .then(events => {
+        const clearedAuctionsPromises = events
+          .map(event => this._toClearedAuctionDto(event))
+
+        return Promise.all(clearedAuctionsPromises)
+      })
   }
 
   async getPriceInEth ({ token }) {
@@ -1296,10 +1302,14 @@ volume: ${state}`)
   }
 
   async _getTokenAddress (token, check = false) {
+    if (HEXADECIMAL_REGEX.test(token)) {
+      return token
+    }
+
     const tokenAddress = this._getTokenContract(token).address
     if (check) {
       const isApprovedToken = await this.isApprovedToken({ token })
-
+      
       if (!isApprovedToken) {
         throw Error(`${token} is not an approved token`)
       }
@@ -1390,6 +1400,14 @@ volume: ${state}`)
       ...args
     ]
     return this._doTransaction({ operation, from, params })
+  }
+
+  async _toClearedAuctionDto (event) {
+    const block = await this._ethereumClient.getBlock(event.blockNumber)
+
+    return Object.assign(event.args, {
+      auctionEnd: block ? new Date(block.timestamp * 1000) : null
+    })
   }
 
   async _debugOperation ({ operation, params }) {
@@ -1525,10 +1543,9 @@ function _toClearedAuctionFromEvent (event) {
 }
 */
 
-function _toEventData(event) {
-  return event.args
-}
-
+// function _toEventData(event) {
+//   return event.args
+// }
 
 
 // function toTransactionNumber (transactionResult) {
