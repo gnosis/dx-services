@@ -519,7 +519,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     assert(amount, 'The amount is required')
 
     // Let DX use the ether
-    const tokenContract = this._getTokenContract(token)
+    const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract
       .approve(this._dx.address, amount, { from })
       // .then(toTransactionNumber)
@@ -532,7 +532,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     assert(amount, 'The amount is required')
 
     // Let DX use the ether
-    const tokenContract = this._getTokenContract(token)
+    const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract.transfer(to, amount, { from })
   }
 
@@ -540,7 +540,7 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     assert(token, 'The token is required')
     assert(address, 'The address is required')
 
-    const tokenContract = this._getTokenContract(token)
+    const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract.balanceOf.call(address)
   }
 
@@ -1102,13 +1102,13 @@ volume: ${state}`)
   }
 
   async _getOrders ({
-    event,
     fromBlock = 0,
     toBlock = 'latest',
     user,
     sellToken,
     buyToken,
-    auctionIndex
+    auctionIndex,
+    event
   }) {
     let orders = await ethereumEventHelper
       .filter({
@@ -1122,7 +1122,10 @@ volume: ${state}`)
           buyToken
         }
       })
-      .then(orders => orders.map(_toEventData))
+      .then(orderEvents => this._toEventsData({
+        events: orderEvents,
+        datePropName: 'auctionEnd'
+      }))
 
     // auctionIndex is not indexed, so we filter programatically
     if (auctionIndex) {
@@ -1159,11 +1162,25 @@ volume: ${state}`)
           'AuctionCleared'
         ]
       })
-      .then(events => {
-        const clearedAuctionsPromises = events
-          .map(event => this._toClearedAuctionDto(event))
+      .then(orderEvents => this._toEventsData({
+        events: orderEvents,
+        datePropName: 'auctionEnd'
+      }))
+      // TODO: Review if we should remove this part after reorganizing the symbols and addresses logic
+      .then(clearedAuctions => {
+        const clearedAuctionsWithSymbols = clearedAuctions.map(async clearedAuction => {
+          const [ sellTokenSymbol, buyTokenSymbol ] = await Promise.all([
+            this._getTokenSymbolByAddress(clearedAuction.sellToken),
+            this._getTokenSymbolByAddress(clearedAuction.buyToken)
+          ])
 
-        return Promise.all(clearedAuctionsPromises)
+          return Object.assign(clearedAuction, {
+            sellTokenSymbol,
+            buyTokenSymbol
+          })
+        })
+
+        return Promise.all(clearedAuctionsWithSymbols)
       })
   }
 
@@ -1185,8 +1202,6 @@ volume: ${state}`)
       .then(toFraction)
   }
 
-  // I make ot private because 'getPastAuctionPrice' is safer
-  //  (handles the price 0 problem)
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
     return this
@@ -1289,7 +1304,7 @@ volume: ${state}`)
     return BigNumber.min(balance, maxAmount)
   }
 
-  _getTokenContract (token) {
+  _getTokenContractBySymbol (token) {
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
       const knownTokens = Object.keys(this._tokens)
@@ -1301,15 +1316,30 @@ volume: ${state}`)
     return tokenContract
   }
 
+  _getTokenSymbolByAddress (tokenAddress) {
+    const tokenSymbols = Object.keys(this._tokens)
+
+    return tokenSymbols.find(tokenSymbol => {
+      const contract = this._tokens[tokenSymbol]
+      return contract.address === tokenAddress
+    })
+  }
+
+  _getTokenContractByAddress (tokenAddress) {
+    const tokenSymbol = this._getTokenSymbolByAddress(tokenAddress)
+
+    return tokenSymbol ? this._tokens[tokenSymbol] : null
+  }
+
   async _getTokenAddress (token, check = false) {
     if (HEXADECIMAL_REGEX.test(token)) {
       return token
     }
 
-    const tokenAddress = this._getTokenContract(token).address
+    const tokenAddress = this._getTokenContractBySymbol(token).address
     if (check) {
       const isApprovedToken = await this.isApprovedToken({ token })
-      
+
       if (!isApprovedToken) {
         throw Error(`${token} is not an approved token`)
       }
@@ -1402,12 +1432,19 @@ volume: ${state}`)
     return this._doTransaction({ operation, from, params })
   }
 
-  async _toClearedAuctionDto (event) {
+  async _toEventData (event, datePropName) {
     const block = await this._ethereumClient.getBlock(event.blockNumber)
+    const eventData = Object.assign({}, event.args)
+    eventData[datePropName] = block ? new Date(block.timestamp * 1000) : null
 
-    return Object.assign(event.args, {
-      auctionEnd: block ? new Date(block.timestamp * 1000) : null
-    })
+    return eventData
+  }
+
+  async _toEventsData ({ events, datePropName }) {
+    const clearedAuctionsPromises = events
+      .map(event => this._toEventData(event, datePropName))
+
+    return Promise.all(clearedAuctionsPromises)
   }
 
   async _debugOperation ({ operation, params }) {

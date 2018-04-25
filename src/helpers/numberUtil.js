@@ -18,8 +18,8 @@ function toBigNumberFraction (fraction, inDecimal = true) {
     } else {
       // In fractional format
       return {
-        numerator: new BigNumber(fractionBigNumber.numerator),
-        denominator: new BigNumber(fractionBigNumber.denominator)
+        numerator: new BigNumber(fraction.numerator),
+        denominator: new BigNumber(fraction.denominator)
       }
     }
   } else {

@@ -10,6 +10,8 @@ function run ({
   dx,
   botAccount
 }) {
+  const auctionIndex = process.env.INDEX || null
+
   ethereumEventHelper
     .filter({
       contract: dx,
@@ -25,15 +27,17 @@ function run ({
     })
     .then(events => {
       debug('%d events:', events.length)
-      events.forEach(event => {
-        const { event: eventName, blockNumber } = event
-        const { sellToken, buyToken, auctionIndex, amount } = event.args
+      events
+        .filter(event => auctionIndex == null || event.args.auctionIndex.equals(auctionIndex))
+        .forEach(event => {
+          const { event: eventName, blockNumber } = event
+          const { sellToken, buyToken, auctionIndex, amount } = event.args
 
-        debug(`\t[blockNumber=${blockNumber}] ${eventName}:
-\t\t- Auction Index: ${auctionIndex}
-\t\t- Token Pair: ${sellToken}-${buyToken}
-\t\t- Amount: ${amount}\n`)
-      })
+          debug(`\t[blockNumber=${blockNumber}] ${eventName}:
+  \t\t- Auction Index: ${auctionIndex}
+  \t\t- Token Pair: ${sellToken}-${buyToken}
+  \t\t- Amount: ${amount}\n`)
+        })
     })
     .catch(console.error)
 }

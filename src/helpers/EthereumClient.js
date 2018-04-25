@@ -87,7 +87,7 @@ class EthereumClient {
     const gasPriceResponse = await got(URL_GAS_PRICE_PROVIDER, {
       json: true
     })
-    console.log('gasPrice', gasPriceResponse.body)
+    // console.log('gasPrice', gasPriceResponse.body)
 
     return _toGasPricesDto(gasPriceResponse.body)
   }
