@@ -15470,13 +15470,13 @@ header.site-header.site-header nav .navbar-brand {
     width: 120px;
 }
 header.site-header.site-header nav .navbar-brand a {
-    background: url("../../../../img/gnosis-logo-header.jpg") center left no-repeat;
+    background: url("../../../../img/gnosis-logo-positive.svg") center left no-repeat;
     /*background-size: 76%;*/
     width: 130px;
     height: 40px;
     display: block;
     margin-top: 5px;
-    background-size: 48%;
+    background-size: 62%;
 }
 header.site-header.site-header nav .navbar-brand img {
     position: relative;
