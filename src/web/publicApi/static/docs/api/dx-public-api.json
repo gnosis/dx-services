@@ -1,10 +1,10 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Welcome to DX-Services API guide. You can find out more about DutchX at [http://swagger.io](http://swagger.io).",
+    "description": "Welcome to DX-Services API guide. You can find out more about DutchX at [https://dutch.d.exchange](https://dutch.d.exchange).",
     "version": "0.0.12",
-    "title": "DX-Services",
-    "termsOfService": "http://swagger.io/terms/",
+    "title": "Dutch Exchange - API",
+    "termsOfService": "https://dutch.d.exchange/terms/",
     "contact": {
       "email": "apiteam@gnosis.pm"
     },
@@ -23,8 +23,8 @@
       "name": "accounts",
       "description": "Get account data",
       "externalDocs": {
-        "description": "Find out more about our store",
-        "url": "http://swagger.io"
+        "description": "Find out more about our exchange",
+        "url": "https://dutch.d.exchange"
       }
     }
   ],
@@ -103,7 +103,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -120,10 +120,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
           },
           "500": {
-            "description": "Unkwon token"
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -143,7 +143,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -156,7 +156,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -176,7 +179,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           },
@@ -212,7 +215,7 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
           }
         }
       }
@@ -232,7 +235,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           },
@@ -253,7 +256,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -273,7 +279,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -287,7 +293,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -307,7 +316,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -321,7 +330,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -341,7 +353,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -354,7 +366,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -374,7 +389,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           },
@@ -395,7 +410,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -415,7 +433,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -428,7 +446,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -448,7 +469,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -461,7 +482,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -481,7 +505,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           }
@@ -494,7 +518,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -544,7 +571,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           },
@@ -564,7 +591,10 @@
             }
           },
           "412": {
-            "description": "Invalid token format. Token pair format is not compilant with \\<tokenA>-\\<tokenB>. Ex. weth-rdn"
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          },
+          "500": {
+            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -584,7 +614,7 @@
           {
             "name": "tokenPair",
             "in": "path",
-            "description": "A token pair string for selecting the desired market \\<tokenA>-\\<tokenB>",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
             "required": true,
             "type": "string"
           },
@@ -669,6 +699,9 @@
             "schema": {
               "type": "object"
             }
+          },
+          "500": {
+            "description": "Unknown token symbol"
           }
         }
       }
