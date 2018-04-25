@@ -338,6 +338,11 @@ class AuctionRepoMock {
     return outstandingVolume.lessThan(0) ? 0 : outstandingVolume
   }
 
+  async getFeeRatio ({ address }) {
+    console.log('address: ', address)
+    return [new BigNumber('1'), new BigNumber('200')]
+  }
+
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     let auction = this._getAuction({ sellToken, buyToken })
     let price

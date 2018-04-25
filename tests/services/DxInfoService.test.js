@@ -125,7 +125,7 @@ test('It should return current auction buy volume', async () => {
   expect(rdnEthBuyVolume).toEqual(RDN_WETH_AUCTION.buyVolume)
 })
 
-test('Get balances for all currencies of an account', async () => {
+test('It should get balances for all currencies of an account', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
@@ -139,6 +139,17 @@ test('Get balances for all currencies of an account', async () => {
   let accountBalance = await dxInfoService.getBalances({
     address: '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e' })
   expect(accountBalance).toEqual(EXPECTED_ACCOUNT_BALANCES)
+})
+
+test('It should get current fee ratio for an user', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  const COMPUTED_MAXIMUM_DX_FEE = new BigNumber('0.005')
+
+  let feeRatio = await dxInfoService.getCurrentFeeRatio({ address: '0x123' })
+  expect(feeRatio).toMatchObject(COMPUTED_MAXIMUM_DX_FEE)
 })
 
 const RDN_WETH_AUCTION = auctionsMockData.auctions['RDN-WETH']
