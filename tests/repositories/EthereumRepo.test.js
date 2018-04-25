@@ -1,4 +1,4 @@
-const debug = require('debug')('tests:repositories:EthereumRepo')
+// const debug = require('debug')('tests:repositories:EthereumRepo')
 
 const testSetup = require('../helpers/testSetup')
 const blocks = require('../data/blocks').blocks
@@ -90,31 +90,50 @@ const BLOCK_TEST_CASES = [{
 }]
 
 // Launch parametrized test based in scenarios added to BLOCK_TEST_CASES
-BLOCK_TEST_CASES.forEach(({ blockNumber, deltaTime,
-  expectedLastBlockBefore, expectedFirstBlockAfter }) => {
-  test('It should return for block ' + blockNumber +
-  ' with deltaTime ' + deltaTime +
-  ' \'' + expectedLastBlockBefore + '\' as the last block before ' +
-  'and \'' + expectedFirstBlockAfter + '\' as the first block after',
-  async () => {
+BLOCK_TEST_CASES.forEach(({
+  blockNumber,
+  deltaTime,
+  expectedLastBlockBefore,
+  expectedFirstBlockAfter
+}) => {
+  let deltaDescription
+  if (deltaTime === 0) {
+    deltaDescription = `the date where block ${blockNumber} was mined`
+  } else if (deltaTime < 0) {
+    deltaDescription = `${-deltaTime}s before the block ${blockNumber} was mined`
+  } else {
+    deltaDescription = `${deltaTime}s after the block ${blockNumber} was mined`
+  }
+
+  // Test get last block before a given date
+  test(`It should return ${expectedLastBlockBefore} as "last block before" ${deltaDescription}`,
+    _testGetBlockFn('getLastBlockBeforeDate', blockNumber, deltaTime, expectedLastBlockBefore)
+  )
+
+  // Test getting first block after a given date
+  test(`It should return ${expectedFirstBlockAfter} as "first block after" ${deltaDescription}`,
+    _testGetBlockFn('getFirstBlockAfterDate', blockNumber, deltaTime, expectedFirstBlockAfter)
+  )
+})
+
+function _testGetBlockFn (getBlockFunctionName, blockNumber, deltaTime, expectedBlock) {
+  return async () => {
     const { ethereumRepo } = await setupPromise
 
     // We mock the getBlock function in order to mock blocks to be deterministic
     ethereumRepo._ethereumClient.getBlock = _getBlock
 
-    // GIVEN an origin block and a date
+    // GIVEN a date (with a small time difference with the mined time of a block)
     const block = await ethereumRepo.getBlock(blockNumber)
     let date = new Date((block.timestamp + deltaTime) * 1000)
 
-    // WHEN we check the last block before or after the date given
-    let lastBlockBeforeDate = await ethereumRepo.getLastBlockBeforeDate(date)
-    let firstBlockAfterDate = await ethereumRepo.getFirstBlockAfterDate(date)
+    // WHEN we get the block using the tested function
+    let actualBlock = await ethereumRepo[getBlockFunctionName](date)
 
-    // THEN we get the expected values to our scenario
-    expect(lastBlockBeforeDate).toEqual(expectedLastBlockBefore)
-    expect(firstBlockAfterDate).toEqual(expectedFirstBlockAfter)
-  })
-})
+    // THEN we get the expected block number
+    expect(actualBlock).toEqual(expectedBlock)
+  }
+}
 
 // Mock function to getBlocks from data/blocks.js
 function _getBlock (blockNumber) {
