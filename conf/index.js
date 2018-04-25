@@ -1,4 +1,7 @@
 const debug = require('debug')('dx-service:conf')
+
+const getTokenOrder = require('../src/helpers/getTokenOrder')
+
 const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = true
 
 const ENV_VAR_LIST = [
@@ -59,13 +62,19 @@ debug('markets: %o', markets)
 
 // Merge three configs to get final config
 const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars, {
-  MARKETS: markets
+  MARKETS: markets.map(orderMarketTokens)
 })
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
 debug('tokens', tokens)
 debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
 // debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)
+
+// Normalize token order for markets (alphabet order)
+function orderMarketTokens ({ tokenA, tokenB }) {
+  const [ sortedTokenA, sortedTokenB ] = getTokenOrder(tokenA, tokenB)
+  return { tokenA: sortedTokenA, tokenB: sortedTokenB }
+}
 
 function getEnvMarkets () {
   const envMarkets = process.env['MARKETS']
