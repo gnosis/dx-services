@@ -1287,7 +1287,10 @@ volume: ${state}`)
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
       const knownTokens = Object.keys(this._tokens)
-      throw new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
+      const error = new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
+      error.type = 'UNKNOWN_TOKEN'
+      error.status = 404
+      throw error
     }
     return tokenContract
   }

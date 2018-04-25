@@ -119,11 +119,11 @@
               ]
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -155,11 +155,11 @@
               "$ref": "#/definitions/MarketPrice"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -214,6 +214,9 @@
               }
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
           }
@@ -255,11 +258,11 @@
               "$ref": "#/definitions/MarketPrice"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -292,11 +295,11 @@
               "format": "int64"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -329,11 +332,11 @@
               "format": "date-time"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -365,11 +368,11 @@
               "type": "boolean"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -409,11 +412,11 @@
               "type": "number"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -445,11 +448,11 @@
               "type": "number"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -481,11 +484,11 @@
               "type": "number"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -517,11 +520,11 @@
               "type": "number"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -590,11 +593,11 @@
               "type": "number"
             }
           },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
           "412": {
             "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
-          },
-          "500": {
-            "description": "There is an unknown token in the token pair"
           }
         }
       }
@@ -700,7 +703,7 @@
               "type": "object"
             }
           },
-          "500": {
+          "404": {
             "description": "Unknown token symbol"
           }
         }
