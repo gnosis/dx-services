@@ -10,13 +10,15 @@ async function run ({
   const fromBlock = process.env.FROM || 0
   const toBlock = process.env.TO || 81
   const blockPromises = []
-  for (var blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
+  for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
     const blockPromise = ethereumRepo
       .getBlock(blockNumber)
-      .then(({ number, timestamp }) => ({
-        number,
-        date: new Date(timestamp * 1000)
-      }))
+      .then(block => {
+        return {
+          number: blockNumber,
+          date: block ? new Date(block.timestamp * 1000) : null
+        }
+      })
     blockPromises.push(blockPromise)
   }
 
