@@ -1,17 +1,11 @@
 const loggerNamespace = 'dx-service:repositories:EthereumRepoImpl'
 const Logger = require('../../helpers/Logger')
-const dateUtil = require('../../helpers/dateUtil')
-const formatUtil = require('../../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
 // const AuctionLogger = require('../../helpers/AuctionLogger')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 
 // See: https://github.com/ethereum/eips/issues/20
 const ERC20_ABI = require('./ERC20Abi')
-
-const SECONDS_PER_BLOCK = 15
-const CLOSE_POINT_PERCENTAGE = 0.9
-const FAR_POINT_PERCENTAGE = 1 - CLOSE_POINT_PERCENTAGE
 
 const tokenContractsCache = {}
 
@@ -173,159 +167,11 @@ class EthereumRepoImpl {
   }
 
   async getFirstBlockAfterDate (date) {
-    logger.debug('Find first block after %s',
-      formatUtil.formatDateTimeWithSeconds(date)
-    )
-    const latestBlock = await this._ethereumClient.getBlock('latest')
-    const latestBlockNumber = latestBlock.number
-    
-    return this._getFirstBlockAfterDate({
-      date,
-      firstBlockRange: 0,
-      referenceBlock: latestBlockNumber,
-      lastBlockRange: latestBlockNumber,
-      lookingForBlockAfterDate: true,
-      bestGuess: null
-    })
+    return this._ethereumClient.getFirstBlockAfterDate(date)
   }
 
   async getLastBlockBeforeDate (date) {
-    logger.debug('Find last block before %s',
-      formatUtil.formatDateTimeWithSeconds(date)
-    )
-    const latestBlock = await this._ethereumClient.getBlock('latest')
-    const latestBlockNumber = latestBlock.number
-
-    return this._getFirstBlockAfterDate({
-      date,
-      firstBlockRange: 0,
-      referenceBlock: latestBlockNumber,
-      lastBlockRange: latestBlockNumber,
-      lookingForBlockAfterDate: false,
-      bestGuess: null
-    })
-  }
-
-  async _getFirstBlockAfterDate ({
-    date,
-    firstBlockRange,
-    referenceBlock,
-    lastBlockRange,
-    lookingForBlockAfterDate,
-    bestGuess
-  }) {
-    logger.debug('Looking between %s and %s',
-      formatUtil.formatNumber(firstBlockRange),
-      formatUtil.formatNumber(lastBlockRange)
-    )
-    let nextBestGuess = bestGuess
-    const block = await this._ethereumClient.getBlock(referenceBlock)
-    const blockDate = new Date(block.timestamp * 1000)
-    const seccondsDifference = dateUtil.diff(blockDate, date, 'seconds')
-    const blocksDifference = seccondsDifference / SECONDS_PER_BLOCK
-
-    logger.debug(' * Reference block %s has date %s. Difference:',
-      formatUtil.formatNumber(referenceBlock),
-      formatUtil.formatDateTimeWithSeconds(blockDate),
-      formatUtil.formatDatesDifference(blockDate, date)
-    )
-
-    let nextFirstBlockRange, nextReferenceBlock, nextLastBlockRange
-    if (seccondsDifference === 0) {
-      // We found the block, the only one we've got
-      logger.debug(' * Nice we found the block, and it was exact match: %s',
-        formatUtil.formatNumber(referenceBlock)
-      )
-      return referenceBlock
-    } else if (seccondsDifference > 0) {
-      // Between the reference and the last block
-
-      // Improve best guess, if posible
-      if (!lookingForBlockAfterDate) {
-        // We look for a block before the date. Since the reference is before the date
-        // It's our new best guess
-        logger.debug(" * There reference block is before the date, so it's our current best guess")
-        nextBestGuess = referenceBlock
-      }
-
-      // Calculate the new range
-      nextFirstBlockRange = referenceBlock + (lookingForBlockAfterDate ? 1 : 0)
-      nextReferenceBlock = Math.min(
-        Math.ceil(referenceBlock + blocksDifference),
-        lastBlockRange
-      )
-      nextLastBlockRange = lastBlockRange
-
-      if (nextReferenceBlock >= lastBlockRange) {
-        // Time estimation can be innacurate, especially when we are closing the range
-        // In case we set as the new reference a block close to the last block
-        nextReferenceBlock = Math.ceil(
-          nextFirstBlockRange * FAR_POINT_PERCENTAGE +
-          nextLastBlockRange * CLOSE_POINT_PERCENTAGE
-        )
-      }
-    } else {
-      // Between the first and the reference
-
-      // Improve best guess, if posible
-      if (lookingForBlockAfterDate) {
-        // We look for a block after the date. Since the reference is after the date
-        // It's our new best guess
-        logger.debug(" * There reference block is after the date, so it's our current best guess")
-        nextBestGuess = referenceBlock
-      }
-
-      // Calculate the new range
-      nextFirstBlockRange = firstBlockRange
-      nextReferenceBlock = Math.max(
-        Math.floor(referenceBlock + blocksDifference),
-        firstBlockRange
-      )
-      nextLastBlockRange = referenceBlock + (lookingForBlockAfterDate ? 0 : -1)
-
-      if (nextReferenceBlock <= firstBlockRange) {
-        // Time estimation can be innacurate, especially when we are closing the range
-        // In case we set as the new reference a block close to the first block
-        nextReferenceBlock = Math.floor(
-          nextFirstBlockRange * CLOSE_POINT_PERCENTAGE +
-          nextLastBlockRange * FAR_POINT_PERCENTAGE
-        )
-      }
-    }
-
-    const numRemainingBlocks = 1 + nextLastBlockRange - nextFirstBlockRange
-    if (numRemainingBlocks < 1 || referenceBlock === nextReferenceBlock) {
-      // There's no blocks left to check
-      if (nextBestGuess !== null) {
-        logger.debug(" * There's not blocks left to check. The matching block is the %s",
-          formatUtil.formatNumber(nextBestGuess)
-        )
-      } else {
-        logger.debug(" * There's not blocks %s %s",
-          lookingForBlockAfterDate ? 'after' : 'before',
-          formatUtil.formatDateTimeWithSeconds(date)
-        )
-      }
-      return nextBestGuess
-    } else {
-      // We must continue looking
-      const jumpInBlocks = nextReferenceBlock - referenceBlock
-      logger.debug(' * Moving %s %s positions the reference block',
-        jumpInBlocks > 0 ? 'ahead' : 'back',
-        formatUtil.formatNumber(Math.abs(jumpInBlocks))
-      )
-      logger.debug(' * We have to keep looking, still %s candidate blocks',
-        formatUtil.formatNumber(nextLastBlockRange - nextFirstBlockRange)
-      )
-      return this._getFirstBlockAfterDate({
-        date,
-        firstBlockRange: nextFirstBlockRange,
-        referenceBlock: nextReferenceBlock,
-        lastBlockRange: nextLastBlockRange,
-        lookingForBlockAfterDate,
-        bestGuess: nextBestGuess
-      })
-    }
+    return this._ethereumClient.getLastBlockBeforeDate(date)
   }
 
   _getTokenContract (address) {
