@@ -61,6 +61,18 @@ test('It should return auction index', async () => {
   expect(rdnEthAuctionIndex).toBe(77)
 })
 
+// TODO fix it when mock function correctly implemented
+test.skip('It should return closing price for auction', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  let wethOmgClosingPrice = await dxInfoService.getClosingPrice({
+    sellToken: 'OMG', buyToken: 'WETH', auctionIndex: 1
+  })
+  expect(wethOmgClosingPrice).toBe('')
+})
+
 test('It should return market details', async () => {
   const { dxInfoService } = await setupPromise
 
@@ -92,7 +104,7 @@ test('It should return current auction start', async () => {
 
   let rdnEthAuctionStart = await dxInfoService.getAuctionStart({
     sellToken: 'RDN', buyToken: 'WETH' })
-  expect(rdnEthAuctionStart).toEqual(RDN_WETH_AUCTION.auctionStart)
+  expect(rdnEthAuctionStart).toEqual(CURRENT_RDN_WETH_AUCTION.auctionStart)
 })
 
 test('It should return current auction sell volume', async () => {
@@ -102,7 +114,7 @@ test('It should return current auction sell volume', async () => {
 
   let rdnEthSellVolume = await dxInfoService.getSellVolume({
     sellToken: 'RDN', buyToken: 'WETH' })
-  expect(rdnEthSellVolume).toEqual(RDN_WETH_AUCTION.sellVolume)
+  expect(rdnEthSellVolume).toEqual(CURRENT_RDN_WETH_AUCTION.sellVolume)
 })
 
 test('It should return next auction sell volume', async () => {
@@ -112,7 +124,7 @@ test('It should return next auction sell volume', async () => {
 
   let rdnEthSellVolumeNext = await dxInfoService.getSellVolumeNext({
     sellToken: 'RDN', buyToken: 'WETH' })
-  expect(rdnEthSellVolumeNext).toEqual(RDN_WETH_AUCTION.sellVolumeNext)
+  expect(rdnEthSellVolumeNext).toEqual(CURRENT_RDN_WETH_AUCTION.sellVolumeNext)
 })
 
 test('It should return current auction buy volume', async () => {
@@ -122,7 +134,7 @@ test('It should return current auction buy volume', async () => {
 
   let rdnEthBuyVolume = await dxInfoService.getBuyVolume({
     sellToken: 'RDN', buyToken: 'WETH' })
-  expect(rdnEthBuyVolume).toEqual(RDN_WETH_AUCTION.buyVolume)
+  expect(rdnEthBuyVolume).toEqual(CURRENT_RDN_WETH_AUCTION.buyVolume)
 })
 
 test('It should get balances for all currencies of an account', async () => {
@@ -152,28 +164,29 @@ test('It should get current fee ratio for an user', async () => {
   expect(feeRatio).toMatchObject(COMPUTED_MAXIMUM_DX_FEE)
 })
 
-const RDN_WETH_AUCTION = auctionsMockData.auctions['RDN-WETH']
+const currentRdnWethAuctionInMockIndex = auctionsMockData.auctions['RDN-WETH'].length - 1
+const CURRENT_RDN_WETH_AUCTION = auctionsMockData.auctions['RDN-WETH'][currentRdnWethAuctionInMockIndex]
 
-const WETH_RDN_AUCTION = auctionsMockData.auctions['WETH-RDN']
+const CURRENT_WETH_RDN_AUCTION = auctionsMockData.auctions['WETH-RDN'][currentRdnWethAuctionInMockIndex]
 
 const EXPECTED_RDN_WETH_MARKET = {
   auction: {
-    buyVolume: RDN_WETH_AUCTION.buyVolume,
+    buyVolume: CURRENT_RDN_WETH_AUCTION.buyVolume,
     closingPrice: {},
     isClosed: false,
     isTheoreticalClosed: false,
-    sellVolume: RDN_WETH_AUCTION.sellVolume
+    sellVolume: CURRENT_RDN_WETH_AUCTION.sellVolume
   },
   auctionOpp: {
-    buyVolume: WETH_RDN_AUCTION.buyVolume,
+    buyVolume: CURRENT_WETH_RDN_AUCTION.buyVolume,
     closingPrice: {},
     isClosed: false,
     isTheoreticalClosed: false,
-    sellVolume: WETH_RDN_AUCTION.sellVolume
+    sellVolume: CURRENT_WETH_RDN_AUCTION.sellVolume
   },
   isApprovedMarket: true,
   state: 'RUNNING',
   isSellTokenApproved: true,
   isBuyTokenApproved: true,
-  auctionIndex: RDN_WETH_AUCTION.index
+  auctionIndex: CURRENT_RDN_WETH_AUCTION.index
 }

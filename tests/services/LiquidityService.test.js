@@ -230,24 +230,36 @@ const UNDER_MINIMUM_FUNDING_WETH = new BigNumber('0.5e18')
 
 function _getAuctionsWithUnderFundingEthOmg () {
   // GIVEN a not RUNNING auction, without enough sell liquidiy
-  const updatedAuction = Object.assign({}, auctionsMockData.auctions['WETH-OMG'],
+  const currentAuctionEthOmgInMock = auctionsMockData.auctions['WETH-OMG'].length - 1
+  const updatedAuction = Object.assign({}, auctionsMockData.auctions['WETH-OMG'][currentAuctionEthOmgInMock],
     { sellVolume: new BigNumber('0.5e18') })
+
+  auctionsMockData.auctions['WETH-OMG'][currentAuctionEthOmgInMock] = updatedAuction
   return Object.assign({}, auctionsMockData.auctions,
-    { 'WETH-OMG': updatedAuction })
+    { 'WETH-OMG': auctionsMockData.auctions['WETH-OMG'] })
 }
 
 function _getAuctionsWhereBotShouldBuyEthRdn () {
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
-  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['WETH-RDN'],
+  const currentAuctionEthRdnInMock = auctionsMockData.auctions['WETH-RDN'].length - 1
+  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
     { price: {
       numerator: new BigNumber('1000000'),
       denominator: new BigNumber('4275') }
     })
-  const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-WETH'],
+  const currentAuctionRdnEthInMock = auctionsMockData.auctions['RDN-WETH'].length - 1
+  const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-WETH'][currentAuctionRdnEthInMock],
     { price: {
       numerator: new BigNumber('4275'),
       denominator: new BigNumber('1000000') }
     })
+  auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
+
+  auctionsMockData.auctions['RDN-WETH'][currentAuctionRdnEthInMock] = updatedAuctionRdnEth
+
   return Object.assign({}, auctionsMockData.auctions,
-    { 'WETH-RDN': updatedAuctionEthRdn, 'RDN-WETH': updatedAuctionRdnEth })
+    {
+      'WETH-RDN': auctionsMockData.auctions['WETH-RDN'],
+      'RDN-WETH': auctionsMockData.auctions['RDN-WETH']
+    })
 }

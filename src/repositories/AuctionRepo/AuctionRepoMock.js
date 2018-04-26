@@ -12,7 +12,7 @@ class AuctionRepoMock {
     this._auctions = auctions || auctionsMockData.auctions
     this._balances = balances || auctionsMockData.balances
     this._pricesInUSD = pricesInUSD || auctionsMockData.pricesInUSD
-    this._tokens = {WETH: '', RDN: '', OMG: ''}
+    this._tokens = { WETH: '', RDN: '', OMG: '' }
   }
 
   async getAbout () {
@@ -111,7 +111,7 @@ class AuctionRepoMock {
 
   async _getClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     debug('Get sell volume for %s-%s', sellToken, buyToken)
-    return this._getAuction({ sellToken, buyToken }).closingPrice
+    return this._getAuction({ sellToken, buyToken, auctionIndex }).closingPrice
   }
 
   async isApprovedToken ({ token }) {
@@ -200,8 +200,8 @@ class AuctionRepoMock {
   async getFundingInUSD ({ tokenA, tokenB, auctionIndex }) {
     debug('Get funding in USD for %s-%s', tokenA, tokenB)
 
-    const sellVolumeA = this._getAuction({ sellToken: tokenA, buyToken: tokenB }).sellVolume
-    const sellVolumeB = this._getAuction({ sellToken: tokenB, buyToken: tokenA }).sellVolume
+    const sellVolumeA = this._getAuction({ sellToken: tokenA, buyToken: tokenB, auctionIndex }).sellVolume
+    const sellVolumeB = this._getAuction({ sellToken: tokenB, buyToken: tokenA, auctionIndex }).sellVolume
 
     const fundingA = this.getPriceInUSD({
       token: tokenA,
@@ -268,7 +268,8 @@ class AuctionRepoMock {
       auctionIndex
     )
 
-    let auction = this._auctions[sellToken + '-' + buyToken]
+    const currentAuctionInMockIndex = this._auctions[sellToken + '-' + buyToken].length - 1
+    let auction = this._auctions[sellToken + '-' + buyToken][currentAuctionInMockIndex]
     let newSellVolume = auction.sellVolume.add(amount)
     Object.assign(auction.sellVolume, newSellVolume)
 
@@ -283,7 +284,8 @@ class AuctionRepoMock {
       auctionIndex
     )
 
-    let auction = this._auctions[sellToken + '-' + buyToken]
+    const currentAuctionInMockIndex = this._auctions[sellToken + '-' + buyToken].length - 1
+    let auction = this._auctions[sellToken + '-' + buyToken][currentAuctionInMockIndex]
     let newBuyVolume = auction.buyVolume.add(amount)
     Object.assign(auction.buyVolume, newBuyVolume)
 
@@ -344,7 +346,7 @@ class AuctionRepoMock {
   }
 
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
-    let auction = this._getAuction({ sellToken, buyToken })
+    let auction = this._getAuction({ sellToken, buyToken, auctionIndex })
     let price
     auction.price ? price = auction.price
       : price = { numerator: new BigNumber(10), denominator: new BigNumber(233) }
@@ -354,7 +356,7 @@ class AuctionRepoMock {
   }
 
   async getPastAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
-    let auction = this._getAuction({ sellToken, buyToken })
+    let auction = this._getAuction({ sellToken, buyToken, auctionIndex })
     let closingPrice
     auction.closingPrice ? closingPrice = auction.closingPrice
       : closingPrice = { numerator: new BigNumber(10), denominator: new BigNumber(233) }
@@ -363,10 +365,11 @@ class AuctionRepoMock {
     return closingPrice
   }
 
+  // TODO prepare a new getClosingPrices function
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     debug('Get closing price for auction %d %s-%s', auctionIndex, sellToken, buyToken)
 
-    const auction = this._getAuction({ sellToken, buyToken })
+    const auction = this._getAuction({ sellToken, buyToken, auctionIndex })
     if (auction.price) {
       let isTheoreticalClosed = auction.price.numerator
         .mul(auction.sellVolume)
@@ -439,8 +442,17 @@ class AuctionRepoMock {
     return new Date()
   }
 
-  _getAuction ({ sellToken, buyToken }) {
-    return this._auctions[sellToken + '-' + buyToken]
+  _getAuction ({ sellToken, buyToken, auctionIndex }) {
+    let auctionInMockIndex
+    if (auctionIndex) {
+      auctionInMockIndex = this._auctions[sellToken + '-' + buyToken].findIndex(
+        auction => {
+          return auction.index === auctionIndex
+        })
+    } else {
+      auctionInMockIndex = (this._auctions[sellToken + '-' + buyToken].length - 1)
+    }
+    return this._auctions[sellToken + '-' + buyToken][auctionInMockIndex]
   }
 
   getPriceInUSD ({ token, amount }) {

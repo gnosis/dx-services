@@ -28,26 +28,75 @@ const balances = {
     '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7': new BigNumber('301.112e18')
   }
 }
-
+const now = new Date()
 const auctions = {
-  'RDN-WETH': {
+  'RDN-WETH': [{
     // Aprox 0.004079 ETH/RDN
-    index: 77,
-    auctionStart: new Date(),
+    index: 75,
+    auctionStart: new Date(now.getHours() - 12),
     // https://walletinvestor.com/converter/usd/raiden-network-token/315
     sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
     sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
     buyVolume: new BigNumber('0e18')                 // WETH
-  },
-  'WETH-RDN': {
+  }, {
+    // Aprox 0.004079 ETH/RDN
+    index: 76,
+    auctionStart: new Date(now.getHours() - 6),
+    // https://walletinvestor.com/converter/usd/raiden-network-token/315
+    sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
+    sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
+    buyVolume: new BigNumber('0e18')                 // WETH
+  }, {
+    // Aprox 0.004079 ETH/RDN
     index: 77,
-    auctionStart: new Date(),
+    auctionStart: now,
+    // https://walletinvestor.com/converter/usd/raiden-network-token/315
+    sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
+    sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
+    buyVolume: new BigNumber('0e18')                 // WETH
+  }],
+  'WETH-RDN': [{
+    // Aprox 0.004079 ETH/RDN
+    index: 75,
+    auctionStart: new Date(now.getHours() - 12),
+    // https://walletinvestor.com/converter/usd/raiden-network-token/315
+    sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
+    sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
+    buyVolume: new BigNumber('0e18')                 // WETH
+  }, {
+    // Aprox 0.004079 ETH/RDN
+    index: 76,
+    auctionStart: new Date(now.getHours() - 6),
+    // https://walletinvestor.com/converter/usd/raiden-network-token/315
+    sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
+    sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
+    buyVolume: new BigNumber('0e18')                 // WETH
+  }, {
+    index: 77,
+    auctionStart: now,
     // https://walletinvestor.com/converter/usd/ethereum/290
     sellVolume: new BigNumber('0.2894321e18'),       // WETH. aprox $290
     sellVolumeNext: new BigNumber('12.5478441e18'),  // WETH
     buyVolume: new BigNumber('0e18')                 // RDN
-  },
-  'OMG-WETH': {
+  }],
+  'OMG-WETH': [{
+    // Aprox 0.022220 ETH/OMG
+    index: 1,
+    auctionStart: new Date(now.getHours() - 24),
+    price: { numerator: new BigNumber('0.22220'), denominator: new BigNumber('1') },
+    // https://walletinvestor.com/converter/usd/omisego/315
+    sellVolume: new BigNumber('22.569633e18'),      // OMG. aprox $315
+    sellVolumeNext: new BigNumber('12.547844e18'),  // OMG
+    buyVolume: new BigNumber('0e18')                // WETH
+  }, {
+    // Aprox 0.022220 ETH/OMG
+    index: 2,
+    auctionStart: new Date(now.getHours() - 12),
+    // https://walletinvestor.com/converter/usd/omisego/315
+    sellVolume: new BigNumber('22.569633e18'),      // OMG. aprox $315
+    sellVolumeNext: new BigNumber('12.547844e18'),  // OMG
+    buyVolume: new BigNumber('0e18')                // WETH
+  }, {
     // Aprox 0.022220 ETH/OMG
     index: 3,
     auctionStart: null,
@@ -55,15 +104,30 @@ const auctions = {
     sellVolume: new BigNumber('22.569633e18'),      // OMG. aprox $315
     sellVolumeNext: new BigNumber('12.547844e18'),  // OMG
     buyVolume: new BigNumber('0e18')                // WETH
-  },
-  'WETH-OMG': {
+  }],
+  'WETH-OMG': [{
+    index: 1,
+    auctionStart: new Date(now.getHours() - 24),
+    price: { numerator: new BigNumber('1'), denominator: new BigNumber('0.02222') },
+    // https://walletinvestor.com/converter/usd/ethereum/550
+    sellVolume: new BigNumber('1.381729e18'),       // WETH. aprox $1384
+    sellVolumeNext: new BigNumber('10.547844e18'),  // WETH
+    buyVolume: new BigNumber('0e18')                // OMG
+  }, {
+    index: 2,
+    auctionStart: new Date(now.getHours() - 12),
+    // https://walletinvestor.com/converter/usd/ethereum/550
+    sellVolume: new BigNumber('1.381729e18'),       // WETH. aprox $1384
+    sellVolumeNext: new BigNumber('10.547844e18'),  // WETH
+    buyVolume: new BigNumber('0e18')                // OMG
+  }, {
     index: 3,
     auctionStart: null,
     // https://walletinvestor.com/converter/usd/ethereum/550
     sellVolume: new BigNumber('1.381729e18'),       // WETH. aprox $1384
     sellVolumeNext: new BigNumber('10.547844e18'),  // WETH
     buyVolume: new BigNumber('0e18')                // OMG
-  }
+  }]
 }
 
 module.exports = {
