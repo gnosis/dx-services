@@ -82,6 +82,20 @@ test('It should return closing price for auction', async () => {
   expect(wethOmgClosingPrice).toMatchObject(EXPECTED_OMG_WETH_PRICE)
 })
 
+test('It should return closing prices for N auctions', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  // WHEN we ask for the last 5 closing prices
+  let wethOmgLatestClosingPrices = await dxInfoService.getLastClosingPrices({
+    sellToken: 'OMG', buyToken: 'WETH', count: 5
+  })
+
+  // THEN the closing price list match the expected closing prices
+  expect(wethOmgLatestClosingPrices).toMatchObject(EXPECTED_OMG_WETH_CLOSING_PRICES)
+})
+
 test('It should return market details', async () => {
   const { dxInfoService } = await setupPromise
 
@@ -172,6 +186,12 @@ test('It should get current fee ratio for an user', async () => {
   let feeRatio = await dxInfoService.getCurrentFeeRatio({ address: '0x123' })
   expect(feeRatio).toMatchObject(COMPUTED_MAXIMUM_DX_FEE)
 })
+
+const EXPECTED_OMG_WETH_CLOSING_PRICES = auctionsMockData.auctions['OMG-WETH'].map(
+  ({ index, price }) => {
+    return { auctionIndex: index, price: price || null }
+  }
+).reverse()
 
 const currentRdnWethAuctionInMockIndex = auctionsMockData.auctions['RDN-WETH'].length - 1
 const CURRENT_RDN_WETH_AUCTION = auctionsMockData.auctions['RDN-WETH'][currentRdnWethAuctionInMockIndex]

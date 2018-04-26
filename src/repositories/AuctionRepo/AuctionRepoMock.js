@@ -443,7 +443,7 @@ class AuctionRepoMock {
 
   _getAuction ({ sellToken, buyToken, auctionIndex }) {
     let auctionInMockIndex
-    if (auctionIndex) {
+    if (auctionIndex !== undefined && auctionIndex !== null) {
       auctionInMockIndex = this._auctions[sellToken + '-' + buyToken].findIndex(
         auction => {
           return auction.index === auctionIndex
