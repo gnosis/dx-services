@@ -62,7 +62,7 @@ class ReportService {
       formatUtil.formatDateTime(toDate)
     )
 
-    const auctionsReportRS = new AuctionsReportRS()
+    const auctionsReportRS = new AuctionsReportRS({ delimiter: '\t' })
     this._generateAuctionInfoByDates({
       fromDate,
       toDate,
