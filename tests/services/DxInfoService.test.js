@@ -61,16 +61,25 @@ test('It should return auction index', async () => {
   expect(rdnEthAuctionIndex).toBe(77)
 })
 
-// TODO fix it when mock function correctly implemented
-test.skip('It should return closing price for auction', async () => {
+test('It should return closing price for auction', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
 
-  let wethOmgClosingPrice = await dxInfoService.getClosingPrice({
-    sellToken: 'OMG', buyToken: 'WETH', auctionIndex: 1
+  const auctionIndex = 1
+  const mockAuction = auctionsMockData.auctions['OMG-WETH'].find(auction => {
+    return auction.index === auctionIndex
   })
-  expect(wethOmgClosingPrice).toBe('')
+  const EXPECTED_OMG_WETH_PRICE = mockAuction.price.numerator.div(
+    mockAuction.price.denominator)
+
+  // WHEN we ask for the closing price
+  let wethOmgClosingPrice = await dxInfoService.getClosingPrice({
+    sellToken: 'OMG', buyToken: 'WETH', auctionIndex
+  })
+
+  // THEN the closing price match the expected closing price
+  expect(wethOmgClosingPrice).toMatchObject(EXPECTED_OMG_WETH_PRICE)
 })
 
 test('It should return market details', async () => {

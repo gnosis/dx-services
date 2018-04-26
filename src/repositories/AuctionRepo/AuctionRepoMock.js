@@ -365,7 +365,6 @@ class AuctionRepoMock {
     return closingPrice
   }
 
-  // TODO prepare a new getClosingPrices function
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     debug('Get closing price for auction %d %s-%s', auctionIndex, sellToken, buyToken)
 
