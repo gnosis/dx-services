@@ -2,16 +2,14 @@
 const Raven = require('raven')
 
 let initialized = false
-let enabled = null
+let enabled = false // disabled for now
 let sentryDsn = null
 
 function init ({ sentryDsn: sentryDsnAux }) {
   sentryDsn = sentryDsnAux
   if (enabled === null) {
     const environment = process.env.NODE_ENV
-    // enabled = (environment !== 'local')
-    // For the time being, we just use the DEV
-    enabled = (environment === 'dev')
+    enabled = false(environment === 'dev')
   }
   if (enabled && !initialized) {
     initialized = true
