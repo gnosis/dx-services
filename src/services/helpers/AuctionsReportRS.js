@@ -2,29 +2,34 @@ const loggerNamespace = 'dx-service:services:helpers:AuctionsReportRS'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 
-const HEADER = `\
-Auction index;\
-Sell token;\
-Buy token;\
-Sell volume;\
-Buy volume;\
-Last closing price;\
-Price increment;\
-Bot sell volume;\
-Bot buy volume;\
-Ensured sell volume;\
-Ensured buy volume\n`
-
+const DEFAULT_DELIMITER = ';'
 const { Readable } = require('stream')
 
 class AuctionsReportRS extends Readable {
-  constructor () {
+  constructor ({ delimiter = DEFAULT_DELIMITER } = {}) {
     super()
-
-    this.push(HEADER, 'UTF-8')
+    this._delimiter = delimiter
+    const header = this._getHeader()
+    this.push(header, 'UTF-8')
   }
 
   _read (size) {
+  }
+
+  _getHeader () {
+    var dm = this._delimiter
+    return `\
+Auction index${dm}\
+Sell token${dm}\
+Buy token${dm}\
+Sell volume${dm}\
+Buy volume${dm}\
+Last closing price${dm}\
+Price increment${dm}\
+Bot sell volume${dm}\
+Bot buy volume${dm}\
+Ensured sell volume${dm}\
+Ensured buy volume\n`
   }
 
   addAuction ({
@@ -40,17 +45,18 @@ class AuctionsReportRS extends Readable {
     ensuredSellVolumePercentage,
     ensuredBuyVolumePercentage
   }) {
+    var dm = this._delimiter
     const line = `\
-${auctionIndex};\
-${sellToken};\
-${buyToken};\
-${sellVolume};\
-${buyVolume};\
-${lastClosingPrice};\
-${priceIncrement};\
-${botSellVolume};\
-${botBuyVolume};\
-${ensuredSellVolumePercentage};\
+${auctionIndex}${dm}\
+${sellToken}${dm}\
+${buyToken}${dm}\
+${sellVolume}${dm}\
+${buyVolume}${dm}\
+${lastClosingPrice}${dm}\
+${priceIncrement}${dm}\
+${botSellVolume}${dm}\
+${botBuyVolume}${dm}\
+${ensuredSellVolumePercentage}${dm}\
 ${ensuredBuyVolumePercentage}\n`
 
     this.push(line, 'UTF-8')

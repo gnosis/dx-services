@@ -13,7 +13,7 @@ function run ({
   const now = new Date()
   const fromDate = getDateFromEnv('FROM', dateUtil.toStartOf(now, 'day'))
   const toDate = getDateFromEnv('TO', dateUtil.toEndOf(now, 'day'))
-  const fileName = getDateFromEnv('FILE', null)
+  const fileName = process.env.FILE
 
   return reportService
     .getAuctionsReportFile({
@@ -23,12 +23,12 @@ function run ({
     .then(({ name, mimeType, content }) => {
       console.log('Generated file: "%s"', name)
       console.log('Mime type: "%s"', mimeType)
-      console.log('Content:')
       if (fileName) {
         console.log('Write result into: ./' + fileName)
         const fileWriteStream = fs.createWriteStream('./' + fileName)
         content.pipe(fileWriteStream)
       } else {
+        console.log('Content:')
         content.pipe(process.stdout)
       }
     })
