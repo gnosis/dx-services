@@ -242,9 +242,13 @@ keeps happening`
       // Get prices and market price for auctionA
       const [ priceA, currentMarketPriceA ] = await Promise.all([
         // Get the current price for the auction
-        this._auctionRepo.getCurrentAuctionPrice({
-          sellToken: tokenA, buyToken: tokenB, auctionIndex, from
+        this._getCurrentAuctionPrice({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          auctionIndex,
+          from
         }),
+
         // Get the market price
         this._priceRepo.getPrice({
           tokenA, tokenB
@@ -253,6 +257,9 @@ keeps happening`
           denominator: numberUtil.ONE
         }))
       ])
+
+      assert(priceA, `The token pair ${tokenA}-${tokenB} doesn't have a price`)
+      assert(currentMarketPriceA, `There is no market price for ${tokenA}-${tokenB}`)
 
       // Get the auction B prices (from the auction A ones)
       const currentMarketPriceB = {
@@ -296,6 +303,37 @@ keeps happening`
     }
 
     return buyLiquidityResult
+  }
+
+  async _getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex, from }) {
+    // Get the current price for the auction
+    let price = await this._auctionRepo.getCurrentAuctionPrice({
+      sellToken, buyToken, auctionIndex, from
+    })
+
+    // The auction may be running and not having price, this is because:
+    //   - just one of the oposit auctions is running
+    //   - We asked for the price of the not-running one
+    if (price == null) {
+      // We get the opposit price and return the inverse
+      const priceOpp = await this._auctionRepo.getCurrentAuctionPrice({
+        sellToken: buyToken,
+        buyToken: sellToken,
+        auctionIndex,
+        from
+      })
+
+      if (priceOpp !== null) {
+        price = {
+          numerator: priceOpp.denominator,
+          denominator: priceOpp.numerator
+        }
+      } else {
+        price = null
+      }
+    }
+
+    return price
   }
 
   async _doEnsureBuyLiquidityInAuction ({
