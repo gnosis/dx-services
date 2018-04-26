@@ -1,5 +1,6 @@
 const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
+const dateUtil = require('../../helpers/dateUtil')
 const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../../helpers/AuctionLogger')
 const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
@@ -1099,6 +1100,51 @@ volume: ${state}`)
     return this._getOrders(Object.assign({
       event: 'NewBuyOrder'
     }, orderParams))
+  }
+
+  async getAuctions ({ fromBlock, toBlock }) {
+    // Get cleared auctions to select the auctions
+    const auctions = await this.getClearedAuctions({
+      fromBlock,
+      toBlock
+    })
+
+    // Get aditional info for the auction
+    const auctionDtoPromises = auctions.map(async auction => {
+      // Get aditional info: auction start, closingPrice
+      const { sellToken, buyToken, auctionIndex } = auction
+      const [ closingPrice, previousClosingPrice ] = await Promise.all([
+        // Get closing price
+        this.getClosingPrices({
+          sellToken,
+          buyToken,
+          auctionIndex
+        }),
+
+        // Get the previous closing price
+        this.getClosingPrices({
+          sellToken,
+          buyToken,
+          auctionIndex: auction.auctionIndex - 1
+        })
+      ])
+
+      // Get auction start
+      // FIXME: auctionStart is more dificult ot get the following fn gets just the lastone
+      // TODO: Implment using AuctionStartScheduled if get's merged
+      // For the time being, let's use a fake auction start just for
+      // filtering the bid/asks
+
+      return Object.assign(auction, {
+        // TODO: auctionStart
+        closingPrice,
+        previousClosingPrice,
+        // As said above, it's just an estimation for the time being
+        auctionStart: dateUtil.addPeriod(auction.auctionEnd, -6, 'hours')
+      })
+    })
+
+    return Promise.all(auctionDtoPromises)
   }
 
   async _getOrders ({

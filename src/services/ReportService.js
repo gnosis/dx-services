@@ -3,9 +3,13 @@ const Logger = require('../helpers/Logger')
 const getBotAddress = require('../helpers/getBotAddress')
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
+const dxFilters = require('../helpers/dxFilters')
 const AuctionsReportRS = require('./helpers/AuctionsReportRS')
 const getTokenOrder = require('../helpers/getTokenOrder')
+const dateUtil = require('../helpers/dateUtil')
 const numberUtil = require('../helpers/numberUtil')
+
+const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
 
 const assert = require('assert')
 let requestId = 1
@@ -85,7 +89,6 @@ class ReportService {
 
   sendAuctionsReportToSlack ({ fromDate, toDate, senderInfo }) {
     _assertDatesOverlap(fromDate, toDate)
-
     const id = requestId++
    
     // Generate report file and send it to slack (fire and forget)
@@ -125,67 +128,32 @@ class ReportService {
   }
 
   async _getAuctionsEventInfo ({ fromDate, toDate, addAuctionInfo }) {
-    const [ fromBlock, toBlock, botAddres ] = await Promise.all([
+    const [ fromBlock, toBlock, botAddress ] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
       this._ethereumRepo.getLastBlockBeforeDate(toDate),
       this._botAddressPromise
     ])
 
-    // Get cleared auctions to select the auctions
-    const auctions = await this._auctionRepo
-      .getClearedAuctions({
-        fromBlock,
-        toBlock
+    // Get auctions info
+    let auctions = await this._auctionRepo
+      .getAuctions({
+        fromBlock, toBlock
       })
 
-    // Get aditional info of the auction
-    let auctionsInfo = await Promise.all(
-      auctions
-        .filter(({ sellTokenSymbol, buyTokenSymbol }) => {
-          // Remove the unknown markets
-          return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
-        })
-        .map(async auction => {
-          // Get aditional info: auction start, closingPrice
-          const { sellToken, buyToken, auctionIndex } = auction
-          // const [ auctionStart, closingPrice ] = await Promise.all([
-          //   // Get auction start
-          //   // FIXME: auctionStart is more dificult ot get the following fn gets just the lastone
-          //   // TODO: Maybe a better aproach is to get a starting block that takes the endDate and goes a safe amount time back
-          //   // this._auctionRepo.getAuctionStart({ sellToken, buyToken }),
-            
-          // ])
-
-          const [ closingPrice, previousClosingPrice ] = await Promise.all([
-            // Get closing price
-            this._auctionRepo.getClosingPrices({
-              sellToken,
-              buyToken,
-              auctionIndex
-            }),
-
-            // Get the previous closing price
-            this._auctionRepo.getClosingPrices({
-              sellToken,
-              buyToken,
-              auctionIndex: auction.auctionIndex - 1
-            })
-          ])
-
-          return Object.assign(auction, {
-            // TODO: auctionStart
-            closingPrice,
-            previousClosingPrice
-          })
-        })
-    )
+    // Remove the unknown markets
+    auctions = auctions.filter(({ sellTokenSymbol, buyTokenSymbol }) => {
+      return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
+    })
 
     // Get the start of the first of the auctions
-    const startOfFirstAuction = auctionsInfo
+    const startOfFirstAuction = auctions
       .map(auctionsInfo => auctionsInfo.auctionStart)
       .reduce((earlierAuctionStart, auctionStart) => {
         if (earlierAuctionStart === null || earlierAuctionStart > auctionStart) {
-          return auctionStart
+          // Workarround to not having the AuctionStartScheduled event
+          return dateUtil.addPeriod(auctionStart, -AUCTION_START_DATE_MARGIN_HOURS, 'hours')
+          // TODO: when AuctionStartScheduled is ready use just the real auctionStart
+          // return auctionStart
         } else {
           return earlierAuctionStart
         }
@@ -206,82 +174,102 @@ class ReportService {
       fromBlock,
       fromBlockStartAuctions || fromBlock
     )
-    
+
     // Get bot orders
     const [ botSellOrders, botBuyOrders ] = await Promise.all([
       // Get the bot's sell orders
       this._auctionRepo.getSellOrders({
         fromBlock: fromBlockStartAuctions,
         toBlock,
-        user: botAddres
+        user: botAddress
       }),
 
       // Get the bot's buy orders
       this._auctionRepo.getBuyOrders({
         fromBlock: fromBlockStartAuctions,
         toBlock,
-        user: botAddres
+        user: botAddress
       })
     ])
 
     // Get info for every token pair
-    const generateInfoPromises = this
-      ._markets
-      .map(({ tokenA, tokenB }) => {
-        return this._generateAuctionInfoByMarket({
-          fromDate,
-          toDate,
-          tokenA,
-          tokenB,
-          auctionsInfo,
-          botBuyOrders,
-          botSellOrders,
-          addAuctionInfo
+    if (auctions.length > 0) {
+      const generateInfoPromises = this
+        ._markets
+        .map(({ tokenA, tokenB }) => {
+          let tokenPairFilter = dxFilters.createTokenPairFilter({
+            sellToken: tokenA,
+            buyToken: tokenB,
+            sellTokenParam: 'sellTokenSymbol',
+            buyTokenParam: 'buyTokenSymbol'
+          })
+
+          let tokenPairFilterOpp = dxFilters.createTokenPairFilter({
+            sellToken: tokenB,
+            buyToken: tokenA,
+            sellTokenParam: 'sellTokenSymbol',
+            buyTokenParam: 'buyTokenSymbol'
+          })
+
+          const params = {
+            fromDate,
+            toDate,
+            allBotBuyOrders: botBuyOrders,
+            allBotSellOrders: botSellOrders,
+            addAuctionInfo
+          }
+          
+          // Generate report for both markets
+          return Promise.all([
+            // Report for tokenA-tokenB
+            this._generateAuctionInfoByMarket(Object.assign(params, {
+              sellToken: tokenA,
+              buyToken: tokenB,
+              auctions: auctions.filter(tokenPairFilter)
+            })),
+
+            // Report for tokenB-tokenA
+            this._generateAuctionInfoByMarket(Object.assign(params, {
+              sellToken: tokenB,
+              buyToken: tokenA,
+              auctions: auctions.filter(tokenPairFilterOpp)
+            }))
+          ])
         })
-      })
-
-    return Promise.all(generateInfoPromises)
-  }
-
-  _isKnownMarket (tokenA, tokenB) {
-    if (tokenA && tokenB) {
-      const [ sellToken, buyToken ] = getTokenOrder(tokenA, tokenB)
-
-      return this._markets.some(market => {
-        return market.tokenA === sellToken &&
-          market.tokenB === buyToken
-      })
+  
+      return Promise.all(generateInfoPromises)
     } else {
-      return false
+      logger.info("There aren't any auctions between %s and %s",
+        formatUtil.formatDateTime(fromDate),
+        formatUtil.formatDateTime(toDate)
+      )
     }
   }
 
   async _generateAuctionInfoByMarket ({
     fromDate,
     toDate,
-    tokenA,
-    tokenB,
-    auctionsInfo,
-    botBuyOrders,
-    botSellOrders,
+    sellToken,
+    buyToken,
+    auctions,
+    allBotBuyOrders,
+    allBotSellOrders,
     addAuctionInfo
   }) {
-    if (auctionsInfo.length > 0) {
+    if (auctions.length > 0) {
       logger.info('Get auctions for %s-%s between %s and %s',
-        tokenA,
-        tokenB,
+        sellToken,
+        buyToken,
         formatUtil.formatDateTime(fromDate),
         formatUtil.formatDateTime(toDate)
       )
-      const generateInfoPromises = auctionsInfo
+      const generateInfoPromises = auctions
         .map(auction => {
-          const { sellToken, buyToken, auctionIndex } = auction
-
-          function filterOrder (order) {
-            return order.auctionIndex.equals(auctionIndex) &&
-              order.sellToken === sellToken &&
-              order.buyToken === buyToken
-          }
+          const {
+            sellToken: sellTokenAddress,
+            buyToken: buyTokenAddress,
+            auctionIndex
+          } = auction
 
           logger.debug('Get information for auction %s of %s-%s',
             auctionIndex,
@@ -289,9 +277,16 @@ class ReportService {
             buyToken
           )
 
+          const filterOrder = dxFilters.createAuctionFilter({
+            sellToken: sellTokenAddress,
+            buyToken: buyTokenAddress,
+            auctionIndex
+          })
+
+          // Add the auction buy orders and sell orders
           const auctionInfoWithOrders = Object.assign(auction, {
-            botBuyOrders: botBuyOrders.filter(filterOrder),
-            botSellOrders: botSellOrders.filter(filterOrder),
+            botBuyOrders: allBotBuyOrders.filter(filterOrder),
+            botSellOrders: allBotSellOrders.filter(filterOrder),
             addAuctionInfo
           })
 
@@ -300,8 +295,8 @@ class ReportService {
       return Promise.all(generateInfoPromises)
     } else {
       logger.info('There are no auctions for %s-%s between %s and %s',
-        tokenA,
-        tokenB,
+        sellToken,
+        buyToken,
         formatUtil.formatDateTime(fromDate),
         formatUtil.formatDateTime(toDate)
       )
@@ -322,7 +317,8 @@ class ReportService {
     previousClosingPrice,
     addAuctionInfo
   }) {
-    logger.info('Get info: %O', arguments[0])
+    // logger.info('Get info: %o', arguments[0])
+    // TODO: Add auctionEnd, auctionStart, runningTime
 
     function sumOrdersVolumes (botSellOrders) {
       return botSellOrders
@@ -440,6 +436,20 @@ class ReportService {
         logger.info('File sent to Slack: ', ts)
       })
   }
+
+  _isKnownMarket (tokenA, tokenB) {
+    if (tokenA && tokenB) {
+      const [ sellToken, buyToken ] = getTokenOrder(tokenA, tokenB)
+
+      return this._markets.some(market => {
+        return market.tokenA === sellToken &&
+          market.tokenB === buyToken
+      })
+    } else {
+      return false
+    }
+  }
+
 }
 
 function _assertDatesOverlap (fromDate, toDate) {
