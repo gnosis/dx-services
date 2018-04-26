@@ -15,7 +15,8 @@ function createRoutes ({ reportService, slackClient }) {
   // AuctionsReport
   //    test:
   //      curl http://localhost:8081/api/v1/reports/auctions-report/requests
-  //      curl http://localhost:8081/api/v1/reports/auctions-report/requests?from-date=26/11/1984&to-date=26/11/1984
+  //      curl http://localhost:8081/api/v1/reports/auctions-report/requests?from-date=26/04/2018&to-date=26/04/2018
+  //      curl https://dx-services-bots.dev.gnosisdev.com/api/v1/reports/auctions-report/requests?from-date=01/04/2018&to-date=30/04/2018
   routes.push({
     path: '/auctions-report/requests',
     get (req, res) {

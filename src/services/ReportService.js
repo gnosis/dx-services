@@ -355,14 +355,14 @@ class ReportService {
       auctionIndex: auctionIndex.toNumber(),
       sellToken: sellTokenSymbol,
       buyToken: buyTokenSymbol,
-      sellVolume: sellVolume.div(1e18),
-      buyVolume: buyVolume.div(1e18),
+      sellVolume: sellVolume.div(1e18).toNumber(),
+      buyVolume: buyVolume.div(1e18).toNumber(),
       lastClosingPrice: closingPriceAux,
-      priceIncrement,
-      botSellVolume: botSellVolume.div(1e18),
-      botBuyVolume: botBuyVolume.div(1e18),
-      ensuredSellVolumePercentage,
-      ensuredBuyVolumePercentage
+      priceIncrement: priceIncrement.toNumber(),
+      botSellVolume: botSellVolume.div(1e18).toNumber(),
+      botBuyVolume: botBuyVolume.div(1e18).toNumber(),
+      ensuredSellVolumePercentage: ensuredSellVolumePercentage.toNumber(),
+      ensuredBuyVolumePercentage: ensuredBuyVolumePercentage.toNumber()
     })
   }
 
