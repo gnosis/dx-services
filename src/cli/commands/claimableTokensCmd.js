@@ -17,7 +17,7 @@ function registerCommand ({ cli, instances, logger }) {
       count, botAccount)
     tokenPairs.forEach(async tokenPair => {
       const { sellToken, buyToken } = tokenPair
-      const [ sellerClaims, buyerClaims ] = await dxInfoService.getClaimableTokens({
+      const { sellerClaims, buyerClaims } = await dxInfoService.getClaimableTokens({
         tokenA: sellToken,
         tokenB: buyToken,
         address: botAccount,
@@ -25,10 +25,14 @@ function registerCommand ({ cli, instances, logger }) {
       })
 
       logger.info('Seller claimable tokens:')
-      _printClaims(sellerClaims, sellToken, logger)
+      sellerClaims.forEach(claim =>
+        _printClaims(claim, sellToken, logger)
+      )
 
       logger.info('Buyer claimable tokens:')
-      _printClaims(buyerClaims, buyToken, logger)
+      buyerClaims.forEach(claim =>
+        _printClaims(claim, buyToken, logger)
+      )
     })
   })
 }

@@ -1,3 +1,7 @@
+const loggerNamespace = 'dx-service:services:helpers:getClaimableTokens'
+const Logger = require('../../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+
 const getAuctionsBalances = require('./getAuctionsBalances')
 
 async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, count }) {
@@ -8,7 +12,6 @@ async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, count
     address,
     count
   })
-
   return auctionsBalances.reduce((acc, auctionsBalance) => {
     const {
       sellerBalanceA,
@@ -35,7 +38,7 @@ async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, count
 
 function _pushNewClaimIfRequired (amount, sellToken, buyToken, auctionIndex, claimsArray) {
   if (amount.greaterThan(0)) {
-    claimsArray.sellerClaims.push({
+    claimsArray.push({
       sellToken,
       buyToken,
       auctionIndex,

@@ -5,7 +5,7 @@ async function getAuctionsBalances ({ auctionRepo, tokenA, tokenB, address, coun
   })
 
   const balancesPromises = []
-  const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count + 1 : 0
+  const startAuctionIndex = (auctionIndex - count) >= 0 ? auctionIndex - count + 1 : 0
   for (var i = startAuctionIndex; i <= auctionIndex; i++) {
     const auctionIndexAux = i
     const balancePromise = Promise.all([
