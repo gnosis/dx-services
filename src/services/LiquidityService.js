@@ -155,10 +155,18 @@ check should be done`,
   async getBalances ({ tokens, address }) {
     const balancesPromises = tokens.map(async token => {
       const amount = await this._auctionRepo.getBalance({ token, address })
-      const amountInUSD = await this._auctionRepo.getPriceInUSD({
-        token,
-        amount
-      })
+      const amountInUSD = await this._auctionRepo
+        .getPriceInUSD({
+          token,
+          amount
+        })
+        .then(balance => {
+          // Round USD to 2 decimals
+          return balance
+            .mul(numberUtil.HUNDRED)
+            .ceil()
+            .div(numberUtil.HUNDRED)
+        })
       return {
         token, amount, amountInUSD
       }

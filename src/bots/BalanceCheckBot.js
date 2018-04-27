@@ -199,7 +199,7 @@ class BalanceCheckBot extends Bot {
           color: 'danger',
           title: message,
           text: 'The tokens below the threshold are:',
-          fields: fields,
+          fields,
           footer: this.botInfo
         }]
       }
