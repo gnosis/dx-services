@@ -3,7 +3,13 @@ function getBotAddress (ethereumClient) {
   return ethereumClient
     .getAccounts()
     .then(accounts => {
-      if (environment === 'local' && accounts.length > 1) {
+      const network = process.env.NETWORK
+      const localTesting = (
+        !network &&
+        environment === 'local'
+      )
+
+      if (localTesting && accounts.length > 1) {
         // In LOCAL, for testing we use:
         //  * the account 0 for the owner
         //  * the account 1 for the bot
