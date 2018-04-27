@@ -824,11 +824,11 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
   }
 
   async _assertBalanceERC20Token ({ token, address, amount }) {
-    this._assertBalanceAux({ token, address, amount, balanceInDx: false })
+    return this._assertBalanceAux({ token, address, amount, balanceInDx: false })
   }
 
   async _assertBalance ({ token, address, amount }) {
-    this._assertBalanceAux({ token, address, amount, balanceInDx: true })
+    return this._assertBalanceAux({ token, address, amount, balanceInDx: true })
   }
 
   async _assertBalanceAux ({ token, address, amount, balanceInDx }) {
