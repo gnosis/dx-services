@@ -41,10 +41,49 @@ function fromWei (num) {
   return toBigNumber(num).div(TEN_EXP_18)
 }
 
+function getPercentage ({ part, total }) {
+  const partBN = toBigNumber(part)
+  const totalBN = toBigNumber(total)
+  if (!totalBN.isZero()) {
+    return round(
+      partBN.div(totalBN).mul(HUNDRED)
+    )
+  } else {
+    return null
+  }
+}
+
+function getIncrement ({ oldValue, newValue }) {
+  const oldValueBN = toBigNumber(oldValue)
+  const newValueBN = toBigNumber(newValue)
+
+  if (oldValueBN && !oldValueBN.isZero()) {
+    return round(
+      HUNDRED
+        .mul(newValueBN.minus(oldValue))
+        .div(oldValue)
+    )
+  } else {
+    return null
+  }
+}
+
+function round (number, decimals = 2) {
+  const factor = 10 ** decimals
+
+  return toBigNumber(number)
+    .mul(factor)
+    .ceil()
+    .div(factor)
+}
+
 module.exports = {
   toBigNumber,
   isBigNumber,
   toBigNumberFraction,
+  getPercentage,
+  getIncrement,
+  round,
   toWei,
   fromWei,
 

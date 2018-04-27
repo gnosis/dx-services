@@ -330,26 +330,25 @@ class ReportService {
 
     const botSellVolume = sumOrdersVolumes(botSellOrders)
     const botBuyVolume = sumOrdersVolumes(botBuyOrders)
-    const ensuredSellVolumePercentage = sellVolume.isZero() ? null : botSellVolume.div(sellVolume).mul(100)
-    const ensuredBuyVolumePercentage = buyVolume.isZero() ? null : botBuyVolume.div(buyVolume).mul(100)
     const closingPriceAux = closingPrice
       .numerator
       .div(closingPrice.denominator)
-
     const previousClosingPriceAux = previousClosingPrice
       .numerator
       .div(previousClosingPrice.denominator)
 
-    let priceIncrement
-    if (previousClosingPrice) {
-      priceIncrement = numberUtil
-        .HUNDRED.mul(
-          closingPriceAux.minus(previousClosingPriceAux)
-        )
-        .div(previousClosingPriceAux)
-    } else {
-      priceIncrement = null
-    }
+    const ensuredSellVolumePercentage = numberUtil.getPercentage({
+      part: botSellVolume,
+      total: sellVolume
+    })
+    const ensuredBuyVolumePercentage = numberUtil.getPercentage({
+      part: botBuyVolume,
+      total: buyVolume
+    })
+    const priceIncrement = numberUtil.getIncrement({
+      newValue: closingPriceAux,
+      oldValue: previousClosingPriceAux
+    })
 
     addAuctionInfo({
       auctionIndex: auctionIndex.toNumber(),
