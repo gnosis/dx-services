@@ -12,6 +12,21 @@ async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, count
     address,
     count
   })
+  // TODO use new functions to get seller/buyerClaims
+  // const sellerClaims = await auctionRepo.getIndicesWithClaimableTokensForSellers({
+  //   sellToken: tokenA, buyToken: tokenB, address, lastNAuctions: count
+  // })
+  //
+  // const buyerClaims = await auctionRepo.getIndicesWithClaimableTokensForBuyers({
+  //   sellToken: tokenA, buyToken: tokenB, address, lastNAuctions: count
+  // })
+  //
+  // // logger.info('%o', sellerClaims)
+  // return {
+  //   sellerClaims,
+  //   buyerClaims
+  // }
+
   return auctionsBalances.reduce((acc, auctionsBalance) => {
     const {
       sellerBalanceA,

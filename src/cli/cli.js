@@ -23,6 +23,7 @@ async function run (instances) {
   require('./commands/getSellerBalancesCmd')(commandParams)
   require('./commands/auctionBalancesTokensCmd')(commandParams)
   require('./commands/claimableTokensCmd')(commandParams)
+  require('./commands/claimTokensCmd')(commandParams)
 
   // Trade commands
   require('./commands/sendCmd')(commandParams)

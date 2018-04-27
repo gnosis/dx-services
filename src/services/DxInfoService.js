@@ -12,7 +12,6 @@ const getVersion = require('../helpers/getVersion')
 const getAuctionsBalances = require('./helpers/getAuctionsBalances')
 const getClaimableTokens = require('./helpers/getClaimableTokens')
 
-
 class DxInfoService {
   constructor ({ auctionRepo, ethereumRepo, config }) {
     this._auctionRepo = auctionRepo

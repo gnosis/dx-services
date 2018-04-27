@@ -249,7 +249,7 @@ class AuctionRepoImpl {
 
   async getAuctionStart ({ sellToken, buyToken }) {
     assertPair(sellToken, buyToken)
-  
+
     const auctionStartEpoch = await this._callForPair({
       operation: 'getAuctionStart',
       sellToken,
@@ -402,13 +402,26 @@ class AuctionRepoImpl {
     })
   }
 
-  async getIndicesWithClaimableTokens ({ sellToken, buyToken, address, lastNAuctions }) {
+  async getIndicesWithClaimableTokensForSellers ({ sellToken, buyToken, address, lastNAuctions }) {
     assertPair(sellToken, buyToken)
     assert(address, 'The "address" is required')
     assert(lastNAuctions, 'The "lastNAuctions" is required')
 
     return this._callForPair({
-      operation: 'getIndicesWithClaimableTokens',
+      operation: 'getIndicesWithClaimableTokensForSellers',
+      sellToken,
+      buyToken,
+      args: [ address, lastNAuctions ]
+    })
+  }
+
+  async getIndicesWithClaimableTokensForBuyers ({ sellToken, buyToken, address, lastNAuctions }) {
+    assertPair(sellToken, buyToken)
+    assert(address, 'The "address" is required')
+    assert(lastNAuctions, 'The "lastNAuctions" is required')
+
+    return this._callForPair({
+      operation: 'getIndicesWithClaimableTokensForBuyers',
       sellToken,
       buyToken,
       args: [ address, lastNAuctions ]
