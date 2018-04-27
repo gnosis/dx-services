@@ -34,4 +34,4 @@ EXPOSE 8080
 # Signal handling for PID1 https://github.com/krallin/tini
 ENTRYPOINT ["/sbin/tini", "--"]
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "--silent", "start" ]
