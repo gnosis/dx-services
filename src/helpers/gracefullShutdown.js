@@ -1,9 +1,11 @@
 const loggerNamespace = 'dx-service:helpers:gratefullShutdown'
-const Logger = require('../helpers/Logger')
+const Logger = require('./Logger')
 const logger = new Logger(loggerNamespace)
 const POSIX_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGQUIT']
 const listerners = []
 let shuttedDown = false
+
+require('./globalErrorHandler')
 
 POSIX_SIGNALS.forEach(signal => {
   process.on(signal, () => {
@@ -19,16 +21,6 @@ process.on('uncaughtException', error => {
 
   // TODO: Decide if we want to shutdown the app here or not
   // _doShutDown(`There was a glonal unhandled exception`)
-})
-
-process.on('unhandledRejection', error => {
-  logger.error({
-    msg: 'Uncought promise rejection: ' + error.toString(),
-    error
-  })
-
-  // TODO: Decide if we want to shutdown the app here or not
-  // _doShutDown(`There was a glonal uncought global exception`)
 })
 
 function onShutdown (listener) {
