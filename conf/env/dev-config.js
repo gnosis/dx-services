@@ -4,6 +4,7 @@ const ENVIRONMENT = 'dev'
 // we should uncoment it
 const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' }
+  //,{ tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
 module.exports = {
