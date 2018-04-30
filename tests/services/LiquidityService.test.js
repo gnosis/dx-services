@@ -211,11 +211,11 @@ test('It should return token balance for an account', async () => {
   // THEN
   let expectedRdnEthAccountBalance = [{
     amount: new BigNumber('601.112e18'),
-    amountInUSD: new BigNumber('2473.57588'),
+    amountInUSD: new BigNumber('2473.57'), // 2473.57588
     token: 'RDN'
   }, {
     amount: new BigNumber('4.01234e18'),
-    amountInUSD: new BigNumber('4020.21221108'),
+    amountInUSD: new BigNumber('4020.21'), // 4020.21221108
     token: 'WETH'
   }]
   expect(rdnEthAccountBalance).toEqual(expectedRdnEthAccountBalance)
