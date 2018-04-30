@@ -22,7 +22,7 @@ if (env === 'pre') {
 
 module.exports = {
   NETWORK: 'rinkeby', // 4
-  ETHEREUM_RPC_URL: 'https://rinkeby.infura.io/DyTLJKrhta2BDMSZ9MaV',
+  ETHEREUM_RPC_URL: 'https://rinkeby.infura.io',
 
   // Tokens
   DX_CONTRACT_ADDRESS,

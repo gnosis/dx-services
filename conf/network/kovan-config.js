@@ -1,6 +1,6 @@
 module.exports = {
   NETWORK: 'kovan', // 42
-  ETHEREUM_RPC_URL: 'https://kovan.infura.io/DyTLJKrhta2BDMSZ9MaV',
+  ETHEREUM_RPC_URL: 'https://kovan.infura.io',
 
   // Tokens
   RDN_TOKEN_ADDRESS: '0x24f6f5ca461713d0d5df921865e6cabb06d456da',
