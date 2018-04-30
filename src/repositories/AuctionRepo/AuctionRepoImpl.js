@@ -407,6 +407,10 @@ class AuctionRepoImpl {
     assert(address, 'The "address" is required')
     assert(lastNAuctions, 'The "lastNAuctions" is required')
 
+    // FIXME when DXContract deploy > 0.5.0 Remove lastNAuctions assignment
+    const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
+    lastNAuctions = lastAuctionIndex
+
     return this._callForPair({
       operation: 'getIndicesWithClaimableTokensForSellers',
       sellToken,
@@ -419,6 +423,10 @@ class AuctionRepoImpl {
     assertPair(sellToken, buyToken)
     assert(address, 'The "address" is required')
     assert(lastNAuctions, 'The "lastNAuctions" is required')
+
+    // FIXME when DXContract deploy > 0.5.0. Remove lastNAuctions assignment
+    const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
+    lastNAuctions = lastAuctionIndex
 
     return this._callForPair({
       operation: 'getIndicesWithClaimableTokensForBuyers',
