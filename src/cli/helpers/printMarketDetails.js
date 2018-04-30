@@ -15,15 +15,15 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
     auctionOpp
   } = marketDetails
 
-  logger.info(`\tToken pair: ${sellToken}-${buyToken}`)
-  logger.info('\n\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
-  logger.info(`\tState: ${state}`)
+  logger.info(`\tToken pair: ${sellToken}-${buyToken}\n`)
+  logger.info('\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
+  logger.info(`\tState: ${state}\n`)
 
-  logger.info(`\n\tAre tokens Approved?`)
+  logger.info(`\tAre tokens Approved?`)
   logger.info('\t\t- %s: %s', sellToken, formatUtil.formatBoolean(isSellTokenApproved))
-  logger.info('\t\t- %s: %s', buyToken, formatUtil.formatBoolean(isBuyTokenApproved))
+  logger.info('\t\t- %s: %s\n', buyToken, formatUtil.formatBoolean(isBuyTokenApproved))
 
-  logger.info('\n\tState info:')
+  logger.info('\tState info:')
   logger.info('\t\t- auctionIndex: %s', auctionIndex)
   logger.info('\t\t- auctionStart: %s', formatUtil.formatDateTime(auctionStart))
 
@@ -84,8 +84,9 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
     outstandingVolume
   } = auction
 
-  logger.info(`\n\tAuction ${tokenA}-${tokenB}:`)
-  
+  logger.info('')
+  logger.info(`\tAuction ${tokenA}-${tokenB}:`)
+
   // printProps('\t\t', auctionProps, auction, formatters)
   let closedStatus
   if (isClosed) {
