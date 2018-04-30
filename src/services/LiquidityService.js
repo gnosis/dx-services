@@ -155,18 +155,15 @@ check should be done`,
   async getBalances ({ tokens, address }) {
     const balancesPromises = tokens.map(async token => {
       const amount = await this._auctionRepo.getBalance({ token, address })
-      const amountInUSD = await this._auctionRepo
+      let amountInUSD = await this._auctionRepo
         .getPriceInUSD({
           token,
           amount
         })
-        .then(balance => {
-          // Round USD to 2 decimals
-          return balance
-            .mul(numberUtil.HUNDRED)
-            .ceil()
-            .div(numberUtil.HUNDRED)
-        })
+        
+      // Round USD to 2 decimals
+      amountInUSD = numberUtil.roundDown(amountInUSD)
+
       return {
         token, amount, amountInUSD
       }
@@ -520,10 +517,9 @@ keeps happening`
     amountToSellInUSD = amountToSellInUSD
       // We add the maximun fee as an extra amount
       .mul(numberUtil.ONE.plus(MAXIMUM_DX_FEE))
-      // Round USD to 2 decimals
-      .mul(numberUtil.HUNDRED)
-      .ceil()
-      .div(numberUtil.HUNDRED)
+
+    // Round USD to 2 decimals
+    amountToSellInUSD = numberUtil.roundUp(amountToSellInUSD)
 
     // Get the amount to sell in sellToken
     const amountInSellTokens = (await this._auctionRepo

@@ -300,13 +300,10 @@ class DxInfoService {
       if (!sellVolume.isZero()) {
         // Get the bought percentage:
         //    100 - 100 * (sellVolume - soldTokens) / sellVolume
-        boughtPercentage = numberUtil.HUNDRED.minus(
-          numberUtil.HUNDRED.mul(
-            sellVolume
-              .minus(buyVolumesInSellTokens)
-              .div(sellVolume)
-          )
-        )
+        boughtPercentage = numberUtil.getPercentage({
+          part: buyVolumesInSellTokens,
+          total: sellVolume
+        })
       }
 
       if (closingPrice) {

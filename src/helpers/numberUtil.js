@@ -69,11 +69,20 @@ function getIncrement ({ oldValue, newValue }) {
 }
 
 function round (number, decimals = 2) {
+  return roundAux(number, decimals, 'round')
+}
+function roundUp (number, decimals = 2) {
+  return roundAux(number, decimals, 'ceil')
+}
+function roundDown (number, decimals = 2) {
+  return roundAux(number, decimals, 'floor')
+}
+
+function roundAux (number, decimals = 2, roundFnName) {
   const factor = 10 ** decimals
 
   return toBigNumber(number)
-    .mul(factor)
-    .ceil()
+    .mul(factor)[roundFnName]()
     .div(factor)
 }
 
@@ -84,6 +93,8 @@ module.exports = {
   getPercentage,
   getIncrement,
   round,
+  roundUp,
+  roundDown,
   toWei,
   fromWei,
 
