@@ -141,7 +141,7 @@ class App {
       botAddress,
       markets: this._config.MARKETS,
       slackClient: this._slackClient,
-      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
+      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_OPERATIONS
     })
 
     // Buy Liquidity Bot
@@ -153,7 +153,7 @@ class App {
       botAddress,
       markets: this._config.MARKETS,
       slackClient: this._slackClient,
-      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
+      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_OPERATIONS
     })
 
     // Buy Liquidity Bot
