@@ -135,13 +135,13 @@ class DxInfoService {
     })
   }
 
-  async getClaimableTokens ({ tokenA, tokenB, address, count }) {
+  async getClaimableTokens ({ tokenA, tokenB, address, lastNAuctions }) {
     return getClaimableTokens({
       auctionRepo: this._auctionRepo,
       tokenA,
       tokenB,
       address,
-      count
+      lastNAuctions
     })
   }
 

@@ -25,7 +25,7 @@ class DxTradeService {
     })
   }
 
-  async claimAll ({ tokenA, tokenB, address, count }) {
+  async claimAll ({ tokenA, tokenB, address, lastNAuctions }) {
     // TODO: Do for any number of tokenPairs
     // We transform the balances in the claim seller and buyer params required
     // by the DX
@@ -34,20 +34,44 @@ class DxTradeService {
       tokenA,
       tokenB,
       address,
-      count
+      lastNAuctions
     })
 
-    sellerClaims.forEach(({ sellToken, buyToken, auctionIndex }) =>
-      this._auctionRepo.claimSellerFunds({
-        sellToken, buyToken, from: address, auctionIndex
-      })
-    )
+    const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
+    const auctionsAsSeller = [{
+      sellToken: tokenA,
+      buyToken: tokenB,
+      indices: sellerClaimsIndex
+    }]
 
-    buyerClaims.forEach(({ sellToken, buyToken, auctionIndex }) =>
-      this._auctionRepo.claimBuyerFunds({
-        sellToken, buyToken, from: address, auctionIndex
-      })
-    )
+    const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
+    const auctionsAsBuyer = [{
+      sellToken: tokenA,
+      buyToken: tokenB,
+      indices: buyerClaimsIndex
+    }]
+    return Promise.all([
+      this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({ auctionsAsSeller, address }),
+      this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({ auctionsAsBuyer, address })
+    ])
+  }
+
+  async claimSellerFunds ({ tokenA, tokenB, address, auctionIndex }) {
+    return this._auctionRepo.claimSellerFunds({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      from: address,
+      auctionIndex
+    })
+  }
+
+  async claimBuyerFunds ({ tokenA, tokenB, address, auctionIndex }) {
+    return this._auctionRepo.claimBuyerFunds({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      from: address,
+      auctionIndex
+    })
   }
 
   async sendTokens ({ token, amount, fromAddress, toAddress }) {

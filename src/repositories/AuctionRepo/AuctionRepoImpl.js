@@ -436,8 +436,98 @@ class AuctionRepoImpl {
     })
   }
 
+  async claimTokensFromSeveralAuctionsAsSeller ({ auctionsAsSeller, address }) {
+    // Transform the tokenPairs into addresses
+    const auctionsInfoPromises = auctionsAsSeller.map(({ sellToken, buyToken, indices }) => {
+      return Promise.all([
+        this._getTokenAddress(sellToken),
+        this._getTokenAddress(buyToken)
+      ]).then(([ sellTokenAddress, buyTokenAddress ]) => ({
+        sellToken,
+        buyToken,
+        sellTokenAddress,
+        buyTokenAddress,
+        indices
+      }))
+    })
+    const auctionsInfo = await Promise.all(auctionsInfoPromises)
+
+    const {
+      auctionSellTokens,
+      auctionBuyTokens,
+      auctionIndices
+    } = auctionsInfo.reduce((acc, auction) => {
+      const {
+        sellTokenAddress,
+        buyTokenAddress,
+        indices
+      } = auction
+
+      indices.forEach(auctionIndex => {
+        acc.auctionSellTokens.push(sellTokenAddress)
+        acc.auctionBuyTokens.push(buyTokenAddress)
+        acc.auctionIndices.push(auctionIndex)
+      })
+      return acc
+    }, {
+      auctionSellTokens: [],
+      auctionBuyTokens: [],
+      auctionIndices: []
+    })
+
+    return this._doTransaction({
+      operation: 'claimTokensFromSeveralAuctionsAsSeller',
+      from: address,
+      params: [ auctionSellTokens, auctionBuyTokens, auctionIndices, address ]
+    })
+  }
+
+  async claimTokensFromSeveralAuctionsAsBuyer ({ auctionsAsBuyer, address }) {
+    // Transform the tokenPairs into addresses
+    const auctionsInfoPromises = auctionsAsBuyer.map(({ sellToken, buyToken, indices }) => {
+      return Promise.all([
+        this._getTokenAddress(sellToken),
+        this._getTokenAddress(buyToken)
+      ]).then(([ sellTokenAddress, buyTokenAddress ]) => ({
+        sellToken,
+        buyToken,
+        sellTokenAddress,
+        buyTokenAddress,
+        indices
+      }))
+    })
+    const auctionsInfo = await Promise.all(auctionsInfoPromises)
+    const {
+      auctionSellTokens,
+      auctionBuyTokens,
+      auctionIndices
+    } = auctionsInfo.reduce((acc, auction) => {
+      const {
+        sellTokenAddress,
+        buyTokenAddress,
+        indices
+      } = auction
+
+      indices.forEach(auctionIndex => {
+        acc.auctionSellTokens.push(sellTokenAddress)
+        acc.auctionBuyTokens.push(buyTokenAddress)
+        acc.auctionIndices.push(auctionIndex)
+      })
+      return acc
+    }, {
+      auctionSellTokens: [],
+      auctionBuyTokens: [],
+      auctionIndices: []
+    })
+    return this._doTransaction({
+      operation: 'claimTokensFromSeveralAuctionsAsBuyer',
+      from: address,
+      params: [ auctionSellTokens, auctionBuyTokens, auctionIndices, address ]
+    })
+  }
+
   async getSellerBalancesOfCurrentAuctions ({ tokenPairs, address }) {
-    // Transfor the tokenPairs into addresses
+    // Transform the tokenPairs into addresses
     const tokenPairsInfoPromises = tokenPairs.map(({ sellToken, buyToken }) => {
       return Promise.all([
         this._getTokenAddress(sellToken),
@@ -1650,7 +1740,6 @@ function _toClearedAuctionFromEvent (event) {
 // function _toEventData(event) {
 //   return event.args
 // }
-
 
 // function toTransactionNumber (transactionResult) {
 //   return transactionResult.tx

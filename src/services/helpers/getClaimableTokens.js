@@ -1,11 +1,14 @@
-async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, count }) {
-  const sellerClaims = await auctionRepo.getIndicesWithClaimableTokensForSellers({
-    sellToken: tokenA, buyToken: tokenB, address, lastNAuctions: count
-  })
+async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, lastNAuctions }) {
+  const [
+    sellerClaims,
+    buyerClaims
+  ] = await Promise.all([
+    auctionRepo.getIndicesWithClaimableTokensForSellers({
+      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions }),
 
-  const buyerClaims = await auctionRepo.getIndicesWithClaimableTokensForBuyers({
-    sellToken: tokenA, buyToken: tokenB, address, lastNAuctions: count
-  })
+    auctionRepo.getIndicesWithClaimableTokensForBuyers({
+      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions })
+  ])
 
   return {
     sellerClaims,

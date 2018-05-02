@@ -21,7 +21,7 @@ function registerCommand ({ cli, instances, logger }) {
         tokenA: sellToken,
         tokenB: buyToken,
         address: botAccount,
-        count
+        lastNAuctions: count
       })
 
       logger.info('Seller claimable tokens:')
