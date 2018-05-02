@@ -14,13 +14,13 @@ function registerCommand ({ cli, instances, logger }) {
     } = instances
 
     logger.info('Showing last %d auctions claimable balances for %s:',
-      count, botAccount)
+      count, '0xbcc87b421e19b151c3af5d46a27af986211119e9')
     tokenPairs.forEach(async tokenPair => {
       const { sellToken, buyToken } = tokenPair
       const { sellerClaims, buyerClaims } = await dxInfoService.getClaimableTokens({
         tokenA: sellToken,
         tokenB: buyToken,
-        address: botAccount,
+        address: '0xbcc87b421e19b151c3af5d46a27af986211119e9',
         lastNAuctions: count
       })
 

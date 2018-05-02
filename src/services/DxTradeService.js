@@ -172,6 +172,52 @@ class DxTradeService {
     }
   }
 
+  async withdraw ({ token, amount, accountAddress }) {
+    const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
+    // Get the account we want to fund
+    // const accountAddress = await this._getAccountAddress(accountIndex)
+    logger.info({
+      msg: 'Withdraw the account %s with %d %s',
+      params: [ accountAddress, amount, token ]
+    })
+
+    let transactionResult
+
+    // Withdraw the tokens into the user account balance
+    transactionResult = await this._auctionRepo.withdraw({
+      from: accountAddress,
+      token,
+      amount
+    })
+    logger.info({
+      msg: 'Withdrawed %d %s into DX account balances for the user. Transaction: %s',
+      params: [ amountInEth, token, transactionResult.tx ]
+    })
+
+    return transactionResult
+  }
+
+  async withdrawEther ({ accountAddress, amount }) {
+    const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
+
+    logger.info({
+      msg: 'Withdraw the account %s with %d',
+      params: [ accountAddress, amount ]
+    })
+
+    let transactionResult
+
+    // Withdraw the tokens into the user account balance
+    transactionResult = await this._auctionRepo.withdrawEther({
+      from: accountAddress,
+      amount
+    })
+    logger.info({
+      msg: 'Withdrawed %d %s into DX account balances for the user. Transaction: %s',
+      params: [ amountInEth, transactionResult.tx ]
+    })
+  }
+
   async _getAccountAddress (accountIndex) {
     const accounts = await this._ethereumRepo.getAccounts(accountIndex)
 
