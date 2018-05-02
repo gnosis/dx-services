@@ -11,8 +11,8 @@ if (env === 'pre') {
   DX_CONTRACT_ADDRESS = null
   if (env !== 'pro') {
     // dev, local, test
-    RDN_TOKEN_ADDRESS = '0xde6efd396e18a950b45e24d6225505f48d0c627b'
-    OMG_TOKEN_ADDRESS = '0x8bdd53a53c53fbc40d38231d6219f8cb7b59a704'
+    RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
+    OMG_TOKEN_ADDRESS = '0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054'
   } else {
     // pro
     RDN_TOKEN_ADDRESS = null
