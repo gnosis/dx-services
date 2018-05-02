@@ -62,8 +62,8 @@ class DxTradeService {
 
     let transactionResult
     // const amountInWei = numberUtil.toWei(amount)
-    if (token === 'ETH') {
-      // In case of the ETH, we make sure we have enough EtherTokens
+    if (token === 'WETH') {
+      // In case of the WETH, we make sure we have enough EtherTokens
       await this._depositEtherIfRequired({ amount, accountAddress })
     }
 
@@ -97,7 +97,7 @@ class DxTradeService {
 
     // Check if the user has already enogh EtherTokens
     const etherTokenBalance = await this._auctionRepo.getBalanceERC20Token({
-      token: 'ETH',
+      token: 'WETH',
       address: accountAddress
     })
     const amountInWei = numberUtil.toBigNumber(amount)
@@ -107,7 +107,7 @@ class DxTradeService {
         .minus(etherTokenBalance)
 
       logger.info({
-        msg: `We don't have enogth EtherTokens, so we need to deposit: %d ETH`,
+        msg: `We don't have enogth WETH, so we need to wrap %d ETH into the WETH token`,
         params: [ missingDifference.div(1e18) ]
       })
 
@@ -116,7 +116,7 @@ class DxTradeService {
         amount: missingDifference
       })
       logger.info({
-        msg: 'Wrapped %d ETH in a ERC20 ETH token. Transaction: %s',
+        msg: 'Wrapped %d ETH in WETH token. Transaction: %s',
         params: [ amountInWei.div(1e18), transactionResult.tx ]
       })
     }
