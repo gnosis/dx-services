@@ -619,6 +619,20 @@ just ${balance.div(1e18)} ETH (not able to wrap ${amountBigNumber.div(1e18)} ETH
     return eth.deposit({ from, value: amount })
   }
 
+  async withdrawEther ({ from, amount }) {
+    assert(from, 'The from param is required')
+    assert(from, 'The amount is required')
+
+    const balance = await this._ethereumClient.getBalanceERC20Token(from)
+    const amountBigNumber = numberUtil.toBigNumber(amount)
+    assert(balance.greaterThanOrEqualTo(amountBigNumber), `The user ${from} has \
+just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} WETH)`)
+
+    // deposit ether
+    const eth = this._tokens.WETH
+    return eth.withdraw({ from, value: amount })
+  }
+
   async getPriceEthUsd () {
     return this._priceOracle
       .getUSDETHPrice
