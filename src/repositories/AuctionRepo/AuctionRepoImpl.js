@@ -91,8 +91,8 @@ class AuctionRepoImpl {
 
       // Check the state on each side of the auction
       let [ auctionState, auctionOppState ] = await Promise.all([
-        this._getAuctionState({ sellToken, buyToken, auctionIndex }),
-        this._getAuctionState({ sellToken: buyToken, buyToken: sellToken, auctionIndex })
+        this.getAuctionState({ sellToken, buyToken, auctionIndex }),
+        this.getAuctionState({ sellToken: buyToken, buyToken: sellToken, auctionIndex })
       ])
       auction = auctionState
       auctionOpp = auctionOppState
@@ -1385,10 +1385,10 @@ volume: ${state}`)
       .then(toFraction)
   }
 
-  async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
+  async getAuctionState ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
 
-    // auctionLogger.debug(sellToken, buyToken, '_getAuctionState: %d', auctionIndex)
+    // auctionLogger.debug(sellToken, buyToken, 'getAuctionState: %d', auctionIndex)
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
 
