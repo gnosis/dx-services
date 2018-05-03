@@ -2,7 +2,7 @@ const loggerNamespace = 'dx-service:api:routes'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const version = require('../../helpers/getVersion')()
-const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')()
+const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 const formatUtil = require('../../helpers/formatUtil')
 
 const dateUtil = require('../../helpers/dateUtil')
