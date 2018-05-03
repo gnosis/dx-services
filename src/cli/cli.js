@@ -33,6 +33,7 @@ async function run (instances) {
   require('./commands/withdrawCmd')(commandParams)
   require('./commands/buyCmd')(commandParams)
   require('./commands/sellCmd')(commandParams)
+  require('./commands/unwrapEtherCmd')(commandParams)
 
   // Liquidity commands
   require('./commands/sellLiquidityCmd')(commandParams)

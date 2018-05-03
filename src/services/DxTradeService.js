@@ -201,8 +201,8 @@ class DxTradeService {
     const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
 
     logger.info({
-      msg: 'Withdraw the account %s with %d',
-      params: [ accountAddress, amount ]
+      msg: 'Unwrap %d to the account %s',
+      params: [ amount, accountAddress ]
     })
 
     let transactionResult
@@ -213,9 +213,11 @@ class DxTradeService {
       amount
     })
     logger.info({
-      msg: 'Withdrawed %d %s into DX account balances for the user. Transaction: %s',
-      params: [ amountInEth, transactionResult.tx ]
+      msg: 'Unwraped %d WETH into %s account. Transaction: %s',
+      params: [ amountInEth, accountAddress, transactionResult.tx ]
     })
+
+    return transactionResult
   }
 
   async _getAccountAddress (accountIndex) {
