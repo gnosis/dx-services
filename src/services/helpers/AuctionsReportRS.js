@@ -1,5 +1,6 @@
 const loggerNamespace = 'dx-service:services:helpers:AuctionsReportRS'
 const Logger = require('../../helpers/Logger')
+const formatUtil = require('../../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
 
 const DEFAULT_DELIMITER = ';'
@@ -19,6 +20,7 @@ class AuctionsReportRS extends Readable {
   _getHeader () {
     var dm = this._delimiter
     return `\
+Auction cleared${dm}\
 Auction index${dm}\
 Sell token${dm}\
 Buy token${dm}\
@@ -33,6 +35,7 @@ Ensured buy volume\n`
   }
 
   addAuction ({
+    auctionEnd,
     auctionIndex,
     sellToken,
     buyToken,
@@ -47,6 +50,7 @@ Ensured buy volume\n`
   }) {
     var dm = this._delimiter
     const line = `\
+${formatUtil.formatDateTime(auctionEnd)}${dm}\
 ${auctionIndex}${dm}\
 ${sellToken}${dm}\
 ${buyToken}${dm}\

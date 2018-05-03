@@ -28,8 +28,8 @@ function run ({
       console.log('Generated file: "%s"', name)
       console.log('Mime type: "%s"', mimeType)
       if (fileName) {
-        console.log('Write result into: ./' + fileName)
-        const fileWriteStream = fs.createWriteStream('./' + fileName)
+        console.log('Write result into: ' + fileName)
+        const fileWriteStream = fs.createWriteStream(fileName)
         content.pipe(fileWriteStream)
       } else {
         console.log('Content:')

@@ -292,9 +292,9 @@ class ReportService {
 
           return this._generateAuctionInfo(auctionInfoWithOrders)
         })
-      return Promise.all(generateInfoPromises)
-    } else {
-      logger.info('There are no auctions for %s-%s between %s and %s',
+        return Promise.all(generateInfoPromises)
+      } else {
+        logger.info('There are no auctions for %s-%s between %s and %s',
         sellToken,
         buyToken,
         formatUtil.formatDateTime(fromDate),
@@ -302,13 +302,15 @@ class ReportService {
       )
     }
   }
-
+  
   async _generateAuctionInfo ({
     sellToken,
     buyToken,
     sellTokenSymbol,
     buyTokenSymbol,
     auctionIndex,
+    auctionStart, // not reliable yet
+    auctionEnd,
     botSellOrders,
     botBuyOrders,
     buyVolume,
@@ -368,6 +370,8 @@ class ReportService {
       auctionIndex: auctionIndex.toNumber(),
       sellToken: sellTokenSymbol,
       buyToken: buyTokenSymbol,
+      auctionStart, // Not reliable yet
+      auctionEnd,
 
       // Volumes
       sellVolume: sellVolume ? sellVolume.div(1e18).toNumber() : null,
