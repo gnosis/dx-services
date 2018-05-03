@@ -25,9 +25,14 @@ instanceFactory({})
 function claimFunds ({
   config, dxTradeService, botAccount
 }) {
-  config.markets.forEach(({tokenA, tokenB}) => {
-    dxTradeService.claimAll({ tokenA, tokenB, address: botAccount, lastNAuctions: 12 })
-  })
+  const tokenPairs = config.markets.reduce((pairs, { tokenA, tokenB }) => {
+    pairs.push(
+      { sellToken: tokenA, buyToken: tokenB },
+      { sellToken: tokenB, buyToken: tokenA })
+    return pairs
+  }, [])
+
+  dxTradeService.claimAll({ tokenPairs, address: botAccount, lastNAuctions: 12 })
 }
 
 function handleError (error) {

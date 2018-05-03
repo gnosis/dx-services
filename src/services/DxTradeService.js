@@ -25,31 +25,49 @@ class DxTradeService {
     })
   }
 
-  async claimAll ({ tokenA, tokenB, address, lastNAuctions }) {
-    // TODO: Do for any number of tokenPairs
-    // We transform the balances in the claim seller and buyer params required
-    // by the DX
-    const { sellerClaims, buyerClaims } = await getClaimableTokens({
-      auctionRepo: this._auctionRepo,
-      tokenA,
-      tokenB,
-      address,
-      lastNAuctions
-    })
+  async claimAll ({ tokenPairs, address, lastNAuctions }) {
+    // We get the claimable tokens for all pairs
+    const claimableTokensPromises = tokenPairs.map(
+      async ({ sellToken: tokenA, buyToken: tokenB }) => {
+        const claimableTokens = await getClaimableTokens({
+          auctionRepo: this._auctionRepo,
+          tokenA,
+          tokenB,
+          address,
+          lastNAuctions
+        })
 
-    const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
-    const auctionsAsSeller = [{
-      sellToken: tokenA,
-      buyToken: tokenB,
-      indices: sellerClaimsIndex
-    }]
+        return Object.assign({ tokenA, tokenB }, claimableTokens)
+      }
+    )
 
-    const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
-    const auctionsAsBuyer = [{
-      sellToken: tokenA,
-      buyToken: tokenB,
-      indices: buyerClaimsIndex
-    }]
+    const claimableTokens = await Promise.all(claimableTokensPromises)
+
+    const { auctionsAsSeller, auctionsAsBuyer } = claimableTokens.reduce(
+      (acc, { tokenA, tokenB, sellerClaims, buyerClaims }) => {
+        const { auctionsAsSeller, auctionsAsBuyer } = acc
+
+        const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
+        auctionsAsSeller.push({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          indices: sellerClaimsIndex
+        })
+
+        const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
+        auctionsAsBuyer.push({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          indices: buyerClaimsIndex
+        })
+        return {
+          auctionsAsSeller, auctionsAsBuyer
+        }
+      }, {
+        auctionsAsSeller: [],
+        auctionsAsBuyer: []
+      })
+
     return Promise.all([
       this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({ auctionsAsSeller, address }),
       this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({ auctionsAsBuyer, address })
