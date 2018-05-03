@@ -37,8 +37,8 @@ class AuctionRepoMock {
     } else {
       auctionStart = await this.getAuctionStart({ sellToken, buyToken })
       let [ auctionState, auctionOppState ] = await Promise.all([
-        this._getAuctionState({ sellToken, buyToken, auctionIndex }),
-        this._getAuctionState({ sellToken: buyToken, buyToken: sellToken, auctionIndex })
+        this.getAuctionState({ sellToken, buyToken, auctionIndex }),
+        this.getAuctionState({ sellToken: buyToken, buyToken: sellToken, auctionIndex })
       ])
       auction = auctionState
       auctionOpp = auctionOppState
@@ -387,7 +387,7 @@ class AuctionRepoMock {
     throw new Error('Not implemented yet!')
   }
 
-  async _getAuctionState ({ sellToken, buyToken, auctionIndex }) {
+  async getAuctionState ({ sellToken, buyToken, auctionIndex }) {
     debug('Get auction state for auction %d', auctionIndex)
 
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
