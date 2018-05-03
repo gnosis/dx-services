@@ -374,18 +374,18 @@ class ReportService {
       auctionEnd,
 
       // Volumes
-      sellVolume: sellVolume ? sellVolume.div(1e18).toNumber() : null,
-      buyVolume: buyVolume ? buyVolume.div(1e18).toNumber() : null,
+      sellVolume: sellVolume ? sellVolume.div(1e18).toNumber() : 0,
+      buyVolume: buyVolume ? buyVolume.div(1e18).toNumber() : 0,
 
       // Price
-      lastClosingPrice: closingPriceAux,
+      closingPrice: closingPriceAux ? closingPriceAux.toNumber() : 0,
       priceIncrement: priceIncrement ? priceIncrement.toNumber() : null,
 
       // Bot sell/buy
-      botSellVolume: botSellVolume ? botSellVolume.div(1e18).toNumber() : null,
-      botBuyVolume: botBuyVolume ? botBuyVolume.div(1e18).toNumber() : null,
-      ensuredSellVolumePercentage: ensuredSellVolumePercentage ? ensuredSellVolumePercentage.toNumber() : null,
-      ensuredBuyVolumePercentage: ensuredBuyVolumePercentage ? ensuredBuyVolumePercentage.toNumber() : null
+      botSellVolume: botSellVolume ? botSellVolume.div(1e18).toNumber() : 0,
+      botBuyVolume: botBuyVolume ? botBuyVolume.div(1e18).toNumber() : 0,
+      ensuredSellVolumePercentage: ensuredSellVolumePercentage ? ensuredSellVolumePercentage.toNumber() : 0,
+      ensuredBuyVolumePercentage: ensuredBuyVolumePercentage ? ensuredBuyVolumePercentage.toNumber() : 0
     })
   }
 

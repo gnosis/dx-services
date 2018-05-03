@@ -26,7 +26,7 @@ Sell token${dm}\
 Buy token${dm}\
 Sell volume${dm}\
 Buy volume${dm}\
-Last closing price${dm}\
+Closing price${dm}\
 Price increment${dm}\
 Bot sell volume${dm}\
 Bot buy volume${dm}\
@@ -41,7 +41,7 @@ Ensured buy volume\n`
     buyToken,
     sellVolume,
     buyVolume,
-    lastClosingPrice,
+    closingPrice,
     priceIncrement,
     botSellVolume,
     botBuyVolume,
@@ -56,8 +56,8 @@ ${sellToken}${dm}\
 ${buyToken}${dm}\
 ${sellVolume}${dm}\
 ${buyVolume}${dm}\
-${lastClosingPrice}${dm}\
-${priceIncrement}${dm}\
+${closingPrice}${dm}\
+${priceIncrement !== null ? priceIncrement : 'N/A'}${dm}\
 ${botSellVolume}${dm}\
 ${botBuyVolume}${dm}\
 ${ensuredSellVolumePercentage}${dm}\
