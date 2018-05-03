@@ -21,13 +21,19 @@ async function run (instances) {
   require('./commands/marketPriceCmd')(commandParams)
   require('./commands/closingPricesCmd')(commandParams)
   require('./commands/getSellerBalancesCmd')(commandParams)
+  require('./commands/auctionBalancesTokensCmd')(commandParams)
   require('./commands/claimableTokensCmd')(commandParams)
+  require('./commands/claimTokensCmd')(commandParams)
+  require('./commands/claimSellerFundsCmd')(commandParams)
+  require('./commands/claimBuyerFundsCmd')(commandParams)
 
   // Trade commands
   require('./commands/sendCmd')(commandParams)
   require('./commands/depositCmd')(commandParams)
+  require('./commands/withdrawCmd')(commandParams)
   require('./commands/buyCmd')(commandParams)
   require('./commands/sellCmd')(commandParams)
+  require('./commands/unwrapEtherCmd')(commandParams)
 
   // Liquidity commands
   require('./commands/sellLiquidityCmd')(commandParams)

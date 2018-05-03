@@ -23,11 +23,11 @@ function registerCommand ({ cli, instances, logger }) {
     lastClosingPrices.forEach(({ auctionIndex, price, percentage }, i) => {
       let percentageMessage
       if (percentage) {
-        if (percentage.greaterThan(100)) {
+        if (percentage.greaterThan(0)) {
           const value = percentage.toFixed(2)
           percentageMessage = `(+${value})`
         } else {
-          const value = percentage.minus(100).toFixed(2)
+          const value = percentage.toFixed(2)
           percentageMessage = `(${value})`
         }
       } else {

@@ -13,10 +13,7 @@ logger.info('Claiming funds for %s', environment)
 
 // Run app
 instanceFactory({})
-  .then(instances => {
-    logger.info('Fake claiming funds...')
-    logger.info('Done')
-  })
+  .then(claimFunds)
   .catch(error => {
     // Handle boot errors
     handleError(error)
@@ -24,6 +21,19 @@ instanceFactory({})
     // Shutdown app
     return gracefullShutdown.shutDown()
   })
+
+function claimFunds ({
+  config, dxTradeService, botAccount
+}) {
+  const tokenPairs = config.markets.reduce((pairs, { tokenA, tokenB }) => {
+    pairs.push(
+      { sellToken: tokenA, buyToken: tokenB },
+      { sellToken: tokenB, buyToken: tokenA })
+    return pairs
+  }, [])
+
+  dxTradeService.claimAll({ tokenPairs, address: botAccount, lastNAuctions: 12 })
+}
 
 function handleError (error) {
   process.exitCode = 1

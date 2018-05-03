@@ -2,6 +2,7 @@ const loggerNamespace = 'dx-service:services:DxTradeService'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
+const getClaimableTokens = require('./helpers/getClaimableTokens')
 
 const numberUtil = require('../../src/helpers/numberUtil')
 
@@ -21,6 +22,73 @@ class DxTradeService {
   async sell ({ sellToken, buyToken, auctionIndex, from, amount }) {
     return this._auctionRepo.postSellOrder({
       sellToken, buyToken, auctionIndex, from, amount
+    })
+  }
+
+  async claimAll ({ tokenPairs, address, lastNAuctions }) {
+    // We get the claimable tokens for all pairs
+    const claimableTokensPromises = tokenPairs.map(
+      async ({ sellToken: tokenA, buyToken: tokenB }) => {
+        const claimableTokens = await getClaimableTokens({
+          auctionRepo: this._auctionRepo,
+          tokenA,
+          tokenB,
+          address,
+          lastNAuctions
+        })
+
+        return Object.assign({ tokenA, tokenB }, claimableTokens)
+      }
+    )
+
+    const claimableTokens = await Promise.all(claimableTokensPromises)
+
+    const { auctionsAsSeller, auctionsAsBuyer } = claimableTokens.reduce(
+      (acc, { tokenA, tokenB, sellerClaims, buyerClaims }) => {
+        const { auctionsAsSeller, auctionsAsBuyer } = acc
+
+        const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
+        auctionsAsSeller.push({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          indices: sellerClaimsIndex
+        })
+
+        const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
+        auctionsAsBuyer.push({
+          sellToken: tokenA,
+          buyToken: tokenB,
+          indices: buyerClaimsIndex
+        })
+        return {
+          auctionsAsSeller, auctionsAsBuyer
+        }
+      }, {
+        auctionsAsSeller: [],
+        auctionsAsBuyer: []
+      })
+
+    return Promise.all([
+      this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({ auctionsAsSeller, address }),
+      this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({ auctionsAsBuyer, address })
+    ])
+  }
+
+  async claimSellerFunds ({ tokenA, tokenB, address, auctionIndex }) {
+    return this._auctionRepo.claimSellerFunds({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      from: address,
+      auctionIndex
+    })
+  }
+
+  async claimBuyerFunds ({ tokenA, tokenB, address, auctionIndex }) {
+    return this._auctionRepo.claimBuyerFunds({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      from: address,
+      auctionIndex
     })
   }
 
@@ -120,6 +188,54 @@ class DxTradeService {
         params: [ amountInWei.div(1e18), transactionResult.tx ]
       })
     }
+  }
+
+  async withdraw ({ token, amount, accountAddress }) {
+    const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
+    // Get the account we want to fund
+    // const accountAddress = await this._getAccountAddress(accountIndex)
+    logger.info({
+      msg: 'Withdraw the account %s with %d %s',
+      params: [ accountAddress, amount, token ]
+    })
+
+    let transactionResult
+
+    // Withdraw the tokens into the user account balance
+    transactionResult = await this._auctionRepo.withdraw({
+      from: accountAddress,
+      token,
+      amount
+    })
+    logger.info({
+      msg: 'Withdrawed %d %s into DX account balances for the user. Transaction: %s',
+      params: [ amountInEth, token, transactionResult.tx ]
+    })
+
+    return transactionResult
+  }
+
+  async withdrawEther ({ accountAddress, amount }) {
+    const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
+
+    logger.info({
+      msg: 'Unwrap %d to the account %s',
+      params: [ amount, accountAddress ]
+    })
+
+    let transactionResult
+
+    // Withdraw the tokens into the user account balance
+    transactionResult = await this._auctionRepo.withdrawEther({
+      from: accountAddress,
+      amount
+    })
+    logger.info({
+      msg: 'Unwraped %d WETH into %s account. Transaction: %s',
+      params: [ amountInEth, accountAddress, transactionResult.tx ]
+    })
+
+    return transactionResult
   }
 
   async _getAccountAddress (accountIndex) {

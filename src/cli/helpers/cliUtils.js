@@ -26,7 +26,7 @@ const POSITIONALS_BY_NAME = {
   'count': {
     type: 'number',
     default: 5,
-    describe: 'The token pair of the auction'
+    describe: 'The number of elements'
   },
 
   'amount': {
