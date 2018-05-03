@@ -1,5 +1,5 @@
 const testSetup = require('../../helpers/testSetup')
-const dateUtil = require('../../../src/helpers/dateUtil')
+const getDateRangeFromParams = require('../../../src/helpers/getDateRangeFromParams')
 const formatUtil = require('../../../src/helpers/formatUtil')
 
 testSetup()
@@ -9,9 +9,13 @@ testSetup()
 function run ({
   reportService
 }) {
-  const now = new Date()
-  const fromDate = getDateFromEnv('FROM', dateUtil.toStartOf(now, 'day'))
-  const toDate = getDateFromEnv('TO', dateUtil.toEndOf(now, 'day'))
+  const fromDateStr = process.env.FROM
+  const toDateStr = process.env.TO
+  const period = process.env.PERIOD || 'today'
+
+  const { fromDate, toDate } = getDateRangeFromParams({
+    fromDateStr, toDateStr, period
+  })
 
   return reportService
     .sendAuctionsReportToSlack({
@@ -22,13 +26,4 @@ function run ({
       console.log('Receipt id:', receipt.id)
     })
     .catch(console.error)
-}
-
-function getDateFromEnv (envVarName, defaultValue) {
-  let date = process.env[envVarName]
-  if (date) {
-    return formatUtil.parseDateIso(date)
-  } else {
-    return defaultValue
-  }
 }
