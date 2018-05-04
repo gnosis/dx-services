@@ -71,17 +71,11 @@ test('It should ensureBuyLiquidity', async () => {
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
 
-  async function _hasLowBuyVolume ({ sellToken, buyToken }) {
-    const auctionRepo = liquidityService._auctionRepo
-
-    let buyVolume = await auctionRepo.getBuyVolume({ buyToken, sellToken })
-    let sellVolume = await auctionRepo.getSellVolume({ buyToken, sellToken })
-    return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
-  }
-
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
-  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
-    .toBeTruthy()
+  expect(await _hasLowBuyVolume(
+    { sellToken: 'WETH', buyToken: 'RDN' },
+    liquidityService._auctionRepo
+  )).toBeTruthy()
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
@@ -95,8 +89,10 @@ test('It should ensureBuyLiquidity', async () => {
   expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
 
   // THEN auction hasn't got low buy volume
-  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
-    .toBeFalsy()
+  expect(await _hasLowBuyVolume(
+    { sellToken: 'WETH', buyToken: 'RDN' },
+    liquidityService._auctionRepo
+  )).toBeFalsy()
 })
 
 test('It should not ensureBuyLiquidity if enough buy volume', async () => {
@@ -109,21 +105,15 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
 
-  async function _hasLowBuyVolume ({ sellToken, buyToken }) {
-    const auctionRepo = liquidityService._auctionRepo
-
-    let buyVolume = await auctionRepo.getBuyVolume({ buyToken, sellToken })
-    let sellVolume = await auctionRepo.getSellVolume({ buyToken, sellToken })
-    return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
-  }
-
   // GIVEN a RUNNING auction, with enough buy volume for both pairs
   // Ensure with sellToken: RDN and buyToken: WETH on purpose
   // It shouldn't matter the order
   await liquidityService.ensureBuyLiquidity({
     sellToken: 'RDN', buyToken: 'WETH', from: '0x123' })
-  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
-    .toBeFalsy()
+  expect(await _hasLowBuyVolume(
+    { sellToken: 'WETH', buyToken: 'RDN' },
+    liquidityService._auctionRepo
+  )).toBeFalsy()
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityStateWethRdn = await liquidityService.ensureBuyLiquidity({
@@ -144,17 +134,11 @@ test('It should not ensureBuyLiquidity if auction has closed', async () => {
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
 
-  async function _hasLowBuyVolume ({ sellToken, buyToken }) {
-    const auctionRepo = liquidityService._auctionRepo
-
-    let buyVolume = await auctionRepo.getBuyVolume({ buyToken, sellToken })
-    let sellVolume = await auctionRepo.getSellVolume({ buyToken, sellToken })
-    return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
-  }
-
   // GIVEN a CLOSED auction, with enough buy volume
-  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
-    .toBeFalsy()
+  expect(await _hasLowBuyVolume(
+    { sellToken: 'WETH', buyToken: 'RDN' },
+    liquidityService._auctionRepo
+  )).toBeFalsy()
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
@@ -260,6 +244,14 @@ test('It should return token balance for an account', async () => {
 const MINIMUM_SELL_VOLUME = 1000
 
 const UNDER_MINIMUM_FUNDING_WETH = new BigNumber('0.5e18')
+
+async function _hasLowBuyVolume ({ sellToken, buyToken }, auctionRepo) {
+  const [ buyVolume, sellVolume ] = await Promise.all([
+    auctionRepo.getBuyVolume({ buyToken, sellToken }),
+    auctionRepo.getSellVolume({ buyToken, sellToken })
+  ])
+  return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
+}
 
 function _getAuctionsWithUnderFundingEthOmg () {
   // GIVEN a not RUNNING auction, without enough sell liquidiy
