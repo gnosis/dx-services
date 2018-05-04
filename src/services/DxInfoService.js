@@ -328,6 +328,7 @@ class DxInfoService {
     }
   }
 
+  // TODO add pagination
   async getMarkets ({ count }) {
     const tokenPairsPromises = this._markets.map(async ({ tokenA, tokenB }) => {
       const [ tokenAAddress, tokenBAddress ] = await Promise.all([
@@ -354,6 +355,61 @@ class DxInfoService {
     // TODO implement retrieving data from blockchain
     return this.getFundedTokenList()
   }
+  // TODO use pagination in getTokenList. Implement as example:
+  // // Request 1
+  // // GET /tokens?starting_after=0x7e2331beaec0ded82866f4a1388628322c8d5af0&limit=2
+  // {
+  //   pagination: {
+  //   ending_before: null,
+  //   starting_after: "0x7e2331beaec0ded82866f4a1388628322c8d5af0",
+  //   limit: 2,
+  //   order: [{
+  //     param: "symbol",
+  //     direction: "ASC"
+  //   }],
+  //   previous_uri: "/tokens?ending_before=0x7e2331beaec0ded82866f4a1388628322c8d5af0&limit=2&order=symbol,ASC",
+  //   next_uri: "/tokens?starting_after=0xc778417e063141139fce010982780140aa0cd5ab&limit=2&order=symbol,ASC"
+  // },
+  // data: [
+  //   {
+  //     "symbol": "RDN",
+  //     "name": "Raiden network tokens",
+  //     "address": "0x7e2331beaec0ded82866f4a1388628322c8d5af0",
+  //     "decimals": 18
+  //   },
+  //   {
+  //     "symbol": "WETH",
+  //     "name": "Wrapped Ether",
+  //     "address": "0xc778417e063141139fce010982780140aa0cd5ab",
+  //     "decimals": 18
+  //   }
+  // ]
+  // }
+  //
+  //
+  // // Request 2
+  // // GET /tokens?starting_after=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054&limit=2
+  // {
+  //   pagination: {
+  //   ending_before: null,
+  //   starting_after: "0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054",
+  //   limit: 2,
+  //   order: [{
+  //     param: "symbol",
+  //     direction: "ASC"
+  //   }],
+  //   previous_uri: "/tokens?ending_before=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054&limit=2&order=symbol,ASC",
+  //   next_uri: null
+  // },
+  // data: [
+  //   {
+  //     "symbol": "OMG",
+  //     "name": "OMG Test Token",
+  //     "address": "0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054",
+  //     "decimals": 18
+  //   }
+  // ]
+  // }
 
   async getFundedTokenList () {
     let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {

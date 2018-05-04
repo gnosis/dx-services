@@ -163,14 +163,19 @@ describe('Market interacting tests', async () => {
     await _addRdnEthTokenPair({})
     await ethereumClient.increaseTime(6.1 * 60 * 60)
 
+    const [
+      rdnEthState,
+      ethRdnState
+    ] = await Promise.all([
+      _getState({}),
+      _getState({ sellToken: 'WETH', buyToken: 'RDN' })
+    ])
     // GIVEN a state status of RUNNING
-    let rdnEthState = await _getState({})
     expect(rdnEthState).toEqual('RUNNING')
 
     // GIVEN a state status of RUNNING
     // for oposite market too
-    rdnEthState = await _getState({ sellToken: 'WETH', buyToken: 'RDN' })
-    expect(rdnEthState).toEqual('RUNNING')
+    expect(ethRdnState).toEqual('RUNNING')
 
     // WHEN we add a buy order
     await _buySell('postBuyOrder', {
