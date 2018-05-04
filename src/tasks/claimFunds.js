@@ -7,7 +7,6 @@ const gracefullShutdown = require('../helpers/gracefullShutdown')
 const instanceFactory = require('../helpers/instanceFactory')
 const getBotAddress = require('../helpers/getBotAddress')
 
-
 // Env
 const environment = process.env.NODE_ENV
 
