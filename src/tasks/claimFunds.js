@@ -5,6 +5,8 @@ const logger = new Logger(loggerNamespace)
 // Helpers
 const gracefullShutdown = require('../helpers/gracefullShutdown')
 const instanceFactory = require('../helpers/instanceFactory')
+const getBotAddress = require('../helpers/getBotAddress')
+
 
 // Env
 const environment = process.env.NODE_ENV
@@ -22,8 +24,8 @@ instanceFactory()
     return gracefullShutdown.shutDown()
   })
 
-function claimFunds ({
-  config, dxTradeService, botAccount
+async function claimFunds ({
+  config, dxTradeService, ethereumClient
 }) {
   const tokenPairs = config.MARKETS.reduce((pairs, { tokenA, tokenB }) => {
     pairs.push(
@@ -32,9 +34,10 @@ function claimFunds ({
     return pairs
   }, [])
 
+  const botAddress = await getBotAddress(ethereumClient)
   return dxTradeService.claimAll({
     tokenPairs,
-    address: botAccount,
+    address: botAddress,
     lastNAuctions: 12
   })
 }
