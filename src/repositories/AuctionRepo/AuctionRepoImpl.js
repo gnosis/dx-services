@@ -1047,6 +1047,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
   }
 
   async getPriceInUSD ({ token, amount }) {
+    const amountBN = numberUtil.toBigNumber(amount)
     const ethUsdPrice = await this.getPriceEthUsd()
     logger.debug({
       msg: 'Eth/Usd Price for %s: %d',
@@ -1054,7 +1055,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     })
     let amountInETH
     if (token === 'WETH') {
-      amountInETH = amount
+      amountInETH = amountBN
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
       logger.debug({
@@ -1064,7 +1065,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
           priceTokenETH.numerator.div(priceTokenETH.denominator)
         ]
       })
-      amountInETH = amount
+      amountInETH = amountBN
         .mul(priceTokenETH.numerator)
         .div(priceTokenETH.denominator)
     }

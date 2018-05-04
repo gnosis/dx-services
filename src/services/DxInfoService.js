@@ -473,6 +473,13 @@ class DxInfoService {
     })
   }
 
+  async getPriceInUSD ({ token, amount }) {
+    return this._auctionRepo.getPriceInUSD({
+      token,
+      amount
+    })
+  }
+
   async getCurrentFeeRatio ({ address }) {
     let feeRatio = await this._auctionRepo.getFeeRatio({ address })
 
