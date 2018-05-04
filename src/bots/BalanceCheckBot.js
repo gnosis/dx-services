@@ -3,6 +3,7 @@ const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
+const numberUtil = require('../helpers/numberUtil')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 5000 // $5000
 const MINIMUM_AMOUNT_FOR_ETHER = 0.4 * 1e18 // 0.4 WETH
@@ -147,7 +148,7 @@ class BalanceCheckBot extends Bot {
           fields: [
             {
               title: 'Ether balance',
-              value: balance + ' WETH',
+              value: numberUtil.roundDown(balance, 4) + ' WETH',
               short: false
             }, {
               title: 'Bot account',
@@ -175,7 +176,7 @@ class BalanceCheckBot extends Bot {
     const tokenNames = tokenBelowMinimun.map(balanceInfo => balanceInfo.token).join(', ')
     const fields = tokenBelowMinimunValue.map(({ token, amount, amountInUSD }) => ({
       title: token,
-      value: amount + ' ' + token + ' ($' + amountInUSD + ')',
+      value: numberUtil.roundDown(amount, 4) + ' ' + token + ' ($' + amountInUSD + ')',
       short: false
     }))
 
