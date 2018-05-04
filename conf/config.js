@@ -42,6 +42,7 @@ const BUY_LIQUIDITY_RULES = [
     }
   }
 ]
+const AUTO_CLAIM_AUCTIONS = 90
 
 const DEFAULT_GAS = 6700000
 const GAS_PRICE_GWEI = 100
@@ -121,6 +122,7 @@ module.exports = {
   MINIMUM_SELL_VOLUME_USD,
   BUY_LIQUIDITY_RULES,
   MARKETS,
+  AUTO_CLAIM_AUCTIONS,
 
   // Gas
   DEFAULT_GAS,

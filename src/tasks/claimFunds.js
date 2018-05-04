@@ -37,7 +37,7 @@ async function claimFunds ({
   return dxTradeService.claimAll({
     tokenPairs,
     address: botAddress,
-    lastNAuctions: 12
+    lastNAuctions: config.AUTO_CLAIM_AUCTIONS
   })
 }
 
