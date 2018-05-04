@@ -12,7 +12,7 @@ const environment = process.env.NODE_ENV
 logger.info('Claiming funds for %s', environment)
 
 // Run app
-instanceFactory({})
+instanceFactory()
   .then(claimFunds)
   .catch(error => {
     // Handle boot errors
@@ -25,14 +25,18 @@ instanceFactory({})
 function claimFunds ({
   config, dxTradeService, botAccount
 }) {
-  const tokenPairs = config.markets.reduce((pairs, { tokenA, tokenB }) => {
+  const tokenPairs = config.MARKETS.reduce((pairs, { tokenA, tokenB }) => {
     pairs.push(
       { sellToken: tokenA, buyToken: tokenB },
       { sellToken: tokenB, buyToken: tokenA })
     return pairs
   }, [])
 
-  dxTradeService.claimAll({ tokenPairs, address: botAccount, lastNAuctions: 12 })
+  return dxTradeService.claimAll({
+    tokenPairs,
+    address: botAccount,
+    lastNAuctions: 12
+  })
 }
 
 function handleError (error) {

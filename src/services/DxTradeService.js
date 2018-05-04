@@ -47,14 +47,14 @@ class DxTradeService {
       (acc, { tokenA, tokenB, sellerClaims, buyerClaims }) => {
         const { auctionsAsSeller, auctionsAsBuyer } = acc
 
-        const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
+        const [ sellerClaimsIndex ] = sellerClaims
         auctionsAsSeller.push({
           sellToken: tokenA,
           buyToken: tokenB,
           indices: sellerClaimsIndex
         })
 
-        const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
+        const [ buyerClaimsIndex ] = buyerClaims
         auctionsAsBuyer.push({
           sellToken: tokenA,
           buyToken: tokenB,
