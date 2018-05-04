@@ -117,13 +117,46 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
     return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
   }
 
-  // GIVEN a RUNNING auction, with enough buy volume
+  // GIVEN a RUNNING auction, with enough buy volume for both pairs
+  // Ensure with sellToken: RDN and buyToken: WETH on purpose
+  // It shouldn't matter the order
   await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123' })
   expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
     .toBeFalsy()
 
-  // WHEN we ensure sell liquidity
+  // WHEN we ensure buy liquidity
+  const ensureLiquidityStateWethRdn = await liquidityService.ensureBuyLiquidity({
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+
+  // THEN the bot don't buy anything
+  const expectedBotBuy = []
+  expect(ensureLiquidityStateWethRdn).toMatchObject(expectedBotBuy)
+})
+
+test('It should not ensureBuyLiquidity if auction has closed', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getClosedAuctions()
+  })
+  // we mock the exchange price repo
+  liquidityService._priceRepo = priceRepo
+
+  async function _hasLowBuyVolume ({ sellToken, buyToken }) {
+    const auctionRepo = liquidityService._auctionRepo
+
+    let buyVolume = await auctionRepo.getBuyVolume({ buyToken, sellToken })
+    let sellVolume = await auctionRepo.getSellVolume({ buyToken, sellToken })
+    return (sellVolume !== new BigNumber(0) && buyVolume.lessThan(sellVolume.div(2)))
+  }
+
+  // GIVEN a CLOSED auction, with enough buy volume
+  expect(await _hasLowBuyVolume({ sellToken: 'WETH', buyToken: 'RDN' }))
+    .toBeFalsy()
+
+  // WHEN we ensure buy liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
     sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
 
@@ -261,5 +294,22 @@ function _getAuctionsWhereBotShouldBuyEthRdn () {
     {
       'WETH-RDN': auctionsMockData.auctions['WETH-RDN'],
       'RDN-WETH': auctionsMockData.auctions['RDN-WETH']
+    })
+}
+
+function _getClosedAuctions () {
+  const currentAuctionEthRdnInMock = auctionsMockData.auctions['WETH-RDN'].length - 1
+  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
+    { price: {
+      numerator: new BigNumber('1000000'),
+      denominator: new BigNumber('4275')
+    },
+    buyVolume: new BigNumber('67.7034e18')
+    })
+  auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
+
+  return Object.assign({}, auctionsMockData.auctions,
+    {
+      'WETH-RDN': auctionsMockData.auctions['WETH-RDN']
     })
 }

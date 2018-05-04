@@ -74,12 +74,12 @@ const auctions = {
     // https://walletinvestor.com/converter/usd/raiden-network-token/315
     sellVolume: new BigNumber('76.5478441e18'),      // RDN. aprox $315
     sellVolumeNext: new BigNumber('12.5478441e18'),  // RDN
-    buyVolume: new BigNumber('0e18')                 // WETH
+    buyVolume: new BigNumber('17905.9284e18')                 // WETH
   }, {
     index: 77,
     auctionStart: now,
     // https://walletinvestor.com/converter/usd/ethereum/290
-    sellVolume: new BigNumber('0.2894321e18'),       // WETH. aprox $290
+    sellVolume: new BigNumber('0.289432035e18'),       // WETH. aprox $290
     sellVolumeNext: new BigNumber('12.5478441e18'),  // WETH
     buyVolume: new BigNumber('0e18')                 // RDN
   }],

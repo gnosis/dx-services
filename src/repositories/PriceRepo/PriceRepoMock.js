@@ -1,12 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoMock')
 
-const pricesInUSD = [{
-  token: 'RDN',
-  price: 4.115 // $/RDN
-}, {
-  token: 'WETH',
-  price: 1001.962 // $/WETH
-}]
+const pricesInUSD = require('../../../tests/data/auctions').pricesInUSD
 
 class PriceRepoMock {
   constructor () {

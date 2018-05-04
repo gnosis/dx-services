@@ -160,7 +160,7 @@ check should be done`,
           token,
           amount
         })
-        
+
       // Round USD to 2 decimals
       amountInUSD = numberUtil.roundDown(amountInUSD)
 
@@ -235,10 +235,10 @@ keeps happening`
     const buyLiquidityResult = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
     const auctionIndex = await this._auctionRepo.getAuctionIndex(auction)
-    
+
     // Make sure the token pair has been added to the DX
     assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
-    
+
     const [ soldTokensA, soldTokensB ] = await Promise.all([
       // tokenA-tokenB: Get soldTokens
       this._getPricesAndEnsureLiquidity({
@@ -294,7 +294,7 @@ keeps happening`
             auctionIndex,
             from
           }),
-    
+
           // Get the market price
           this._priceRepo.getPrice({
             tokenA: sellToken,
@@ -305,7 +305,7 @@ keeps happening`
           }))
         ])
         assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
-    
+
         if (price) {
           // If there is a price, the auction is running
           return this._doBuyLiquidityUsingCurrentPrices({
