@@ -40,7 +40,7 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
 
       // debug('\t\t- Market price time: %s', formatUtil.formatDateTime(marketPriceTime))
       if (marketPriceTime > now) {
-        logger.info('\t\t- It will reached market price in: %s', formatUtil.formatDatesDifference(now, marketPriceTime))
+        logger.info('\t\t- It will reach market price in: %s', formatUtil.formatDatesDifference(now, marketPriceTime))
       } else {
         logger.info('\t\t- It has reached market price: %s ago', formatUtil.formatDatesDifference(marketPriceTime, now))
       }
