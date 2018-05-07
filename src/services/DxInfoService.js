@@ -348,12 +348,48 @@ class DxInfoService {
       }
     })
 
-    return Promise.all(tokenPairsPromises)
+    const tokenPairs = {
+      data: [],
+      pagination: {}
+    }
+
+    tokenPairs.data = await Promise.all(tokenPairsPromises)
+    tokenPairs.pagination = {
+      endingBefore: null,
+      startingAfter: null,
+      limit: count,
+      order: {
+        param: 'symbol',
+        direction: 'ASC'
+      },
+      previousUri: null,
+      nextUri: null
+    }
+
+    return tokenPairs
   }
 
   async getTokenList ({ count, approved = true }) {
     // TODO implement retrieving data from blockchain
-    return this.getFundedTokenList()
+    const tokenList = {
+      data: [],
+      pagination: {}
+    }
+    const fundedTokenList = await this.getFundedTokenList()
+
+    tokenList.data = fundedTokenList
+    tokenList.pagination = {
+      endingBefore: null,
+      startingAfter: null,
+      limit: count,
+      order: {
+        param: 'symbol',
+        direction: 'ASC'
+      },
+      previousUri: null,
+      nextUri: null
+    }
+    return tokenList
   }
   // TODO use pagination in getTokenList. Implement as example:
   // // Request 1
