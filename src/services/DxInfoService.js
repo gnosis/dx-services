@@ -536,6 +536,100 @@ class DxInfoService {
     })
   }
 
+  async getOperations ({
+    fromDate,
+    toDate,
+
+    // optional params
+    account,
+    sellToken,
+    buyToken,
+    auctionIndex
+  }) {
+    const [ fromBlock, toBlock ] = await Promise.all([
+      this._ethereumRepo.getFirstBlockAfterDate(fromDate),
+      this._ethereumRepo.getLastBlockBeforeDate(toDate)
+    ])
+
+
+    const [ sellOrders, buyOrders ] = await Promise.all([
+      // Get sell orders
+      this._auctionRepo.getSellOrders({
+        fromBlock,
+        toBlock,
+        user: account,
+        sellToken,
+        buyToken,
+        auctionIndex
+      }),
+
+      // Get buy orders
+      this._auctionRepo.getBuyOrders({
+        fromBlock,
+        toBlock,
+        user: account,
+        sellToken,
+        buyToken,
+        auctionIndex
+      })
+    ])
+
+    const orders = sellOrders.concat(buyOrders)
+    return this._toBuyOrderDto(orders)
+  }
+
+  async _toBuyOrderDto (orders) {
+    const orderDtoPromises = orders.map(async order => {
+      const {
+        sellToken,
+        buyToken,
+        auctionIndex,
+        user,
+        amount,
+        dateTime,
+        ethInfo
+      } = order
+
+      const [ sellTokenInfo, buyTokenInfo ] = await Promise.all([
+        // Get sell token info
+        this._ethereumRepo.tokenGetInfo({
+          tokenAddress: sellToken
+        }),
+
+        // Get buy token info
+        this._ethereumRepo.tokenGetInfo({
+          tokenAddress: buyToken
+        })
+      ])
+
+      let type
+      switch (ethInfo.event) {
+        case 'NewSellOrder':
+          type = 'ask'
+          break
+
+        case 'NewBuyOrder':
+          type = 'bid'
+          break
+      
+        default:
+          break
+      }
+
+      return {
+        auctionIndex,
+        sellToken: sellTokenInfo,
+        buyToken: buyTokenInfo,
+        user,
+        amount,
+        dateTime,
+        type
+      }
+    })
+
+    return Promise.all(orderDtoPromises)
+  }
+
   async getCurrentFeeRatio ({ address }) {
     let feeRatio = await this._auctionRepo.getFeeRatio({ address })
 

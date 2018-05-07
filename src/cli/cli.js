@@ -16,29 +16,30 @@ async function run (instances) {
   const commandParams = { cli, instances, logger }
 
   // Info commands
-  require('./commands/stateCmd')(commandParams)
-  require('./commands/priceCmd')(commandParams)
-  require('./commands/usdPriceComand')(commandParams)
-  require('./commands/marketPriceCmd')(commandParams)
-  require('./commands/closingPricesCmd')(commandParams)
-  require('./commands/getSellerBalancesCmd')(commandParams)
-  require('./commands/auctionBalancesTokensCmd')(commandParams)
-  require('./commands/claimableTokensCmd')(commandParams)
-  require('./commands/claimTokensCmd')(commandParams)
-  require('./commands/claimSellerFundsCmd')(commandParams)
-  require('./commands/claimBuyerFundsCmd')(commandParams)
-
+  require('./cliCommands/stateCmd')(commandParams)
+  require('./cliCommands/priceCmd')(commandParams)
+  require('./cliCommands/usdPriceComand')(commandParams)
+  require('./cliCommands/marketPriceCmd')(commandParams)
+  require('./cliCommands/closingPricesCmd')(commandParams)
+  require('./cliCommands/getSellerBalancesCmd')(commandParams)
+  require('./cliCommands/auctionBalancesTokensCmd')(commandParams)
+  
   // Trade commands
-  require('./commands/sendCmd')(commandParams)
-  require('./commands/depositCmd')(commandParams)
-  require('./commands/withdrawCmd')(commandParams)
-  require('./commands/buyCmd')(commandParams)
-  require('./commands/sellCmd')(commandParams)
-  require('./commands/unwrapEtherCmd')(commandParams)
-
+  require('./cliCommands/sendCmd')(commandParams)
+  require('./cliCommands/depositCmd')(commandParams)
+  require('./cliCommands/withdrawCmd')(commandParams)
+  require('./cliCommands/buyCmd')(commandParams)
+  require('./cliCommands/sellCmd')(commandParams)
+  require('./cliCommands/operationsCmd')(commandParams)
+  require('./cliCommands/unwrapEtherCmd')(commandParams)
+  require('./cliCommands/claimableTokensCmd')(commandParams)
+  require('./cliCommands/claimTokensCmd')(commandParams)
+  require('./cliCommands/claimSellerFundsCmd')(commandParams)
+  require('./cliCommands/claimBuyerFundsCmd')(commandParams)
+  
   // Liquidity commands
-  require('./commands/sellLiquidityCmd')(commandParams)
-  require('./commands/buyLiquidityCmd')(commandParams)
+  require('./cliCommands/sellLiquidityCmd')(commandParams)
+  require('./cliCommands/buyLiquidityCmd')(commandParams)
 
   // Setup commands (we might need to move this ones to `setup` cli)
   // add-token-pair, add-funding-for-test-user,...

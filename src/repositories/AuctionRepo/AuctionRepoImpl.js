@@ -1216,16 +1216,43 @@ volume: ${state}`)
       .then(toFraction)
   }
 
-  async getSellOrders (orderParams) {
-    return this._getOrders(Object.assign({
-      event: 'NewSellOrder'
-    }, orderParams))
+  async getSellOrders ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    user,
+    sellToken,
+    buyToken,
+    auctionIndex
+  }) {
+    return this._getOrders({
+      event: 'NewSellOrder',
+      fromBlock,
+      toBlock,
+      user,
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
   }
 
-  async getBuyOrders (orderParams) {
-    return this._getOrders(Object.assign({
-      event: 'NewBuyOrder'
-    }, orderParams))
+  async getBuyOrders ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    user,
+    sellToken,
+    buyToken,
+    auctionIndex,
+    event
+  }) {
+    return this._getOrders({
+      event: 'NewBuyOrder',
+      fromBlock,
+      toBlock,
+      user,
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
   }
 
   async getAuctions ({ fromBlock, toBlock }) {
@@ -1296,7 +1323,7 @@ volume: ${state}`)
       })
       .then(orderEvents => this._toEventsData({
         events: orderEvents,
-        datePropName: 'auctionEnd'
+        datePropName: 'dateTime'
       }))
 
     // auctionIndex is not indexed, so we filter programatically
@@ -1606,17 +1633,24 @@ volume: ${state}`)
 
   async _toEventData (event, datePropName) {
     const block = await this._ethereumClient.getBlock(event.blockNumber)
-    const eventData = Object.assign({}, event.args)
+
+    // Return the data of the event (event.args)
+    // Also, the rest of the data is returned as ethInfo
+    const eventData = Object.assign({
+      ethInfo: Object.assign({}, event, { args: undefined })
+    }, event.args)
+
+    // Add the date where the block was mined
     eventData[datePropName] = block ? new Date(block.timestamp * 1000) : null
 
     return eventData
   }
 
   async _toEventsData ({ events, datePropName }) {
-    const clearedAuctionsPromises = events
+    const eventDataPromises = events
       .map(event => this._toEventData(event, datePropName))
 
-    return Promise.all(clearedAuctionsPromises)
+    return Promise.all(eventDataPromises)
   }
 
   async _debugOperation ({ operation, params }) {

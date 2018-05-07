@@ -37,6 +37,11 @@ const POSITIONALS_BY_NAME = {
   'account': {
     type: 'string',
     describe: 'Address were you send the tokens'
+  },
+
+  'period': {
+    type: 'string',
+    describe: 'Date period, i.e today, yesterday, week, last-week, current-week'
   }
 }
 

@@ -1,17 +1,23 @@
 const formatUtil = require('./formatUtil')
 const dateUtil = require('./dateUtil')
+const validPeriods = [ 'today', 'yesterday', 'week', 'last-week', 'current-week' ]
 
 function getDateRangeFromParams ({
   fromDateStr,
   toDateStr,
   period
 }) {
-  let toDate, fromDate, error
+  let toDate, fromDate
   if (fromDateStr && toDateStr) {
     fromDate = formatUtil.parseDate(fromDateStr)
     toDate = formatUtil.parseDate(toDateStr)
   } else if (period) {
     const today = new Date()
+
+    if (validPeriods.indexOf(period) === -1) {
+      throwUnknownPeriod(period)
+    }
+
     switch (period) {
       case 'today':
         fromDate = today
@@ -42,41 +48,45 @@ function getDateRangeFromParams ({
         break
 
       default:
-        error = new Error(`Unknown 'period': ${period}. Valid values are: day, week`)
-        error.type = 'DATE_RANGE_INVALID'
-        error.data = { period }
+        throwUnknownPeriod(period)
     }
   } else {
-    error = new Error("Either 'from-date' and 'to-date' params or 'period' params, are required.")
+    const error = new Error("Either 'from-date' and 'to-date' params or 'period' params, are required.")
     error.type = 'DATE_RANGE_INVALID'
     error.data = {
       fromDate: fromDateStr || null,
       toDate: toDateStr || null
     }
-  }
-
-  if (!error) {
-    // We include the fromDate day amd the toDate day in the date range
-    fromDate = dateUtil.toStartOf(fromDate, 'day')
-    toDate = dateUtil.toEndOf(toDate, 'day')
-    
-    // Validate that the range is valid
-    if (fromDate > toDate) {
-      error = new Error("'toDate' must be greater than 'fromDate")
-      error.type = 'DATE_RANGE_INVALID'
-      error.data = {
-        fromDate,
-        toDate
-      }
-    }
-  }
-
-  if (error) {
     error.status = 412
     throw error
   }
 
-  return { fromDate, toDate }
+  // We include the fromDate day amd the toDate day in the date range
+  fromDate = dateUtil.toStartOf(fromDate, 'day')
+  toDate = dateUtil.toEndOf(toDate, 'day')
+
+  // Validate that the range is valid
+  if (fromDate <= toDate) {
+    return { fromDate, toDate }
+  } else {
+    const error = new Error("'toDate' must be greater than 'fromDate")
+    error.type = 'DATE_RANGE_INVALID'
+    error.data = {
+      fromDate,
+      toDate
+    }
+    error.status = 412
+    throw error
+  }
+}
+
+function throwUnknownPeriod (period) {
+  const error = new Error(`Unknown 'period': ${period}. Valid values are: ${validPeriods.join(', ')}`)
+  error.type = 'DATE_RANGE_INVALID'
+  error.data = { period }
+  error.status = 412
+
+  throw error
 }
 
 module.exports = getDateRangeFromParams
