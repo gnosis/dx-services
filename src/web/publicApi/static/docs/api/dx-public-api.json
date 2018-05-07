@@ -47,9 +47,17 @@
           "200": {
             "description": "successful operation",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/TokenDetails"
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TokenDetails"
+                  }
+                },
+                "pagination": {
+                  "$ref": "#/definitions/PaginationObject"
+                }
               }
             }
           }
@@ -71,16 +79,16 @@
           "200": {
             "description": "successful operation",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "tokenA": {
-                    "$ref": "#/definitions/TokenDetails"
-                  },
-                  "tokenB": {
-                    "$ref": "#/definitions/TokenDetails"
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TokenPair"
                   }
+                },
+                "pagination": {
+                  "$ref": "#/definitions/PaginationObject"
                 }
               }
             }
@@ -726,11 +734,59 @@
         "decimals": {
           "type": "number"
         }
+      },
+      "required": [
+        "address"
+      ]
+    },
+    "TokenPair": {
+      "type": "object",
+      "properties": {
+        "tokenA": {
+          "$ref": "#/definitions/TokenDetails"
+        },
+        "tokenB": {
+          "$ref": "#/definitions/TokenDetails"
+        }
       }
     },
     "MarketPrice": {
       "type": "number",
       "format": "double"
+    },
+    "PaginationObject": {
+      "type": "object",
+      "properties": {
+        "endBefore": {
+          "type": "string"
+        },
+        "startAfter": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "number"
+        },
+        "order": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "param": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "previousUri": {
+          "type": "string"
+        },
+        "nextUri": {
+          "type": "string"
+        }
+      }
     }
   },
   "externalDocs": {
