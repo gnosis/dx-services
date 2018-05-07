@@ -358,10 +358,10 @@ class DxInfoService {
       endingBefore: null,
       startingAfter: null,
       limit: count,
-      order: {
+      order: [{
         param: 'symbol',
         direction: 'ASC'
-      },
+      }],
       previousUri: null,
       nextUri: null
     }
@@ -382,10 +382,10 @@ class DxInfoService {
       endingBefore: null,
       startingAfter: null,
       limit: count,
-      order: {
+      order: [{
         param: 'symbol',
         direction: 'ASC'
-      },
+      }],
       previousUri: null,
       nextUri: null
     }
