@@ -47,6 +47,10 @@
           "200": {
             "description": "successful operation",
             "schema": {
+              "required": [
+                "data",
+                "pagination"
+              ],
               "type": "object",
               "properties": {
                 "data": {
@@ -79,6 +83,10 @@
           "200": {
             "description": "successful operation",
             "schema": {
+              "required": [
+                "data",
+                "pagination"
+              ],
               "type": "object",
               "properties": {
                 "data": {
@@ -757,10 +765,10 @@
     "PaginationObject": {
       "type": "object",
       "properties": {
-        "endBefore": {
+        "endingBefore": {
           "type": "string"
         },
-        "startAfter": {
+        "startingAfter": {
           "type": "string"
         },
         "limit": {
