@@ -148,7 +148,7 @@ class BalanceCheckBot extends Bot {
           fields: [
             {
               title: 'Ether balance',
-              value: numberUtil.roundDown(balance, 4) + ' WETH',
+              value: numberUtil.roundDown(balance, 4) + ' ETH',
               short: false
             }, {
               title: 'Bot account',
