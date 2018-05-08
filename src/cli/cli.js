@@ -21,7 +21,7 @@ async function run (instances) {
   require('./cliCommands/usdPriceComand')(commandParams)
   require('./cliCommands/marketPriceCmd')(commandParams)
   require('./cliCommands/closingPricesCmd')(commandParams)
-  require('./cliCommands/getSellerBalancesCmd')(commandParams)
+  require('./cliCommands/getSellerBalanceCmd')(commandParams)
   require('./cliCommands/auctionBalancesTokensCmd')(commandParams)
   
   // Trade commands

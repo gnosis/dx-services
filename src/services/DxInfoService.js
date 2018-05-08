@@ -490,6 +490,15 @@ class DxInfoService {
     return this._auctionRepo.getSellerBalance({ sellToken, buyToken, auctionIndex, address })
   }
 
+  async getSellerBalance ({ sellToken, buyToken, auctionIndex, address }) {
+    return this._auctionRepo.getSellerBalance({
+      sellToken,
+      buyToken,
+      auctionIndex,
+      address
+    })
+  }
+
   async getBuyerBalanceForCurrentAuction ({ sellToken, buyToken, address }) {
     let auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
 
