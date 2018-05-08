@@ -1,13 +1,20 @@
 const formatUtil = require('../../helpers/formatUtil')
 const _tokenPairSplit = formatUtil.tokenPairSplit
 
-function createRoutes ({ dxInfoService }) {
+const addCacheHeader = require('../helpers/addCacheHeader')
+
+function createRoutes ({ dxInfoService },
+  { short: CACHE_TIMEOUT_SHORT,
+    average: CACHE_TIMEOUT_AVERAGE,
+    long: CACHE_TIMEOUT_LONG
+  }) {
   const routes = []
 
   routes.push({
     path: '/:accountAddress/current-fee-ratio',
     get (req, res) {
       let params = { address: req.params.accountAddress }
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getCurrentFeeRatio(params)
     }
   })
@@ -20,6 +27,7 @@ function createRoutes ({ dxInfoService }) {
         tokenPair,
         { address: req.params.accountAddress }
       )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getSellerBalanceForCurrentAuction(params)
     }
   })
@@ -32,6 +40,7 @@ function createRoutes ({ dxInfoService }) {
         tokenPair,
         { address: req.params.accountAddress }
       )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getBuyerBalanceForCurrentAuction(params)
     }
   })
@@ -44,6 +53,7 @@ function createRoutes ({ dxInfoService }) {
         token,
         address: req.params.accountAddress
       })
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getAccountBalanceForToken(params)
     }
   })

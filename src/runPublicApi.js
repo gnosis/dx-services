@@ -54,13 +54,20 @@ class App {
     // Services
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
-    
+
     // API
+    this._cacheTimeouts = {
+      short: this._config.CACHE_TIMEOUT_SHORT,
+      average: this._config.CACHE_TIMEOUT_AVERAGE,
+      long: this._config.CACHE_TIMEOUT_LONG
+    }
+
     this._publicApiServer = new PublicApiServer({
       port: this._config.PUBLIC_API_PORT,
       host: this._config.PUBLIC_API_HOST,
       dxInfoService: this._dxInfoService,
-      dxTradeService: this._dxTradeService
+      dxTradeService: this._dxTradeService,
+      cacheTimeouts: this._cacheTimeouts
     })
   }
 

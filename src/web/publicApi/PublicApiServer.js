@@ -6,10 +6,11 @@ const Server = require('../helpers/Server')
 const createRouter = require('../helpers/createRouter')
 
 class PublicApiServer extends Server {
-  constructor ({ port = 8080, host, dxInfoService, dxTradeService }) {
+  constructor ({ port = 8080, host, dxInfoService, dxTradeService, cacheTimeouts }) {
     super({ port, host })
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
+    this._cacheTimeouts = cacheTimeouts
   }
 
   async _registerRoutes ({ app, contextPath }) {
@@ -19,10 +20,11 @@ class PublicApiServer extends Server {
     }
 
     // Get routes
+    const mainRoutes = require('./main-routes')(services, this._cacheTimeouts)
     const testRoutes = require('./test-routes')(services)
-    const marketsRoutes = require('./markets-routes')(services)
-    const accountsRoutes = require('./accounts-routes')(services)
-    const uiRoutes = require('./ui-routes')(services)
+    const marketsRoutes = require('./markets-routes')(services, this._cacheTimeouts)
+    const accountsRoutes = require('./accounts-routes')(services, this._cacheTimeouts)
+    const uiRoutes = require('./ui-routes')(services, this._cacheTimeouts)
 
     // Static content
     const mainPages = express.Router()
@@ -30,7 +32,7 @@ class PublicApiServer extends Server {
     app.use('', mainPages)
 
     // Main routes
-    app.use('/api', require('./main-routes')(services))
+    app.use('/api', createRouter(mainRoutes))
     app.use('/api/test', createRouter(testRoutes))
 
     // Markets routes

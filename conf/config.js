@@ -51,6 +51,10 @@ const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
 const MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 // const MNEMONIC = null
 
+const CACHE_TIMEOUT_SHORT = 1
+const CACHE_TIMEOUT_AVERAGE = 15
+const CACHE_TIMEOUT_LONG = 120
+
 const PUBLIC_API_PORT = 8080
 const PUBLIC_API_HOST = '0.0.0.0'
 const BOTS_API_PORT = 8081
@@ -150,6 +154,9 @@ module.exports = {
   OMG_TOKEN_ADDRESS,
 
   // API
+  CACHE_TIMEOUT_SHORT,
+  CACHE_TIMEOUT_AVERAGE,
+  CACHE_TIMEOUT_LONG,
   PUBLIC_API_PORT,
   PUBLIC_API_HOST,
   BOTS_API_PORT,

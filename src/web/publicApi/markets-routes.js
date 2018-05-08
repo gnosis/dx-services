@@ -1,13 +1,20 @@
 const formatUtil = require('../../helpers/formatUtil')
 const _tokenPairSplit = formatUtil.tokenPairSplit
 
-function createRoutes ({ dxInfoService }) {
+const addCacheHeader = require('../helpers/addCacheHeader')
+
+function createRoutes ({ dxInfoService },
+  { short: CACHE_TIMEOUT_SHORT,
+    average: CACHE_TIMEOUT_AVERAGE,
+    long: CACHE_TIMEOUT_LONG
+  }) {
   const routes = []
 
   routes.push({
     path: '/',
     get (req, res) {
       const count = req.query.count !== undefined ? req.query.count : 10
+      addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
       return dxInfoService.getMarkets({ count })
     }
   })
@@ -16,6 +23,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/state',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getState(tokenPair)
     }
   })
@@ -24,6 +32,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/price',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getCurrentPrice(tokenPair)
     }
   })
@@ -36,6 +45,7 @@ function createRoutes ({ dxInfoService }) {
       let params = Object.assign(
         tokenPair, { count: count }
       )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getLastClosingPricesComputed(params)
     }
   })
@@ -48,6 +58,7 @@ function createRoutes ({ dxInfoService }) {
         tokenPair,
         { auctionIndex: req.params.auctionIndex }
       )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getClosingPrice(params)
     }
   })
@@ -56,6 +67,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/current-index',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getAuctionIndex(tokenPair)
     }
   })
@@ -64,6 +76,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/auction-start',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getAuctionStart(tokenPair)
     }
   })
@@ -72,6 +85,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/is-approved-market',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
       return dxInfoService.isApprovedMarket(tokenPair)
     }
   })
@@ -84,6 +98,7 @@ function createRoutes ({ dxInfoService }) {
         tokenPair,
         { auctionIndex: req.params.auctionIndex }
       )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getExtraTokens(params)
     }
   })
@@ -92,6 +107,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/sell-volume',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getSellVolume(tokenPair)
     }
   })
@@ -101,6 +117,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/sell-volume-next',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getSellVolumeNext(tokenPair)
     }
   })
@@ -109,6 +126,7 @@ function createRoutes ({ dxInfoService }) {
     path: '/:tokenPair/buy-volume',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getBuyVolume(tokenPair)
     }
   })

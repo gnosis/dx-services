@@ -1,35 +1,35 @@
-const express = require('express')
-const router = express.Router()
-
-const SUCCESS_OBJ_FOR_TEST = {
-  name: 'Foo',
-  age: 12,
-  address: {
-    city: 'Baz',
-    zip: 12345,
-    address: 'Foo baz 1234'
-  },
-  validated: true
-}
+const addCacheHeader = require('../helpers/addCacheHeader')
 
 // const debug = require('debug')('DEBUG-dx-services:web:api')
 
-function getRouter ({ dxInfoService, dxTradeService }) {
-  router.get([ '/', '/version' ], async (req, res) => {
-    const version = await dxInfoService.getVersion()
-    res.send(version)
+function createRoutes ({ dxInfoService },
+  { short: CACHE_TIMEOUT_SHORT,
+    average: CACHE_TIMEOUT_AVERAGE,
+    long: CACHE_TIMEOUT_LONG
+  }) {
+  const routes = []
+
+  routes.push({
+    path: [ '/', '/version' ],
+    get (req, res) {
+      return dxInfoService.getVersion()
+    }
   })
 
   // TODO Remove
-  router.get('/v1/ping', (req, res) => {
-    res.status(204).send()
+  routes.push({
+    path: '/v1/ping',
+    get (req, res) {
+      res.status(204).send()
+    }
   })
 
-  router.get('/v1/health', async (req, res) => {
-    const healthEthereum = await dxInfoService.getHealthEthereum()
-    res.status(200).send({
-      ethereum: healthEthereum
-    })
+  routes.push({
+    path: '/v1/health',
+    get (req, res) {
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getHealthEthereum()
+    }
   })
 
   /*
@@ -44,16 +44,24 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   })
   */
 
-  router.get('/v1/tokens', async (req, res) => {
-    const count = req.query.count !== undefined ? req.query.count : 20
-    res.send(await dxInfoService.getTokenList({ count }))
+  routes.push({
+    path: '/v1/tokens',
+    get (req, res) {
+      const count = req.query.count !== undefined ? req.query.count : 20
+      addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
+      return dxInfoService.getTokenList({ count })
+    }
   })
 
-  router.get('/about', async (req, res) => {
-    res.send(await dxInfoService.getAbout())
+  routes.push({
+    path: '/about',
+    get (req, res) {
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getAbout()
+    }
   })
 
-  return router
+  return routes
 }
 
-module.exports = getRouter
+module.exports = createRoutes
