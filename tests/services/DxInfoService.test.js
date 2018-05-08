@@ -23,10 +23,11 @@ test('It should return available markets', async () => {
     tokenB: { name: 'Ethereum Token', symbol: 'WETH', address: '0x123', decimals: 18 }
   }]
 
-  expect(await dxInfoService.getMarkets({})).toMatchObject(EXPECTED_MARKETS)
+  const markets = await dxInfoService.getMarkets({})
+  expect(markets.data).toMatchObject(EXPECTED_MARKETS)
 })
 
-test('It should return funded tokens', async () => {
+test('It should return a token list', async () => {
   const { dxInfoService } = await setupPromise
 
   dxInfoService._auctionRepo = auctionRepoMock
@@ -37,8 +38,8 @@ test('It should return funded tokens', async () => {
     { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 }
   ]
 
-  let fundedTokenList = await dxInfoService.getFundedTokenList()
-  expect(fundedTokenList).toMatchObject(EXPECTED_TOKENS)
+  let tokenList = await dxInfoService.getTokenList({})
+  expect(tokenList.data).toMatchObject(EXPECTED_TOKENS)
 })
 
 test('It should return auction state', async () => {
