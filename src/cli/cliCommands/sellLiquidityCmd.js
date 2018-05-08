@@ -5,7 +5,7 @@ function registerCommand ({ cli, instances, logger }) {
     'sell-liquidity <token-pair>',
     'Ensure the sell liquidity for a token pair',
     yargs => {
-      cliUtils.getPositionalByName('token-pair', yargs)
+      cliUtils.addPositionalByName('token-pair', yargs)
     }, async function (argv) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')

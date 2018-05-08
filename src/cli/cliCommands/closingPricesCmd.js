@@ -3,8 +3,8 @@ const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('closing-prices <token-pair> [count]', 'Get the closing prices for a given pair (i.e. WETH-RDN)', yargs => {
-    cliUtils.getPositionalByName('token-pair', yargs)
-    cliUtils.getPositionalByName('count', yargs)
+    cliUtils.addPositionalByName('token-pair', yargs)
+    cliUtils.addPositionalByName('count', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString, count } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')

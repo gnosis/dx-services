@@ -5,7 +5,7 @@ function registerCommand ({ cli, instances, logger }) {
     'price <token-pair>',
     'Get the current price for a token pair',
     yargs => {
-      cliUtils.getPositionalByName('token-pair', yargs)
+      cliUtils.addPositionalByName('token-pair', yargs)
     }, async function (argv) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')

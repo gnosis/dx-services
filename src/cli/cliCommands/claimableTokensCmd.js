@@ -2,8 +2,8 @@ const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('claimable-tokens <token-pairs> [count]', 'Get the claimable tokens for a list of token pair (i.e. claimable-tokens WETH-RDN,WETH-OMG)', yargs => {
-    cliUtils.getPositionalByName('token-pairs', yargs)
-    cliUtils.getPositionalByName('count', yargs)
+    cliUtils.addPositionalByName('token-pairs', yargs)
+    cliUtils.addPositionalByName('count', yargs)
   }, async function (argv) {
     const { tokenPairs: tokenPairString, count } = argv
     const tokenPairs = cliUtils.toTokenPairs(tokenPairString)

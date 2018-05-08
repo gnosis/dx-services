@@ -6,8 +6,8 @@ function registerCommand ({ cli, instances, logger }) {
     'usd-price <amount> <token>',
     'Get the price of the specified amounts of a token in USD',
     yargs => {
-      cliUtils.getPositionalByName('amount', yargs)
-      cliUtils.getPositionalByName('token', yargs)
+      cliUtils.addPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('token', yargs)
     }, async function (argv) {
       const { token, amount } = argv
       const {

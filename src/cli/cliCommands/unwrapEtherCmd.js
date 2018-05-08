@@ -5,7 +5,7 @@ function registerCommand ({ cli, instances, logger }) {
     'unwrap <amount>',
     'Unwrap WETH to get ETH in user account',
     yargs => {
-      cliUtils.getPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('amount', yargs)
     }, async function (argv) {
       const { amount } = argv
       const {

@@ -16,7 +16,7 @@ async function run (instances) {
   const commandParams = { cli, instances, logger }
 
   // Info commands
-  require('./reportCommands/operationsCmd')(commandParams)
+  require('./reportCommands/tradesCmd')(commandParams)
 
   // Setup commands (we might need to move this ones to `setup` cli)
   // add-token-pair, add-funding-for-test-user,...

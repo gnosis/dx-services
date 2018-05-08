@@ -5,9 +5,9 @@ function registerCommand ({ cli, instances, logger }) {
     'send <amount> <token> <account>',
     'Send tokens to another account',
     yargs => {
-      cliUtils.getPositionalByName('amount', yargs)
-      cliUtils.getPositionalByName('token', yargs)
-      cliUtils.getPositionalByName('account', yargs)
+      cliUtils.addPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('token', yargs)
+      cliUtils.addPositionalByName('account', yargs)
     }, async function (argv) {
       const { amount, token, account } = argv
       const {

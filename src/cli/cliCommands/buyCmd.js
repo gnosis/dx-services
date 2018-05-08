@@ -5,9 +5,9 @@ function registerCommand ({ cli, instances, logger }) {
     'buy <amount> <token-pair> [auction-index]',
     'Buy in a auction for a token pair',
     yargs => {
-      cliUtils.getPositionalByName('amount', yargs)
-      cliUtils.getPositionalByName('token-pair', yargs)
-      cliUtils.getPositionalByName('auction-index', yargs)
+      cliUtils.addPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('token-pair', yargs)
+      cliUtils.addPositionalByName('auction-index', yargs)
     }, async function (argv) {
       const { amount, tokenPair, auctionIndex: auctionIndexAux } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')

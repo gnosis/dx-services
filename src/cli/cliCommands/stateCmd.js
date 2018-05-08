@@ -3,7 +3,7 @@ const printState = require('../helpers/printState')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('state <token-pair>', 'Get the state for a given pair (i.e. WETH-RDN)', yargs => {
-    cliUtils.getPositionalByName('token-pair', yargs)
+    cliUtils.addPositionalByName('token-pair', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')

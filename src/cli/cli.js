@@ -30,7 +30,7 @@ async function run (instances) {
   require('./cliCommands/withdrawCmd')(commandParams)
   require('./cliCommands/buyCmd')(commandParams)
   require('./cliCommands/sellCmd')(commandParams)
-  require('./cliCommands/operationsCmd')(commandParams)
+  require('./cliCommands/tradesCmd')(commandParams)
   require('./cliCommands/unwrapEtherCmd')(commandParams)
   require('./cliCommands/claimableTokensCmd')(commandParams)
   require('./cliCommands/claimTokensCmd')(commandParams)

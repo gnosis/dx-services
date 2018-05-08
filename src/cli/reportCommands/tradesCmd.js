@@ -6,10 +6,10 @@ var fs = require('fs')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'operations <period>',
-    'Get all the operations performed in a time period (i.e. operations yesterday)',
+    'trades <period>',
+    'Get all the trades performed in a time period (i.e. operations yesterday)',
     yargs => {
-      cliUtils.getPositionalByName('period', yargs)
+      cliUtils.addPositionalByName('period', yargs)
     }, async function (argv) {
       const { period } = argv
 

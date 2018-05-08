@@ -523,7 +523,9 @@ class DxInfoService {
     toDate,
 
     // optional params
+    type,
     account,
+    token,
     sellToken,
     buyToken,
     auctionIndex
@@ -533,19 +535,17 @@ class DxInfoService {
       this._ethereumRepo.getLastBlockBeforeDate(toDate)
     ])
 
-
-    const [ sellOrders, buyOrders ] = await Promise.all([
-      // Get sell orders
-      this._auctionRepo.getSellOrders({
+    const getSellOrders = () => {
+      return this._auctionRepo.getSellOrders({
         fromBlock,
         toBlock,
         user: account,
         sellToken,
         buyToken,
         auctionIndex
-      }),
-
-      // Get buy orders
+      })
+    }
+    const getBuyOrders = () => {
       this._auctionRepo.getBuyOrders({
         fromBlock,
         toBlock,
@@ -554,7 +554,35 @@ class DxInfoService {
         buyToken,
         auctionIndex
       })
-    ])
+    }
+
+    // Decide if we get sellOrders, buyOrders, or both
+    let sellOrders, buyOrders
+    if (type) {
+      switch (type) {
+        case 'ask':
+          // Get just sell orders
+          sellOrders = await getSellOrders()
+          buyOrders = []
+          break
+
+        case 'bid':
+        // Get just buy orders
+          sellOrders = []
+          buyOrders = await getBuyOrders()
+          break
+        default:
+          throw new Error('Unknown trade type: ' + type)
+      }
+    } else {
+      // Get both: sell and buy orders
+      const [ sellOrdersAux, buyOrdersAux ] = await Promise.all([
+        getSellOrders(),
+        getBuyOrders()
+      ])
+      sellOrders = sellOrdersAux
+      buyOrders = buyOrdersAux
+    }
 
     const orders = sellOrders.concat(buyOrders)
     return this._toBuyOrderDto(orders)

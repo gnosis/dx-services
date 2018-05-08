@@ -5,8 +5,8 @@ function registerCommand ({ cli, instances, logger }) {
     'deposit <amount> <token>',
     'Deposit the DX account depositing tokens into it',
     yargs => {
-      cliUtils.getPositionalByName('amount', yargs)
-      cliUtils.getPositionalByName('token', yargs)
+      cliUtils.addPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('token', yargs)
     }, async function (argv) {
       const { amount, token } = argv
       const {

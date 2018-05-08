@@ -2,8 +2,8 @@ const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command('claim-seller <token-pair> [auction-index]', 'Claim tokens as seller in an auction', yargs => {
-    cliUtils.getPositionalByName('token-pair', yargs)
-    cliUtils.getPositionalByName('auction-index', yargs)
+    cliUtils.addPositionalByName('token-pair', yargs)
+    cliUtils.addPositionalByName('auction-index', yargs)
   }, async function (argv) {
     const { tokenPair, auctionIndex } = argv
 

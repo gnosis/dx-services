@@ -1309,6 +1309,9 @@ volume: ${state}`)
     auctionIndex,
     event
   }) {
+    let sellTokenAddress = sellToken ? await this._getTokenAddress(sellToken) : undefined
+    let buyTokenAddress = buyToken ? await this._getTokenAddress(buyToken) : undefined
+
     let orders = await ethereumEventHelper
       .filter({
         contract: this._dx,
@@ -1317,8 +1320,8 @@ volume: ${state}`)
         toBlock,
         filters: {
           user,
-          sellToken,
-          buyToken
+          sellToken: sellTokenAddress,
+          buyToken: buyTokenAddress
         }
       })
       .then(orderEvents => this._toEventsData({
@@ -1328,7 +1331,7 @@ volume: ${state}`)
 
     // auctionIndex is not indexed, so we filter programatically
     if (auctionIndex) {
-      orders = orders.filter(order => order.auctionIndex === auctionIndex)
+      orders = orders.filter(order => order.auctionIndex.equals(auctionIndex))
     }
 
     return orders

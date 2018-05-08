@@ -1,37 +1,44 @@
-const POSITIONALS_BY_NAME = {
+const PARAM_BY_NAME = {
   'token-pair': {
     type: 'string',
-    default: 'WETH-RDN',
-    describe: 'The token pair of the auction'
+    describe: 'The token pair of the auction, i.e. WETH-RDN'
+  },
+
+  'sell-token': {
+    type: 'string',
+    describe: 'A token symbol or address is being sold, i.e. '
+  },
+
+  'buy-token': {
+    type: 'string',
+    describe: 'The token symbol or address that is being bought, i.e. RDN'
   },
 
   'token-pairs': {
     type: 'string', // TODO: See how to make this a list :)
-    default: 'WETH-RDN,WETH-OMG',
-    describe: 'The token pair of the auction'
+    describe: 'The token pair of the auction, i.e. WETH-RDN,WETH-OMG'
   },
 
   'token': {
     type: 'string',
-    default: 'WETH',
-    describe: 'Name of the token'
+    describe: 'Name of the token, i.e. WETH'
   },
 
   'auction-index': {
     type: 'integer',
     default: null,
-    describe: 'Index of the auction'
+    describe: 'Index of the auction, i.e. 23'
   },
 
   'count': {
     type: 'number',
     default: 5,
-    describe: 'The number of elements'
+    describe: 'The number of elements, i.e. 5'
   },
 
   'amount': {
     type: 'float',
-    describe: 'Amount to buy'
+    describe: 'Amount to buy, i.e. 0.8'
   },
 
   'account': {
@@ -41,14 +48,37 @@ const POSITIONALS_BY_NAME = {
 
   'period': {
     type: 'string',
-    describe: 'Date period, i.e today, yesterday, week, last-week, current-week'
+    describe: 'Date period, i.e today, yesterday, week, last-week or current-week'
+  },
+
+  'from-date': {
+    type: 'string',
+    describe: 'From date period, i.e 2018-06-23'
+  },
+
+  'to-date': {
+    type: 'string',
+    describe: 'To date period, i.e 2018-06-23'
   }
 }
 
-function getPositionalByName (name, yargs) {
-  const positionalConfig = POSITIONALS_BY_NAME[name]
-  if (positionalConfig) {
-    yargs.positional(name, positionalConfig)
+function addPositionalByName (name, yargs) {
+  const paramConfig = PARAM_BY_NAME[name]
+  if (paramConfig) {
+    yargs.positional(name, paramConfig)
+  } else {
+    throw new Error("There's no positional argument named: " + name)
+  }
+}
+
+function addOptionByName ({ name, yargs, demandOption }) {
+  const paramConfig = PARAM_BY_NAME[name]
+  if (paramConfig) {
+    const params = Object.assign({}, paramConfig)
+    if (demandOption !== undefined) {
+      params.demandOption = demandOption
+    }
+    yargs.option(name, params)
   } else {
     throw new Error("There's no positional argument named: " + name)
   }
@@ -77,7 +107,8 @@ function toTokenPairs (tokenPairString) {
 }
 
 module.exports = {
-  getPositionalByName,
+  addPositionalByName,
+  addOptionByName,
   tokenize,
   toTokenPairs
 }
