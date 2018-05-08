@@ -21,11 +21,11 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   })
 
   // TODO Remove
-  router.get('/ping', (req, res) => {
+  router.get('/v1/ping', (req, res) => {
     res.status(204).send()
   })
 
-  router.get('/health', async (req, res) => {
+  router.get('/v1/health', async (req, res) => {
     const healthEthereum = await dxInfoService.getHealthEthereum()
     res.status(200).send({
       ethereum: healthEthereum
@@ -44,7 +44,7 @@ function getRouter ({ dxInfoService, dxTradeService }) {
   })
   */
 
-  router.get('/tokens', async (req, res) => {
+  router.get('/v1/tokens', async (req, res) => {
     const count = req.query.count !== undefined ? req.query.count : 20
     res.send(await dxInfoService.getTokenList({ count }))
   })

@@ -30,7 +30,7 @@ class PublicApiServer extends Server {
     app.use('', mainPages)
 
     // Main routes
-    app.use('/api/v1', require('./main-routes')(services))
+    app.use('/api', require('./main-routes')(services))
     app.use('/api/test', createRouter(testRoutes))
 
     // Markets routes
