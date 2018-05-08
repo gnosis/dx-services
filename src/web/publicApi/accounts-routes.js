@@ -33,6 +33,20 @@ function createRoutes ({ dxInfoService },
   })
 
   routes.push({
+    path: '/:accountAddress/balances/:tokenPair/auctions/:auctionIndex/seller',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let params = Object.assign(
+        tokenPair,
+        { address: req.params.accountAddress,
+          auctionIndex: req.params.auctionIndex }
+      )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getSellerBalance(params)
+    }
+  })
+
+  routes.push({
     path: '/:accountAddress/balances/:tokenPair/buyer',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
@@ -42,6 +56,20 @@ function createRoutes ({ dxInfoService },
       )
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getBuyerBalanceForCurrentAuction(params)
+    }
+  })
+
+  routes.push({
+    path: '/:accountAddress/balances/:tokenPair/auctions/:auctionIndex/buyer',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let params = Object.assign(
+        tokenPair,
+        { address: req.params.accountAddress,
+          auctionIndex: req.params.auctionIndex }
+      )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getBuyerBalance(params)
     }
   })
 
