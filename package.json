@@ -28,8 +28,6 @@
     "test-debug": "NODE_ENV=test DEBUG=* jest",
     "cli": "DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=rinkeby node src/cli/cli.js",
-    "report": "DEBUG=ERROR-*,WARN-*,INFO-*,report* node src/cli/report.js",
-    "report-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=rinkeby node src/cli/report.js",
     "cli2": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService node tests/playground/cli/bot-cli.js",
     "time": "watch -n 5 'npm run cli2 -- --time 0.1'",
     "time-slow": "watch -n 10 'npm run cli2 -- --time 0.1'",

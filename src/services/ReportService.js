@@ -57,7 +57,7 @@ class ReportService {
   async getAuctionsReportFile ({ fromDate, toDate }) {
     _assertDatesOverlap(fromDate, toDate)
 
-    logger.info('Generate auction report from "%s" to "%s"',
+    logger.debug('Generate auction report from "%s" to "%s"',
       formatUtil.formatDateTime(fromDate),
       formatUtil.formatDateTime(toDate)
     )
@@ -92,13 +92,13 @@ class ReportService {
     const id = requestId++
    
     // Generate report file and send it to slack (fire and forget)
-    logger.info('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
+    logger.debug('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
       id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
       senderInfo
     )
     this._doSendAuctionsReportToSlack({ id, senderInfo, fromDate, toDate })
       .then(() => {
-        logger.info('The auctions report was sent to slack')
+        logger.debug('The auctions report was sent to slack')
       })
       .catch(error => {
         logger.error({
@@ -109,7 +109,7 @@ class ReportService {
       })
 
     // Return the request id and message
-    logger.info('[requestId=%d] Returning a receipt', id)
+    logger.debug('[requestId=%d] Returning a receipt', id)
     return {
       message: 'The report request has been submited',
       id
@@ -121,7 +121,7 @@ class ReportService {
       // Get events info
       ._getAuctionsEventInfo({ fromDate, toDate, addAuctionInfo })
       .then(() => {
-        logger.info('All info was generated')
+        logger.debug('All info was generated')
         end()
       })
       .catch(end)
@@ -239,7 +239,7 @@ class ReportService {
   
       return Promise.all(generateInfoPromises)
     } else {
-      logger.info("There aren't any auctions between %s and %s",
+      logger.debug("There aren't any auctions between %s and %s",
         formatUtil.formatDateTime(fromDate),
         formatUtil.formatDateTime(toDate)
       )
@@ -257,7 +257,7 @@ class ReportService {
     addAuctionInfo
   }) {
     if (auctions.length > 0) {
-      logger.info('Get auctions for %s-%s between %s and %s',
+      logger.debug('Get auctions for %s-%s between %s and %s',
         sellToken,
         buyToken,
         formatUtil.formatDateTime(fromDate),
@@ -294,7 +294,7 @@ class ReportService {
         })
         return Promise.all(generateInfoPromises)
       } else {
-        logger.info('There are no auctions for %s-%s between %s and %s',
+        logger.debug('There are no auctions for %s-%s between %s and %s',
         sellToken,
         buyToken,
         formatUtil.formatDateTime(fromDate),
@@ -319,7 +319,7 @@ class ReportService {
     previousClosingPrice,
     addAuctionInfo
   }) {
-    // logger.info('Get info: %o', arguments[0])
+    // logger.debug('Get info: %o', arguments[0])
     // TODO: Add auctionEnd, auctionStart, runningTime
 
     function sumOrdersVolumes (botSellOrders) {
@@ -395,7 +395,7 @@ class ReportService {
       fromDate,
       toDate
     })
-    logger.info('[requestId=%d] Report file "%s" was generated. Sending it to slack...',
+    logger.debug('[requestId=%d] Report file "%s" was generated. Sending it to slack...',
       id, file.name)
 
     const message = {
@@ -435,7 +435,7 @@ class ReportService {
     const { name: fileName, content: fileContent } = file
 
     // Upload file to slack
-    logger.info('[requestId=%d] Uploading file "%s" to Slack', id, fileName)
+    logger.debug('[requestId=%d] Uploading file "%s" to Slack', id, fileName)
     const { file: fileSlack } = await this._slackClient.uploadFile({
       fileName,
       file: fileContent,
@@ -443,7 +443,7 @@ class ReportService {
     })
 
     const url = fileSlack.url_private
-    logger.info('[requestId=%d] File uploaded. fileId=%s, url=%s',
+    logger.debug('[requestId=%d] File uploaded. fileId=%s, url=%s',
       id, fileSlack.id, url)
 
     message.attachments[0].fields.push({
@@ -456,7 +456,7 @@ class ReportService {
     return this._slackClient
       .postMessage(message)
       .then(({ ts }) => {
-        logger.info('File sent to Slack: ', ts)
+        logger.debug('File sent to Slack: ', ts)
       })
   }
 
