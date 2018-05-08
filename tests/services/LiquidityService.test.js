@@ -171,8 +171,10 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
   let ensureLiquidityPromise2 = liquidityService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
 
-  await ensureLiquidityPromise1
-  await ensureLiquidityPromise2
+  await Promise.all([
+    ensureLiquidityPromise1,
+    ensureLiquidityPromise2
+  ])
 
   // THEN expect 1 call to postSellOrder function
   expect(postSellOrder.mock.calls.length).toBe(1)

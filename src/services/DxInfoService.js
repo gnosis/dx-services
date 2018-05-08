@@ -329,7 +329,7 @@ class DxInfoService {
   }
 
   // TODO implement pagination
-  async getMarkets ({ count }) {
+  async getMarkets ({ count } = {}) {
     const tokenPairsPromises = this._markets.map(async ({ tokenA, tokenB }) => {
       const [ tokenAAddress, tokenBAddress ] = await Promise.all([
         this._auctionRepo.getTokenAddress({
@@ -370,7 +370,7 @@ class DxInfoService {
   }
 
   // TODO implement pagination
-  async getTokenList ({ count, approved = true }) {
+  async getTokenList ({ count, approved = true } = {}) {
     // TODO implement retrieving data from blockchain
     const tokenList = {
       data: [],
@@ -593,7 +593,7 @@ class DxInfoService {
         case 'NewBuyOrder':
           type = 'bid'
           break
-      
+
         default:
           break
       }

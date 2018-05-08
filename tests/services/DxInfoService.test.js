@@ -23,7 +23,7 @@ test('It should return available markets', async () => {
     tokenB: { name: 'Ethereum Token', symbol: 'WETH', address: '0x123', decimals: 18 }
   }]
 
-  const markets = await dxInfoService.getMarkets({})
+  const markets = await dxInfoService.getMarkets()
   expect(markets.data).toMatchObject(EXPECTED_MARKETS)
 })
 
@@ -38,7 +38,7 @@ test('It should return a token list', async () => {
     { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 }
   ]
 
-  let tokenList = await dxInfoService.getTokenList({})
+  let tokenList = await dxInfoService.getTokenList()
   expect(tokenList.data).toMatchObject(EXPECTED_TOKENS)
 })
 
