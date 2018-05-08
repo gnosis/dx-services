@@ -546,7 +546,7 @@ class DxInfoService {
       })
     }
     const getBuyOrders = () => {
-      this._auctionRepo.getBuyOrders({
+      return this._auctionRepo.getBuyOrders({
         fromBlock,
         toBlock,
         user: account,
@@ -585,7 +585,20 @@ class DxInfoService {
     }
 
     const orders = sellOrders.concat(buyOrders)
-    return this._toBuyOrderDto(orders)
+    let ordersDto = await this._toBuyOrderDto(orders)
+
+    if (token) {
+      // Filter out the auction that don't have the token
+      // TODO: This filter is done programatically for simplicity, but we can
+      // check if there is a performance gain when is done as a repo filter,
+      // especially if the number of token pairs grows a lot
+      ordersDto = ordersDto.filter(order => {
+        return order.sellToken.symbol === token ||
+          order.buyToken.symbol === token
+      })
+    }
+
+    return ordersDto
   }
 
   async _toBuyOrderDto (orders) {

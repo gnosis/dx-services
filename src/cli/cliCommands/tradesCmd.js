@@ -2,6 +2,16 @@ const cliUtils = require('../helpers/cliUtils')
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 const formatUtil = require('../../helpers/formatUtil')
 
+const HEADERS = `\
+Trade date\t\
+Operation\t\
+Sell token\t\
+Buy token\t\
+Auction Index\t\
+User\t\
+Amount
+`
+
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'trades',
@@ -23,8 +33,23 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addOptionByName({ name: 'buy-token', yargs })
       cliUtils.addOptionByName({ name: 'auction-index', yargs })
       cliUtils.addOptionByName({ name: 'account', yargs })
+
+      yargs.option('file', {
+        type: 'string',
+        describe: 'Allow to specify a file were we can export the trades as CSV'
+      })
     }, async function (argv) {
-      const { fromDate: fromDateStr, toDate: toDateStr, period, token, type, sellToken, buyToken, auctionIndex, account } = argv
+      const {
+        fromDate: fromDateStr,
+        toDate: toDateStr,
+        period, token,
+        type,
+        sellToken,
+        buyToken,
+        auctionIndex,
+        account,
+        file
+      } = argv
 
       // TODO: This command, is use for early testing, but it will be shaped into
       // a command that would allow to filter by dates, addresse, token, ..
@@ -72,6 +97,13 @@ function registerCommand ({ cli, instances, logger }) {
         logger.info('\t Not aditional filters were applied')
       }
 
+      let stream
+      if (file) {
+        var fs = require('fs')
+        stream = fs.createWriteStream(file)
+        stream.write(HEADERS)
+      }
+
       const operations = await dxInfoService.getOperations({
         fromDate,
         toDate,
@@ -84,22 +116,46 @@ function registerCommand ({ cli, instances, logger }) {
       })
       if (operations.length > 0) {
         logger.info('Found %d matching trades:', operations.length)
-        operations.forEach(({
-          type,
-          auctionIndex,
-          sellToken,
-          buyToken,
-          user,
-          amount,
-          dateTime
-        }) => {
-          const dateTimeStr = formatUtil.formatDateTime(dateTime)
-          logger.info(`\t${sellToken.symbol}-${buyToken.symbol}-${auctionIndex}: ${user} ${type} ${amount.div(1e18)} at ${dateTimeStr}`)
+        operations.forEach(operation => {
+          _printOperation(operation, stream, logger)
         })
       } else {
         logger.info('There are no trades that matches the search criteria.')
       }
+
+      if (file) {
+        logger.info('The result has been exported to: %s', file)
+        // Close file
+        stream.end()
+      }
     })
+}
+
+function _printOperation ({
+  type,
+  auctionIndex,
+  sellToken,
+  buyToken,
+  user,
+  amount,
+  dateTime
+}, stream, logger) {
+  const dateTimeStr = formatUtil.formatDateTime(dateTime)
+  if (stream) {
+    // Write CSV line
+    stream.write(`\
+${dateTimeStr}\t\
+${type}\t\
+${sellToken.symbol}\t\
+${buyToken.symbol}\t\
+${auctionIndex}\t\
+${user}\t\
+${amount.div(1e18)}
+`)
+  } else {
+    // Print in log
+    logger.info(`\t${sellToken.symbol}-${buyToken.symbol}-${auctionIndex}: ${user} ${type} ${amount.div(1e18)} at ${dateTimeStr}`)
+  }
 }
 
 module.exports = registerCommand
