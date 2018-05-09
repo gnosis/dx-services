@@ -263,38 +263,37 @@ class ReportService {
         formatUtil.formatDateTime(fromDate),
         formatUtil.formatDateTime(toDate)
       )
-      const generateInfoPromises = auctions
-        .map(auction => {
-          const {
-            sellToken: sellTokenAddress,
-            buyToken: buyTokenAddress,
-            auctionIndex
-          } = auction
+      const generateInfoPromises = auctions.map(auction => {
+        const {
+          sellToken: sellTokenAddress,
+          buyToken: buyTokenAddress,
+          auctionIndex
+        } = auction
 
-          logger.debug('Get information for auction %s of %s-%s',
-            auctionIndex,
-            sellToken,
-            buyToken
-          )
+        logger.debug('Get information for auction %s of %s-%s',
+          auctionIndex,
+          sellToken,
+          buyToken
+        )
 
-          const filterOrder = dxFilters.createAuctionFilter({
-            sellToken: sellTokenAddress,
-            buyToken: buyTokenAddress,
-            auctionIndex
-          })
-
-          // Add the auction buy orders and sell orders
-          const auctionInfoWithOrders = Object.assign(auction, {
-            botBuyOrders: allBotBuyOrders.filter(filterOrder),
-            botSellOrders: allBotSellOrders.filter(filterOrder),
-            addAuctionInfo
-          })
-
-          return this._generateAuctionInfo(auctionInfoWithOrders)
+        const filterOrder = dxFilters.createAuctionFilter({
+          sellToken: sellTokenAddress,
+          buyToken: buyTokenAddress,
+          auctionIndex
         })
-        return Promise.all(generateInfoPromises)
-      } else {
-        logger.debug('There are no auctions for %s-%s between %s and %s',
+
+        // Add the auction buy orders and sell orders
+        const auctionInfoWithOrders = Object.assign(auction, {
+          botBuyOrders: allBotBuyOrders.filter(filterOrder),
+          botSellOrders: allBotSellOrders.filter(filterOrder),
+          addAuctionInfo
+        })
+
+        return this._generateAuctionInfo(auctionInfoWithOrders)
+      })
+      return Promise.all(generateInfoPromises)
+    } else {
+      logger.debug('There are no auctions for %s-%s between %s and %s',
         sellToken,
         buyToken,
         formatUtil.formatDateTime(fromDate),
@@ -302,7 +301,7 @@ class ReportService {
       )
     }
   }
-  
+
   async _generateAuctionInfo ({
     sellToken,
     buyToken,
