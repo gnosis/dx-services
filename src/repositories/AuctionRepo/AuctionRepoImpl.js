@@ -1266,20 +1266,26 @@ volume: ${state}`)
     const auctionDtoPromises = auctions.map(async auction => {
       // Get aditional info: auction start, closingPrice
       const { sellToken, buyToken, auctionIndex } = auction
+
+      // Get the previous closing price
+      let lastAvaliableClosingPricePromise
+      if (auction.auctionIndex.greaterThan(0)) {
+        lastAvaliableClosingPricePromise = this.getLastAvaliableClosingPrice({
+          sellToken,
+          buyToken,
+          auctionIndex: auction.auctionIndex.minus(1)
+        })
+      } else {
+        // There's no previous price befor auction 0
+        lastAvaliableClosingPricePromise = Promise.resolve(null)
+      }
+
       const [ closingPrice, previousClosingPrice ] = await Promise.all([
         // Get closing price
-        this.getClosingPrices({
-          sellToken,
-          buyToken,
-          auctionIndex
-        }),
+        this.getClosingPrices({ sellToken, buyToken, auctionIndex }),
 
         // Get the previous closing price
-        this.getClosingPrices({
-          sellToken,
-          buyToken,
-          auctionIndex: auction.auctionIndex - 1
-        })
+        lastAvaliableClosingPricePromise
       ])
 
       // Get auction start
@@ -1402,6 +1408,36 @@ volume: ${state}`)
         checkToken: false
       })
       .then(toFraction)
+  }
+
+  async getLastAvaliableClosingPrice ({ sellToken, buyToken, auctionIndex }) {
+    const auctionIndexBn = numberUtil.toBigNumber(auctionIndex)
+    assert(auctionIndexBn.greaterThanOrEqualTo(0),
+      'The auction index must be a positive number')
+
+    return this._getLastAvaliableClosingPriceAux({ sellToken, buyToken, auctionIndex })
+  }
+
+  async _getLastAvaliableClosingPriceAux ({ sellToken, buyToken, auctionIndex }) {
+    if (auctionIndex.lessThan(0)) {
+      return null
+    }
+
+    const closingPrice = await this.getClosingPrices({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+
+    if (closingPrice) {
+      return closingPrice
+    } else {
+      return this._getLastAvaliableClosingPriceAux({
+        sellToken,
+        buyToken,
+        auctionIndex: auctionIndex.minus(1)
+      })
+    }
   }
 
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
