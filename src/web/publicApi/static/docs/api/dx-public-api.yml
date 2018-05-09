@@ -1,5 +1,4 @@
 swagger: '2.0'
-
 info:
   description: |-
     Welcome to Dutch X API docs.
@@ -7,52 +6,43 @@ info:
     In this documents you will find **information about the auctions running
     on the Dutch X smart contracts**.
 
-    Also we provice the **TRY** button, so the different endpoint can be tested 
+    Also we provice the **TRY** button, so the different endpoint can be tested
     from the documentation web itself.
 
     For aditional information and for reference, check out these resources:
-      * [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about Dutch X in 
+      * [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about Dutch X in
       Gnosis Blog, were you will find a series of posts about it.
-      * [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api): 
+      * [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api):
       Example project and documentation on how to use the Dutch X API.
       * [Dutch X - Gitter channel](https://gitter.im/gnosis/DutchX): Participate
       in the gitter channel.
-      * [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart 
+      * [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart
       contracts of the Duch X
-      * [Github: dx-services](https://github.com/gnosis/dx-services): Services, 
+      * [Github: dx-services](https://github.com/gnosis/dx-services): Services,
       repositories and bots to interact with DX.
-      * [Github: dx-react](https://github.com/gnosis/dx-react): Front end web 
+      * [Github: dx-react](https://github.com/gnosis/dx-react): Front end web
       application for the Dutch X seller interface
-
   version: 0.1-SNAPSHOT
   title: Dutch X API
   termsOfService: 'https://dutch.d.exchange/terms/'
-
   contact:
     name: DutchX Gitter channel
     url: 'https://gitter.im/gnosis/DutchX'
-
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-
 basePath: /api/v1
-
 tags:
   - name: markets
     description: Get market info
-
   - name: accounts
     description: Get account data
     externalDocs:
       description: Find out more about our exchange
       url: 'https://dutch.d.exchange'
-
 schemes:
   - https
-
 paths:
-
   /tokens:
     get:
       tags:
@@ -77,7 +67,6 @@ paths:
                   $ref: '#/definitions/TokenDetails'
               pagination:
                 $ref: '#/definitions/PaginationObject'
-
   /markets:
     get:
       tags:
@@ -102,8 +91,7 @@ paths:
                   $ref: '#/definitions/TokenPair'
               pagination:
                 $ref: '#/definitions/PaginationObject'
-
-  /markets/{tokenPair}/state:
+  '/markets/{tokenPair}/state':
     get:
       tags:
         - markets
@@ -115,7 +103,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -129,9 +119,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/price:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/price':
     get:
       tags:
         - markets
@@ -143,7 +134,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -154,9 +147,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/closing-prices:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/closing-prices':
     get:
       tags:
         - markets
@@ -168,7 +162,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: count
@@ -196,9 +192,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/closing-prices/{auctionIndex}:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/closing-prices/{auctionIndex}':
     get:
       tags:
         - markets
@@ -210,7 +207,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: auctionIndex
@@ -227,9 +226,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/current-index:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/current-index':
     get:
       tags:
         - markets
@@ -241,7 +241,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -253,9 +255,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/auction-start:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/auction-start':
     get:
       tags:
         - markets
@@ -267,7 +270,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -279,9 +284,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-  
-  /markets/{tokenPair}/is-approved-market:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/is-approved-market':
     get:
       tags:
         - markets
@@ -293,7 +299,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -304,9 +312,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/extra-tokens/{auctionIndex}:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/extra-tokens/{auctionIndex}':
     get:
       tags:
         - markets
@@ -318,7 +327,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: auctionIndex
@@ -335,9 +346,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/sell-volume:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/sell-volume':
     get:
       tags:
         - markets
@@ -349,7 +361,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -360,9 +374,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-  
-  /markets/{tokenPair}/sell-volume-next:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/sell-volume-next':
     get:
       tags:
         - markets
@@ -374,7 +389,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -385,9 +402,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /markets/{tokenPair}/buy-volume:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{tokenPair}/buy-volume':
     get:
       tags:
         - markets
@@ -399,7 +417,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
       responses:
@@ -410,9 +430,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /accounts/{accountAddress}/current-fee-ratio:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/accounts/{accountAddress}/current-fee-ratio':
     get:
       tags:
         - accounts
@@ -432,8 +453,7 @@ paths:
           description: successful operation
           schema:
             type: number
-            
-  /accounts/{accountAddress}/balances/{tokenPair}/seller:
+  '/accounts/{accountAddress}/balances/{tokenPair}/seller':
     get:
       tags:
         - accounts
@@ -445,7 +465,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: accountAddress
@@ -461,9 +483,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-  
-  /accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/seller:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/seller':
     get:
       tags:
         - accounts
@@ -475,7 +498,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: accountAddress
@@ -497,9 +522,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /accounts/{accountAddress}/balances/{tokenPair}/buyer:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/accounts/{accountAddress}/balances/{tokenPair}/buyer':
     get:
       tags:
         - accounts
@@ -511,7 +537,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: accountAddress
@@ -527,9 +555,10 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/buyer:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/buyer':
     get:
       tags:
         - accounts
@@ -541,7 +570,9 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: 'A token pair string for selecting the desired market {tokenA}-{tokenB}'
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           required: true
           type: string
         - name: accountAddress
@@ -563,15 +594,16 @@ paths:
         '404':
           description: There is an unknown token in the token pair
         '412':
-          description: 'Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn'
-
-  /accounts/{accountAddress}/balances:
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/accounts/{accountAddress}/balances/{tokenPair}/claimable-tokens':
     get:
       tags:
         - accounts
-      summary: Returns the current account balances
-      description: Returns a full overview of account balances
-      operationId: getBalances
+      summary: Returns pending claimable tokens as buyer or seller
+      description: Returns pending claimable tokens as buyer or seller
+      operationId: getClaimableTokens
       produces:
         - application/json
       parameters:
@@ -580,13 +612,25 @@ paths:
           description: Account address
           required: true
           type: string
+        - name: tokenPair
+          in: path
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
+          required: true
+          type: string
       responses:
         '200':
           description: successful operation
           schema:
             type: object
-
-  /accounts/{accountAddress}/tokens/{tokenSymbol}:
+        '404':
+          description: There is an unknown token in the token pair
+        '412':
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenA}-{tokenB}. Ex. weth-rdn
+  '/accounts/{accountAddress}/tokens/{tokenSymbol}':
     get:
       tags:
         - accounts
@@ -613,9 +657,7 @@ paths:
             type: object
         '404':
           description: Unknown token symbol
-
 definitions:
-
   TokenDetails:
     type: object
     properties:
@@ -629,7 +671,6 @@ definitions:
         type: number
     required:
       - address
-
   TokenPair:
     type: object
     properties:
@@ -637,11 +678,9 @@ definitions:
         $ref: '#/definitions/TokenDetails'
       tokenB:
         $ref: '#/definitions/TokenDetails'
-
   MarketPrice:
     type: number
     format: double
-
   PaginationObject:
     type: object
     properties:
@@ -664,7 +703,6 @@ definitions:
         type: string
       nextUri:
         type: string
-        
 externalDocs:
   description: Find out more about the DutchX in our blog
-  url: https://blog.gnosis.pm/tagged/dutchx
+  url: 'https://blog.gnosis.pm/tagged/dutchx'
