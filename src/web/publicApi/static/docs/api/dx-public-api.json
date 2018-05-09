@@ -618,6 +618,57 @@
         }
       }
     },
+    "/accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/seller": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Returns account seller balance for the selected auction",
+        "description": "Returns account seller balance for the selected auction",
+        "operationId": "getBuyerBalance",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "accountAddress",
+            "in": "path",
+            "description": "An ERC20 account address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "auctionIndex",
+            "in": "path",
+            "description": "Auction index",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          }
+        }
+      }
+    },
     "/accounts/{accountAddress}/balances/{tokenPair}/buyer": {
       "get": {
         "tags": [
@@ -625,7 +676,7 @@
         ],
         "summary": "Returns account buyer balance for current auction",
         "description": "Returns account buyer balance for the current auction",
-        "operationId": "getBuyerBalance",
+        "operationId": "getBuyerBalanceForCurrentAuction",
         "produces": [
           "application/json"
         ],
@@ -651,6 +702,63 @@
             "schema": {
               "type": "number"
             }
+          },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
+          }
+        }
+      }
+    },
+    "/accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/buyer": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Returns account buyer balance for the selected auction",
+        "description": "Returns account buyer balance for the selected auction",
+        "operationId": "getBuyerBalance",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "tokenPair",
+            "in": "path",
+            "description": "A token pair string for selecting the desired market {tokenA}-{tokenB}",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "accountAddress",
+            "in": "path",
+            "description": "An ERC20 account address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "auctionIndex",
+            "in": "path",
+            "description": "Auction index",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "number"
+            }
+          },
+          "404": {
+            "description": "There is an unknown token in the token pair"
+          },
+          "412": {
+            "description": "Invalid token format. Token pair format is not compilant with {tokenA}-{tokenB}. Ex. weth-rdn"
           }
         }
       }
