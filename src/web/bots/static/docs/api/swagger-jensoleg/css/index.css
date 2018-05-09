@@ -20,7 +20,7 @@
     background: #16214d;
 }
 .color.color-blue-light {
-    background: #44c7f4;
+    background: #1a4977;
 }
 .color.color-red {
     background: #eb5424;
@@ -4481,7 +4481,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
-    color: #333;
+    color: #fff;
     background-color: transparent;
 }
 .navbar-default .navbar-nav > .active > a,
@@ -15417,7 +15417,7 @@ Copyright (c) 2015 Daniel Eden
 
 header.site-header.site-header {
     z-index: 1000;
-    background: transparent;
+    background: #1a4977;
     font-size: 14px;
     position: static;
 }
@@ -15426,7 +15426,7 @@ header.site-header.site-header.header-fixed {
     position: fixed;
 }
 header.site-header.site-header a {
-    color: #333;
+    color: #fff;
 }
 header.site-header.site-header li * {
     -webkit-backface-visibility: hidden !important;
@@ -15470,13 +15470,13 @@ header.site-header.site-header nav .navbar-brand {
     width: 120px;
 }
 header.site-header.site-header nav .navbar-brand a {
-    background: url("../images/senodio.png") center left no-repeat;
+    background: url("../../../../img/DutchX-logo.svg") center left no-repeat;
     /*background-size: 76%;*/
-    width: 130px;
-    height: 40px;
+    width: 128px;
+    height: 42px;
     display: block;
     margin-top: 5px;
-    background-size: 48%;
+    background-size: 70%;
 }
 header.site-header.site-header nav .navbar-brand img {
     position: relative;
@@ -15703,7 +15703,7 @@ header.site-header.site-header a.login:hover {
     position: relative;
 }
 a.hiring {
-    background: #44c7f4;
+    background: #1a4977;
     text-transform: uppercase;
     position: absolute;
     top: 16px;
@@ -15724,7 +15724,7 @@ a.hiring::after {
     height: 0;
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
-    border-left: 5px solid #44c7f4;
+    border-left: 5px solid #1a4977;
 }
 @media screen and (max-width: 990px) {
     header.site-header {
@@ -15904,7 +15904,7 @@ a.btn.btn-danger {
 }
 .btn.btn-primary,
 a.btn.btn-primary {
-    background-color: #44c7f4;
+    background-color: #1a4977;
     border-color: transparent;
 }
 .btn.btn-primary:hover,
@@ -15944,7 +15944,7 @@ a.btn:active {
     background: #eaca2c;
 }
 .bg-info {
-    background-color: #44c7f4;
+    background-color: #1a4977;
 }
 .bg-danger {
     background: #f00;
@@ -16022,17 +16022,17 @@ a.btn:active {
 }
 .logo-branding a {
     font-weight: bold;
-    border: 1px solid #44c7f4;
+    border: 1px solid #1a4977;
     padding: 4px 10px;
     text-transform: uppercase;
     border-radius: 3px;
     font-size: 11px;
     letter-spacing: 1px;
-    color: #44c7f4;
+    color: #1a4977;
 }
 .logo-branding a:hover {
     color: #fff;
-    background: #44c7f4;
+    background: #1a4977;
 }
 html {
     font-size: 14px;
@@ -16200,7 +16200,7 @@ pre {
     position: relative;
     overflow: hidden;
     background-color: #14204d;
-    background: linear-gradient(180deg, #16214d 0%, #44c7f4 200%); /* W3C */
+    background: linear-gradient(180deg, #16214d 0%, #1a4977 200%); /* W3C */
     padding: 80px 0;
 }
 .banner h1 {
@@ -16222,7 +16222,7 @@ pre {
     position: relative;
 }
 .banner a {
-    color: #44c7f4;
+    color: #1a4977;
     font-weight: bold;
 }
 .banner .btn {
@@ -17118,7 +17118,7 @@ footer.site-footer .colophon li {
     margin: 0;
 }
 .popover p a {
-    color: #44c7f4;
+    color: #1a4977;
     font-weight: bold;
     text-decoration: underline;
 }
