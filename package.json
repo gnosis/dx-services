@@ -46,7 +46,8 @@
     "tasks-claimFunds": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/claimFunds.js",
     "tasks-generateWeeklyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateWeeklyReport.js",
     "tasks-generateDailyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateDailyReport.js",
-    "doc": "esdoc"
+    "doc": "esdoc",
+    "swagger-json": "yaml2json src/web/publicApi/static/docs/api/dx-public-api.yml > src/web/publicApi/static/docs/api/dx-public-api.json ; yaml2json src/web/bots/static/docs/api/dx-bots-api.yml > src/web/bots/static/docs/api/dx-bots-api.json"
   },
   "repository": {
     "type": "git",
@@ -68,6 +69,7 @@
     "raven": "^2.6.0",
     "truffle-contract": "^3.0.3",
     "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2",
+    "yamljs": "^0.3.0",
     "yargs": "^11.0.0"
   },
   "devDependencies": {

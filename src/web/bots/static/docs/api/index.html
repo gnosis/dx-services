@@ -46,11 +46,11 @@
             // if (url && url.length > 1) {
             //     url = decodeURIComponent(url[1]);
             // } else {
-            //     url = window.location.toString().replace(/\/*#?.*/, '/dx-public-api.json');
+            //     url = window.location.toString().replace(/\/*#?.*/, '/dx-bots-api.json');
             // }
 
             window.swaggerUi = new SwaggerUi({
-                url: '/docs/api/dx-public-api.json',
+                url: '/docs/api/dx-bots-api.json',
                 dom_id: "swagger-ui-container",
                 supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
                 onComplete: function (swaggerApi, swaggerUi) {
