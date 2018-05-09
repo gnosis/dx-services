@@ -22,6 +22,7 @@ RUN apk add --update --no-cache --virtual build-dependencies git python make g++
 
 COPY . .
 COPY src/tasks/bots-cron-tasks.cfg /etc/crontabs/root
+COPY truffle-dx-contracts.js ./node_modules/@gnosis.pm/dx-contracts
 RUN chmod +x src/run-bots.sh
 
 # If you are building your code for production
