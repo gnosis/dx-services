@@ -74,6 +74,22 @@ function createRoutes ({ dxInfoService },
   })
 
   routes.push({
+    path: '/:accountAddress/balances/:tokenPair/claimable-tokens',
+    get (req, res) {
+      let { sellToken, buyToken } = _tokenPairSplit(req.params.tokenPair)
+      let count = req.query.count !== undefined ? req.query.count : 10
+      let params = Object.assign(
+        { tokenA: sellToken,
+          tokenB: buyToken,
+          address: req.params.accountAddress,
+          lastNAuctions: count
+        })
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getClaimableTokens(params)
+    }
+  })
+
+  routes.push({
     path: '/:accountAddress/tokens/:tokenSymbol',
     get (req, res) {
       let token = req.params.tokenSymbol.toUpperCase()
