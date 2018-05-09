@@ -1,8 +1,8 @@
 version: '3.4'
 
 services:
-  deploy_contracts:
-    command: npm run contracts-deploy -- --network docker && npm run setup
+  setup:
+    command: npm run setup
     # command: ./node_modules/.bin/truffle deploy --network ethereum
     # command: ./node_modules/.bin/truffle deploy --network ethereum && cd node_modules/@josojo/dutch-exchange-smartcontracts && /usr/src/app/node_modules/.bin/truffle deploy --network ethereum && && npm start
     build:
@@ -29,7 +29,7 @@ services:
     build:
       context: '.'
     depends_on:
-      - deploy_contracts
+      - setup
       - ethereum
     links:
       - ethereum
@@ -51,7 +51,7 @@ services:
     build:
       context: '.'
     depends_on:
-      - deploy_contracts
+      - setup
       - ethereum
     deploy:
       restart_policy:
