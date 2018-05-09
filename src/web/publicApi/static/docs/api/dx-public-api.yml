@@ -28,9 +28,11 @@ info:
   contact:
     name: DutchX Gitter channel
     url: 'https://gitter.im/gnosis/DutchX'
+    
   license:
-    name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    name: MIT License
+    url: 'https://github.com/gnosis/dx-services/blob/master/LICENSE.md'
+
 basePath: /api/v1
 tags:
   - name: markets

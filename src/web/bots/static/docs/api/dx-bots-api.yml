@@ -7,8 +7,9 @@ info:
   contact:
     email: apiteam@swagger.io
   license:
-    name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    name: MIT License
+    url: 'https://github.com/gnosis/dx-services/blob/master/LICENSE.md'
+
 host: petstore.swagger.io
 basePath: /v2
 tags:
