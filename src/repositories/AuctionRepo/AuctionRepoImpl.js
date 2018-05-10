@@ -567,7 +567,7 @@ class AuctionRepoImpl {
       buyTokens: []
     })
 
-    const sellersBalances = await this._debugOperation({
+    const sellersBalances = await this._doCall({
       operation: 'getSellerBalancesOfCurrentAuctions',
       params: [ auctionSellTokens, auctionBuyTokens, address ]
     })
@@ -1154,7 +1154,7 @@ volume: ${state}`)
     assert(address, 'The address is required')
 
     return this
-      ._debugOperation({
+      ._doCall({
         operation: 'getFeeRatio',
         params: [ address ]
       })
@@ -1598,7 +1598,7 @@ volume: ${state}`)
     // debug('Call "%s" with params: [%s]', operation, params.join(', '))
 
     // return this._dx[operation].call(...params)
-    return this._debugOperation({ operation, params })
+    return this._doCall({ operation, params })
   }
 
   async _callForPair ({ operation, sellToken, buyToken, args = [], checkTokens = false }) {
@@ -1611,7 +1611,7 @@ volume: ${state}`)
     const params = [ sellTokenAddress, buyTokenAddress, ...args ]
 
     // return this._dx[operation].call(...params)
-    return this._debugOperation({ operation, params })
+    return this._doCall({ operation, params })
   }
 
   async _callForAuction ({
@@ -1632,7 +1632,7 @@ volume: ${state}`)
     const params = [ sellTokenAddress, buyTokenAddress, auctionIndex, ...args ]
 
     // return this._dx[operation].call(...params)
-    return this._debugOperation({ operation, params })
+    return this._doCall({ operation, params })
   }
 
   async _transactionForToken ({ operation, from, token, args = [], checkToken }) {
@@ -1692,7 +1692,19 @@ volume: ${state}`)
     return Promise.all(eventDataPromises)
   }
 
-  async _debugOperation ({ operation, params }) {
+  // TODO: add CACHE_TIME_SHORT as a default
+  async _doCall ({ operation, params, cacheTime = 1000 }) {    
+    // TODO: Create cache using: operations and the parameters
+    // example of a cache key: "closingPrices:0x12345...;0x98765...;23"
+    // NOTE: cacheTime can be set null/0 on porpouse, so it's handled from the
+    //  caller method
+    // const cacheKey = _getCacheKey({ operation, params })
+    // if (this._cache.has(cacheKey)) {
+    //   // return xxx
+    // } else {
+    //   // Get value, save it in the cache
+    // }
+    
     logger.debug('Transaction: ' + operation, params)
     return this._dx[operation]
       .call(...params)
