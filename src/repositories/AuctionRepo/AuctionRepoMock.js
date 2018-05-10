@@ -114,6 +114,10 @@ class AuctionRepoMock {
     return this._getAuction({ sellToken, buyToken, auctionIndex }).closingPrice
   }
 
+  async getLastAvaliableClosingPrice ({ sellToken, buyToken, auctionIndex }) {
+    return this._getClosingPrice({ sellToken, buyToken, auctionIndex })
+  }
+
   async isApprovedToken ({ token }) {
     debug('Check isApprovedToken %s', token)
     const elementIndex = this._pricesInUSD.findIndex(price => {
