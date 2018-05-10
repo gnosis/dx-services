@@ -135,6 +135,8 @@ class EthereumClient {
   }
 
   async doCall (propName, params) {
+    // TODO: Add cache here. Analogous to the one in AuctionRepoImpl 
+
     const propPath = propName.split('.')
     // const callFn = this._getCallFn(this._web3, propPath)
     const callClass = this._getCallFn(this._web3, propPath)

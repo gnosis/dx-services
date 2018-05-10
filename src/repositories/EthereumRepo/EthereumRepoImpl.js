@@ -132,11 +132,17 @@ class EthereumRepoImpl {
   }
 
   async tokenGetInfo ({ tokenAddress }) {
+    // TODO: Add cache
+    // If cache exists and the value is null (notice difference between null and undefined) => cache MEDIUM
+    // If cache exists and the value is no null cache LARGE
+    const tokenContract = this._getTokenContract(tokenAddress)
+
     const [ symbol, name, decimals ] = await Promise.all([
-      this.tokenGetSymbol({ tokenAddress }),
-      this.tokenGetName({ tokenAddress }),
-      this.tokenGetDecimals({ tokenAddress })
+      promisify(tokenContract.symbol),
+      promisify(tokenContract.name),
+      promisify(tokenContract.decimals).then(parseInt)
     ])
+
     return {
       // TODO remove when ensured using EtherToken contract with WETH symbol
       symbol: symbol !== 'ETH' ? symbol : 'WETH',
@@ -144,22 +150,6 @@ class EthereumRepoImpl {
       address: tokenAddress,
       decimals
     }
-  }
-
-  async tokenGetSymbol ({ tokenAddress }) {
-    const tokenContract = this._getTokenContract(tokenAddress)
-    return promisify(tokenContract.symbol)
-  }
-
-  async tokenGetName ({ tokenAddress }) {
-    const tokenContract = this._getTokenContract(tokenAddress)
-    return promisify(tokenContract.name)
-  }
-
-  async tokenGetDecimals ({ tokenAddress }) {
-    const tokenContract = this._getTokenContract(tokenAddress)
-    return promisify(tokenContract.decimals)
-      .then(parseInt)
   }
 
   async getBlock (blockNumber) {
