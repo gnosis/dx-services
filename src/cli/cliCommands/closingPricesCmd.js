@@ -1,23 +1,75 @@
 const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
-  cli.command('closing-prices <token-pair> [count]', 'Get the closing prices for a given pair (i.e. WETH-RDN)', yargs => {
+  cli.command('closing-prices <token-pair>', 'Get the closing prices for a given pair (i.e. WETH-RDN)', yargs => {
     cliUtils.addPositionalByName('token-pair', yargs)
-    cliUtils.addPositionalByName('count', yargs)
+    yargs.option('from', {
+      type: 'integer',
+      describe: 'Starting auction index'
+    })
+
+    yargs.option('count', {
+      type: 'integer',
+      describe: 'Number of auctions to return'
+    })
+
+    yargs.option('auction-index', {
+      type: 'integer',
+      describe: 'Return just one specific auction index'
+    })
   }, async function (argv) {
-    const { tokenPair: tokenPairString, count } = argv
+    const {
+      tokenPair: tokenPairString,
+      count: countParam,
+      from,
+      auctionIndex
+    } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')
+
     const {
       dxInfoService
     } = instances
 
-    // Get data
-    logger.info('Get last %d closing prices for %s:', count, tokenPairString)
-    const lastClosingPrices = await dxInfoService.getLastClosingPrices({
+    // Get data 
+    const countDefault = countParam || 5
+    let fromAuction, count, reverseResult
+    if (from !== undefined) {
+      count = countDefault
+      fromAuction = from
+      reverseResult = false
+      logger.info('Get closing prices for auctions between %d and %d of %s:',
+        fromAuction,
+        fromAuction + count - 1
+      )
+    } else if (auctionIndex !== undefined) {
+      count = 1
+      fromAuction = auctionIndex
+      reverseResult = false
+      logger.info('Get the closing price for %s-%d:',
+        tokenPairString,
+        auctionIndex
+      )
+    } else {
+      const currentAuctionIndex = await dxInfoService.getAuctionIndex({
+        sellToken,
+        buyToken
+      })
+      count = countDefault
+      fromAuction = (currentAuctionIndex - count) > 0 ? currentAuctionIndex - count + 1 : 0
+      reverseResult = true
+      logger.info('Get last %d closing prices for %s:', count, tokenPairString)
+    }
+
+    let lastClosingPrices = await dxInfoService.getClosingPrices({
       sellToken,
       buyToken,
+      fromAuction,
       count
     })
+
+    if (reverseResult) {
+      lastClosingPrices = lastClosingPrices.reverse()
+    }
 
     if (lastClosingPrices.length) {
       logger.info('Found %d closing prices:', lastClosingPrices.length)

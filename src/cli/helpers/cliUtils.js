@@ -30,6 +30,12 @@ const PARAM_BY_NAME = {
     describe: 'Index of the auction, i.e. 23'
   },
 
+  'from-auction': {
+    type: 'integer',
+    default: null,
+    describe: 'Index of the auction, i.e. 23'
+  },
+
   'count': {
     type: 'number',
     default: 5,

@@ -44,12 +44,15 @@ class DxInfoService {
     return numberUtil.toBigNumberFraction(closingPrice, true)
   }
 
-  async getLastClosingPrices ({ sellToken, buyToken, count }) {
-    // Get data
-    const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
+  async getClosingPrices ({ sellToken, buyToken, fromAuction, count }) {
+    const lastAuctionIndex = await this._auctionRepo.getAuctionIndex({
+      sellToken,
+      buyToken
+    })
+    const toAuction = Math.min(lastAuctionIndex, fromAuction + count)
+
     const closingPricesPromises = []
-    const startAuctionIndex = (auctionIndex - count) > 0 ? auctionIndex - count + 1 : 0
-    for (var i = startAuctionIndex; i <= auctionIndex; i++) {
+    for (var i = fromAuction; i < toAuction; i++) {
       const auctionIndexAux = i
       const closingPricePromise = this._auctionRepo.getClosingPrices({
         sellToken,
@@ -100,11 +103,29 @@ class DxInfoService {
           priceIncrement
         }
       })
-      .reverse()
 
     return Promise.all(priceIncrementPromises)
-
   }
+
+  async getLastClosingPrices ({ sellToken, buyToken, count }) {
+    // Get data
+    const auctionIndex = await this._auctionRepo.getAuctionIndex({
+      sellToken,
+      buyToken
+    })
+    const fromAuction = (auctionIndex - count) > 0 ? auctionIndex - count + 1 : 0
+
+    const closingPricesPromise = this.getClosingPrices({
+      sellToken,
+      buyToken,
+      fromAuction,
+      count
+    })
+
+    return closingPricesPromise
+      .then(closingPrices => closingPrices.reverse())
+  }
+
   // TODO: This method I think is not very useful for us...
   async getSellerBalancesOfCurrentAuctions ({ tokenPairs, address }) {
     return this._auctionRepo.getSellerBalancesOfCurrentAuctions({
