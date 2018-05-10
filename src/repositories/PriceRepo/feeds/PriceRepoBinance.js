@@ -2,7 +2,7 @@ const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoBinance')
 const httpRequest = require('../../../helpers/httpRequest')
 const Cache = require('../../../helpers/Cache')
 const CACHE_SYMBOLS_KEY = 'PriceRepoBinance:'
-const CACHE_SYMBOLS_TIME = 2 * 60 * 60 * 1000 // 2 hours
+const CACHE_SYMBOLS_TIME = 2 * 60 * 60 // 2 hours
 
 class PriceRepoBinance {
   constructor ({ url = 'https://api.binance.com/api', version = 'v1', timeout = 5000 }) {

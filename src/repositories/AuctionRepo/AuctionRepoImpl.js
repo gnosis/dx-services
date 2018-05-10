@@ -5,6 +5,8 @@ const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../../helpers/AuctionLogger')
 const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
 const auctionLogger = new AuctionLogger(loggerNamespace)
+const Cache = require('../../helpers/Cache')
+
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
 
 const assert = require('assert')
@@ -56,6 +58,14 @@ class AuctionRepoImpl {
         params: [ token, contract.address ]
       })
     })
+
+    this._cache = new Cache('AuctionRepo')
+    this._cacheEnable = config.CACHE_ENABLE
+    this._cacheTimeouts = {
+      short: config.CACHE_TIMEOUT_SHORT,
+      average: config.CACHE_TIMEOUT_AVERAGE,
+      long: config.CACHE_TIMEOUT_LONG
+    }
   }
 
   async getAbout () {
@@ -242,7 +252,8 @@ class AuctionRepoImpl {
       ._callForPair({
         operation: 'getAuctionIndex',
         sellToken,
-        buyToken
+        buyToken,
+        cacheTime: this._cacheTimeouts.average
       })
       .then(parseInt)
   }
@@ -253,7 +264,8 @@ class AuctionRepoImpl {
     const auctionStartEpoch = await this._callForPair({
       operation: 'getAuctionStart',
       sellToken,
-      buyToken
+      buyToken,
+      cacheTime: this._cacheTimeouts.average
     })
 
     // The SC has 0 when the contract is initialized
@@ -350,7 +362,8 @@ class AuctionRepoImpl {
       operation: 'balances',
       token,
       args: [ address ],
-      checkToken: false
+      checkToken: false,
+      cacheTime: this._cacheTimeouts.short
     })
   }
 
@@ -385,7 +398,8 @@ class AuctionRepoImpl {
       operation: 'extraTokens',
       sellToken,
       buyToken,
-      auctionIndex
+      auctionIndex,
+      cacheTime: this._cacheTimeouts.average
     })
   }
 
@@ -794,8 +808,8 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       amount
     })
 
-    const hasClousingPrice = this._hasClosingPrice({ sellToken, buyToken, auctionIndex })
-    assert(hasClousingPrice, 'The auction has closing price (has cleared)')
+    const hasClosingPrice = this._hasClosingPrice({ sellToken, buyToken, auctionIndex })
+    assert(hasClosingPrice, 'The auction has closing price (has cleared)')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
     assert(auctionStart != null, 'The auction is in a waiting period')
@@ -1027,18 +1041,21 @@ auction or the next one. auctionIndex=${auctionIndex}, \
 currentAuctionIndex=${currentAuctionIndex}`)
     }
 
-    const sellVolumeA = await this[getSellVolumeFn]({ sellToken: tokenA, buyToken: tokenB })
-    const sellVolumeB = await this[getSellVolumeFn]({ sellToken: tokenB, buyToken: tokenA })
+    const [ sellVolumeA, sellVolumeB ] = await Promise.all([
+      this[getSellVolumeFn]({ sellToken: tokenA, buyToken: tokenB }),
+      this[getSellVolumeFn]({ sellToken: tokenB, buyToken: tokenA })
+    ])
 
-    const fundingA = await this.getPriceInUSD({
-      token: tokenA,
-      amount: sellVolumeA
-    })
-
-    const fundingB = await this.getPriceInUSD({
-      token: tokenB,
-      amount: sellVolumeB
-    })
+    const [ fundingA, fundingB ] = await Promise.all([
+      this.getPriceInUSD({
+        token: tokenA,
+        amount: sellVolumeA
+      }),
+      this.getPriceInUSD({
+        token: tokenB,
+        amount: sellVolumeB
+      })
+    ])
 
     return {
       fundingA,
@@ -1156,7 +1173,8 @@ volume: ${state}`)
     return this
       ._doCall({
         operation: 'getFeeRatio',
-        params: [ address ]
+        params: [ address ],
+        cacheTime: this._cacheTimeouts.average
       })
   }
 
@@ -1169,7 +1187,8 @@ volume: ${state}`)
         operation: 'getCurrentAuctionPrice',
         sellToken,
         buyToken,
-        auctionIndex
+        auctionIndex,
+        cacheTime: this._cacheTimeouts.short
       })
       .then(toFraction)
 
@@ -1590,7 +1609,13 @@ volume: ${state}`)
     return tokenAddress
   }
 
-  async _callForToken ({ operation, token, args = [], checkToken = true }) {
+  async _callForToken ({
+    operation,
+    token,
+    args = [],
+    checkToken = true,
+    cacheTime
+  }) {
     /*
     debug('Get "%s" for token %s. Args: %s',
       operation, token, args)
@@ -1602,10 +1627,17 @@ volume: ${state}`)
     // debug('Call "%s" with params: [%s]', operation, params.join(', '))
 
     // return this._dx[operation].call(...params)
-    return this._doCall({ operation, params })
+    return this._doCall({ operation, params, cacheTime })
   }
 
-  async _callForPair ({ operation, sellToken, buyToken, args = [], checkTokens = false }) {
+  async _callForPair ({
+    operation,
+    sellToken,
+    buyToken,
+    args = [],
+    checkTokens = false,
+    cacheTime
+  }) {
     /*
     debug('Get "%s" for pair %s-%s. Args: %s',
       operation, sellToken, buyToken, args)
@@ -1615,7 +1647,7 @@ volume: ${state}`)
     const params = [ sellTokenAddress, buyTokenAddress, ...args ]
 
     // return this._dx[operation].call(...params)
-    return this._doCall({ operation, params })
+    return this._doCall({ operation, params, cacheTime })
   }
 
   async _callForAuction ({
@@ -1624,7 +1656,8 @@ volume: ${state}`)
     buyToken,
     auctionIndex,
     args = [],
-    checkTokens = false
+    checkTokens = false,
+    cacheTime
   }) {
     /*
     debug('Get %s for auction %d of pair %s-%s',
@@ -1636,7 +1669,7 @@ volume: ${state}`)
     const params = [ sellTokenAddress, buyTokenAddress, auctionIndex, ...args ]
 
     // return this._dx[operation].call(...params)
-    return this._doCall({ operation, params })
+    return this._doCall({ operation, params, cacheTime })
   }
 
   async _transactionForToken ({ operation, from, token, args = [], checkToken }) {
@@ -1696,20 +1729,31 @@ volume: ${state}`)
     return Promise.all(eventDataPromises)
   }
 
-  // TODO: add CACHE_TIME_SHORT as a default
-  async _doCall ({ operation, params, cacheTime = 1000 }) {    
-    // TODO: Create cache using: operations and the parameters
-    // example of a cache key: "closingPrices:0x12345...;0x98765...;23"
+  async _doCall ({
+    operation,
+    params,
+    cacheTime = this._cacheTimeouts.short
+  }) {
     // NOTE: cacheTime can be set null/0 on porpouse, so it's handled from the
     //  caller method
-    // const cacheKey = _getCacheKey({ operation, params })
-    // if (this._cache.has(cacheKey)) {
-    //   // return xxx
-    // } else {
-    //   // Get value, save it in the cache
-    // }
-    
+
     logger.debug('Transaction: ' + operation, params)
+    if (this._cacheEnable) {
+      const cacheKey = this._getCacheKey({ operation, params })
+      return this._cache.get({
+        key: cacheKey,
+        time: cacheTime, // Caching time in seconds
+        fetchFn: () => {
+          return this._fetchFromBlockchain({ operation, params })
+        }
+      })
+    } else {
+      return this._fetchFromBlockchain({ operation, params })
+    }
+  }
+
+  _fetchFromBlockchain ({ operation, params }) {
+    logger.debug('Fetching from blockchain: ' + operation, params)
     return this._dx[operation]
       .call(...params)
       .catch(e => {
@@ -1720,6 +1764,10 @@ volume: ${state}`)
         })
         throw e
       })
+  }
+
+  _getCacheKey ({ operation, params }) {
+    return operation + ':' + params.join('-')
   }
 
   async _transactionForAuction ({

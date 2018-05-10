@@ -12,7 +12,7 @@
   "scripts": {
     "start": "npm run api",
     "api": "DEBUG=ERROR-*,WARN-*,INFO-*,*:BuyLiquidityBot node src/runPublicApi.js",
-    "dev": "DEBUG=*-dx-service:* nodemon src/runPublicApi.js",
+    "dev": "DEBUG=*-dx-service:*,*AuctionRepoImpl nodemon src/runPublicApi.js",
     "trace": "DEBUG=* nodemon src/runPublicApi.js",
     "kovan": "DEBUG=ERROR-*,WARN-*,INFO-* PUBLIC_API_PORT=9090 NETWORK=kovan nodemon src/runPublicApi.js",
     "rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9091 NETWORK=rinkeby nodemon src/runPublicApi.js",

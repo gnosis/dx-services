@@ -2,7 +2,7 @@ const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoBitfinex'
 const httpRequest = require('../../../helpers/httpRequest')
 const Cache = require('../../../helpers/Cache')
 const CACHE_SYMBOLS_KEY = 'PriceRepoBitfinex:'
-const CACHE_SYMBOLS_TIME = 2 * 60 * 60 * 1000 // 2 hours
+const CACHE_SYMBOLS_TIME = 2 * 60 * 60 // 2 hours
 
 class PriceRepoBitfinex {
   constructor ({ url = 'https://api.bitfinex.com', version = 'v1', timeout = 5000 }) {

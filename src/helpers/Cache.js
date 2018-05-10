@@ -1,8 +1,8 @@
 const NodeCache = require('node-cache')
 const gracefullShutdown = require('./gracefullShutdown')
 
-const DEFAULT_TIMEOUT = 60000 // 60s
-const DEFAULT_CHECK_PERIOD = 3000 // 3s
+const DEFAULT_TIMEOUT = 15 // 15s
+const DEFAULT_CHECK_PERIOD = 600 // 600s
 
 const caches = []
 
