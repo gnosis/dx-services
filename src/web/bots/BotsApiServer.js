@@ -1,7 +1,6 @@
 // const info = require('debug')('INFO-dx-service:BotsApiServer')
 const Server = require('../helpers/Server')
 const createRouter = require('../helpers/createRouter')
-const formatUtil = require('../../helpers/formatUtil')
 
 const express = require('express')
 const path = require('path')
