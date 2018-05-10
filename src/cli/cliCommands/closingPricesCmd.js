@@ -1,4 +1,3 @@
-const formatUtil = require('../../helpers/formatUtil')
 const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
@@ -13,34 +12,39 @@ function registerCommand ({ cli, instances, logger }) {
     } = instances
 
     // Get data
+    logger.info('Get last %d closing prices for %s:', count, tokenPairString)
     const lastClosingPrices = await dxInfoService.getLastClosingPrices({
       sellToken,
       buyToken,
       count
     })
 
-    logger.info('Showing last %d closing prices:', count)
-    lastClosingPrices.forEach(({ auctionIndex, price, percentage }, i) => {
-      let percentageMessage
-      if (percentage) {
-        if (percentage.greaterThan(0)) {
-          const value = percentage.toFixed(2)
-          percentageMessage = `(+${value})`
+    if (lastClosingPrices.length) {
+      logger.info('Found %d closing prices:', lastClosingPrices.length)
+      lastClosingPrices.forEach(({ auctionIndex, price, priceIncrement }, i) => {
+        let priceIncrementStr
+        if (priceIncrement) {
+          if (priceIncrement.greaterThan(0)) {
+            const value = priceIncrement.toFixed(2)
+            priceIncrementStr = `: +${value}%`
+          } else {
+            const value = priceIncrement.toFixed(2)
+            priceIncrementStr = `: ${value}%`
+          }
         } else {
-          const value = percentage.toFixed(2)
-          percentageMessage = `(${value})`
+          priceIncrementStr = ''
         }
-      } else {
-        percentageMessage = ''
-      }
-
-      logger.info(
-        '\t%d. %s%s',
-        auctionIndex,
-        price ? formatUtil.formatFraction(price) : 'No closed yet',
-        percentageMessage
-      )
-    })
+  
+        logger.info(
+          '\t%d. %s%s',
+          auctionIndex,
+          price,
+          priceIncrementStr
+        )
+      })
+    } else {
+      logger.info('No closing prices were found')
+    }
   })
 }
 

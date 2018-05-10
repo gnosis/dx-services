@@ -62,43 +62,54 @@ class DxInfoService {
         sellToken,
         buyToken,
         auctionIndex: auctionIndexAux
-      })
-        .then(price => ({
-          price,
-          auctionIndex: auctionIndexAux
-        }))
+      }).then(price => ({
+        price,
+        auctionIndex: auctionIndexAux
+      }))
 
       closingPricesPromises.push(closingPricePromise)
     }
 
+    // Get the closing prices
     const closingPrices = await Promise.all(closingPricesPromises)
-    return closingPrices
-      .map((closingPrice, i) => {
-        let percentage
-        if (i > 0) {
-          let previousClosingPrice = numberUtil
-            .toBigNumberFraction(closingPrices[i - 1].price, true)
-          let currentClosingPrice = numberUtil
-            .toBigNumberFraction(closingPrice.price, true)
+    const priceIncrementPromises = closingPrices
+      .map(async ({ price, auctionIndex }) => {
+        let lastClosingPrice
+        if (auctionIndex > 0) {
+          lastClosingPrice = await this._auctionRepo.getLastAvaliableClosingPrice({
+            sellToken,
+            buyToken,
+            auctionIndex: auctionIndex - 1
+          })
+        } else {
+          lastClosingPrice = null
+        }
 
-          if (currentClosingPrice &&
-            !currentClosingPrice.isZero() &&
-            !previousClosingPrice.isZero()
-          ) {
-            percentage = currentClosingPrice
-              .minus(previousClosingPrice)
-              .div(previousClosingPrice)
-              .mul(100)
-          }
+        let priceDecimal = numberUtil
+          .toBigNumberFraction(price, true)
+
+        let lastClosingPriceDecimal = numberUtil
+          .toBigNumberFraction(lastClosingPrice, true)
+
+        let priceIncrement
+        if (priceDecimal && lastClosingPriceDecimal !== null) {
+          priceIncrement = numberUtil.getIncrement({
+            newValue: priceDecimal,
+            oldValue: lastClosingPriceDecimal
+          })
+        } else {
+          priceIncrement = null
         }
 
         return {
-          auctionIndex: closingPrice.auctionIndex,
-          price: closingPrice.price,
-          percentage
+          auctionIndex,
+          price: priceDecimal,
+          priceIncrement
         }
       })
       .reverse()
+
+    return Promise.all(priceIncrementPromises)
   }
 
   async getLastClosingPricesComputed ({ sellToken, buyToken, count }) {
