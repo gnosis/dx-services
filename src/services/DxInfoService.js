@@ -444,7 +444,7 @@ class DxInfoService {
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
     let currentPrice = await this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
-r
+
     return numberUtil.toBigNumberFraction(currentPrice, true)
   }
 

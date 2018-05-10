@@ -3,6 +3,7 @@ const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoM
 const auctionRepoMock = new AuctionRepoMock({})
 const EthereumRepoMock = require('../../src/repositories/EthereumRepo/EthereumRepoMock')
 const ethereumRepoMock = new EthereumRepoMock({})
+const numberUtil = require('../../src/helpers/numberUtil.js')
 
 const auctionsMockData = require('../data/auctions')
 
@@ -188,10 +189,17 @@ test('It should get current fee ratio for an user', async () => {
   expect(feeRatio).toMatchObject(COMPUTED_MAXIMUM_DX_FEE)
 })
 
-const EXPECTED_OMG_WETH_CLOSING_PRICES = auctionsMockData.auctions['OMG-WETH'].map(
-  ({ index, price }) => {
-    return { auctionIndex: index, price: price || null }
-  }
+const EXPECTED_OMG_WETH_CLOSING_PRICES = auctionsMockData.auctions['OMG-WETH'].reduce(
+  (prices, { index, price }) => {
+    if (price) {
+      prices.push({
+        auctionIndex: index,
+        price: numberUtil.toBigNumberFraction(price, true) || null
+      })
+    }
+    return prices
+  },
+  []
 ).reverse()
 
 const currentRdnWethAuctionInMockIndex = auctionsMockData.auctions['RDN-WETH'].length - 1
