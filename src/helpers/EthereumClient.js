@@ -236,6 +236,11 @@ class EthereumClient {
     )
     let nextBestGuess = bestGuess
     const block = await this.getBlock(referenceBlock)
+
+    if (block === null) {
+      throw new Error(`The reference block ${referenceBlock} was not found, posible reorg`)
+    }
+
     const blockDate = new Date(block.timestamp * 1000)
     const seccondsDifference = dateUtil.diff(blockDate, date, 'seconds')
     const blocksDifference = seccondsDifference / SECONDS_PER_BLOCK
