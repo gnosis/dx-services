@@ -1,3 +1,7 @@
+const loggerNamespace = 'dx-service:api:error'
+const Logger = require('../../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+
 function requestErrorHandler (err, req, res) {
   // set locals, only providing error in development
   // const isDev = req.app.get('env') === 'development'
@@ -14,6 +18,10 @@ function requestErrorHandler (err, req, res) {
   // We add the stack trace for all errors but 4XX
   if (error.status < 400 || error.status >= 500) {
     error.stackTrace = err.stack
+    logger.error({
+      msg: `Error ${error.status}: ${error.message}`,
+      error: err
+    })
   }
 
   const response = res.status(error.status)
