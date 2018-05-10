@@ -1,32 +1,37 @@
-const express = require('express')
-const router = express.Router()
-
 // const debug = require('debug')('DEBUG-dx-services:web:api')
 
-function getRouter ({ botsService }) {
-  router.get([ '/', '/version' ], async (req, res) => {
-    const version = await botsService.getVersion()
-    res.send(version)
+function createRoutes ({ botsService }) {
+  const routes = []
+
+  routes.push({
+    path: [ '/', '/version' ],
+    get (req, res) {
+      return botsService.getVersion()
+    }
   })
 
-  router.get('/ping', (req, res) => {
-    res.status(204).send()
+  routes.push({
+    path: '/v1/ping',
+    get (req, res) {
+      res.status(204).send()
+    }
   })
 
-  router.get('/health', async (req, res) => {
-    const healthEthereum = await botsService.getHealthEthereum()
-    res.status(200).send({
-      ethereum: healthEthereum
-    })
+  routes.push({
+    path: '/v1/health',
+    get (req, res) {
+      return botsService.getHealthEthereum()
+    }
   })
 
-  router.get('/about', async (req, res) => {
-    const dxAbout = await botsService.getAbout()
-    const botsAbout = await botsService.getAbout()
-    res.send(Object.assign({}, dxAbout, botsAbout))
+  routes.push({
+    path: '/about',
+    get (req, res) {
+      return botsService.getAbout()
+    }
   })
 
-  return router
+  return routes
 }
 
-module.exports = getRouter
+module.exports = createRoutes

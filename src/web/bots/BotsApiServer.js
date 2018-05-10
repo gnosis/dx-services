@@ -25,16 +25,13 @@ class BotsApiServer extends Server {
     app.use('', mainPages)
 
     // Get routes
+    const mainRoutes = require('./main-routes')(services)
     const reportsRoutes = require('./reports-routes')(services)
 
     // Main routes
-    // TODO delete after DevOps update liveness check
-    app.use('/api', require('./main-routes')(services))
+    app.use('/api', createRouter(mainRoutes))
 
     app.use('/api/v1/reports', createRouter(reportsRoutes))
-
-    // Main routes
-    app.use('/api/v1', require('./main-routes')(services))
   }
 
   async _getServiceName () {
