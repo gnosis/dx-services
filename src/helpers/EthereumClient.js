@@ -108,6 +108,11 @@ class EthereumClient {
   }
 
   async getBlock (blockNumber) {
+    // TODO: Cache:
+    //  CACHE_TIME_LONG if mined within last 7 days
+    //  CACHE_TIME_MEDIUM if mined between 31-7 days
+    //  CACHE_TIME_SHORT otherwise
+    
     if (blockNumber === undefined) {
       blockNumber = await this.getBlockNumber()
     }
