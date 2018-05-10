@@ -1415,7 +1415,11 @@ volume: ${state}`)
     assert(auctionIndexBn.greaterThanOrEqualTo(0),
       'The auction index must be a positive number')
 
-    return this._getLastAvaliableClosingPriceAux({ sellToken, buyToken, auctionIndex })
+    return this._getLastAvaliableClosingPriceAux({
+      sellToken,
+      buyToken,
+      auctionIndex: auctionIndexBn
+    })
   }
 
   async _getLastAvaliableClosingPriceAux ({ sellToken, buyToken, auctionIndex }) {
