@@ -297,7 +297,8 @@ class AuctionRepoImpl {
     return this._callForToken({
       operation: 'approvedTokens',
       token: token,
-      checkToken: false
+      checkToken: false,
+      cacheTime: this._cacheTimeouts.average
     })
   }
 
@@ -330,7 +331,8 @@ class AuctionRepoImpl {
     return this._callForPair({
       operation: 'sellVolumesCurrent',
       sellToken,
-      buyToken
+      buyToken,
+      cacheTime: this._cacheTimeouts.average
     })
   }
 
@@ -340,7 +342,8 @@ class AuctionRepoImpl {
     return this._callForPair({
       operation: 'sellVolumesNext',
       sellToken,
-      buyToken
+      buyToken,
+      cacheTime: this._cacheTimeouts.short
     })
   }
 
@@ -350,7 +353,8 @@ class AuctionRepoImpl {
     return this._callForPair({
       operation: 'buyVolumes',
       sellToken,
-      buyToken
+      buyToken,
+      cacheTime: this._cacheTimeouts.short
     })
   }
 
@@ -412,7 +416,8 @@ class AuctionRepoImpl {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ]
+      args: [ address ],
+      cacheTime: this._cacheTimeouts.average
     })
   }
 
@@ -602,7 +607,8 @@ class AuctionRepoImpl {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ]
+      args: [ address ],
+      cacheTime: this._cacheTimeouts.short
     })
   }
 
