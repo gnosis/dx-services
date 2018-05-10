@@ -41,14 +41,7 @@ class DxInfoService {
       buyToken,
       auctionIndex
     })
-    if (closingPrice) {
-      closingPrice = this._computePrice(closingPrice)
-    }
-    return closingPrice
-  }
-
-  _computePrice ({ numerator, denominator }) {
-    return numerator.div(denominator)
+    return numberUtil.toBigNumberFraction(closingPrice, true)
   }
 
   async getLastClosingPrices ({ sellToken, buyToken, count }) {
@@ -110,25 +103,8 @@ class DxInfoService {
       .reverse()
 
     return Promise.all(priceIncrementPromises)
-  }
 
-  async getLastClosingPricesComputed ({ sellToken, buyToken, count }) {
-    let closingPrices = await this.getLastClosingPrices({ sellToken, buyToken, count })
-    if (closingPrices.length > 0) {
-      return closingPrices.map(element => {
-        if (element.price) {
-          return Object.assign(element,
-            { price: this._computePrice(element.price) }
-          )
-        } else {
-          return element
-        }
-      })
-    } else {
-      return []
-    }
   }
-
   // TODO: This method I think is not very useful for us...
   async getSellerBalancesOfCurrentAuctions ({ tokenPairs, address }) {
     return this._auctionRepo.getSellerBalancesOfCurrentAuctions({
@@ -447,12 +423,8 @@ class DxInfoService {
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
     let currentPrice = await this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
-
-    if (currentPrice) {
-      currentPrice = this._computePrice(currentPrice)
-    }
-
-    return currentPrice
+r
+    return numberUtil.toBigNumberFraction(currentPrice, true)
   }
 
   async getAuctionStart ({ sellToken, buyToken }) {

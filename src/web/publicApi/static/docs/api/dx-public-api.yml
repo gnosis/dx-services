@@ -152,6 +152,7 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
+
   '/markets/{tokenPair}/closing-prices':
     get:
       tags:
@@ -189,6 +190,10 @@ paths:
                 auctionIndex:
                   type: integer
                   format: int32
+
+                priceIcrement:
+                  type: number
+
                 price:
                   $ref: '#/definitions/MarketPrice'
         '404':

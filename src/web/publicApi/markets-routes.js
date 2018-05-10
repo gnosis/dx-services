@@ -46,7 +46,7 @@ function createRoutes ({ dxInfoService },
         tokenPair, { count: count }
       )
       addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
-      return dxInfoService.getLastClosingPricesComputed(params)
+      return dxInfoService.getLastClosingPrices(params)
     }
   })
 
