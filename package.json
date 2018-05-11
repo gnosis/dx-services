@@ -35,7 +35,7 @@
     "cli2-kovan": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NETWORK=kovan node tests/playground/cli/bot-cli.js",
     "cli2-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
     "cli2-debug": "DEBUG=* node tests/playground/cli/bot-cli.js",
-    "data": "node tests/playground/cli/bot-cli.js --setup",
+    "data": "CACHE_ENABLE=false node tests/playground/cli/bot-cli.js --setup",
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'",
     "console": "cd node_modules/@gnosis.pm/dx-contracts && truffle console",
     "contracts-compile": "truffle compile",

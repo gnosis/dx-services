@@ -4,6 +4,7 @@ const getTokenOrder = require('../src/helpers/getTokenOrder')
 
 const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = true
 
+// TODO  add data type to each env var for parsing
 const ENV_VAR_LIST = [
   'ETHEREUM_RPC_URL',
   'DEFAULT_GAS',
@@ -13,7 +14,8 @@ const ENV_VAR_LIST = [
   'MNEMONIC',
   'MINIMUM_SELL_VOLUME_USD',
   'PUBLIC_API_PORT',
-  'PUBLIC_API_HOST'
+  'PUBLIC_API_HOST',
+  'CACHE_ENABLE'
   //
   // Also:
   //  * NODE_ENV
@@ -59,6 +61,10 @@ const envVars = getEnvVars(tokens)
 debug('markets: %o', markets)
 // debug('tokens: %o', tokens)
 // debug('envVars: %o', envVars)
+const cacheEnabled = envVars['CACHE_ENABLE']
+if (cacheEnabled !== undefined) {
+  envVars['CACHE_ENABLE'] = cacheEnabled === 'true'
+}
 
 // Merge three configs to get final config
 const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars, {

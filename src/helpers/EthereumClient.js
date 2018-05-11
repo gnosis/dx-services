@@ -112,7 +112,7 @@ class EthereumClient {
     //  CACHE_TIME_LONG if mined within last 7 days
     //  CACHE_TIME_MEDIUM if mined between 31-7 days
     //  CACHE_TIME_SHORT otherwise
-    
+
     if (blockNumber === undefined) {
       blockNumber = await this.getBlockNumber()
     }
@@ -140,7 +140,7 @@ class EthereumClient {
   }
 
   async doCall (propName, params) {
-    // TODO: Add cache here. Analogous to the one in AuctionRepoImpl 
+    // TODO: Add cache here. Analogous to the one in AuctionRepoImpl
 
     const propPath = propName.split('.')
     // const callFn = this._getCallFn(this._web3, propPath)
@@ -194,7 +194,7 @@ class EthereumClient {
     )
     const latestBlock = await this.getBlock('latest')
     const latestBlockNumber = latestBlock.number
-    
+
     return this._getFirstBlockAfterDate({
       date,
       firstBlockRange: 0,

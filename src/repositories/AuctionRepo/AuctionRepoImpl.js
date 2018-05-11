@@ -1471,14 +1471,35 @@ volume: ${state}`)
 
   async getClosingPrices ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
-    return this
+    const fetchFn = () => this
       ._callForAuction({
         operation: 'closingPrices',
         sellToken,
         buyToken,
-        auctionIndex
+        auctionIndex,
+        cacheTime: null // We want to handle the cache special for this method
       })
       .then(toFraction)
+
+    const params = [sellToken, buyToken, auctionIndex]
+    const cacheKey = this._getCacheKey({ operation: 'closingPrices', params })
+    const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
+    const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
+    if (this._cacheEnable) {
+      return this._cache.get({
+        key: cacheKey,
+        fetchFn,
+        time (closingPrice) {
+          if (closingPrice === null) {
+            return CACHE_TIMEOUT_SHORT
+          } else {
+            return CACHE_TIMEOUT_LONG
+          }
+        }
+      })
+    } else {
+      return fetchFn()
+    }
   }
 
   async getAuctionState ({ sellToken, buyToken, auctionIndex }) {
@@ -1744,7 +1765,7 @@ volume: ${state}`)
     //  caller method
 
     logger.debug('Transaction: ' + operation, params)
-    if (this._cacheEnable) {
+    if (this._cacheEnable && cacheTime !== null) {
       const cacheKey = this._getCacheKey({ operation, params })
       return this._cache.get({
         key: cacheKey,

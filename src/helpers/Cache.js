@@ -20,7 +20,13 @@ class Cache {
     let value = this._cache.get(key)
     if (value === undefined) {
       value = await fetchFn()
-      this._cache.set(key, value, time)
+      let cachingTime
+      if (typeof time === 'function') {
+        cachingTime = time(value)
+      } else {
+        cachingTime = time
+      }
+      this._cache.set(key, value, cachingTime)
     }
 
     return value
