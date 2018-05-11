@@ -462,30 +462,15 @@ class DxInfoService {
   }
 
   async getSellVolume ({ sellToken, buyToken }) {
-    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
-    if (state.auction) {
-      return state.auction.sellVolume
-    } else {
-      return null
-    }
+    return this._auctionRepo.getSellVolume({ sellToken, buyToken })
   }
 
   async getSellVolumeNext ({ sellToken, buyToken }) {
-    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
-    if (state.auction) {
-      return state.auction.sellVolumeNext
-    } else {
-      return null
-    }
+    return this._auctionRepo.getSellVolumeNext({ sellToken, buyToken })
   }
 
   async getBuyVolume ({ sellToken, buyToken }) {
-    let state = await this._auctionRepo.getStateInfo({ sellToken, buyToken })
-    if (state.auction) {
-      return state.auction.buyVolume
-    } else {
-      return null
-    }
+    return this._auctionRepo.getBuyVolume({ sellToken, buyToken })
   }
 
   async getSellerBalanceForCurrentAuction ({ sellToken, buyToken, address }) {
