@@ -140,7 +140,7 @@ function _printOperation ({
   amount,
   dateTime
 }, stream, logger) {
-  const dateTimeStr = formatUtil.formatDateTime(dateTime)
+  const dateTimeStr = formatUtil.formatDateTimeWithSeconds(dateTime)
   if (stream) {
     // Write CSV line
     stream.write(`\
