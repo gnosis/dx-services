@@ -70,7 +70,7 @@ class DxTradeService {
         auctionsAsSeller: [],
         auctionsAsBuyer: []
       })
-
+    // TODO add here a logger.info notifiying quantities
     return Promise.all([
       this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({ auctionsAsSeller, address }),
       this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({ auctionsAsBuyer, address })
@@ -78,6 +78,8 @@ class DxTradeService {
   }
 
   async claimSellerFunds ({ tokenA, tokenB, address, auctionIndex }) {
+    logger.info('Claiming seller funds for address %s in auction %d of %s-%s',
+      address, auctionIndex, tokenA, tokenB)
     return this._auctionRepo.claimSellerFunds({
       sellToken: tokenA,
       buyToken: tokenB,
@@ -87,6 +89,8 @@ class DxTradeService {
   }
 
   async claimBuyerFunds ({ tokenA, tokenB, address, auctionIndex }) {
+    logger.info('Claiming buyer funds for address %s in auction %d of %s-%s',
+      address, auctionIndex, tokenA, tokenB)
     return this._auctionRepo.claimBuyerFunds({
       sellToken: tokenA,
       buyToken: tokenB,

@@ -60,7 +60,7 @@ class AuctionRepoImpl {
     })
 
     this._cache = new Cache('AuctionRepo')
-    this._cacheEnable = config.CACHE_ENABLE
+    this._cacheEnabled = config.CACHE_ENABLED
     this._cacheTimeouts = {
       short: config.CACHE_TIMEOUT_SHORT,
       average: config.CACHE_TIMEOUT_AVERAGE,
@@ -1477,7 +1477,7 @@ volume: ${state}`)
         sellToken,
         buyToken,
         auctionIndex,
-        cacheTime: null // We want to handle the cache special for this method
+        cacheTime: null // We want to handle the cache specially for this method
       })
       .then(toFraction)
 
@@ -1485,7 +1485,8 @@ volume: ${state}`)
     const cacheKey = this._getCacheKey({ operation: 'closingPrices', params })
     const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
     const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
-    if (this._cacheEnable) {
+
+    if (this._cacheEnabled) {
       return this._cache.get({
         key: cacheKey,
         fetchFn,
@@ -1765,7 +1766,7 @@ volume: ${state}`)
     //  caller method
 
     logger.debug('Transaction: ' + operation, params)
-    if (this._cacheEnable && cacheTime !== null) {
+    if (this._cacheEnabled && cacheTime !== null) {
       const cacheKey = this._getCacheKey({ operation, params })
       return this._cache.get({
         key: cacheKey,

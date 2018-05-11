@@ -15,7 +15,7 @@ const ENV_VAR_LIST = [
   'MINIMUM_SELL_VOLUME_USD',
   'PUBLIC_API_PORT',
   'PUBLIC_API_HOST',
-  'CACHE_ENABLE'
+  'CACHE_ENABLED'
   //
   // Also:
   //  * NODE_ENV
@@ -61,9 +61,9 @@ const envVars = getEnvVars(tokens)
 debug('markets: %o', markets)
 // debug('tokens: %o', tokens)
 // debug('envVars: %o', envVars)
-const cacheEnabled = envVars['CACHE_ENABLE']
+const cacheEnabled = envVars['CACHE_ENABLED']
 if (cacheEnabled !== undefined) {
-  envVars['CACHE_ENABLE'] = cacheEnabled === 'true'
+  envVars['CACHE_ENABLED'] = cacheEnabled === 'true'
 }
 
 // Merge three configs to get final config
