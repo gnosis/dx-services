@@ -41,15 +41,15 @@ class EthereumRepoImpl {
   async getHealth () {
     return Promise
       .all([
-        // this._ethereumClient.doCall('isConnected')
-        this._ethereumClient.doCall('version.getNode'),
-        this._ethereumClient.doCall('net.getListening'),
-        this._ethereumClient.doCall('version.getNetwork'),
+        // this._ethereumClient.doCall({ propName: 'isConnected' })
+        this._ethereumClient.doCall({ propName: 'version.getNode' }),
+        this._ethereumClient.doCall({ propName: 'net.getListening' }),
+        this._ethereumClient.doCall({ propName: 'version.getNetwork' }),
         this._ethereumClient.getBlockNumber(),
         this._ethereumClient.geLastBlockTime(),
-        this._ethereumClient.doCall('net.getPeerCount')
+        this._ethereumClient.doCall({ propName: 'net.getPeerCount' })
         // FIXME: Fails because promisfy mess up with the "this" so "this" is undefined instead of "web3.eth"
-        // this._ethereumClient.doCall('eth.isSyncing')
+        // this._ethereumClient.doCall({ propName: 'eth.isSyncing' })
       ]).then(([
         node,
         isListening,
@@ -72,28 +72,28 @@ class EthereumRepoImpl {
     return {
       node: this._ethereumClient._web3.version.node,
 
-      isConnected: await this._ethereumClient.doCall('isConnected'),
+      isConnected: await this._ethereumClient.doCall({ propName: 'isConnected' }),
 
       isSyncing: await
-      network: await this._ethereumClient.doCall('version.getNetwork'),
-      ethereumVersion: await this._ethereumClient.doCall('version.ethereum'),
-      whisperVersion: await this._ethereumClient.doCall('version.whisper'),
-      peerCount: await this._ethereumClient.doCall('eth.getPeerCount')
+      network: await this._ethereumClient.doCall({ propName: 'version.getNetwork' }),
+      ethereumVersion: await this._ethereumClient.doCall({ propName: 'version.ethereum' }),
+      whisperVersion: await this._ethereumClient.doCall({ propName: 'version.whisper' }),
+      peerCount: await this._ethereumClient.doCall({ propName: 'eth.getPeerCount' })
     }
     */
   }
 
   async getGasPricesGWei () {
-    // this._ethereumClient.doCall('eth.gasPrice')
+    // this._ethereumClient.doCall({ propName: 'eth.gasPrice' })
     return this._ethereumClient.getGasPricesGWei()
   }
 
   async getAbout () {
     return Promise
       .all([
-        this._ethereumClient.doCall('version.getNode'),
-        this._ethereumClient.doCall('version.getNetwork'),
-        this._ethereumClient.doCall('version.getEthereum')
+        this._ethereumClient.doCall({ propName: 'version.getNode' }),
+        this._ethereumClient.doCall({ propName: 'version.getNetwork' }),
+        this._ethereumClient.doCall({ propName: 'version.getEthereum' })
       ])
       .then(([ node, network, ethereumVersion ]) => ({
         node,

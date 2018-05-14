@@ -125,8 +125,10 @@ class EthereumClient {
     if (blockNumber === undefined) {
       blockNumber = await this.getBlockNumber()
     }
+    // NOTE: not using doCall on purpose because error with this context in web3
+    // Using web3 0.2.X
     const fetchFn = () =>
-      this.doCall('eth.getBlock', blockNumber.toString(), null)
+      _promisify(this._web3.eth.getBlock, blockNumber.toString())
 
     const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString ] })
     const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
@@ -164,11 +166,11 @@ class EthereumClient {
   }
 
   async getAccounts () {
-    return this.doCall('eth.getAccounts')
+    return this.doCall({ propName: 'eth.getAccounts' })
   }
 
   async getBlockNumber () {
-    return this.doCall('eth.getBlockNumber')
+    return this.doCall({ propName: 'eth.getBlockNumber' })
   }
 
   async geLastBlockTime () {
@@ -180,10 +182,10 @@ class EthereumClient {
   }
 
   async balanceOf (account) {
-    return this.doCall('eth.getBalance', account)
+    return this.doCall({ propName: 'eth.getBalance' }, account)
   }
 
-  async doCall (propName, params, cacheTime = this._cacheTimeouts.short) {
+  async doCall ({ propName, cacheTime = this._cacheTimeouts.short }, params) {
     // TODO: Add cache here. Analogous to the one in AuctionRepoImpl
 
     const propPath = propName.split('.')
