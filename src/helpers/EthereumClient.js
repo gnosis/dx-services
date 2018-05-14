@@ -205,8 +205,10 @@ class EthereumClient {
   }
 
   _getCacheKey ({ propName, params }) {
-    if (params) {
+    if (Array.isArray(params)) {
       return propName + ':' + params.join('-')
+    } else if (params) {
+      return propName + ':' + params
     } else {
       return propName
     }
