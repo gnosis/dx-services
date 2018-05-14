@@ -4,6 +4,7 @@ const numberUtil = require('../helpers/numberUtil')
 const dateUtil = require('../helpers/dateUtil')
 const formatUtil = require('../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
+const Cache = require('../helpers/Cache')
 
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
@@ -41,7 +42,12 @@ const DEFAULT_GAS_PRICES = {
 // TODO: Check eventWatcher in DX/test/utils.js
 
 class EthereumClient {
-  constructor ({ url = 'http://127.0.0.1:8545', mnemonic = null, contractsBaseDir = 'build/contracts' }) {
+  constructor ({
+    url = 'http://127.0.0.1:8545',
+    mnemonic = null,
+    contractsBaseDir = 'build/contracts',
+    cache
+  }) {
     logger.debug('Using %s RPC api to connect to Ethereum', url)
     this._url = url
     if (mnemonic) {
@@ -63,6 +69,14 @@ class EthereumClient {
 
     this._contractCache = {}
     this._contractsBaseDir = contractsBaseDir
+
+    this._cache = new Cache('EthereumClient')
+    this._cacheEnabled = cache.enabled
+    this._cacheTimeouts = {
+      short: cache.short,
+      medium: cache.medium,
+      large: cache.large
+    }
   }
 
   getUrl () {
@@ -108,15 +122,45 @@ class EthereumClient {
   }
 
   async getBlock (blockNumber) {
-    // TODO: Cache:
-    //  CACHE_TIME_LONG if mined within last 7 days
-    //  CACHE_TIME_MEDIUM if mined between 31-7 days
-    //  CACHE_TIME_SHORT otherwise
-
     if (blockNumber === undefined) {
       blockNumber = await this.getBlockNumber()
     }
-    return _promisify(this._web3.eth.getBlock, blockNumber.toString())
+    const fetchFn = () =>
+      this.doCall('eth.getBlock', blockNumber.toString(), null)
+
+    const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString ] })
+    const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
+    const CACHE_TIMEOUT_MEDIUM = this._cacheTimeouts.medium
+    const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
+
+    if (this._cacheEnabled) {
+      return this._cache.get({
+        key: cacheKey,
+        fetchFn,
+        time (block) {
+          //  CACHE_TIME_LONG if mined at least 1 month ago
+          //  CACHE_TIME_MEDIUM if mined between 30-7 days
+          //  CACHE_TIME_SHORT otherwise
+          const monthAgo = Date.now() - 30 * 86400000
+          const weekAgo = Date.now() - 7 * 86400000
+          if (block) {
+            // NOTE: blockChain timestamp is returned in seconds in web3 0.2.X
+            const timestamp = block.timestamp * 1000
+            if (timestamp < monthAgo) {
+              return CACHE_TIMEOUT_LONG
+            } else if (timestamp < weekAgo) {
+              return CACHE_TIMEOUT_MEDIUM
+            } else {
+              return CACHE_TIMEOUT_SHORT
+            }
+          } else {
+            return CACHE_TIMEOUT_SHORT
+          }
+        }
+      })
+    } else {
+      return fetchFn()
+    }
   }
 
   async getAccounts () {
@@ -139,14 +183,33 @@ class EthereumClient {
     return this.doCall('eth.getBalance', account)
   }
 
-  async doCall (propName, params) {
+  async doCall (propName, params, cacheTime = this._cacheTimeouts.short) {
     // TODO: Add cache here. Analogous to the one in AuctionRepoImpl
 
     const propPath = propName.split('.')
-    // const callFn = this._getCallFn(this._web3, propPath)
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
-    return _promisify(callClass[methodName], params) // TODO: Review promisify extra params
+
+    if (this._cacheEnabled && cacheTime !== null) {
+      const cacheKey = this._getCacheKey({ propName, params })
+      return this._cache.get({
+        key: cacheKey,
+        time: cacheTime, // Caching time in seconds
+        fetchFn: () => {
+          return _promisify(callClass[methodName], params) // TODO: Review promisify extra params
+        }
+      })
+    } else {
+      return _promisify(callClass[methodName], params) // TODO: Review promisify extra params
+    }
+  }
+
+  _getCacheKey ({ propName, params }) {
+    if (params) {
+      return propName + ':' + params.join('-')
+    } else {
+      return propName
+    }
   }
 
   _getCallFn (currentObject, [head, ...tail]) {
@@ -186,7 +249,6 @@ class EthereumClient {
     const params = snapshotId ? [snapshotId] : []
     return this._sendAsync('evm_revert', { params: params })
   }
-
 
   async getFirstBlockAfterDate (date) {
     logger.debug('Find first block after %s',
