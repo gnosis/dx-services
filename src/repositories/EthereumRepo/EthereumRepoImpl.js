@@ -1,6 +1,8 @@
 const loggerNamespace = 'dx-service:repositories:EthereumRepoImpl'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
+const Cache = require('../../helpers/Cache')
+
 // const AuctionLogger = require('../../helpers/AuctionLogger')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 
@@ -10,10 +12,18 @@ const ERC20_ABI = require('./ERC20Abi')
 const tokenContractsCache = {}
 
 class EthereumRepoImpl {
-  constructor ({ ethereumClient }) {
+  constructor ({ ethereumClient, config }) {
     this._ethereumClient = ethereumClient
     this._web3 = ethereumClient.getWeb3()
     this._erc20Contract = this._web3.eth.contract(ERC20_ABI)
+
+    this._cache = new Cache('EthereumRepo')
+    this._cacheEnabled = config.CACHE_ENABLED
+    this._cacheTimeouts = {
+      short: config.CACHE_TIMEOUT_SHORT,
+      average: config.CACHE_TIMEOUT_AVERAGE,
+      long: config.CACHE_TIMEOUT_LONG
+    }
   }
 
   async isConnected () {
@@ -134,7 +144,34 @@ class EthereumRepoImpl {
   async tokenGetInfo ({ tokenAddress }) {
     // TODO: Add cache
     // If cache exists and the value is null (notice difference between null and undefined) => cache MEDIUM
-    // If cache exists and the value is no null cache LARGE
+    // If cache exists and the value is no null cache LONG
+    const fetchFn = () => this._tokenGetInfo({ tokenAddress })
+
+    const cacheKey = 'tokenInfo:' + tokenAddress
+    const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
+    const CACHE_TIMEOUT_MEDIUM = this._cacheTimeouts.medium
+    const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
+
+    if (this._cacheEnabled) {
+      return this._cache.get({
+        key: cacheKey,
+        fetchFn,
+        time (tokenInfo) {
+          if (tokenInfo === undefined) {
+            return CACHE_TIMEOUT_SHORT
+          } else if (tokenInfo === null) {
+            return CACHE_TIMEOUT_MEDIUM
+          } else {
+            return CACHE_TIMEOUT_LONG
+          }
+        }
+      })
+    } else {
+      return fetchFn()
+    }
+  }
+
+  async _tokenGetInfo ({ tokenAddress }) {
     const tokenContract = this._getTokenContract(tokenAddress)
 
     const [ symbol, name, decimals ] = await Promise.all([
