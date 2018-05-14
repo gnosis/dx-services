@@ -7,6 +7,7 @@ const TIME_FORMAT = 'H:mm'
 const TIME_WITH_SECONDS_FORMAT = 'H:mm:ss'
 const DATE_TIME_FORMAT = DATE_FORMAT + ' ' + TIME_FORMAT
 const DATE_TIME_FORMAT_WITH_SECONDS = DATE_FORMAT + ' ' + TIME_WITH_SECONDS_FORMAT
+const DATE_TIME_FORMAT_CSV = 'YYYY/MM/D H:mm:ss'
 
 const getTokenOrder = require('./getTokenOrder')
 
@@ -20,6 +21,10 @@ function formatDateTime (date) {
 
 function formatDateTimeWithSeconds (date) {
   return date ? moment(date).format(DATE_TIME_FORMAT_WITH_SECONDS) : null
+}
+
+function formatDateTimeCsv (date) {
+  return date ? moment(date).format(DATE_TIME_FORMAT_CSV) : null
 }
 
 function parseDate (dateStr) {
@@ -42,6 +47,17 @@ function formatDatesDifference (date1, date2) {
   return moment
     .duration(difference)
     .humanize()
+}
+
+function formatDatesDifferenceCsv (date1, date2) {
+  if (date1 && date2) {
+    const milliseconds = Math.abs(date1.getTime() - date2.getTime())
+    return moment
+      .utc(milliseconds)
+      .format('HH:mm:ss')
+  } else {
+    return null
+  }
 }
 
 function formatDateFromNow (date) {
@@ -130,6 +146,8 @@ module.exports = {
   formatDate,
   formatDateTime,
   formatDateTimeWithSeconds,
+  formatDateTimeCsv,
+  formatDatesDifferenceCsv,
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,

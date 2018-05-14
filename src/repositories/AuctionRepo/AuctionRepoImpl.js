@@ -1,9 +1,10 @@
 const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
-const dateUtil = require('../../helpers/dateUtil')
+// const dateUtil = require('../../helpers/dateUtil')
 const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../../helpers/AuctionLogger')
 const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
+const dxFilters = require('../../helpers/dxFilters')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const Cache = require('../../helpers/Cache')
 
@@ -31,6 +32,7 @@ class AuctionRepoImpl {
     this._ethereumClient = ethereumClient
     this._defaultGas = config.DEFAULT_GAS
     this._gasPrice = config.GAS_PRICE_GWEI * 10 ** 9
+    this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
     this._dx = contracts.dx
@@ -1280,12 +1282,55 @@ volume: ${state}`)
     })
   }
 
+  getAuctionStartScheduledEvents ({
+    fromBlock,
+    toBlock,
+    sellToken,
+    buyToken,
+    auctionIndex
+  }) {
+    return ethereumEventHelper
+      .filter({
+        contract: this._dx,
+        filters: {
+          sellToken,
+          buyToken,
+          auctionIndex
+        },
+        fromBlock,
+        toBlock,
+        events: [
+          'AuctionStartScheduled'
+        ]
+      })
+      .then(orderEvents => this._toEventsData({
+        events: orderEvents,
+        datePropName: 'auctionStartScheduled'
+      }))
+      .then(auctionStartScheduledEvents => {
+        return auctionStartScheduledEvents.map(event => Object.assign({}, event, {
+          auctionStart: new Date(event.auctionStart.mul(1000).toNumber())
+        }))
+      })
+  }
+
   async getAuctions ({ fromBlock, toBlock }) {
     // Get cleared auctions to select the auctions
-    const auctions = await this.getClearedAuctions({
-      fromBlock,
-      toBlock
-    })
+
+    const [ auctions, auctionStartEvents ] = await Promise.all([
+      // Get cleared auctions
+      this.getClearedAuctions({
+        fromBlock,
+        toBlock
+      }),
+
+      // Get auction scheduled events
+      this.getAuctionStartScheduledEvents({
+        // Search at withing 24h before the give fromBlock
+        fromBlock: fromBlock - this._BLOCKS_MINED_IN_24H,
+        toBlock
+      })
+    ])
 
     // Get aditional info for the auction
     const auctionDtoPromises = auctions.map(async auction => {
@@ -1305,6 +1350,33 @@ volume: ${state}`)
         lastAvaliableClosingPricePromise = Promise.resolve(null)
       }
 
+      // Add the auction start date
+      const filterByAuction = dxFilters.createAuctionPairFilter({
+        sellToken,
+        buyToken,
+        auctionIndex
+      })
+
+      let auctionStart, auctionStartScheduled
+      const auctionStartEvent = auctionStartEvents.find(filterByAuction)
+      if (auctionStartEvent) {
+        auctionStart = auctionStartEvent.auctionStart
+        auctionStartScheduled = auctionStartEvent.auctionStartScheduled
+      } else {
+        auctionStart = null
+        auctionStartScheduled = null
+
+        // We notify the error, but we can continue
+        // it can happen if the auction was running for too long (so it shouldn
+        // not happen)
+        auctionLogger.error({
+          sellToken,
+          buyToken,
+          msg: "There's no auction start event for auction %d. Maybe run too long?",
+          params: [ auctionIndex ]
+        })
+      }
+
       const [ closingPrice, previousClosingPrice ] = await Promise.all([
         // Get closing price
         this.getClosingPrices({ sellToken, buyToken, auctionIndex }),
@@ -1313,18 +1385,11 @@ volume: ${state}`)
         lastAvaliableClosingPricePromise
       ])
 
-      // Get auction start
-      // FIXME: auctionStart is more dificult ot get the following fn gets just the lastone
-      // TODO: Implment using AuctionStartScheduled if get's merged
-      // For the time being, let's use a fake auction start just for
-      // filtering the bid/asks
-
       return Object.assign(auction, {
-        // TODO: auctionStart
+        auctionStart,
+        auctionStartScheduled,
         closingPrice,
-        previousClosingPrice,
-        // As said above, it's just an estimation for the time being
-        auctionStart: dateUtil.addPeriod(auction.auctionEnd, -6, 'hours')
+        previousClosingPrice
       })
     })
 
@@ -1385,12 +1450,6 @@ volume: ${state}`)
         },
         fromBlock,
         toBlock,
-        callback (error, event) {
-          if (error) {
-            console.error(error)
-          } else {
-          }
-        },
         events: [
           'AuctionCleared'
         ]

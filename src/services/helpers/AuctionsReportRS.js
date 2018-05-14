@@ -20,6 +20,8 @@ class AuctionsReportRS extends Readable {
   _getHeader () {
     var dm = this._delimiter
     return `\
+Running time${dm}\
+Auction start${dm}\
 Auction cleared${dm}\
 Auction index${dm}\
 Sell token${dm}\
@@ -34,7 +36,8 @@ Ensured sell volume${dm}\
 Ensured buy volume\n`
   }
 
-  addAuction ({
+  addAuction ({    
+    auctionStart,
     auctionEnd,
     auctionIndex,
     sellToken,
@@ -50,7 +53,9 @@ Ensured buy volume\n`
   }) {
     var dm = this._delimiter
     const line = `\
-${formatUtil.formatDateTime(auctionEnd)}${dm}\
+${formatUtil.formatDatesDifferenceCsv(auctionStart, auctionEnd)}${dm}\
+${formatUtil.formatDateTimeCsv(auctionStart)}${dm}\
+${formatUtil.formatDateTimeCsv(auctionEnd)}${dm}\
 ${auctionIndex}${dm}\
 ${sellToken}${dm}\
 ${buyToken}${dm}\

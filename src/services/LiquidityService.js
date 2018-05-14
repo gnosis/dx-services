@@ -460,7 +460,7 @@ keeps happening`
         auctionLogger.info({
           sellToken,
           buyToken,
-          msg: 'Buying %d %s ($%d)',
+          msg: 'Posting a buy order for %d %s ($%d)',
           params: [ buyTokensRequiredToMeetLiquidity.div(1e18), buyToken, amountToBuyInUSD ]
         })
         const buyOrder = await this._auctionRepo.postBuyOrder({

@@ -286,6 +286,10 @@ class EthereumClient {
     })
   }
 
+  toBlocksFromSecondsEst (seconds) {
+    return seconds / SECONDS_PER_BLOCK
+  }
+
   async _getFirstBlockAfterDate ({
     date,
     firstBlockRange,
@@ -307,7 +311,7 @@ class EthereumClient {
 
     const blockDate = new Date(block.timestamp * 1000)
     const seccondsDifference = dateUtil.diff(blockDate, date, 'seconds')
-    const blocksDifference = seccondsDifference / SECONDS_PER_BLOCK
+    const blocksDifference = this.toBlocksFromSecondsEst(seccondsDifference)
 
     logger.debug(' * Reference block %s has date %s. Difference:',
       formatUtil.formatNumber(referenceBlock),

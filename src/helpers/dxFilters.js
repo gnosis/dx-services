@@ -13,6 +13,22 @@ function createAuctionFilter ({
   }
 }
 
+function createAuctionPairFilter ({
+  sellToken,
+  buyToken,
+  auctionIndex,
+  auctionIndexParam = 'auctionIndex',
+  sellTokenParam = 'sellToken',
+  buyTokenParam = 'buyToken'
+}) {
+  return item => {
+    return item[auctionIndexParam].equals(auctionIndex) && (
+      (item[sellTokenParam] === sellToken && item[buyTokenParam] === buyToken) ||
+      (item[sellTokenParam] === buyToken && item[buyTokenParam] === sellToken)
+    )
+  }
+}
+
 function createTokenPairFilter ({
   sellToken,
   buyToken,
@@ -28,5 +44,6 @@ function createTokenPairFilter ({
 
 module.exports = {
   createAuctionFilter,
+  createAuctionPairFilter,
   createTokenPairFilter
 }

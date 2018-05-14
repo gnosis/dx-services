@@ -6,10 +6,9 @@ const formatUtil = require('../helpers/formatUtil')
 const dxFilters = require('../helpers/dxFilters')
 const AuctionsReportRS = require('./helpers/AuctionsReportRS')
 const getTokenOrder = require('../helpers/getTokenOrder')
-const dateUtil = require('../helpers/dateUtil')
+// const dateUtil = require('../helpers/dateUtil')
+// const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
 const numberUtil = require('../helpers/numberUtil')
-
-const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
 
 const assert = require('assert')
 let requestId = 1
@@ -150,10 +149,7 @@ class ReportService {
       .map(auctionsInfo => auctionsInfo.auctionStart)
       .reduce((earlierAuctionStart, auctionStart) => {
         if (earlierAuctionStart === null || earlierAuctionStart > auctionStart) {
-          // Workarround to not having the AuctionStartScheduled event
-          return dateUtil.addPeriod(auctionStart, -AUCTION_START_DATE_MARGIN_HOURS, 'hours')
-          // TODO: when AuctionStartScheduled is ready use just the real auctionStart
-          // return auctionStart
+          return auctionStart
         } else {
           return earlierAuctionStart
         }

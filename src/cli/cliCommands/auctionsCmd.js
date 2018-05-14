@@ -26,8 +26,7 @@ function registerCommand ({ cli, instances, logger }) {
       // a command that would allow to filter by dates, addresse, token, ..
       // Right now it filters by the bot address and use the defined time period
       const {
-        reportService,
-        botAccount
+        reportService
       } = instances
 
       const { fromDate, toDate } = getDateRangeFromParams({
