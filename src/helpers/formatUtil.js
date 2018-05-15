@@ -64,11 +64,19 @@ function formatDateFromNow (date) {
   return moment(date).fromNow()
 }
 
-function formatNumber (x, { thousandsSeparator = ',', decimalSeparator = '.' } = {}) {
-  var parts = x.toString().split(decimalSeparator)
+function formatNumber (x, { thousandsSeparator = ',', decimalSeparator = '.', precision = null } = {}) {
+  let number
+  if (precision) {
+    number = numberUtil.round(x, precision)
+  } else {
+    number = x
+  }
+  var parts = number.toString().split(decimalSeparator)
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandsSeparator)
   return parts.join(decimalSeparator)
 }
+
+
 
 function formatBoolean (flag) {
   return flag ? 'Yes' : 'No'

@@ -1,15 +1,25 @@
 const cliUtils = require('../helpers/cliUtils')
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 const formatUtil = require('../../helpers/formatUtil')
+const numberUtil = require('../../helpers/numberUtil')
 
 const HEADERS = `\
 Trade date\t\
 Operation\t\
 Sell token\t\
 Buy token\t\
-Auction Index\t\
+Auction index\t\
 User\t\
-Amount
+Nonce\t\
+Amount\t\
+Gas limit\t\
+Gas price\t\
+Gas used\t\
+Gas cost\t\
+Gas cost (USD)\t\
+Transaction hash\t\
+Block hash\t\
+Block number
 `
 
 function registerCommand ({ cli, instances, logger }) {
@@ -104,7 +114,7 @@ function registerCommand ({ cli, instances, logger }) {
         stream.write(HEADERS)
       }
 
-      const operations = await dxInfoService.getOperations({
+      const operations = await dxInfoService.getTrades({
         fromDate,
         toDate,
         type,
@@ -131,6 +141,7 @@ function registerCommand ({ cli, instances, logger }) {
     })
 }
 
+
 function _printOperation ({
   type,
   auctionIndex,
@@ -138,9 +149,18 @@ function _printOperation ({
   buyToken,
   user,
   amount,
-  dateTime
+  dateTime,
+  transactionHash,
+  gasLimit,
+  gasPrice,
+  gasUsed,
+  gasCost,
+  gasCostInUsd,
+  nonce,
+  blockHash,
+  blockNumber
 }, stream, logger) {
-  const dateTimeStr = formatUtil.formatDateTimeWithSeconds(dateTime)
+  const dateTimeStr = formatUtil.formatDateTimeCsv(dateTime)
   if (stream) {
     // Write CSV line
     stream.write(`\
@@ -150,11 +170,20 @@ ${sellToken.symbol}\t\
 ${buyToken.symbol}\t\
 ${auctionIndex}\t\
 ${user}\t\
-${amount.div(1e18)}
+${nonce}\t\
+${amount.div(1e18)}\t\
+${gasLimit}\t\
+${gasPrice}\t\
+${gasUsed}\t\
+${gasCost}\t\
+${gasCostInUsd}\t\
+${transactionHash}\t\
+${blockHash}\t\
+${blockNumber}
 `)
   } else {
     // Print in log
-    logger.info(`\t${sellToken.symbol}-${buyToken.symbol}-${auctionIndex}: ${user} ${type} ${amount.div(1e18)} at ${dateTimeStr}`)
+    logger.info(`\t${sellToken.symbol}-${buyToken.symbol}-${auctionIndex}: ${user} ${type} ${amount.div(1e18)} at ${dateTimeStr}. Cost: $${gasCostInUsd} Tx: ${transactionHash}`)
   }
 }
 

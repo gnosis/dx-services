@@ -9,8 +9,10 @@ function run ({
   auctionRepo
 }) {
   /*
-  2272823,
-  2282210
+  2.272.823,
+  2.282.210
+
+  2.277.833
   */
   const auctionIndex = process.env.INDEX ? parseInt(process.env.INDEX) : undefined
   const fromBlock = process.env.FROM ? parseInt(process.env.INDEX) : undefined

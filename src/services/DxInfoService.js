@@ -525,7 +525,7 @@ class DxInfoService {
     })
   }
 
-  async getOperations ({
+  async getTrades ({
     fromDate,
     toDate,
 
@@ -563,8 +563,13 @@ class DxInfoService {
       })
     }
 
+    const etherPricePromise = this._auctionRepo.getPriceInUSD({
+      token: 'WETH',
+      amount: 1e18
+    })
+
     // Decide if we get sellOrders, buyOrders, or both
-    let sellOrders, buyOrders
+    let sellOrders, buyOrders, etherPrice
     if (type) {
       switch (type) {
         case 'ask':
@@ -581,18 +586,26 @@ class DxInfoService {
         default:
           throw new Error('Unknown trade type: ' + type)
       }
+      etherPrice = await etherPricePromise
     } else {
       // Get both: sell and buy orders
-      const [ sellOrdersAux, buyOrdersAux ] = await Promise.all([
+      const [ sellOrdersAux, buyOrdersAux, etherPriceAux ] = await Promise.all([
+        // Get sell orders
         getSellOrders(),
-        getBuyOrders()
+
+        // Get buy orders
+        getBuyOrders(),
+
+        // Get WETH price
+        etherPricePromise
       ])
       sellOrders = sellOrdersAux
       buyOrders = buyOrdersAux
+      etherPrice = etherPriceAux
     }
 
     const orders = sellOrders.concat(buyOrders)
-    let ordersDto = await this._toBuyOrderDto(orders)
+    let ordersDto = await this._toOrderDto(orders, etherPrice)
 
     if (token) {
       // Filter out the auction that don't have the token
@@ -608,7 +621,7 @@ class DxInfoService {
     return ordersDto
   }
 
-  async _toBuyOrderDto (orders) {
+  async _toOrderDto (orders, etherPrice) {
     const orderDtoPromises = orders.map(async order => {
       const {
         sellToken,
@@ -620,7 +633,12 @@ class DxInfoService {
         ethInfo
       } = order
 
-      const [ sellTokenInfo, buyTokenInfo ] = await Promise.all([
+      const [
+        sellTokenInfo,
+        buyTokenInfo,
+        transactionReceipt,
+        transaction
+      ] = await Promise.all([
         // Get sell token info
         this._ethereumRepo.tokenGetInfo({
           tokenAddress: sellToken
@@ -629,7 +647,13 @@ class DxInfoService {
         // Get buy token info
         this._ethereumRepo.tokenGetInfo({
           tokenAddress: buyToken
-        })
+        }),
+
+        // Get transaction receip
+        this._ethereumRepo.getTransactionReceipt(ethInfo.transactionHash),
+
+        // Get transaction
+        this._ethereumRepo.getTransaction(ethInfo.transactionHash)
       ])
 
       let type
@@ -646,6 +670,11 @@ class DxInfoService {
           break
       }
 
+      const gasUsed = transactionReceipt.gasUsed
+      const gasPrice = transaction.gasPrice
+      const gasCost = gasPrice.mul(gasUsed).div(1e18)
+      const gasCostInUsd = numberUtil.round(gasCost.mul(etherPrice))
+
       return {
         auctionIndex,
         sellToken: sellTokenInfo,
@@ -653,7 +682,16 @@ class DxInfoService {
         user,
         amount,
         dateTime,
-        type
+        type,
+        transactionHash: ethInfo.transactionHash,
+        blockHash: ethInfo.blockHash,
+        blockNumber: ethInfo.blockNumber,
+        gasLimit: transaction.gas,
+        gasUsed,
+        gasPrice,
+        gasCost,
+        gasCostInUsd,
+        nonce: transaction.nonce
       }
     })
 

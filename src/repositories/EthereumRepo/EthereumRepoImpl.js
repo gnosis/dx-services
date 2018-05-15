@@ -88,6 +88,14 @@ class EthereumRepoImpl {
     return this._ethereumClient.getGasPricesGWei()
   }
 
+  async getTransactionReceipt (transactionHash) {
+    return this._ethereumClient.doCall('eth.getTransactionReceipt', transactionHash)
+  }
+
+  async getTransaction (transactionHash) {
+    return this._ethereumClient.doCall('eth.getTransaction', transactionHash)
+  }
+
   async getAbout () {
     return Promise
       .all([
