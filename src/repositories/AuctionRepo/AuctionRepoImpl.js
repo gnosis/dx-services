@@ -1485,34 +1485,34 @@ volume: ${state}`)
     })
     assert(tokenEthMarketExists, `The market ${token}-WETH doesn't exists`)
 
-    // return this
-    //   ._callForToken({
-    //     operation: 'getPriceOfTokenInLastAuction',
-    //     token,
-    //     checkToken: false
-    //   })
-    //   .then(toFraction)
-      
-    // Removed the use of getPriceOfTokenInLastAuction
-    //     * The implementation doesn't look in the current auction ¿¿??
-    //     * It involves changing the smart contract, so we have to do a hack in
-    //        our side
-    //     * Knowing that getPriceInPastAuction starts looking in the
-    //        auction - 1, we pass auction + 1
-    const sellToken = token
-    const buyToken = 'WETH'
-    const currentAuctionIndex = await this.getAuctionIndex({
-      sellToken,
-      buyToken
-    })
     return this
-      ._callForAuction({
-        operation: 'getPriceInPastAuction',
-        sellToken,
-        buyToken,
-        auctionIndex: currentAuctionIndex + 1
+      ._callForToken({
+        operation: 'getPriceOfTokenInLastAuction',
+        token,
+        checkToken: false
       })
       .then(toFraction)
+      
+    // // Removed the use of getPriceOfTokenInLastAuction
+    // //     * The implementation doesn't look in the current auction ¿¿??
+    // //     * It involves changing the smart contract, so we have to do a hack in
+    // //        our side
+    // //     * Knowing that getPriceInPastAuction starts looking in the
+    // //        auction - 1, we pass auction + 1
+    // const sellToken = token
+    // const buyToken = 'WETH'
+    // const currentAuctionIndex = await this.getAuctionIndex({
+    //   sellToken,
+    //   buyToken
+    // })
+    // return this
+    //   ._callForAuction({
+    //     operation: 'getPriceInPastAuction',
+    //     sellToken,
+    //     buyToken,
+    //     auctionIndex: currentAuctionIndex + 1
+    //   })
+    //   .then(toFraction)
   }
 
   async getLastAvaliableClosingPrice ({ sellToken, buyToken, auctionIndex }) {

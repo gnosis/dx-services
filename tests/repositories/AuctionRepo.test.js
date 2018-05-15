@@ -308,7 +308,7 @@ describe('Market interacting tests', async () => {
   })
 
   // Add a non ethereum market
-  test.skip('It should allow to add markets between tokens different from WETH', async () => {
+  test('It should allow to add markets between tokens different from WETH', async () => {
     jest.setTimeout(10000)
     const { web3, auctionRepo, user1 } = await setupPromise
 
