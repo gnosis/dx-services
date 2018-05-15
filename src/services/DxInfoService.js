@@ -672,6 +672,7 @@ class DxInfoService {
 
       const gasUsed = transactionReceipt.gasUsed
       const gasPrice = transaction.gasPrice
+      const gasPriceGwei = gasPrice.mul(1e-9)
       const gasCost = gasPrice.mul(gasUsed).div(1e18)
       const gasCostInUsd = numberUtil.round(gasCost.mul(etherPrice))
 
@@ -688,7 +689,7 @@ class DxInfoService {
         blockNumber: ethInfo.blockNumber,
         gasLimit: transaction.gas,
         gasUsed,
-        gasPrice,
+        gasPriceGwei,
         gasCost,
         gasCostInUsd,
         nonce: transaction.nonce

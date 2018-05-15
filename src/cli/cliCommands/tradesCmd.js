@@ -13,7 +13,7 @@ User\t\
 Nonce\t\
 Amount\t\
 Gas limit\t\
-Gas price\t\
+Gas price (GWei)\t\
 Gas used\t\
 Gas cost\t\
 Gas cost (USD)\t\
@@ -152,7 +152,7 @@ function _printOperation ({
   dateTime,
   transactionHash,
   gasLimit,
-  gasPrice,
+  gasPriceGwei,
   gasUsed,
   gasCost,
   gasCostInUsd,
@@ -173,7 +173,7 @@ ${user}\t\
 ${nonce}\t\
 ${amount.div(1e18)}\t\
 ${gasLimit}\t\
-${gasPrice}\t\
+${gasPriceGwei}\t\
 ${gasUsed}\t\
 ${gasCost}\t\
 ${gasCostInUsd}\t\
