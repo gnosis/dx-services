@@ -90,16 +90,16 @@ class EthereumRepoImpl {
 
   async getTransactionReceipt (transactionHash) {
     return this._ethereumClient.doCall({
-      propName: 'eth.getTransactionReceipt'
-      // params: [ transactionHash ]
-    }, transactionHash)
+      propName: 'eth.getTransactionReceipt',
+      params: [ transactionHash ]
+    })
   }
 
   async getTransaction (transactionHash) {
     return this._ethereumClient.doCall({
-      propName: 'eth.getTransaction'
-      // params: [ transactionHash ]
-    }, transactionHash)
+      propName: 'eth.getTransaction',
+      params: [ transactionHash ]
+    })
   }
 
   async getAbout () {

@@ -128,7 +128,7 @@ class EthereumClient {
     // NOTE: not using doCall on purpose because error with this context in web3
     // Using web3 0.2.X
     const fetchFn = () =>
-      _promisify(this._web3.eth.getBlock, blockNumber.toString())
+      _promisify(this._web3.eth.getBlock, [ blockNumber.toString() ])
 
     const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString() ] })
     const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
@@ -187,12 +187,10 @@ class EthereumClient {
   }
 
   async balanceOf (account) {
-    return this.doCall({ propName: 'eth.getBalance' }, account)
+    return this.doCall({ propName: 'eth.getBalance', params: [ account ] })
   }
 
-  async doCall ({ propName, cacheTime = this._cacheTimeouts.short }, params) {
-    // TODO: Add cache here. Analogous to the one in AuctionRepoImpl
-
+  async doCall ({ propName, params, cacheTime = this._cacheTimeouts.short }) {
     const propPath = propName.split('.')
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
@@ -212,10 +210,8 @@ class EthereumClient {
   }
 
   _getCacheKey ({ propName, params }) {
-    if (Array.isArray(params)) {
+    if (params) {
       return propName + ':' + params.join('-')
-    } else if (params) {
-      return propName + ':' + params
     } else {
       return propName
     }
@@ -446,9 +442,9 @@ class EthereumClient {
     }, data)
 
     return _promisify((params, cb) => {
-      // wee nedd to curry the function
+      // we need to curry the function
       this._web3.currentProvider.sendAsync(params, cb)
-    }, params)
+    }, [ params ])
   }
 
   getWeb3 () {
@@ -464,7 +460,7 @@ class EthereumClient {
   }
 }
 
-async function _promisify (fn, param) {
+async function _promisify (fn, params) {
   return new Promise((resolve, reject) => {
     const callback = (error, data) => {
       if (error) {
@@ -474,8 +470,8 @@ async function _promisify (fn, param) {
       }
     }
 
-    if (param) {
-      fn(param, callback)
+    if (params) {
+      fn(...params, callback)
     } else {
       fn(callback)
     }
