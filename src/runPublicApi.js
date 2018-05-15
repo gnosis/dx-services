@@ -11,8 +11,9 @@ const instanceFactory = require('./helpers/instanceFactory')
 let app
 
 // Run app
-instanceFactory({})
-  .then(instances => {
+instanceFactory({
+  createReportService: false
+}).then(instances => {
     // Create the app
     app = new App(instances)
 

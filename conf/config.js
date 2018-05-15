@@ -48,8 +48,7 @@ const DEFAULT_GAS = 6700000
 const GAS_PRICE_GWEI = 100
 
 const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
-const MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
-// const MNEMONIC = null
+const MNEMONIC = null
 
 const CACHE_ENABLED = true
 

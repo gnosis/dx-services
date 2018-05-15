@@ -11,6 +11,7 @@ const SlackClient = require('./SlackClient')
 
 async function createInstances ({
   test = false,
+  createReportService = true, // TODO: Improve how we pull services
   config: configOverride = {}
 } = {}) {
   const config = Object.assign({}, originalConfig, configOverride)
@@ -72,12 +73,17 @@ async function createInstances ({
     priceRepo
   })
 
-  const reportService = _getReportService({
-    config: config,
-    auctionRepo,
-    ethereumRepo,
-    slackClient
-  })
+  let reportService
+  if (createReportService) {
+    reportService = _getReportService({
+      config: config,
+      auctionRepo,
+      ethereumRepo,
+      slackClient
+    })
+  } else {
+    reportService = null
+  }
 
   // Event Watcher
   const auctionEventWatcher = _getAuctionEventWatcher(
