@@ -1,6 +1,6 @@
 {
   "name": "dx-services",
-  "version": "0.1.1-SNAPSHOT",
+  "version": "0.1.1",
   "description": "",
   "main": "src/runPublicApi.js",
   "directories": {
@@ -55,7 +55,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "^0.1.2",
+    "@gnosis.pm/dx-contracts": "^0.8.0",
     "@slack/client": "^4.2.0",
     "commander": "^2.15.0",
     "cors": "^2.8.4",

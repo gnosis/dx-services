@@ -4,9 +4,9 @@ let DX_CONTRACT_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS
 // In Rinkeby we use different instances of the contract for dev and staging
 if (env === 'pre') {
   // Rinkeby: staging
-  DX_CONTRACT_ADDRESS = '0x16be0a7aff00a35f43ca467b6fbbb2d511118553'
-  RDN_TOKEN_ADDRESS = '0xd7da78985fbf633bae69eb01e2ca7187304920c1'
-  OMG_TOKEN_ADDRESS = '0x46965eb364b661609c9b3b9625527040618eb0e1'
+  DX_CONTRACT_ADDRESS = '0xbfdb41a5c0d5637c46ea8fb5955e20114ba36b7b'
+  RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
+  OMG_TOKEN_ADDRESS = '0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054' 
 } else {
   if (env === 'pro') {
     // Rinkeby: pro
@@ -15,7 +15,7 @@ if (env === 'pre') {
     OMG_TOKEN_ADDRESS = null
   } else {
     // Rinkeby: dev, local, ...
-    DX_CONTRACT_ADDRESS = null
+    DX_CONTRACT_ADDRESS = '0x6af10f3758912816c57e30cecd59c7695e1db2ee'
     RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
     OMG_TOKEN_ADDRESS = '0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054'
   }
