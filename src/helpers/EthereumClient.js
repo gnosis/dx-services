@@ -148,10 +148,10 @@ class EthereumClient {
             const blockDate = new Date(block.timestamp * 1000)
 
             // Return different cache time depending on how old is the block
-            if (blockDate < weekAgo) {
+            if (blockDate < monthAgo) {
               // Cache long period
               return CACHE_TIMEOUT_LONG
-            } else if (blockDate < monthAgo) {
+            } else if (blockDate < weekAgo) {
               // Cache Medium period
               return CACHE_TIMEOUT_MEDIUM
             } else {
