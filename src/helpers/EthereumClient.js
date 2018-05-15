@@ -130,7 +130,7 @@ class EthereumClient {
     const fetchFn = () =>
       _promisify(this._web3.eth.getBlock, blockNumber.toString())
 
-    const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString ] })
+    const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString() ] })
     const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
     const CACHE_TIMEOUT_MEDIUM = this._cacheTimeouts.medium
     const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
@@ -140,22 +140,27 @@ class EthereumClient {
         key: cacheKey,
         fetchFn,
         time (block) {
-          //  CACHE_TIME_LONG if mined at least 1 month ago
-          //  CACHE_TIME_MEDIUM if mined between 30-7 days
-          //  CACHE_TIME_SHORT otherwise
-          const monthAgo = Date.now() - 30 * 86400000
-          const weekAgo = Date.now() - 7 * 86400000
-          if (block) {
+          const now = Date.now()
+          const monthAgo = dateUtil.addPeriod(now, -1, 'month')
+          const weekAgo = dateUtil.addPeriod(now, -1, 'week')
+          if (block && block !== 'latest') {
             // NOTE: blockChain timestamp is returned in seconds in web3 0.2.X
-            const timestamp = block.timestamp * 1000
-            if (timestamp < monthAgo) {
+            const blockDate = new Date(block.timestamp * 1000)
+
+            // Return different cache time depending on how old is the block
+            if (blockDate < weekAgo) {
+              // Cache long period
               return CACHE_TIMEOUT_LONG
-            } else if (timestamp < weekAgo) {
+            } else if (blockDate < monthAgo) {
+              // Cache Medium period
               return CACHE_TIMEOUT_MEDIUM
             } else {
+              // Cache Short period
               return CACHE_TIMEOUT_SHORT
             }
           } else {
+            // If the block return null or we ask for the latest block
+            // we cache a short period
             return CACHE_TIMEOUT_SHORT
           }
         }
@@ -300,9 +305,10 @@ class EthereumClient {
     lookingForBlockAfterDate,
     bestGuess
   }) {
-    logger.debug('Looking between %s and %s',
+    logger.debug('Looking between %s and %s. lookingForBlockAfterDate=%s',
       formatUtil.formatNumber(firstBlockRange),
-      formatUtil.formatNumber(lastBlockRange)
+      formatUtil.formatNumber(lastBlockRange),
+      lookingForBlockAfterDate
     )
     let nextBestGuess = bestGuess
     const block = await this.getBlock(referenceBlock)
