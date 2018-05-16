@@ -54,6 +54,13 @@ async function createInstances ({
   })
 
   // Service: DX trade service
+  const dxManagementService = _getDxManagementService({
+    config: config,
+    auctionRepo,
+    ethereumRepo
+  })
+
+  // Service: DX trade service
   const dxTradeService = _getDxTradeService({
     config: config,
     auctionRepo,
@@ -101,6 +108,7 @@ async function createInstances ({
     // services
     liquidityService,
     dxInfoService,
+    dxManagementService,
     dxTradeService,
     botsService,
     marketService,
@@ -259,6 +267,17 @@ function _getDxInfoService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
     // Repos
     auctionRepo,
     priceRepo,
+    ethereumRepo
+  })
+}
+
+function _getDxManagementService ({ config, auctionRepo, ethereumRepo }) {
+  const DxManagementService = require('../services/DxManagementService')
+  return new DxManagementService({
+    config,
+
+    // Repos
+    auctionRepo,
     ethereumRepo
   })
 }

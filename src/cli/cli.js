@@ -43,10 +43,13 @@ async function run (instances) {
   require('./cliCommands/claimTokensCmd')(commandParams)
   require('./cliCommands/claimSellerFundsCmd')(commandParams)
   require('./cliCommands/claimBuyerFundsCmd')(commandParams)
-  
+
   // Liquidity commands
   require('./cliCommands/sellLiquidityCmd')(commandParams)
   require('./cliCommands/buyLiquidityCmd')(commandParams)
+
+  // Dx Management commands
+  require('./cliCommands/addTokenPairCmd')(commandParams)
 
   // Setup commands (we might need to move this ones to `setup` cli)
   // add-token-pair, add-funding-for-test-user,...

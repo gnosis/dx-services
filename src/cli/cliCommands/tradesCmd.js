@@ -141,7 +141,6 @@ function registerCommand ({ cli, instances, logger }) {
     })
 }
 
-
 function _printOperation ({
   type,
   auctionIndex,
