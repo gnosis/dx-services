@@ -155,6 +155,51 @@ describe('Market interacting tests', async () => {
       .toBeTruthy()
   })
 
+  test('It should return seller balance for an auction', async () => {
+    const { user1, auctionRepo } = await setupPromise
+    // GIVEN a new token pair
+    await _addRdnEthTokenPair({})
+
+    // GIVEN an auction where our account sell some tokens
+    await _buySell('postSellOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('2')
+    })
+
+    // WHEN we ask for sell balance of an account
+    const sellerBalance = await auctionRepo.getSellerBalance({
+      sellToken: 'RDN', buyToken: 'WETH', auctionIndex: 1, address: user1 })
+
+    // THEN the sellBalance matches expected sell balance
+    expect(_isValidSellVolume(sellerBalance, await _toBigNumberWei(2)))
+      .toBeTruthy()
+  })
+
+  test('It should return indices of auctions with claimable tokens for sellers', async () => {
+    const { user1, auctionRepo } = await setupPromise
+    // GIVEN a new token pair
+    await _addRdnEthTokenPair({})
+
+    // GIVEN an auction where our account sell some tokens
+    await _buySell('postSellOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('2')
+    })
+
+    const EXPECTED_CLAIMABLE_AUCTIONS_INDICES = [new BigNumber('1')]
+
+    // WHEN we ask for sell balance of an account
+    const claimableAuctions = await auctionRepo.getIndicesWithClaimableTokensForSellers({
+      sellToken: 'RDN', buyToken: 'WETH', address: user1, lastNAuctions: 1 })
+
+    // THEN the claimable auctions contain the index of the expected auction
+    expect(claimableAuctions).toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
+  })
+
   // Test buy tokens in auction
   test('It should allow to buy tokens in an auction', async () => {
     const { user1, ethereumClient } = await setupPromise
@@ -206,7 +251,7 @@ describe('Market interacting tests', async () => {
     const { user1, ethereumClient } = await setupPromise
 
     // GIVEN a new token pair after 6 hours of funding
-    await _addRdnEthTokenPair({rdnFunding: 0.5})
+    await _addRdnEthTokenPair({ rdnFunding: 0.5 })
     await ethereumClient.increaseTime(6.1 * 60 * 60)
 
     // GIVEN a state status of RUNNING
