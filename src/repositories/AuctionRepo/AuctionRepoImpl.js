@@ -284,13 +284,27 @@ class AuctionRepoImpl {
     assert(token, 'The token is required')
     assert(from, 'The from is required')
 
-    return this._transactionForToken({
+    const tokenAddress = await this._getTokenAddress(token, false)
+
+    const params = [
+      [ tokenAddress ],
+      [ isApproved ? 1 : 0 ]
+    ]
+
+    return this._doTransaction({
       operation: 'updateApprovalOfToken',
       from,
-      token: token,
-      args: [ isApproved ? 1 : 0 ],
-      checkToken: false
+      params
     })
+
+    // NOTE: now is not standard, method receives array of token addresses
+    // return this._transactionForToken({
+    //   operation: 'updateApprovalOfToken',
+    //   from,
+    //   token: token,
+    //   args: [ isApproved ? 1 : 0 ],
+    //   checkToken: false
+    // })
   }
 
   async isApprovedToken ({ token }) {
@@ -1492,7 +1506,7 @@ volume: ${state}`)
         checkToken: false
       })
       .then(toFraction)
-      
+
     // // Removed the use of getPriceOfTokenInLastAuction
     // //     * The implementation doesn't look in the current auction ¿¿??
     // //     * It involves changing the smart contract, so we have to do a hack in
