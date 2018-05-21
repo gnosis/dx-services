@@ -64,24 +64,58 @@ application for the Dutch X seller interface
 Use the CLI:
 ```bash
 docker run \
-  -e NODE_ENV=dev \
-  -e NETWORK=rinkeby \
+  -e NODE_ENV=pre \
+  -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
+  -e MARKETS=WETH-RDN,WETH-OMG \
+  -e RDN_TOKEN_ADDRESS=0x7e2331beaec0ded82866f4a1388628322c8d5af0 \
+  -e OMG_TOKEN_ADDRESS=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054 \
   gnosispm/dx-services:staging \
-  npm run cli -- \
+  yarn cli -- \
     state WETH-RDN
 ```
 
-> For more information about the CLI, check out the  [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
+In the previous command, notice that:
+* `NODE_ENV`: Stablish the environment. Valid values are `dev`, `pre`, `pro`.
+* `ETHEREUM_RPC_URL`: Ethereum node. i.e. http://localhost:8545 or https://rinkeby.infura.io
+* `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`, 
+  i.e. `WETH-RDN,WETH-OMG`
+    * **IMPORTANT**: For every token, you must provide also it's address using 
+      an environment variable with the name: `<token>__TOKEN_ADDRESS`. i.e. 
+      `RDN_TOKEN_ADDRESS`.
+* `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is 
+  the image generated out of the master branch. You can checkout other images 
+  in [https://hub.docker.com/r/gnosispm/dx-services]()
+* `yarn cli`: Is the npm script that will run the CLI
+* `state WETH-RDN`:
+  * Is the command executed by the CLI.
+  * There's a lot of commands 
+  * You can run many other commands, just run `-h` to get the complete list.
+  * For more information about the CLI, check out the 
+    [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
+
 
 ## Public API
 Start API:
 ```bash
 docker run \
-  -e NODE_ENV=dev \
-  -e NETWORK=rinkeby \
+  -e NODE_ENV=pre \
+  -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
+  -e MARKETS=WETH-RDN,WETH-OMG \
+  -e RDN_TOKEN_ADDRESS=0x7e2331beaec0ded82866f4a1388628322c8d5af0 \
+  -e OMG_TOKEN_ADDRESS=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054 \
+  -p 8080:8080 \
   gnosispm/dx-services:staging \
-  npm run start
+  yarn api
 ```
+
+To check out the Public API, just open [http://localhost:8080]() in any Browser.
+
+In the previous command, notice that it has a similar configuration as in the CLI
+run, with the difference of:
+* `-p 8080:8080`: It tells Docker to expose the container port 8080 (the API one)
+  in the host machine.
+* `yarn api`: NPM script used to run the Public API.
+
 > For more information about the Public API, checkout:
 >   * [API Documentation](https://dx-services.dev.gnosisdev.com/)
 >   * [Example of API usage](https://github.com/gnosis/dx-examples-api)
@@ -91,13 +125,25 @@ docker run \
 Start bots:
 ```bash
 docker run \
-  -e NODE_ENV=dev \
-  -e NETWORK=rinkeby \
+  -e MNEMONIC="super secret thing that nobody should know ..." \
+  -e NODE_ENV=pre \
+  -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
+  -e MARKETS=WETH-RDN,WETH-OMG \
+  -e RDN_TOKEN_ADDRESS=0x7e2331beaec0ded82866f4a1388628322c8d5af0 \
+  -e OMG_TOKEN_ADDRESS=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054 \
+  -p 8081:8081 \
   gnosispm/dx-services:staging \
-  npm run bots
+  yarn bots
 ```
-> For more information about the Bots, check out the [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
+To check out the Bots API, just open [http://localhost:8081]() in any Browser.
 
+In the previous command, notice that it has a similar configuration as in the 
+Public API run, with the difference of:
+* `MNEMONIC`: Allows to setup the bots account used to sign the transactions.
+* `-p 8081:8081`: The Bots API it's exposed on port 8081.
+* `yarn bots`: NPM Script used to run the Liquidity Bots.
+
+> For more information about the Bots, check out the [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
 
 # Develop
 ## Run a local node and setup
