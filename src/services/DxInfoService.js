@@ -153,6 +153,10 @@ class DxInfoService {
     })
   }
 
+  async isApprovedToken ({ token }) {
+    return this._auctionRepo.isApprovedToken({ token })
+  }
+
   async getMarketDetails ({ sellToken, buyToken }) {
     const tokenPair = { sellToken, buyToken }
     const [
