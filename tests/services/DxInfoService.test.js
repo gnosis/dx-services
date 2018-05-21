@@ -222,7 +222,7 @@ const EXPECTED_RDN_WETH_MARKET = {
     isTheoreticalClosed: false,
     sellVolume: CURRENT_WETH_RDN_AUCTION.sellVolume
   },
-  isApprovedMarket: true,
+  isValidTokenPair: true,
   state: 'RUNNING',
   isSellTokenApproved: true,
   isBuyTokenApproved: true,

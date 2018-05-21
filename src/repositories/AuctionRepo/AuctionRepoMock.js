@@ -126,7 +126,7 @@ class AuctionRepoMock {
     return elementIndex >= 0
   }
 
-  async isApprovedMarket ({ tokenA, tokenB }) {
+  async isValidTokenPair ({ tokenA, tokenB }) {
     debug('Check is approved market %s-%s', tokenA, tokenB)
 
     const auctionIndex = await this.getAuctionIndex({

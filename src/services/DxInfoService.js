@@ -160,14 +160,14 @@ class DxInfoService {
       isBuyTokenApproved,
       stateInfo,
       state,
-      isApprovedMarket,
+      isValidTokenPair,
       auctionIndex
     ] = await Promise.all([
       this._auctionRepo.isApprovedToken({ token: sellToken }),
       this._auctionRepo.isApprovedToken({ token: buyToken }),
       this._auctionRepo.getStateInfo(tokenPair),
       this._auctionRepo.getState(tokenPair),
-      this._auctionRepo.isApprovedMarket({
+      this._auctionRepo.isValidTokenPair({
         tokenA: sellToken,
         tokenB: buyToken
       }),
@@ -175,7 +175,7 @@ class DxInfoService {
     ])
 
     const result = {
-      isApprovedMarket,
+      isValidTokenPair,
       state,
       isSellTokenApproved,
       isBuyTokenApproved,
@@ -183,38 +183,45 @@ class DxInfoService {
       auctionStart: stateInfo.auctionStart
     }
 
-    // Get auction details for one of the auctions
-    const auctionDetailPromises = []
-    if (stateInfo.auction) {
-      const getAuctionDetailsPromise = this._getAuctionDetails({
-        auction: stateInfo.auction,
-        tokenA: sellToken,
-        tokenB: buyToken,
-        auctionIndex,
-        state
-      }).then(auctionDetails => {
-        result.auction = auctionDetails
-      })
-      auctionDetailPromises.push(getAuctionDetailsPromise)
-    }
+    console.log('isValidTokenPair: ', isValidTokenPair)
+    console.log('state: ', state)
+    console.log('auctionIndex: ', stateInfo.auctionIndex)
+    console.log('auctionStart: ', stateInfo.auctionStart)
 
-    // Get auction details for the other one
-    if (stateInfo.auctionOpp) {
-      const getAuctionDetailsPromise = this._getAuctionDetails({
-        auction: stateInfo.auctionOpp,
-        tokenA: buyToken,
-        tokenB: sellToken,
-        auctionIndex,
-        state
-      }).then(auctionDetails => {
-        result.auctionOpp = auctionDetails
-      })
-      auctionDetailPromises.push(getAuctionDetailsPromise)
-    }
+    if (isValidTokenPair) {
+      // Get auction details for one of the auctions
+      const auctionDetailPromises = []
+      if (stateInfo.auction) {
+        const getAuctionDetailsPromise = this._getAuctionDetails({
+          auction: stateInfo.auction,
+          tokenA: sellToken,
+          tokenB: buyToken,
+          auctionIndex,
+          state
+        }).then(auctionDetails => {
+          result.auction = auctionDetails
+        })
+        auctionDetailPromises.push(getAuctionDetailsPromise)
+      }
+  
+      // Get auction details for the other one
+      if (stateInfo.auctionOpp) {
+        const getAuctionDetailsPromise = this._getAuctionDetails({
+          auction: stateInfo.auctionOpp,
+          tokenA: buyToken,
+          tokenB: sellToken,
+          auctionIndex,
+          state
+        }).then(auctionDetails => {
+          result.auctionOpp = auctionDetails
+        })
+        auctionDetailPromises.push(getAuctionDetailsPromise)
+      }
 
-    // If we have pending promises, we wait for them
-    if (auctionDetailPromises.length > 0) {
-      await Promise.all(auctionDetailPromises)
+      // If we have pending promises, we wait for them
+      if (auctionDetailPromises.length > 0) {
+        await Promise.all(auctionDetailPromises)
+      }
     }
 
     return result
@@ -454,8 +461,8 @@ class DxInfoService {
     return this._auctionRepo.getAuctionStart({ sellToken, buyToken })
   }
 
-  async isApprovedMarket ({ sellToken, buyToken }) {
-    return this._auctionRepo.isApprovedMarket({
+  async isValidTokenPair ({ sellToken, buyToken }) {
+    return this._auctionRepo.isValidTokenPair({
       tokenA: sellToken,
       tokenB: buyToken
     })

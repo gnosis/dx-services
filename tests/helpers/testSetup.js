@@ -7,7 +7,7 @@ const BigNumber = require('bignumber.js')
 const numberUtil = require('../../src/helpers/numberUtil')
 const printStateNew = require('../../src/cli/helpers/printState')
 
-const environment = process.env.NODE_ENV
+// const environment = process.env.NODE_ENV
 // const isLocal = environment === 'local'
 
 const NUM_TEST_USERS = 1
@@ -62,11 +62,11 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
       debug('The user1 is wealthy enough :)')
     }
 
-    const isApprovedMarket = await auctionRepo.isApprovedMarket({
+    const isValidTokenPair = await auctionRepo.isValidTokenPair({
       tokenA: sellToken,
       tokenB: buyToken
     })
-    if (!isApprovedMarket) {
+    if (!isValidTokenPair) {
       debug("The %s-%s market was not approved. Let's add the token pair",
         sellToken, buyToken)
       await addTokens()

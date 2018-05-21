@@ -5,7 +5,7 @@ const formatUtil = require('../../helpers/formatUtil')
 
 module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) {
   const {
-    isApprovedMarket,
+    isValidTokenPair,
     state,
     isSellTokenApproved,
     isBuyTokenApproved,
@@ -16,7 +16,7 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
   } = marketDetails
 
   logger.info(`\tToken pair: ${sellToken}-${buyToken}\n`)
-  logger.info('\tIs an approved market? %s', isApprovedMarket ? 'Yes' : 'No')
+  logger.info('\tHas the token pair been added? %s', isValidTokenPair ? 'Yes' : 'No')
   logger.info(`\tState: ${state}\n`)
 
   logger.info(`\tAre tokens Approved?`)

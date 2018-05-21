@@ -294,13 +294,13 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-  '/markets/{tokenPair}/is-approved-market':
+  '/markets/{tokenPair}/is-valid-token-pair':
     get:
       tags:
         - markets
-      summary: Returns if is an approved market
-      description: Returns true or false depending if market is approved or not
-      operationId: isApprovedMarket
+      summary: Returns if a given token pair has been added to the Dutch X
+      description: Returns true only if the token pair has been added
+      operationId: isValidTokenPair
       produces:
         - application/json
       parameters:

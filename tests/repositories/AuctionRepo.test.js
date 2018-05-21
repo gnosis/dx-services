@@ -462,7 +462,7 @@ const INITIAL_USER1_BALANCE = [
 async function _getIsApprovedMarket ({ tokenA = 'RDN', tokenB = 'WETH' }) {
   const { auctionRepo } = await setupPromise
 
-  return auctionRepo.isApprovedMarket({ tokenA, tokenB })
+  return auctionRepo.isValidTokenPair({ tokenA, tokenB })
 }
 
 async function _getStateInfo ({ sellToken = 'RDN', buyToken = 'WETH' }) {

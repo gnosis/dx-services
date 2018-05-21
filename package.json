@@ -47,7 +47,7 @@
     "tasks-generateWeeklyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateWeeklyReport.js",
     "tasks-generateDailyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateDailyReport.js",
     "doc": "esdoc",
-    "swagger-json": "yaml2json src/web/publicApi/static/docs/api/dx-public-api.yml > src/web/publicApi/static/docs/api/dx-public-api.json ; yaml2json src/web/bots/static/docs/api/dx-bots-api.yml > src/web/bots/static/docs/api/dx-bots-api.json"
+    "swagger": "yaml2json src/web/publicApi/static/docs/api/dx-public-api.yml > src/web/publicApi/static/docs/api/dx-public-api.json ; yaml2json src/web/bots/static/docs/api/dx-bots-api.yml > src/web/bots/static/docs/api/dx-bots-api.json"
   },
   "repository": {
     "type": "git",

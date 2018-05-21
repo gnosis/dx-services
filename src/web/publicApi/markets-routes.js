@@ -82,11 +82,11 @@ function createRoutes ({ dxInfoService },
   })
 
   routes.push({
-    path: '/:tokenPair/is-approved-market',
+    path: '/:tokenPair/is-valid-token-pair',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
       addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
-      return dxInfoService.isApprovedMarket(tokenPair)
+      return dxInfoService.isValidTokenPair(tokenPair)
     }
   })
 

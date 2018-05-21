@@ -318,14 +318,14 @@ class AuctionRepoImpl {
     })
   }
 
-  async isApprovedMarket ({ tokenA, tokenB }) {
+  async isValidTokenPair ({ tokenA, tokenB }) {
     assertPair(tokenA, tokenB)
 
     const auctionIndex = await this.getAuctionIndex({
       sellToken: tokenA,
       buyToken: tokenB
     })
-    // auctionLogger.debug(tokenA, tokenB, msg: 'isApprovedMarket? auctionIndex=%s', params: [ auctionIndex ])
+    // auctionLogger.debug(tokenA, tokenB, msg: 'isValidTokenPair? auctionIndex=%s', params: [ auctionIndex ])
 
     return auctionIndex > 0
   }
@@ -333,7 +333,7 @@ class AuctionRepoImpl {
   async hasPrice ({ token }) {
     assert(token, 'The token is required')
 
-    return this.isApprovedMarket({
+    return this.isValidTokenPair({
       tokenA: token,
       tokenB: 'WETH'
     })
@@ -763,8 +763,8 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       amount
     })
 
-    const isApprovedMarket = await this.isApprovedMarket({ tokenA: sellToken, tokenB: buyToken })
-    assert(isApprovedMarket, 'The token pair has not been approved')
+    const isValidTokenPair = await this.isValidTokenPair({ tokenA: sellToken, tokenB: buyToken })
+    assert(isValidTokenPair, 'The token pair has not been approved')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
     const now = await this._getTime()
@@ -955,8 +955,8 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       params: [ actualBFunding ]
     })
 
-    const isApprovedMarket = await this.isApprovedMarket({ tokenA, tokenB })
-    assert(!isApprovedMarket, 'The pair was previouslly added')
+    const isValidTokenPair = await this.isValidTokenPair({ tokenA, tokenB })
+    assert(!isValidTokenPair, 'The pair was previouslly added')
 
     // Ensure that we reach the minimun USD to add a token pair
     await this._assertMinimunFundingForAddToken({
@@ -1493,7 +1493,7 @@ volume: ${state}`)
   async getPriceInEth ({ token }) {
     assert(token, 'The token is required')
     // If none of the token are WETH, we make sure the market <token>/WETH exists
-    const tokenEthMarketExists = await this.isApprovedMarket({
+    const tokenEthMarketExists = await this.isValidTokenPair({
       tokenA: token,
       tokenB: 'WETH'
     })
