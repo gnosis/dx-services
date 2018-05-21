@@ -85,7 +85,6 @@
     "eslint-plugin-standard": "^3.1.0",
     "ganache-cli": "^6.1.0",
     "jest": "^22.4.3",
-    "nodemon": "^1.17.4",
-    "truffle": "^4.0.6"
+    "nodemon": "^1.17.4"
   }
 }
