@@ -86,8 +86,20 @@ class EthereumClient {
   async getGasPricesGWei () {
     // In the test nets, we don't have ETH Gas Estation
     let getGasPricePromise
-    if (isPro) {
-      getGasPricePromise = this._doGetPricesFromFeed()
+    if (!isPro) {
+      getGasPricePromise = this
+        // Get gas price from a feed
+        ._doGetPricesFromFeed()
+        // In case of an error, we get it 
+        .catch(error => {
+          // Notify error
+          logger.error({
+            msg: 'Error getting the price from the feed. Retrying with web3',
+            params: [ URL_GAS_PRICE_PROVIDER ],
+            error
+          })
+          return this._doGetPricesFromWeb3()
+        })
     } else {
       getGasPricePromise = this._doGetPricesFromWeb3()
     }
@@ -481,7 +493,7 @@ async function _promisify (fn, params) {
 function _handleGetGasPriceError (error) {
   // Notify error
   logger.error({
-    msg: 'Error getting the price from ETH Gas Station: %s',
+    msg: 'Error getting the price: %s',
     params: [ URL_GAS_PRICE_PROVIDER ],
     error
   })

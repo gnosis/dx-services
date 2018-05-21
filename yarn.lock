@@ -16,7 +16,7 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@gnosis.pm/dx-contracts@^0.8.1":
+"@gnosis.pm/dx-contracts@^0.8.2":
   version "0.8.2"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-0.8.2.tgz#389074d71993f954a6d56a1f1b6184c2e75a023b"
   dependencies:

@@ -19,7 +19,7 @@ const PriceOracleInterface = artifacts.require('PriceOracleInterface')
 const StandardToken = artifacts.require('StandardToken')
 const TokenGNO = artifacts.require('TokenGNO')
 const TokenOWL = artifacts.require('TokenOWL')
-const TokenMGN = artifacts.require('TokenMGN')
+const TokenFRT = artifacts.require('TokenFRT')
 const Medianizer = artifacts.require('Medianizer')
 
 // ETH price as reported by MakerDAO with 18 decimal places
@@ -29,11 +29,11 @@ module.exports = function deploy(deployer, networks, accounts) {
   // let MGNInstance;
   deployer.deploy(Math)
   // StandardToken is NECESSARRY to deploy here as it is LINKED w/Math
-  deployer.link(Math, [DutchExchange, StandardToken, EtherToken, TokenGNO, TokenMGN, TokenOWL])
+  deployer.link(Math, [DutchExchange, StandardToken, EtherToken, TokenGNO, TokenFRT, TokenOWL])
 
   deployer.deploy(EtherToken)
     .then(() => deployer.deploy(TokenGNO, 10000 * (10 ** 18)))
-    .then(() => deployer.deploy(TokenMGN, accounts[0], accounts[0]))
+    .then(() => deployer.deploy(TokenFRT, accounts[0], accounts[0]))
     // StandardToken is NECESSARRY to deploy here as it is LINKED w/Math
     .then(() => deployer.deploy(StandardToken))
     .then(() => deployer.deploy(PriceFeed))
@@ -43,7 +43,7 @@ module.exports = function deploy(deployer, networks, accounts) {
     // @dev DX Constructor creates exchange
     .then(() => deployer.deploy(
       DutchExchange,                            // Contract Name
-      TokenMGN.address,
+      TokenFRT.address,
       TokenOWL.address,
       accounts[0],                           // @param _owner will be the admin of the contract
       EtherToken.address,                   // @param _ETH               - address of ETH ERC-20 token
@@ -55,6 +55,6 @@ module.exports = function deploy(deployer, networks, accounts) {
     .then(M => M.set(PriceFeed.address, { from: accounts[0] }))
     .then(() => PriceFeed.deployed())
     .then(P => P.post(currentETHPrice, 1516168838 * 2, Medianizer.address, { from: accounts[0] }))
-    .then(() => TokenMGN.deployed())
+    .then(() => TokenFRT.deployed())
     .then(T => T.updateMinter(DutchExchange.address))
 }

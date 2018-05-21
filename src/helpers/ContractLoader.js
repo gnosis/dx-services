@@ -109,7 +109,7 @@ class ContractLoader {
       .loadContract(this._contractDefinitions.EtherToken)
 
     const mgnTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.TokenMGN)
+      .loadContract(this._contractDefinitions.TokenFRT)
 
     /* TODO: Get GNO from OWL address? ? */
     const owlTokenContract = this._ethereumClient
