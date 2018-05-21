@@ -38,7 +38,9 @@
     "data": "CACHE_ENABLED=false node tests/playground/cli/bot-cli.js --setup",
     "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'",
     "console": "cd node_modules/@gnosis.pm/dx-contracts && truffle console",
-    "contracts-compile": "truffle compile",
+    "networks": "cd node_modules/@gnosis.pm/dx-contracts && truffle network",
+    "contracts-inject-network": "cd node_modules/@gnosis.pm/dx-contracts/ && node scripts/inject_network_info.js",
+    "contracts-compile": "truffle compile && cd node_modules/@gnosis.pm/dx-contracts && truffle-compile",
     "contracts-deploy-dx": "cd node_modules/@gnosis.pm/dx-contracts/ && truffle deploy",
     "contracts-deploy-project": "truffle deploy",
     "contracts-deploy": "npm run contracts-deploy-dx && npm run contracts-deploy-project",
@@ -55,7 +57,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "^0.8.2",
+    "@gnosis.pm/dx-contracts": "^0.8.3",
     "@slack/client": "^4.2.0",
     "commander": "^2.15.0",
     "cors": "^2.8.4",
@@ -84,6 +86,7 @@
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.1.0",
     "ganache-cli": "^6.1.0",
+    "truffle": "4.1.5",
     "jest": "^22.4.3",
     "nodemon": "^1.17.4"
   }
