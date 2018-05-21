@@ -19,7 +19,7 @@ test('It should allow to get token contract info', async () => {
   // THEN the token info received is the one we expect
   const EXPECTED_TOKEN_INFO = {
     symbol: 'RDN',
-    name: 'Raiden Network Token',
+    name: 'Raiden network tokens',
     address: rdnTokenAddress,
     decimals: 18
   }

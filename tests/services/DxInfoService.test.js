@@ -17,7 +17,7 @@ test('It should return available markets', async () => {
   dxInfoService._auctionRepo = auctionRepoMock
   dxInfoService._ethereumRepo = ethereumRepoMock
   const EXPECTED_MARKETS = [{
-    tokenA: { name: 'Raiden Network Token', symbol: 'RDN', address: '0x234', decimals: 18 },
+    tokenA: { name: 'Raiden network tokens', symbol: 'RDN', address: '0x234', decimals: 18 },
     tokenB: { name: 'Ethereum Token', symbol: 'WETH', address: '0x123', decimals: 18 }
   }, {
     tokenA: { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 },
@@ -34,7 +34,7 @@ test('It should return a token list', async () => {
   dxInfoService._auctionRepo = auctionRepoMock
   dxInfoService._ethereumRepo = ethereumRepoMock
   const EXPECTED_TOKENS = [
-    { name: 'Raiden Network Token', symbol: 'RDN', address: '0x234', decimals: 18 },
+    { name: 'Raiden network tokens', symbol: 'RDN', address: '0x234', decimals: 18 },
     { name: 'Ethereum Token', symbol: 'WETH', address: '0x123', decimals: 18 },
     { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 }
   ]
