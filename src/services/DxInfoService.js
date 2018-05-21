@@ -44,6 +44,15 @@ class DxInfoService {
     return numberUtil.toBigNumberFraction(closingPrice, true)
   }
 
+  async getLastAvaliableClosingPrice ({ sellToken, buyToken, auctionIndex }) {
+    let closingPrice = await this._auctionRepo.getLastAvaliableClosingPrice({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+    return numberUtil.toBigNumberFraction(closingPrice, true)
+  }
+
   async getClosingPrices ({ sellToken, buyToken, fromAuction, count }) {
     const lastAuctionIndex = await this._auctionRepo.getAuctionIndex({
       sellToken,

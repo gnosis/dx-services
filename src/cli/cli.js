@@ -26,6 +26,7 @@ async function run (instances) {
   require('./cliCommands/indexCmd')(commandParams)
   require('./cliCommands/approvedCmd')(commandParams)
   require('./cliCommands/closingPriceCmd')(commandParams)
+  require('./cliCommands/closingPriceOfficialCmd')(commandParams)
 
   // Trade commands
   require('./cliCommands/sendCmd')(commandParams)
