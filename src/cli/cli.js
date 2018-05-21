@@ -16,6 +16,7 @@ async function run (instances) {
   const commandParams = { cli, instances, logger }
 
   // Info commands
+  require('./cliCommands/marketsCmd')(commandParams)
   require('./cliCommands/stateCmd')(commandParams)
   require('./cliCommands/priceCmd')(commandParams)
   require('./cliCommands/usdPriceComand')(commandParams)

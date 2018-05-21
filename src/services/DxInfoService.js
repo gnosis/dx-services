@@ -196,11 +196,6 @@ class DxInfoService {
       auctionStart: stateInfo.auctionStart
     }
 
-    console.log('isValidTokenPair: ', isValidTokenPair)
-    console.log('state: ', state)
-    console.log('auctionIndex: ', stateInfo.auctionIndex)
-    console.log('auctionStart: ', stateInfo.auctionStart)
-
     if (isValidTokenPair) {
       // Get auction details for one of the auctions
       const auctionDetailPromises = []
