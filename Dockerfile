@@ -1,5 +1,4 @@
 FROM node:8.11-alpine
-# FROM node:8-alpine
 
 # Create app directory
 WORKDIR /usr/src/app/
@@ -14,7 +13,7 @@ COPY contracts contracts
 # Compile necesary contracts for app and cleanup unnecesary files
 RUN apk add --update --no-cache --virtual build-dependencies git python make g++ ca-certificates && \
     yarn install --pure-lockfile && \
-    npm run contracts-compile && \
+#    npm run contracts-compile && \
 #    rm -rf node_modules/@gnosis.pm/dx-contracts/node_modules && \
     yarn cache clean && \
     apk del build-dependencies && \

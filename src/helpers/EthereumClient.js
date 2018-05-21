@@ -86,11 +86,11 @@ class EthereumClient {
   async getGasPricesGWei () {
     // In the test nets, we don't have ETH Gas Estation
     let getGasPricePromise
-    if (!isPro) {
+    if (isPro) {
       getGasPricePromise = this
         // Get gas price from a feed
         ._doGetPricesFromFeed()
-        // In case of an error, we get it 
+        // In case of an error, we get it
         .catch(error => {
           // Notify error
           logger.error({

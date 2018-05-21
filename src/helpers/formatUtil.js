@@ -65,6 +65,10 @@ function formatDateFromNow (date) {
 }
 
 function formatNumber (x, { thousandsSeparator = ',', decimalSeparator = '.', precision = null } = {}) {
+  if (x === null || x === undefined) {
+    return x
+  }
+
   let number
   if (precision) {
     number = numberUtil.round(x, precision)

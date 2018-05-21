@@ -20,6 +20,7 @@ function registerCommand ({ cli, instances, logger }) {
       const closingPrice = await dxInfoService.getClosingPrice({
         sellToken, buyToken, auctionIndex
       })
+
       logger.info('The closing price for auction %d of %s is: %s',
         auctionIndex, tokenPair, formatUtil.formatNumber(closingPrice))
     })
