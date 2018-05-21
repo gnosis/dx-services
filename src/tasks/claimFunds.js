@@ -1,6 +1,7 @@
 const loggerNamespace = 'dx-service:tasks:claimFunds'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
+const assert = require('assert')
 
 // Helpers
 const gracefullShutdown = require('../helpers/gracefullShutdown')
@@ -34,6 +35,7 @@ async function claimFunds ({
   }, [])
 
   const botAddress = await getBotAddress(ethereumClient)
+  assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
   return dxTradeService.claimAll({
     tokenPairs,
     address: botAddress,

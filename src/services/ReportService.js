@@ -1,5 +1,6 @@
 const loggerNamespace = 'dx-service:services:ReportService'
 const Logger = require('../helpers/Logger')
+const assert = require('assert')
 const getBotAddress = require('../helpers/getBotAddress')
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
@@ -10,7 +11,6 @@ const getTokenOrder = require('../helpers/getTokenOrder')
 // const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
 const numberUtil = require('../helpers/numberUtil')
 
-const assert = require('assert')
 let requestId = 1
 
 // const AuctionLogger = require('../helpers/AuctionLogger')
@@ -132,6 +132,7 @@ class ReportService {
       this._ethereumRepo.getLastBlockBeforeDate(toDate),
       this._botAddressPromise
     ])
+    assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
 
     // Get auctions info
     let auctions = await this._auctionRepo

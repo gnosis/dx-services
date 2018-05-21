@@ -79,9 +79,10 @@ In the previous command, notice that:
 * `ETHEREUM_RPC_URL`: Ethereum node. i.e. http://localhost:8545 or https://rinkeby.infura.io
 * `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`, 
   i.e. `WETH-RDN,WETH-OMG`
-    * **IMPORTANT**: For every token, you must provide also it's address using 
-      an environment variable with the name: `<token>__TOKEN_ADDRESS`. i.e. 
-      `RDN_TOKEN_ADDRESS`.
+    * For every token, you must provide also it's address using an environment 
+      variable with the name: `<token>__TOKEN_ADDRESS`. i.e. `RDN_TOKEN_ADDRESS`.
+    * **WETH, MGN and OWL Tokens** are part of the Dutch X Mechanism, so you don't 
+      have (and shouldn't) provice an address for them.
 * `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is 
   the image generated out of the master branch. You can checkout other images 
   in [https://hub.docker.com/r/gnosispm/dx-services]()

@@ -1,6 +1,7 @@
 const loggerNamespace = 'dx-service:runBots'
 const Logger = require('./helpers/Logger')
 const logger = new Logger(loggerNamespace)
+const assert = require('assert')
 
 // Helpers
 const gracefullShutdown = require('./helpers/gracefullShutdown')
@@ -132,6 +133,8 @@ class App {
   }
 
   _createBots (botAddress) {
+    assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+
     // Sell Liquidity bot
     const SellLiquidityBot = require('./bots/SellLiquidityBot')
     const sellLiquidityBot = new SellLiquidityBot({

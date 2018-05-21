@@ -18,7 +18,8 @@ function getBotAddress (ethereumClient) {
         // In DEV,PRE and PRO we use the account 0 for the bot
         return accounts[0]
       } else {
-        throw new Error("The ethereumClient doesn't have the bot account configured")
+        return null
+        // throw new Error("The ethereumClient doesn't have the bot account configured")
       }
     })
 }

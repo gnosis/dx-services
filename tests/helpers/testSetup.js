@@ -8,7 +8,7 @@ const numberUtil = require('../../src/helpers/numberUtil')
 const printStateNew = require('../../src/cli/helpers/printState')
 
 const environment = process.env.NODE_ENV
-const isLocal = environment === 'local'
+// const isLocal = environment === 'local'
 
 const NUM_TEST_USERS = 1
 const INITIAL_AMOUNTS = {
