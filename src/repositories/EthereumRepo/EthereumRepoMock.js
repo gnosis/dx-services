@@ -34,7 +34,7 @@ class EthereumRepoMock {
       case '0x123':
         return 'Ethereum Token'
       case '0x234':
-        return 'Raiden network tokenssss'
+        return 'Raiden network tokens'
       case '0x345':
         return 'OmiseGO'
     }
