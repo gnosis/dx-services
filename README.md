@@ -1,91 +1,125 @@
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/dx-services/badge.svg?branch=master)](https://coveralls.io/github/gnosis/dx-services?branch=master)
 
-# Dutch Exchange Services
+# Dutch X Services
+Dutch X Services, is a project that contains services and other goodies to make
+easier the interaction with the Duch Exchange smart contracts.
 
-# Run in Rinkeby
+# Scope and maing parts of dx-services
+It contains five main elements:
+* **Model**: Set of convenient wrappers and utilities to provide a simpler way
+  to interact with the Dutch X. 
+    * `repositories`: Provide the data access to external data sources like
+      the Dutch X smart contracts, price feeds, gas price feeds, etc.
+      They provide also a more intuitive error handling, that gives detailed 
+      information about the reasons a smart contract revert a operation.
+    * `services`: Provides some common bussiness logic operations to make
+      Dutch X interactation easier.
+
+* **REST Api**: 
+  * Exposes the Dutch X data in a REST API.
+  * Also documents it using swagger. Check the [API Documentation](https://dx-services.dev.gnosisdev.com/)
+  * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
+
+* **Cli (Command Line Interface)**:
+  * Allows to interact with the Dutch X from the command line.
+  * Allows to perform operations to retrieve the Dutch X state from any Ethereum
+    network
+  * Also, allow to fund accounts, deposit tokens into the Dutch X, participate 
+    in an auction as a seller or a buyer and mutch more.
+  * For an example on how to use the CLI, check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
+
+* **Liquidity Bots**
+  * Allows to launch bots watching certain token pairs with the goal or ensuring
+    the market liquidity.
+  * The bots will automatically participate in the auctions usign the provided
+    configuration.
+  * For documentation about the bots, and example on how to run your own bots,
+    check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
+
+* **Scheduled tasks**:
+  * Allow to execute certain tasks at certain times.
+  * **Used for Reporting**: Allows to send reports periodically with the 
+    informarmition of the lasts auctions and the actions the bots has been taking.
+  * **Used for Autoclaiming**: Allows the bots to claim their funds of past 
+    auctions so they can reuse them in the upcoming ones.
+
+For aditional information and for reference, check out the following 
+repositories:
+
+* [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about Dutch X in 
+Gnosis Blog, were you will find a series of posts about it.
+* [Gitter Channel](https://gitter.im/gnosis/DutchX): Participate in the gitter channel.
+* [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api): 
+Example project and documentation on how to use the Dutch X API.
+* [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart 
+contracts of the Duch X
+* [Github: dx-services](https://github.com/gnosis/dx-services): Services, 
+repositories and bots to interact with DX.
+* [Github: dx-react](https://github.com/gnosis/dx-react): Front end web 
+application for the Dutch X seller interface
+
+
+# Run it in Rinkeby
+## Cli - Command Line Interface
 Use the CLI:
 ```bash
 docker run \
   -e NODE_ENV=dev \
   -e NETWORK=rinkeby \
-  gnosispm/dx-services:develop \
+  gnosispm/dx-services:staging \
   npm run cli -- \
     state WETH-RDN
 ```
 
-For more information about the CLI usage, refer to:
-* TODO: Document all operations
+> For more information about the CLI, check out the  [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
 
+## Public API
 Start API:
 ```bash
 docker run \
   -e NODE_ENV=dev \
   -e NETWORK=rinkeby \
-  gnosispm/dx-services:develop \
+  gnosispm/dx-services:staging \
   npm run start
 ```
+> For more information about the Public API, checkout:
+>   * [API Documentation](https://dx-services.dev.gnosisdev.com/)
+>   * [Example of API usage](https://github.com/gnosis/dx-examples-api)
 
-Start bots (not yet merged to develop, so it won't work for now)
+
+## Liquidity Bots
+Start bots:
 ```bash
 docker run \
   -e NODE_ENV=dev \
   -e NETWORK=rinkeby \
-  gnosispm/dx-services:develop \
+  gnosispm/dx-services:staging \
   npm run bots
 ```
-
-## Run with docker-compose
-This app contains a docker-compose configuration.
-
-This commands may be used with sudo depending on configuration.
-```bash
-docker-compose build
-docker-compose up
-```
-The build command has to be executed after any change in code/deps
-
-## Run with docker manually
-This app contains a configuration to run in docker
-
-```bash
-docker build -t <tag-name> .
-```
-
-### Check image added to docker
-```bash
-docker images
-```
-### Run the image
-* `-d` run deatached mode (run in background)
-* `-p` redirect public port to private port in container
-
-```bash
-docker run -p 8000:3000 <tag-name>
-```
-
-#### Get container ID
-```bash
-docker ps
-```
-#### Print app output
-```bash
-docker logs <container id>
-```
+> For more information about the Bots, check out the [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
 
 
-## Develop
+# Develop
+## Run a local node and setup
 ```bash
 yarn install
 npm run rpc
-npm run contracts-deploy
-npm run cli2 -- --setup
+npm run setup
 ```
 
-Start app:
+## Public API
+Start API:
 ```bash
-npm start
+npm run api
 ```
 
+## Liquidity Bots
+Start Bots:
+```bash
+npm run bots
+```
+
+## CLI - Command Line Interface
 Use the bot-cli:
 ```bash
 npm run cli
@@ -99,6 +133,7 @@ Some examples:
 * `npm run cli -- sell 100 WETH-RDN`
 * `npm run cli -- buy 100 RDN-WETH`
 
+
 ## cli2 (Deprecated)
 The `cli2`, is deprectated, but it still has some methods that were not migrated
  to the new cli (they are methods used testing during development).
@@ -108,9 +143,26 @@ Use the bot-cli2:
 npm run cli2
 ```
 
-
 Some examples:
 * `npm run cli2 -- --balances`
 * `npm run cli2 -- --approve-token RDN`
 * `npm run cli2 -- --deposit WETH,100`
 * `npm run cli2 -- --time 0.5`
+
+# License
+This project is released under [MIT License](./LICENSE.md)
+
+# Security and Liability
+All the code is provided WITHOUT ANY WARRANTY; without even the implied warranty
+ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+# Feedback, suggestions, collaborations
+Please, let us know any typo or error in the project or documentation. 
+
+Any idea, proposal or colaboration will be welcome.
+
+Also, you are encouraged to participate in the [Gitter Channel for the Dutch X](https://gitter.im/gnosis/DutchX).
+
+# Contributors
+* [Angel Rodriguez](https://github.com/anxolin)
+* [Daniel Sanchez](https://github.com/dasanra)
