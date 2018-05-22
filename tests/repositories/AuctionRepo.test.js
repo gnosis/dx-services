@@ -236,6 +236,35 @@ describe('Market interacting tests', async () => {
     expect(claimableAuctions).toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
   })
 
+  test('It should claim from several auctions as seller', async () => {
+    const { user1, auctionRepo, ethereumClient } = await setupPromise
+
+    await _addRdnEthTokenPair({ ethFunding: 10 })
+    // Fund and close 2 auctions where we participate
+    await _fundAndCloseAuction({ from: user1, ethereumClient })
+    // await _fundAndCloseAuction({ from: user1, ethereumClient })
+
+    const _getClaimableAuctions = () => auctionRepo.getIndicesWithClaimableTokensForSellers({
+      sellToken: 'RDN', buyToken: 'WETH', address: user1, lastNAuctions: 2 })
+
+    const EXPECTED_CLAIMABLE_AUCTIONS_INDICES = [new BigNumber('1')]
+    // const EXPECTED_CLAIMABLE_AUCTIONS_INDICES = [new BigNumber('1'), new BigNumber('2')]
+
+    // GIVEN two claimable auctions as a seller
+    let claimableAuctions = await _getClaimableAuctions()
+    expect(claimableAuctions).toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
+
+    // WHEN claim from several auctions as a seller
+    await auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
+      auctionsAsSeller: [{ sellToken: 'RDN', buyToken: 'WETH', indices: [1] }],
+      address: user1
+    })
+
+    // THEN we have claimed the tokens succesfully
+    claimableAuctions = await _getClaimableAuctions()
+    expect(claimableAuctions).not.toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
+  })
+
   // Test buy tokens in auction
   test('It should allow to buy tokens in an auction', async () => {
     const { user1, ethereumClient } = await setupPromise
@@ -524,6 +553,32 @@ async function _getCurrentAuctionPrice ({ sellToken = 'RDN', buyToken = 'WETH' }
   return auctionRepo.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex})
 }
 
+async function _fundAndCloseAuction ({ sellToken = 'RDN', buyToken = 'WETH', from, ethereumClient }) {
+  // Fund auction
+  await _buySell('postSellOrder', {
+    from,
+    sellToken,
+    buyToken,
+    amount: parseFloat('5000')
+  })
+  await ethereumClient.increaseTime(6.1 * 60 * 60)
+  // console.log(JSON.stringify(await _getStateInfo({})))
+  await _buySell('postBuyOrder', {
+    from,
+    sellToken,
+    buyToken,
+    amount: parseFloat('0.1')
+  })
+  await ethereumClient.increaseTime(24 * 60 * 60)
+  // Close auction
+  await _buySell('postBuyOrder', {
+    from,
+    sellToken,
+    buyToken,
+    amount: parseFloat('0')
+  })
+}
+
 async function _buySell (operation, { from, buyToken, sellToken, amount }) {
   const { web3, auctionRepo } = await setupPromise
 
@@ -533,8 +588,10 @@ async function _buySell (operation, { from, buyToken, sellToken, amount }) {
   })
 
   if (operation === 'postSellOrder') {
-    const auctionStart = await auctionRepo.getAuctionStart({ sellToken, buyToken })
-    const now = await auctionRepo._getTime()
+    const [ auctionStart, now ] = await Promise.all([
+      auctionRepo.getAuctionStart({ sellToken, buyToken }),
+      auctionRepo._getTime()
+    ])
     auctionIndex = auctionStart !== null && auctionStart <= now
       ? auctionIndex + 1
       : auctionIndex
