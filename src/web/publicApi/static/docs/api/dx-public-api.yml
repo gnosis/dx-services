@@ -28,7 +28,7 @@ info:
   contact:
     name: DutchX Gitter channel
     url: 'https://gitter.im/gnosis/DutchX'
-    
+
   license:
     name: MIT License
     url: 'https://github.com/gnosis/dx-services/blob/master/LICENSE.md'
@@ -42,8 +42,6 @@ tags:
     externalDocs:
       description: Find out more about our exchange
       url: 'https://dutch.d.exchange'
-schemes:
-  - https
 paths:
   /tokens:
     get:
