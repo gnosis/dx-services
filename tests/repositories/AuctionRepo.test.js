@@ -179,10 +179,19 @@ describe('Market interacting tests', async () => {
 
   test('It should return indices of auctions with claimable tokens for sellers', async () => {
     const { user1, auctionRepo } = await setupPromise
-    // GIVEN a new token pair
+
     await _addRdnEthTokenPair({})
 
-    // GIVEN an auction where our account sell some tokens
+    const _getClaimableAuctions = () => auctionRepo.getIndicesWithClaimableTokensForSellers({
+      sellToken: 'RDN', buyToken: 'WETH', address: user1, lastNAuctions: 1 })
+
+    const EXPECTED_CLAIMABLE_AUCTIONS_INDICES = [new BigNumber('1')]
+
+    // GIVEN an auction where we hadn't sell anything
+    let claimableAuctions = await _getClaimableAuctions()
+    expect(claimableAuctions).not.toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
+
+    // WHEN we post a sell order
     await _buySell('postSellOrder', {
       from: user1,
       sellToken: 'RDN',
@@ -190,11 +199,38 @@ describe('Market interacting tests', async () => {
       amount: parseFloat('2')
     })
 
+    // WHEN we ask for claimable auctions indices
+    claimableAuctions = await _getClaimableAuctions()
+
+    // THEN the claimable auctions contain the index of the expected auction
+    expect(claimableAuctions).toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
+  })
+
+  test('It should return indices of auctions with claimable tokens for buyers', async () => {
+    const { user1, auctionRepo, ethereumClient } = await setupPromise
+
+    await _addRdnEthTokenPair({})
+    await ethereumClient.increaseTime(6.1 * 60 * 60)
+
+    const _getClaimableAuctions = () => auctionRepo.getIndicesWithClaimableTokensForBuyers({
+      sellToken: 'WETH', buyToken: 'RDN', address: user1, lastNAuctions: 1 })
+
     const EXPECTED_CLAIMABLE_AUCTIONS_INDICES = [new BigNumber('1')]
 
-    // WHEN we ask for sell balance of an account
-    const claimableAuctions = await auctionRepo.getIndicesWithClaimableTokensForSellers({
-      sellToken: 'RDN', buyToken: 'WETH', address: user1, lastNAuctions: 1 })
+    // GIVEN an auction where we havn't bought anything
+    let claimableAuctions = await _getClaimableAuctions()
+    expect(claimableAuctions).not.toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
+
+    // WHEN we post a buy order
+    await _buySell('postBuyOrder', {
+      from: user1,
+      sellToken: 'WETH',
+      buyToken: 'RDN',
+      amount: parseFloat('1')
+    })
+
+    // WHEN we ask for claimable auctions indices
+    claimableAuctions = await _getClaimableAuctions()
 
     // THEN the claimable auctions contain the index of the expected auction
     expect(claimableAuctions).toContainEqual(EXPECTED_CLAIMABLE_AUCTIONS_INDICES)
