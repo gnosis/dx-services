@@ -1,6 +1,6 @@
 const ENVIRONMENT = 'local'
 
-const MINIMUM_SELL_VOLUME_USD = 1000
+const MINIMUM_SELL_VOLUME_USD = 1000 // TODO: Read from Smart Contract
 const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' },
   { tokenA: 'WETH', tokenB: 'OMG' }
