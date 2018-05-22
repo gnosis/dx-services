@@ -16,11 +16,10 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@gnosis.pm/dx-contracts@^0.8.4":
-  version "0.8.4"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-0.8.4.tgz#834acafb0bb1476947a810f3996db715814b8b66"
+"@gnosis.pm/dx-contracts@^0.8.5":
+  version "0.8.6"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-0.8.6.tgz#dcc0fb99cc3c14109f7c6288070c80a3623fc484"
   dependencies:
-    "@gnosis.pm/gnosis-core-contracts" "^1.0.4"
     "@gnosis.pm/owl-token" "^0.3.0"
     "@gnosis.pm/pm-contracts" "^1.0.3"
     truffle-contract "^3.0.1"
@@ -31,10 +30,6 @@
 "@gnosis.pm/gnosis-core-contracts@^1.0.1":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/gnosis-core-contracts/-/gnosis-core-contracts-1.0.3.tgz#b154f41deb6386c64dc38b0e7dcf7ae923fed14c"
-
-"@gnosis.pm/gnosis-core-contracts@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/gnosis-core-contracts/-/gnosis-core-contracts-1.0.4.tgz#866e2acd8ffc506280047d8b15079f70172b6dd2"
 
 "@gnosis.pm/owl-token@^0.3.0":
   version "0.3.0"
@@ -7402,16 +7397,7 @@ truffle-hdwallet-provider-privkey@^0.2.0:
     web3 "^0.20.6"
     web3-provider-engine "^13.8.0"
 
-truffle-hdwallet-provider@0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/truffle-hdwallet-provider/-/truffle-hdwallet-provider-0.0.3.tgz#0e1de02104b73d3875e1cf7093305b4ea8a2d843"
-  dependencies:
-    bip39 "^2.2.0"
-    ethereumjs-wallet "^0.6.0"
-    web3 "^0.18.2"
-    web3-provider-engine "^8.4.0"
-
-"truffle-hdwallet-provider@git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2":
+truffle-hdwallet-provider@0.0.3, "truffle-hdwallet-provider@git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2":
   version "0.0.3"
   resolved "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a23c354b2c219ec12681d33e8a67fbd1887"
   dependencies:
