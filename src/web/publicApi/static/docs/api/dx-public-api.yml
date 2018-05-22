@@ -28,11 +28,9 @@ info:
   contact:
     name: DutchX Gitter channel
     url: 'https://gitter.im/gnosis/DutchX'
-
   license:
     name: MIT License
     url: 'https://github.com/gnosis/dx-services/blob/master/LICENSE.md'
-
 basePath: /api/v1
 tags:
   - name: markets
@@ -150,7 +148,6 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-
   '/markets/{tokenPair}/closing-prices':
     get:
       tags:
@@ -184,14 +181,15 @@ paths:
             type: array
             items:
               type: object
+              required:
+               - auctionIndex
+               - price
               properties:
                 auctionIndex:
                   type: integer
                   format: int32
-
                 priceIcrement:
                   type: number
-
                 price:
                   $ref: '#/definitions/MarketPrice'
         '404':
@@ -678,6 +676,9 @@ definitions:
       - address
   TokenPair:
     type: object
+    required:
+     - tokenA
+     - tokenB
     properties:
       tokenA:
         $ref: '#/definitions/TokenDetails'
