@@ -5,7 +5,7 @@ const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
 const numberUtil = require('../helpers/numberUtil')
 
-const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = 5000 // $5000
+const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = process.env.BALANCE_CHECK_THRESHOLD_USD || 5000 // $5000
 const MINIMUM_AMOUNT_FOR_ETHER = 0.4 * 1e18 // 0.4 WETH
 const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000 // 15 min
 const MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS = 4 * 60 * 60 * 1000 // 4h
