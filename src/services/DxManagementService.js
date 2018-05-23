@@ -3,8 +3,6 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
-const numberUtil = require('../../src/helpers/numberUtil')
-
 class DxManagementService {
   constructor ({ auctionRepo, ethereumRepo, config }) {
     this._auctionRepo = auctionRepo

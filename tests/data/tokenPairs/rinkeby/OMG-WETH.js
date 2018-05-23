@@ -3,12 +3,12 @@ module.exports =
 {
   // OMG
   tokenA: {
-    address: '0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4',
+    address: '0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054',
     funding: 0
   },
   // WETH
   tokenB: {
-    address: '0xf25186b5081ff5ce73482ad761db0eb0d25abfbf',
+    address: '0xc778417e063141139fce010982780140aa0cd5ab',
     funding: 9.5
   },
   // Price: https://www.coingecko.com/en/coins/omisego

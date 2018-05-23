@@ -3,12 +3,12 @@ module.exports =
 {
   // RDN
   tokenA: {
-    address: '0x9fbda871d559710256a2502a2517b794b482db40',
+    address: '0x7e2331beaec0ded82866f4a1388628322c8d5af0',
     funding: 0
   },
   // WETH
   tokenB: {
-    address: '0xf25186b5081ff5ce73482ad761db0eb0d25abfbf',
+    address: '0xc778417e063141139fce010982780140aa0cd5ab',
     funding: 9.5
   },
   // Price: https://www.coingecko.com/en/price_charts/raiden-network/eth
