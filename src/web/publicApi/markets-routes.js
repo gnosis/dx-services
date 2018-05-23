@@ -42,6 +42,9 @@ function createRoutes ({ dxInfoService },
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
       let count = req.query.count !== undefined ? req.query.count : 5
+      if (count > 50) {
+        count = 50
+      }
       let params = Object.assign(
         tokenPair, { count: count }
       )
