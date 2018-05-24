@@ -2,6 +2,7 @@ const formatUtil = require('../../helpers/formatUtil')
 const _tokenPairSplit = formatUtil.tokenPairSplit
 
 const PAIRS_DATA_ROUTE = '../../../tests/data/tokenPairs'
+const WORKING_DIR = process.cwd()
 const NETWORK = process.env.NETWORK ? process.env.NETWORK : 'local'
 
 function registerCommand ({ cli, instances, logger }) {
@@ -26,7 +27,7 @@ function registerCommand ({ cli, instances, logger }) {
       const { sellToken: tokenA, buyToken: tokenB } = _tokenPairSplit(tokenPair)
       let pair
       if (file) {
-        pair = require(file)
+        pair = require(WORKING_DIR + file)
       } else {
         pair = require(PAIRS_DATA_ROUTE + '/' + NETWORK.toLowerCase() + '/' + tokenPair + '.js')
       }
@@ -44,7 +45,7 @@ function registerCommand ({ cli, instances, logger }) {
     } else {
       let allPairs
       if (file) {
-        allPairs = require(file)
+        allPairs = require(WORKING_DIR + file)
       } else {
         allPairs = require(PAIRS_DATA_ROUTE + '/' + NETWORK.toLowerCase() + '/allPairs.js')
       }
