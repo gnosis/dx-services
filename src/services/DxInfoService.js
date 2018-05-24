@@ -211,7 +211,7 @@ class DxInfoService {
         })
         auctionDetailPromises.push(getAuctionDetailsPromise)
       }
-  
+
       // Get auction details for the other one
       if (stateInfo.auctionOpp) {
         const getAuctionDetailsPromise = this._getAuctionDetails({
@@ -353,18 +353,11 @@ class DxInfoService {
 
   // TODO implement pagination
   async getMarkets ({ count } = {}) {
-    const tokenPairsPromises = this._markets.map(async ({ tokenA, tokenB }) => {
-      const [ tokenAAddress, tokenBAddress ] = await Promise.all([
-        this._auctionRepo.getTokenAddress({
-          token: tokenA
-        }),
-        this._auctionRepo.getTokenAddress({
-          token: tokenB
-        })
-      ])
+    const RAW_TOKEN_PAIRS = await this._auctionRepo.getTokenPairs()
+    const tokenPairsPromises = RAW_TOKEN_PAIRS.map(async ({ sellToken: tokenA, buyToken: tokenB }) => {
       const [ tokenAInfo, tokenBInfo ] = await Promise.all([
-        this._getTokenInfoByAddress(tokenAAddress),
-        this._getTokenInfoByAddress(tokenBAddress)
+        this._getTokenInfoByAddress(tokenA),
+        this._getTokenInfoByAddress(tokenB)
       ])
       return {
         tokenA: tokenAInfo, tokenB: tokenBInfo

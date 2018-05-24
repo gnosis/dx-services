@@ -391,6 +391,12 @@ class AuctionRepoImpl {
     return Object.keys(this._tokens)
   }
 
+  async getTokenPairs () {
+    return this._getTokenPairs({
+      event: 'NewTokenPair'
+    })
+  }
+
   async getTokenAddress ({ token }) {
     return this._getTokenAddress(token, false)
   }
@@ -1445,6 +1451,30 @@ volume: ${state}`)
     }
 
     return orders
+  }
+
+  async _getTokenPairs ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    sellToken,
+    buyToken,
+    event
+  }) {
+    let tokens = await ethereumEventHelper
+      .filter({
+        contract: this._dx,
+        events: [ event ],
+        fromBlock,
+        toBlock,
+        filters: {
+        }
+      })
+      .then(tokenPairEvents => this._toEventsData({
+        events: tokenPairEvents,
+        datePropName: 'dateTime'
+      }))
+
+    return tokens
   }
 
   async getClearedAuctions ({
