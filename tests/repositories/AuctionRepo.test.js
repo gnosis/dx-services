@@ -356,6 +356,39 @@ describe('Market interacting tests', async () => {
       .toBeTruthy()
   })
 
+  test('It should allow return seller balance for an auction', async () => {
+    const { user1, ethereumClient, auctionRepo } = await setupPromise
+
+    // GIVEN a new token pair before user buying anything
+    await _addRdnEthTokenPair({})
+    await ethereumClient.increaseTime(6.1 * 60 * 60)
+    let buyerBalance = await auctionRepo.getBuyerBalance({
+      sellToken: 'WETH',
+      buyToken: 'RDN',
+      auctionIndex: 1,
+      address: user1
+    })
+    expect(buyerBalance).toMatchObject(new BigNumber('0'))
+
+    // WHEN we add a buy order
+    await _buySell('postBuyOrder', {
+      from: user1,
+      sellToken: 'WETH',
+      buyToken: 'RDN',
+      amount: parseFloat('0.5')
+    })
+
+    // THEN the new state matches the intial market state
+    buyerBalance = await auctionRepo.getBuyerBalance({
+      sellToken: 'WETH',
+      buyToken: 'RDN',
+      auctionIndex: 1,
+      address: user1
+    })
+    expect(_isValidBuyVolume(buyerBalance, await _toBigNumberWei('0.5')))
+      .toBeTruthy()
+  })
+
   // Test auction closing
   test('It should close auction after all tokens sold', async () => {
     jest.setTimeout(10000)
