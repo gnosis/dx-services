@@ -125,6 +125,21 @@ describe('Market interacting tests', async () => {
     expect(isRdnEthApproved).toBeTruthy()
   })
 
+  test('It should return added token pairs', async () => {
+    debug('Launching \'It should return added token pairs\'')
+    const { auctionRepo } = await setupPromise
+    // GIVEN a state without token pairs added
+    let tokenPairs = await auctionRepo.getTokenPairs()
+    expect(tokenPairs.length).toBe(0)
+
+    // WHEN we add a new token pair
+    await _addRdnEthTokenPair({})
+
+    // THEN the market is now approved
+    tokenPairs = await auctionRepo.getTokenPairs()
+    expect(tokenPairs.length).toBe(1)
+  })
+
   // Add funds to auction (sell tokens in auction)
   test('It should allow to add funds to an auction', async () => {
     debug('Launching \'It should allow to add funds to an auction\'')

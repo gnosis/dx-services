@@ -158,6 +158,13 @@ class AuctionRepoMock {
     return buyVolume
   }
 
+  async getTokenPairs () {
+    return [
+      { sellToken: '0x234', buyToken: '0x123' },
+      { sellToken: '0x345', buyToken: '0x123' }
+    ]
+  }
+
   async getTokenAddress ({ token }) {
     switch (token) {
       case 'WETH':
