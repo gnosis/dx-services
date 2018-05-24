@@ -7,7 +7,9 @@ const getVersion = require('../helpers/getVersion')
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
-const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS = 60 * 1000
+
+const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
+  process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
 class SellLiquidityBot extends Bot {
   constructor ({

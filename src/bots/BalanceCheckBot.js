@@ -7,8 +7,11 @@ const numberUtil = require('../helpers/numberUtil')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = process.env.BALANCE_CHECK_THRESHOLD_USD || 5000 // $5000
 const MINIMUM_AMOUNT_FOR_ETHER = (process.env.BALANCE_CHECK_THRESHOLD_ETHER || 0.4) * 1e18 // 0.4 WETH
-const PERIODIC_CHECK_MILLISECONDS = 15 * 60 * 1000 // 15 min
-const MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS = 4 * 60 * 60 * 1000 // 4h
+
+const checkTimeMinutes = process.env.BALANCE_BOT_CHECK_TIME_MINUTES || 15 // 15 min
+const slackThresholdMinutes = process.env.BALANCE_BOT_SLACK_THESHOLD_MINUTES || (4 * 60) // 4h
+const PERIODIC_CHECK_MILLISECONDS = checkTimeMinutes * 60 * 1000
+const MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS = slackThresholdMinutes * 60 * 1000
 
 class BalanceCheckBot extends Bot {
   constructor ({
