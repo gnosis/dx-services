@@ -4,6 +4,8 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 require('../helpers/gracefullShutdown')
 
+// TODO: Use instance factory instead
+// TODO: If MARKETS is undefined or NULL --> load all
 const yargs = require('yargs')
 const testSetup = require('../../tests/helpers/testSetup')
 

@@ -3,18 +3,25 @@ const formatUtil = require('../../helpers/formatUtil')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'closing-price-official <token-pair> <auctionIndex>',
+    'closing-price-official <token-pair> [auctionIndex]',
     'Get the closing price for a given auction',
     yargs => {
       cliUtils.addPositionalByName('token-pair', yargs)
       cliUtils.addPositionalByName('auction-index', yargs)
     }, async function (argv) {
-      const { tokenPair, auctionIndex } = argv
+      const { tokenPair, auctionIndex: auctionIndexOpt } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
 
       const {
         dxInfoService
       } = instances
+
+      let auctionIndex
+      if (!auctionIndexOpt) {
+        auctionIndex = await dxInfoService.getAuctionIndex({ sellToken, buyToken })
+      } else {
+        auctionIndex = auctionIndexOpt
+      }
 
       // Get auction index
       const closingPrice = await dxInfoService.getLastAvaliableClosingPrice({
