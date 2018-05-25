@@ -44,7 +44,7 @@ function registerCommand ({ cli, instances, logger }) {
       })
 
       logger.info('')
-      logger.info('Are ther more token? %s', tokensInfo.startingAfter ? 'Yes' : 'No')
+      logger.info('Are there more token? %s', tokensInfo.startingAfter ? 'Yes' : 'No')
     })
 }
 

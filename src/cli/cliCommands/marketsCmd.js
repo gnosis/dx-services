@@ -30,7 +30,7 @@ function registerCommand ({ cli, instances, logger }) {
       })
 
       logger.info('')
-      logger.info('Are ther more token pairs? %s', marketsInfo.startingAfter ? 'Yes' : 'No')
+      logger.info('Are there more token pairs? %s', marketsInfo.startingAfter ? 'Yes' : 'No')
     })
 }
 
