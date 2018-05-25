@@ -2,7 +2,7 @@ const debug = require('debug')('dx-service:conf')
 
 const getTokenOrder = require('../src/helpers/getTokenOrder')
 
-const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = true
+const LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG = false // TODO: Remove after fixing RDN-OMG market
 
 // TODO  add data type to each env var for parsing
 const ENV_VAR_LIST = [

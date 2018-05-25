@@ -23,6 +23,11 @@ if (env === 'pre' || env === 'pro') {
 }
 
 module.exports = {
+  // TODO: Remove after fixing RDN-OMG market
+  MARKETS: [
+    { tokenA: 'WETH', tokenB: 'RDN' },
+    { tokenA: 'WETH', tokenB: 'OMG' }
+  ],
   NETWORK: 'rinkeby', // 4
   ETHEREUM_RPC_URL: 'https://rinkeby.infura.io',
 
