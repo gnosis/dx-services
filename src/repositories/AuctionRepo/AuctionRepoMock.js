@@ -24,6 +24,10 @@ class AuctionRepoMock {
     }
   }
 
+  async getThresholdNewAuction () {
+    return new BigNumber('1000')
+  }
+
   async getStateInfo ({ sellToken, buyToken }) {
     debug('Get state info for %s-%s', sellToken, buyToken)
     const auctionIndex = await this.getAuctionIndex({ sellToken, buyToken })

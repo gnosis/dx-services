@@ -1058,7 +1058,6 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       params: [ fundedValueUSD ]
     })
     const THRESHOLD_NEW_TOKEN_PAIR = await this.getThresholdNewTokenPair()
-    console.log(THRESHOLD_NEW_TOKEN_PAIR)
     assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough funding. \
 Actual USD funding ${fundedValueUSD}. Required funding ${THRESHOLD_NEW_TOKEN_PAIR}`)
   }
