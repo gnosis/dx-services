@@ -2,6 +2,7 @@ const debug = require('debug')('tests:repositories:AuctionRepo')
 
 const testSetup = require('../helpers/testSetup')
 const BigNumber = require('bignumber.js')
+const numberUtil = require('../../src/helpers/numberUtil.js')
 
 const setupPromise = testSetup()
 
@@ -562,6 +563,52 @@ describe('Market interacting tests', async () => {
     rdnOmgState = await _getState({ buyToken: 'OMG' })
     expect(rdnOmgState).toEqual('WAITING_FOR_AUCTION_TO_START')
   })
+
+  test('It should return last available closing price', async () => {
+    const { user1, auctionRepo, ethereumClient } = await setupPromise
+
+    const initialClosingPrice = {
+      numerator: new BigNumber(4079),
+      denominator: new BigNumber(1000000)
+    }
+
+    await _addRdnEthTokenPair({ rdnFunding: 1000, initialClosingPrice })
+    await ethereumClient.increaseTime(6.1 * 60 * 60)
+
+    const _getLastClosingPrice = () => auctionRepo.getLastAvaliableClosingPrice({
+      sellToken: 'RDN', buyToken: 'WETH', auctionIndex: 2
+    })
+
+    // GIVEN a first time running auction
+    let closingPrice = await _getLastClosingPrice()
+    // Price should be the creation price
+    expect(closingPrice).toMatchObject(initialClosingPrice)
+
+    // WHEN we buy and close the auction
+    await _buySell('postBuyOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('1')
+    })
+    await ethereumClient.increaseTime(24 * 60 * 60)
+
+    await _buySell('postBuyOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('0')
+    })
+
+    // THEN price has lowered
+    // (we bought less than there was offered for the initialClosingPrice)
+    closingPrice = await _getLastClosingPrice()
+    const decimalClosingPrice = numberUtil.toBigNumberFraction(closingPrice)
+    const decimalInitialClosingPrice = numberUtil.toBigNumberFraction(initialClosingPrice)
+    expect(decimalClosingPrice
+      .lessThanOrEqualTo(decimalInitialClosingPrice)
+    ).toBeTruthy()
+  })
 })
 
 // ********* Test helpers *********
@@ -570,10 +617,10 @@ describe('Market interacting tests', async () => {
 const MAXIMUM_DX_FEE = [new BigNumber('1'), new BigNumber('200')]
 
 const UNKNOWN_PAIR_MARKET_STATE = {
-  'auction': null,
-  'auctionIndex': 0,
-  'auctionOpp': null,
-  'auctionStart': null
+  auction: null,
+  auctionIndex: 0,
+  auctionOpp: null,
+  auctionStart: null
 }
 
 const INITIAL_MARKET_STATE = {
@@ -685,7 +732,14 @@ async function _buySell (operation, { from, buyToken, sellToken, amount }) {
   })
 }
 
-async function _addRdnEthTokenPair ({ rdnFunding = 0, ethFunding = 13.123 }) {
+async function _addRdnEthTokenPair ({
+  rdnFunding = 0,
+  ethFunding = 13.123,
+  initialClosingPrice = {
+    numerator: 4079,
+    denominator: 1000000
+  }
+}) {
   const { web3, auctionRepo, user1 } = await setupPromise
 
   await auctionRepo.addTokenPair({
@@ -694,10 +748,7 @@ async function _addRdnEthTokenPair ({ rdnFunding = 0, ethFunding = 13.123 }) {
     tokenAFunding: web3.toWei(rdnFunding, 'ether'),
     tokenB: 'WETH',
     tokenBFunding: web3.toWei(ethFunding, 'ether'),
-    initialClosingPrice: {
-      numerator: 4079,
-      denominator: 1000000
-    }
+    initialClosingPrice: initialClosingPrice
   })
 }
 
