@@ -15,8 +15,6 @@ const assert = require('assert')
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
 const MAXIMUM_FUNDING = 10 ** 30
 
-// TODO load thresfolds from contract
-const THRESHOLD_NEW_TOKEN_PAIR = 10000
 const BigNumber = require('bignumber.js')
 const numberUtil = require('../../helpers/numberUtil.js')
 
@@ -83,6 +81,16 @@ class AuctionRepoImpl {
         address: this._tokens[name].address
       }))
     }
+  }
+
+  async getThresholdNewTokenPair () {
+    const thresholdNewTokenPair = await this._dx.thresholdNewTokenPair.call()
+    return thresholdNewTokenPair.div(1e18)
+  }
+
+  async getThresholdNewAuction () {
+    const thresholdNewAuction = await this._dx.thresholdNewAuction.call()
+    return thresholdNewAuction.div(1e18)
   }
 
   async getStateInfo ({ sellToken, buyToken }) {
@@ -1049,6 +1057,8 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       msg: 'Price in USD for the initial funding',
       params: [ fundedValueUSD ]
     })
+    const THRESHOLD_NEW_TOKEN_PAIR = await this.getThresholdNewTokenPair()
+    console.log(THRESHOLD_NEW_TOKEN_PAIR)
     assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough funding. \
 Actual USD funding ${fundedValueUSD}. Required funding ${THRESHOLD_NEW_TOKEN_PAIR}`)
   }

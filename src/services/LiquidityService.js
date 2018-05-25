@@ -27,7 +27,6 @@ class LiquidityService {
     this._ethereumRepo = ethereumRepo
 
     // Config
-    this._minimumSellVolume = new BigNumber(config.MINIMUM_SELL_VOLUME_USD)
     this._buyLiquidityRules = config.BUY_LIQUIDITY_RULES
       // Transform fractions to bigdecimals
       .map(threshold => ({
@@ -56,7 +55,7 @@ class LiquidityService {
   async getAbout () {
     const auctionInfo = await this._auctionRepo.getAbout()
     const config = Object.assign({
-      minimumSellVolume: this._minimumSellVolume
+      minimumSellVolume: await this._auctionRepo.getThresholdNewAuction()
     }, auctionInfo)
 
     return {
@@ -90,10 +89,12 @@ class LiquidityService {
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
       messageCurrentCheck, paramsCurrentCheck
     if (liquidityCheckName === 'sell') {
+      const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
+
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
       messageCurrentCheck = 'Ensure that sell liquidity is over $%d'
-      paramsCurrentCheck = [ this._minimumSellVolume ]
+      paramsCurrentCheck = [ minimumSellVolume ]
     } else if (liquidityCheckName === 'buy') {
       doEnsureLiquidityFnName = '_doEnsureBuyLiquidity'
       baseLockName = 'BUY-LIQUIDITY'
@@ -187,15 +188,18 @@ check should be done`,
     if (auctionStart === null) {
       // We are in a waiting for funding period
 
-      // Get the liquidity
-      const { fundingA, fundingB } = await this._auctionRepo.getFundingInUSD({
-        tokenA, tokenB, auctionIndex
-      })
+      // Get the liquidity and minimum sell volume
+      const [ { fundingA, fundingB }, minimumSellVolume ] = await Promise.all([
+        this._auctionRepo.getFundingInUSD({
+          tokenA, tokenB, auctionIndex
+        }),
+        this._auctionRepo.getThresholdNewAuction()
+      ])
 
-      // Check if we surprlus it
+      // Check if we surplus it
       if (
-        fundingA.lessThan(this._minimumSellVolume) &&
-        fundingB.lessThan(this._minimumSellVolume)
+        fundingA.lessThan(minimumSellVolume) &&
+        fundingB.lessThan(minimumSellVolume)
       ) {
         // Not enough liquidity
         auctionLogger.info({
@@ -517,16 +521,17 @@ keeps happening`
     // decide if we sell on the auction A-B or the B-A
     //  * We sell on the auction with more liquidity
     let sellToken, buyToken, amountToSellInUSD
+    const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
     if (fundingA.lessThan(fundingB)) {
       // We sell in the B-A auction
       sellToken = tokenB
       buyToken = tokenA
-      amountToSellInUSD = this._minimumSellVolume.minus(fundingB)
+      amountToSellInUSD = minimumSellVolume.minus(fundingB)
     } else {
       // We sell in the A-B auction
       sellToken = tokenA
       buyToken = tokenB
-      amountToSellInUSD = this._minimumSellVolume.minus(fundingA)
+      amountToSellInUSD = minimumSellVolume.minus(fundingA)
     }
 
     // We round up the dollars
