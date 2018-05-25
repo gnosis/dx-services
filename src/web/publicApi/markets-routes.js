@@ -3,6 +3,9 @@ const _tokenPairSplit = formatUtil.tokenPairSplit
 
 const addCacheHeader = require('../helpers/addCacheHeader')
 
+const DEFAULT_PAGE_SIZE = 10
+const DEFAULT_MAX_PAGE_SIZE = 50
+
 function createRoutes ({ dxInfoService },
   { short: CACHE_TIMEOUT_SHORT,
     average: CACHE_TIMEOUT_AVERAGE,
@@ -13,7 +16,7 @@ function createRoutes ({ dxInfoService },
   routes.push({
     path: '/',
     get (req, res) {
-      const count = req.query.count !== undefined ? req.query.count : 10
+      const count = req.query.count !== undefined ? req.query.count : DEFAULT_PAGE_SIZE
       addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
       return dxInfoService.getMarkets({ count })
     }
@@ -41,9 +44,12 @@ function createRoutes ({ dxInfoService },
     path: '/:tokenPair/closing-prices',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
-      let count = req.query.count !== undefined ? req.query.count : 5
-      if (count > 50) {
-        count = 50
+      let count = req.query.count !== undefined ? req.query.count : DEFAULT_PAGE_SIZE
+      if (!_isValidCount(count)) {
+        const error = new Error('Invalid count for closing prices. Count should be between 1 and 50.')
+        error.type = 'INVALID_COUNT'
+        error.status = 412
+        throw error
       }
       let params = Object.assign(
         tokenPair, { count: count }
@@ -135,6 +141,10 @@ function createRoutes ({ dxInfoService },
   })
 
   return routes
+}
+
+function _isValidCount (count) {
+  return count > 0 && count < DEFAULT_MAX_PAGE_SIZE
 }
 
 module.exports = createRoutes
