@@ -14,7 +14,8 @@ const ENV_VAR_LIST = [
   'MNEMONIC',
   'PUBLIC_API_PORT',
   'PUBLIC_API_HOST',
-  'CACHE_ENABLED'
+  'CACHE_ENABLED',
+  'SLACK_CHANNEL_DX_BOTS'
   //
   // Also:
   //  * NODE_ENV
