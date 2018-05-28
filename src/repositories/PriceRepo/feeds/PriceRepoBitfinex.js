@@ -35,6 +35,25 @@ class PriceRepoBitfinex {
   }
 
   async getPrice ({ tokenA, tokenB }) {
+    return this._getPrice({ tokenA, tokenB })
+      .catch(async error => {
+        // If we don't find tokenPair, we try checking against ETH
+        const [ tokenAEth, tokenBEth ] = await Promise.all([
+          this._getPrice({ tokenA, tokenB: 'ETH' }),
+          this._getPrice({ tokenA: tokenB, tokenB: 'ETH' })
+        ]).catch(() => {
+          throw error
+        })
+
+        if (tokenAEth && tokenBEth) {
+          return tokenAEth / tokenBEth
+        } else {
+          throw error
+        }
+      })
+  }
+
+  async _getPrice ({ tokenA, tokenB }) {
     debug('Get price for %s-%s', tokenA, tokenB)
 
     let invertTokens = await this._isTokenOrderInverted({ tokenA, tokenB })
