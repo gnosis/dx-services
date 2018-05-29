@@ -35,22 +35,26 @@ class PriceRepoHuobi {
   }
 
   async getPrice ({ tokenA, tokenB }) {
-    return this._getPrice({ tokenA, tokenB })
-      .catch(async error => {
-        // If we don't find tokenPair, we try checking against ETH
+    const pairABExist = await this._existTokenPair({ tokenA, tokenB })
+
+    if (pairABExist) {
+      return this._getPrice({ tokenA, tokenB })
+    } else {
+      const [ pairAEthExist, pairBEthExist ] = await Promise.all([
+        this._existTokenPair({ tokenA, tokenB: 'ETH' }),
+        this._existTokenPair({ tokenA: tokenB, tokenB: 'ETH' })
+      ])
+      if (pairAEthExist && pairBEthExist) {
         const [ tokenAEth, tokenBEth ] = await Promise.all([
           this._getPrice({ tokenA, tokenB: 'ETH' }),
           this._getPrice({ tokenA: tokenB, tokenB: 'ETH' })
-        ]).catch(() => {
-          throw error
-        })
+        ])
 
-        if (tokenAEth && tokenBEth) {
-          return tokenAEth / tokenBEth
-        } else {
-          throw error
-        }
-      })
+        return tokenAEth / tokenBEth
+      } else {
+        throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB)
+      }
+    }
   }
 
   async _getPrice ({ tokenA, tokenB }) {
@@ -76,15 +80,14 @@ class PriceRepoHuobi {
     return closePrice.toString()
   }
 
-  // Check token order to get pair info from Huobi
-  async _isTokenOrderInverted ({ tokenA, tokenB }) {
-    debug('Check token order for %s-%s', tokenA, tokenB)
+  // get Matching Pairs abstraction to reuse code
+  async _getMatchingPairs ({ tokenA, tokenB }) {
     const tokenALower = tokenA.toLowerCase()
     const tokenBLower = tokenB.toLowerCase()
 
     const symbols = await this.getSymbols()
 
-    let matchingPairs = symbols.filter(pair => {
+    return symbols.filter(pair => {
       const baseCurrency = pair['base-currency']
       const quoteCurrency = pair['quote-currency']
       return (
@@ -94,6 +97,22 @@ class PriceRepoHuobi {
         baseCurrency === tokenBLower ||
         quoteCurrency === tokenBLower)
     })
+  }
+
+  // Check if a token pair exists
+  async _existTokenPair ({ tokenA, tokenB }) {
+    let matchingPairs = await this._getMatchingPairs({ tokenA, tokenB })
+
+    return matchingPairs.length > 0
+  }
+
+  // Check token order to get pair info from Huobi
+  async _isTokenOrderInverted ({ tokenA, tokenB }) {
+    debug('Check token order for %s-%s', tokenA, tokenB)
+    const tokenALower = tokenA.toLowerCase()
+    const tokenBLower = tokenB.toLowerCase()
+
+    let matchingPairs = await this._getMatchingPairs({ tokenA, tokenB })
 
     if (matchingPairs.length === 0) {
       throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB)
