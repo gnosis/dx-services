@@ -24,11 +24,20 @@ async function _doGetPrice ({ tokenA, tokenB }, feeds) {
   return _getPriceRepo(bestFeed)
     .getPrice({ tokenA, tokenB })
     .catch(error => {
+      const msg = 'Error getting the price from "%s", remaining feeds: %s'
+      const params = [ bestFeed, remainingFeeds.join(',') ]
+
       auctionLogger.error({
         sellToken: tokenA,
         buyToken: tokenB,
-        msg: 'Error getting the price from "%s", remaining feeds: %s',
-        params: [ bestFeed, remainingFeeds.join(',') ],
+        msg,
+        params       
+      })
+      auctionLogger.warn({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        msg,
+        params,
         error
       })
 
