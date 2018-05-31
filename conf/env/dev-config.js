@@ -7,7 +7,11 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
+const SLACK_CHANNEL_DX_BOTS = 'GA5J9F13J'
+
 module.exports = {
   ENVIRONMENT,
-  MARKETS
+  MARKETS,
+
+  SLACK_CHANNEL_DX_BOTS
 }
