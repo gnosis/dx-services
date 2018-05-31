@@ -35,6 +35,30 @@ class PriceRepoBitfinex {
   }
 
   async getPrice ({ tokenA, tokenB }) {
+    const pairABExist = await this._existTokenPair({ tokenA, tokenB })
+
+    if (pairABExist) {
+      return this._getPrice({ tokenA, tokenB })
+    } else {
+      const [ pairAEthExist, pairBEthExist ] = await Promise.all([
+        this._existTokenPair({ tokenA, tokenB: 'ETH' }),
+        this._existTokenPair({ tokenA: tokenB, tokenB: 'ETH' })
+      ])
+      if (pairAEthExist && pairBEthExist) {
+        const [ tokenAEth, tokenBEth ] = await Promise.all([
+          this._getPrice({ tokenA, tokenB: 'ETH' }),
+          this._getPrice({ tokenA: tokenB, tokenB: 'ETH' })
+        ])
+
+        return tokenAEth / tokenBEth
+      } else {
+        throw Error('No matching markets in Bitfinex: ' + tokenA + '-' + tokenB +
+        '. tokenA-ETH exist: ' + pairAEthExist + ' tokenB-ETH exist: ' + pairBEthExist)
+      }
+    }
+  }
+
+  async _getPrice ({ tokenA, tokenB }) {
     debug('Get price for %s-%s', tokenA, tokenB)
 
     let invertTokens = await this._isTokenOrderInverted({ tokenA, tokenB })
@@ -57,17 +81,31 @@ class PriceRepoBitfinex {
     return closePrice.toString()
   }
 
-  // Check token order to get pair info from Bitfinex
-  async _isTokenOrderInverted ({ tokenA, tokenB }) {
-    debug('Check token order for %s-%s', tokenA, tokenB)
+  // get Matching Pairs abstraction to reuse code
+  async _getMatchingPairs ({ tokenA, tokenB }) {
     const sameOrderPair = (tokenA + tokenB).toLowerCase()
     const invertedOrderPair = (tokenB + tokenA).toLowerCase()
 
     const symbols = await this.getSymbols()
 
-    let matchingPairs = symbols.filter(pair => {
+    return symbols.filter(pair => {
       return (pair === sameOrderPair || pair === invertedOrderPair)
     })
+  }
+
+  // Check if a token pair exists
+  async _existTokenPair ({ tokenA, tokenB }) {
+    let matchingPairs = await this._getMatchingPairs({ tokenA, tokenB })
+
+    return matchingPairs.length > 0
+  }
+
+  // Check token order to get pair info from Bitfinex
+  async _isTokenOrderInverted ({ tokenA, tokenB }) {
+    debug('Check token order for %s-%s', tokenA, tokenB)
+    const invertedOrderPair = (tokenB + tokenA).toLowerCase()
+
+    let matchingPairs = await this._getMatchingPairs({ tokenA, tokenB })
 
     if (matchingPairs.length === 0) {
       throw Error('No matching markets in Bitfinex: ' + tokenA + '-' + tokenB)

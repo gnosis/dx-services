@@ -24,6 +24,7 @@ test('It should throw an error for unknown Crypto markets', async () => {
   try {
     await priceRepo.getPrice({tokenA: 'XBT', tokenB: 'OMG'})
   } catch (e) {
-    expect(e).toEqual(new Error('No matching markets in Huobi: XBT-OMG'))
+    expect(e).toEqual(
+      new Error('No matching markets in Huobi: XBT-OMG. tokenA-ETH exist: false tokenB-ETH exist: true'))
   }
 })

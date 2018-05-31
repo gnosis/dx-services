@@ -35,6 +35,31 @@ class PriceRepoBinance {
   }
 
   async getPrice ({ tokenA, tokenB }) {
+    const pairABExist = await this._existTokenPair({ tokenA, tokenB })
+
+    if (pairABExist) {
+      return this._getPrice({ tokenA, tokenB })
+    } else {
+      const [ pairAEthExist, pairBEthExist ] = await Promise.all([
+        this._existTokenPair({ tokenA, tokenB: 'ETH' }),
+        this._existTokenPair({ tokenA: tokenB, tokenB: 'ETH' })
+      ])
+
+      if (pairAEthExist && pairBEthExist) {
+        const [ tokenAEth, tokenBEth ] = await Promise.all([
+          this._getPrice({ tokenA, tokenB: 'ETH' }),
+          this._getPrice({ tokenA: tokenB, tokenB: 'ETH' })
+        ])
+
+        return tokenAEth / tokenBEth
+      } else {
+        throw Error('No matching markets in Binance: ' + tokenA + '-' + tokenB +
+        '. tokenA-ETH exist: ' + pairAEthExist + ' tokenB-ETH exist: ' + pairBEthExist)
+      }
+    }
+  }
+
+  async _getPrice ({ tokenA, tokenB }) {
     debug('Get price for %s-%s', tokenA, tokenB)
 
     let invertTokens = await this._isTokenOrderInverted({ tokenA, tokenB })
@@ -57,15 +82,14 @@ class PriceRepoBinance {
     return closePrice.toString()
   }
 
-  // Check token order to get pair info from Binance
-  async _isTokenOrderInverted ({ tokenA, tokenB }) {
-    debug('Check token order for %s-%s', tokenA, tokenB)
+  // get Matching Pairs abstraction to reuse code
+  async _getMatchingPairs ({ tokenA, tokenB }) {
     const tokenALower = tokenA.toUpperCase()
     const tokenBLower = tokenB.toUpperCase()
 
     const symbols = await this.getSymbols()
 
-    let matchingPairs = symbols.filter(pair => {
+    return symbols.filter(pair => {
       const baseAsset = pair['baseAsset']
       const quoteAsset = pair['quoteAsset']
       return (
@@ -75,6 +99,22 @@ class PriceRepoBinance {
         baseAsset === tokenBLower ||
         quoteAsset === tokenBLower)
     })
+  }
+
+  // Check if a token pair exists
+  async _existTokenPair ({ tokenA, tokenB }) {
+    let matchingPairs = await this._getMatchingPairs({ tokenA, tokenB })
+
+    return matchingPairs.length > 0
+  }
+
+  // Check token order to get pair info from Binance
+  async _isTokenOrderInverted ({ tokenA, tokenB }) {
+    debug('Check token order for %s-%s', tokenA, tokenB)
+    const tokenALower = tokenA.toUpperCase()
+    const tokenBLower = tokenB.toUpperCase()
+
+    let matchingPairs = await this._getMatchingPairs({ tokenA, tokenB })
 
     if (matchingPairs.length === 0) {
       throw Error('No matching markets in Binance: ' + tokenA + '-' + tokenB)
