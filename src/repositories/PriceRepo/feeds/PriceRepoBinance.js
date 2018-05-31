@@ -53,7 +53,8 @@ class PriceRepoBinance {
 
         return tokenAEth / tokenBEth
       } else {
-        throw Error('No matching markets in Binance: ' + tokenA + '-' + tokenB)
+        throw Error('No matching markets in Binance: ' + tokenA + '-' + tokenB +
+        '. tokenA-ETH exist: ' + pairAEthExist + ' tokenB-ETH exist: ' + pairBEthExist)
       }
     }
   }

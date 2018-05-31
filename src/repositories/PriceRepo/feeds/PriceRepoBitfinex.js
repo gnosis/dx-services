@@ -52,7 +52,8 @@ class PriceRepoBitfinex {
 
         return tokenAEth / tokenBEth
       } else {
-        throw Error('No matching markets in Bitfinex: ' + tokenA + '-' + tokenB)
+        throw Error('No matching markets in Bitfinex: ' + tokenA + '-' + tokenB +
+        '. tokenA-ETH exist: ' + pairAEthExist + ' tokenB-ETH exist: ' + pairBEthExist)
       }
     }
   }

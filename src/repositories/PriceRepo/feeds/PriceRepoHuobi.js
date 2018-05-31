@@ -52,7 +52,8 @@ class PriceRepoHuobi {
 
         return tokenAEth / tokenBEth
       } else {
-        throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB)
+        throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB +
+        '. tokenA-ETH exist: ' + pairAEthExist + ' tokenB-ETH exist: ' + pairBEthExist)
       }
     }
   }
