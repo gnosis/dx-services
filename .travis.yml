@@ -25,6 +25,9 @@ after_success:
     elif [ "$TRAVIS_BRANCH" == "develop" ]; then
       docker tag dx-services gnosispm/dx-services:develop;
       docker push gnosispm/dx-services:develop;
+    elif [[ $TRAVIS_TAG = $TRAVIS_BRANCH ]]; then
+      docker tag dx-services gnosispm/dx-services:$TRAVIS_TAG;
+      docker push gnosispm/dx-services:$TRAVIS_TAG;
     fi
   fi
 env:
