@@ -356,7 +356,6 @@ class AuctionRepoMock {
   }
 
   async getFeeRatio ({ address }) {
-    console.log('address: ', address)
     return [new BigNumber('1'), new BigNumber('200')]
   }
 

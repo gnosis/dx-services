@@ -178,6 +178,23 @@ test('It should get balances for all currencies of an account', async () => {
   expect(accountBalance).toEqual(EXPECTED_ACCOUNT_BALANCES)
 })
 
+test('It should get current price in USD', async () => {
+  const { dxInfoService } = await setupPromise
+
+  dxInfoService._auctionRepo = auctionRepoMock
+
+  const token = 'WETH'
+  const amount = new BigNumber('2e18')
+  const price = PRICES_IN_USD.find(price => {
+    return price.token === token
+  })
+  const EXPECTED_PRICE_IN_USD = amount.mul(price.price).div(1e18)
+
+  const priceInUSD = await dxInfoService.getPriceInUSD({
+    token, amount})
+  expect(priceInUSD).toEqual(EXPECTED_PRICE_IN_USD)
+})
+
 test('It should get current fee ratio for an user', async () => {
   const { dxInfoService } = await setupPromise
 
@@ -206,6 +223,8 @@ const currentRdnWethAuctionInMockIndex = auctionsMockData.auctions['RDN-WETH'].l
 const CURRENT_RDN_WETH_AUCTION = auctionsMockData.auctions['RDN-WETH'][currentRdnWethAuctionInMockIndex]
 
 const CURRENT_WETH_RDN_AUCTION = auctionsMockData.auctions['WETH-RDN'][currentRdnWethAuctionInMockIndex]
+
+const PRICES_IN_USD = auctionsMockData.pricesInUSD
 
 const EXPECTED_RDN_WETH_MARKET = {
   auction: {
