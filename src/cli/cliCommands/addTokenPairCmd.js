@@ -6,7 +6,7 @@ const WORKING_DIR = process.cwd()
 const NETWORK = process.env.NETWORK ? process.env.NETWORK : 'local'
 
 function registerCommand ({ cli, instances, logger }) {
-  cli.command('add-token-pair', 'Add a new token pair from a given account', yargs => {
+  cli.command('add-token-pair', 'Add a new token pair from the mnemonic account', yargs => {
     yargs.option('token-pair', {
       type: 'string',
       describe: 'The token pair symbols, i.e. RDN-WETH'

@@ -519,6 +519,18 @@ class DxInfoService {
     return this._ethereumRepo.balanceOf({ account })
   }
 
+  async getAccountBalanceForTokenNotDeposited ({ tokenAddress, account }) {
+    return this._ethereumRepo.tokenBalanceOf({ tokenAddress, account })
+  }
+
+  async getTokenTotalSupply ({ tokenAddress }) {
+    return this._ethereumRepo.tokenTotalSupply({ tokenAddress })
+  }
+
+  async getTokenAllowance ({ tokenAddress, owner, spender }) {
+    return this._ethereumRepo.tokenAllowance({ tokenAddress, owner, spender })
+  }
+
   async getAccountBalanceForToken ({ token, address }) {
     return this._auctionRepo.getBalance({
       token,

@@ -30,7 +30,7 @@ function registerCommand ({ cli, instances, logger }) {
       dxInfoService
     } = instances
 
-    // Get data 
+    // Get data
     const countDefault = countParam || 5
     let fromAuction, count, reverseResult
     if (from !== undefined) {
@@ -86,7 +86,7 @@ function registerCommand ({ cli, instances, logger }) {
         } else {
           priceIncrementStr = ''
         }
-  
+
         logger.info(
           '\t%d. %s%s',
           auctionIndex,

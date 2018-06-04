@@ -34,7 +34,6 @@ async function run ({
   printTime,
   printState,
   printAddresses,
-  printBalances,
   setAuctionRunningAndFundUser,
   fundUser1,
   addTokens,
@@ -51,7 +50,6 @@ async function run ({
     .version(getVersion(), '-v, --version')
     .option('-n, --now', 'Show current time')
     .option('-a, --addresses', 'Addresses for main contracts and tokens')
-    .option('-b, --balances', 'Balances for all known tokens (i.e --balances false)')
     .option('-I, --setup', 'Basic setup for testing porpouses. Set the auction to RUNNING and ensures the user has funding')
     .option('-$, --setup-funding', 'Ensures the test user has funding')
     .option('-M, --send <token>,<amount>[,<to-account>[,<from-account>]]', 'Send a token to an arbitrary account (i.e. --send WETH,0.1,0xf17f52151ebef6c7334fad080c5704d77216b732) ', list)
@@ -106,12 +104,6 @@ async function run ({
   } else if (commander.addresses) {
     // Addresses
     await printAddresses()
-  } else if (commander.balances) {
-    // Balances
-    // await printBalances({ accountName: 'DX', account: dx.address, verbose: false })
-    // await printBalances({ accountName: 'DX (master)', account: dxMaster.address, verbose: false })
-    // await printBalances({ accountName: 'Owner', account: owner, verbose: false })
-    await printBalances({ accountName: 'Bot account', account: botAccount, verbose: false })
   } else if (commander.setup) {
     // Setup for testing
     await setAuctionRunningAndFundUser({})
@@ -125,23 +117,11 @@ async function run ({
     const fromAddress = fromAddressOpc || owner
     const toAddress = toAddressOpc || botAccount
 
-    await printBalances({
-      accountName: 'Balance before funding',
-      account: toAddress,
-      verbose: false
-    })
-
     await dxTradeService.sendTokens({
       token,
       amount: amount * 1e18,
       fromAddress: fromAddress || owner,
       toAddress: toAddress || botAccount
-    })
-
-    await printBalances({
-      accountName: 'Balance before funding',
-      account: toAddress,
-      verbose: false
     })
   } else if (commander.fund) {
     // Fund account
@@ -149,24 +129,12 @@ async function run ({
     const amount = parseFloat(amountString)
     const accountAddress = accountAddressOpt || botAccount
 
-    await printBalances({
-      accountName: 'Balance before funding',
-      account: accountAddress,
-      verbose: false
-    })
-
     const newBalance = await dxTradeService.deposit({
       token,
       amount: amount * 1e18,
       accountAddress
     })
     debug('New Balance: %d %s', newBalance, token)
-
-    await printBalances({
-      accountName: 'Balance after funding',
-      account: accountAddress,
-      verbose: false
-    })
   } else if (commander.fundBots) {
     // Fund the user 1
     await fundUser1()
