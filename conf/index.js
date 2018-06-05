@@ -59,7 +59,9 @@ const networkConfig = network ? require(`./network/${network}-config`) : {}
 const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
 const markets = envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
-const envVars = getEnvVars(tokens)
+let envVars = getEnvVars(tokens)
+const slackConfig = getSlackConfig(envVars)
+envVars = Object.assign({}, envVars, slackConfig)
 debug('markets: %o', markets)
 // debug('tokens: %o', tokens)
 // debug('envVars: %o', envVars)
@@ -155,6 +157,19 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
     }
     return tokenAddresses
   }, {})
+}
+
+function getSlackConfig (envVars) {
+  let slackConfig
+  if (envVars.SLACK_CHANNEL_DX_BOTS) {
+    slackConfig.SLACK_CHANNEL_BOT_FUNDING = envVars.SLACK_CHANNEL_DX_BOTS
+    slackConfig.SLACK_CHANNEL_AUCTIONS_REPORT = envVars.SLACK_CHANNEL_DX_BOTS
+  }
+  if (envVars.SLACK_CHANNEL_DX_BOTS_DEV) {
+    slackConfig.SLACK_CHANNEL_BOT_TRANSACTIONS = envVars.SLACK_CHANNEL_DX_BOTS_DEV
+    slackConfig.SLACK_CHANNEL_OPERATIONS = envVars.SLACK_CHANNEL_DX_BOTS_DEV
+  }
+  return slackConfig
 }
 
 // console.log(config)
