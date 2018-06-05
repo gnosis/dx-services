@@ -211,5 +211,11 @@ Any idea, proposal or colaboration will be welcome.
 Also, you are encouraged to participate in the [Gitter Channel for the Dutch X](https://gitter.im/gnosis/DutchX).
 
 # Contributors
-* [Angel Rodriguez](https://github.com/anxolin)
-* [Daniel Sanchez](https://github.com/dasanra)
+- Stefan ([Georgi87](https://github.com/Georgi87))
+- Martin ([koeppelmann](https://github.com/koeppelmann))
+- Anxo ([anxolin](https://github.com/anxolin))
+- Dani ([dasanra](https://github.com/dasanra))
+- Dominik ([dteiml](https://github.com/dteiml))
+- David ([W3stside](https://github.com/w3stside))
+- Dmitry ([Velenir](https://github.com/Velenir))
+- Alexander ([josojo](https://github.com/josojo))
