@@ -60,8 +60,10 @@ const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
 const markets = envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 let envVars = getEnvVars(tokens)
+
 const slackConfig = getSlackConfig(envVars)
 envVars = Object.assign({}, envVars, slackConfig)
+
 debug('markets: %o', markets)
 // debug('tokens: %o', tokens)
 // debug('envVars: %o', envVars)
@@ -160,7 +162,7 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
 }
 
 function getSlackConfig (envVars) {
-  let slackConfig
+  let slackConfig = {}
   if (envVars.SLACK_CHANNEL_DX_BOTS) {
     slackConfig.SLACK_CHANNEL_BOT_FUNDING = envVars.SLACK_CHANNEL_DX_BOTS
     slackConfig.SLACK_CHANNEL_AUCTIONS_REPORT = envVars.SLACK_CHANNEL_DX_BOTS
