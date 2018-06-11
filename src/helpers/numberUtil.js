@@ -6,7 +6,7 @@ const HUNDRED = new BigNumber(100)
 const TEN_EXP_18 = new BigNumber(1e18)
 
 function toBigNumber (num) {
-  return isBigNumber(num) ? num : new BigNumber(num)
+  return isBigNumber(num) ? num : new BigNumber(num.toString())
 }
 
 function toBigNumberFraction (fraction, inDecimal = true) {
