@@ -29,7 +29,7 @@ function registerCommand ({ cli, instances, logger }) {
 
       logger.info(`Sell %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
         amount,
-        buyToken,
+        sellToken,
         'auction ' + auctionIndex,
         botAccount
       )
