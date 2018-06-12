@@ -22,7 +22,7 @@ info:
       repositories and bots to interact with DX.
       * [Github: dx-react](https://github.com/gnosis/dx-react): Front end web
       application for the Dutch X seller interface
-  version: 0.1-SNAPSHOT
+  version: '0.1'
   title: Dutch X API
   termsOfService: 'https://dutch.d.exchange/terms/'
   contact:
@@ -182,8 +182,8 @@ paths:
             items:
               type: object
               required:
-               - auctionIndex
-               - price
+                - auctionIndex
+                - price
               properties:
                 auctionIndex:
                   type: integer
@@ -627,6 +627,19 @@ paths:
           description: successful operation
           schema:
             type: object
+            required:
+              - sellerClaims
+              - buyerClaims
+            properties:
+              sellerClaims:
+                type: array
+                items:
+                  $ref: '#/definitions/ClaimObject'
+              buyerClaims:
+                type: array
+                items:
+                  $ref: '#/definitions/ClaimObject'
+
         '404':
           description: There is an unknown token in the token pair
         '412':
@@ -677,8 +690,8 @@ definitions:
   TokenPair:
     type: object
     required:
-     - tokenA
-     - tokenB
+      - tokenA
+      - tokenB
     properties:
       tokenA:
         $ref: '#/definitions/TokenDetails'
@@ -709,6 +722,18 @@ definitions:
         type: string
       nextUri:
         type: string
+  ClaimObject:
+    type: object
+    required:
+      - auctionIndex
+      - amount
+    properties:
+      auctionIndex:
+        type: integer
+        format: int32
+      amount:
+        type: number
+        format: double
 externalDocs:
   description: Find out more about the DutchX in our blog
   url: 'https://blog.gnosis.pm/tagged/dutchx'

@@ -50,19 +50,27 @@ class DxTradeService {
       (acc, { tokenA, tokenB, sellerClaims, buyerClaims }) => {
         const { auctionsAsSeller, auctionsAsBuyer } = acc
 
-        const [ sellerClaimsIndex ] = sellerClaims
+        function _getIndicesList (claims) {
+          return claims.reduce((indices, { auctionIndex }) => {
+            indices.push(auctionIndex)
+            return indices
+          }, [])
+        }
+
+        const sellerClaimsIndices = _getIndicesList(sellerClaims)
         auctionsAsSeller.push({
           sellToken: tokenA,
           buyToken: tokenB,
-          indices: sellerClaimsIndex
+          indices: sellerClaimsIndices
         })
 
-        const [ buyerClaimsIndex ] = buyerClaims
+        const buyerClaimsIndices = _getIndicesList(buyerClaims)
         auctionsAsBuyer.push({
           sellToken: tokenA,
           buyToken: tokenB,
-          indices: buyerClaimsIndex
+          indices: buyerClaimsIndices
         })
+
         return {
           auctionsAsSeller, auctionsAsBuyer
         }

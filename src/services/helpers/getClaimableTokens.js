@@ -15,25 +15,27 @@ async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, lastN
 
   const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
   sellerClaims = sellerClaimsIndex.reduce((acc, auctionIndex, currentIndex) => {
-    const [claimsIndex, claimsAmounts] = acc
     if (marketDetails.auction.isClosed ||
       !auctionIndex.eq(marketDetails.auctionIndex)) {
-      claimsIndex.push(auctionIndex)
-      claimsAmounts.push(sellerClaimsAmounts[currentIndex])
+      acc.push({
+        auctionIndex,
+        amount: sellerClaimsAmounts[currentIndex]
+      })
     }
     return acc
-  }, [[], []])
+  }, [])
 
   const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
   buyerClaims = buyerClaimsIndex.reduce((acc, auctionIndex, currentIndex) => {
-    const [claimsIndex, claimsAmounts] = acc
     if (marketDetails.auction.isClosed ||
       !auctionIndex.eq(marketDetails.auctionIndex)) {
-      claimsIndex.push(auctionIndex)
-      claimsAmounts.push(buyerClaimsAmounts[currentIndex])
+      acc.push({
+        auctionIndex,
+        amount: buyerClaimsAmounts[currentIndex]
+      })
     }
     return acc
-  }, [[], []])
+  }, [])
 
   return {
     sellerClaims,

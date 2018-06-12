@@ -25,22 +25,20 @@ function registerCommand ({ cli, instances, logger }) {
       })
 
       logger.info('Seller claimable tokens:')
-      const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
-      sellerClaimsIndex.forEach((auctionIndex, index) =>
+      sellerClaims.forEach(({ auctionIndex, amount }, index) =>
         _printClaims({
           auctionIndex,
-          amount: sellerClaimsAmounts[index],
+          amount,
           sellToken,
           buyToken
         }, sellToken, logger)
       )
 
       logger.info('Buyer claimable tokens:')
-      const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
-      buyerClaimsIndex.forEach((auctionIndex, index) =>
+      buyerClaims.forEach(({ auctionIndex, amount }, index) =>
         _printClaims({
           auctionIndex,
-          amount: buyerClaimsAmounts[index],
+          amount,
           sellToken: buyToken,
           buyToken: sellToken
         }, buyToken, logger)
