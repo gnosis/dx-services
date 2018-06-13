@@ -1,41 +1,37 @@
 async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, lastNAuctions }) {
   let [
     sellerClaims,
-    buyerClaims
+    buyerClaims,
+    marketDetails
   ] = await Promise.all([
     auctionRepo.getIndicesWithClaimableTokensForSellers({
       sellToken: tokenA, buyToken: tokenB, address, lastNAuctions }),
 
     auctionRepo.getIndicesWithClaimableTokensForBuyers({
-      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions })
+      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions }),
+
+    auctionRepo.getStateInfo({
+      sellToken: tokenA, buyToken: tokenB })
   ])
 
-  const marketDetails = await auctionRepo.getStateInfo({
-    sellToken: tokenA, buyToken: tokenB })
+  function _filterUnfinishedAuctions (claims) {
+    const [ claimsIndices, claimsAmounts ] = claims
 
-  const [ sellerClaimsIndex, sellerClaimsAmounts ] = sellerClaims
-  sellerClaims = sellerClaimsIndex.reduce((acc, auctionIndex, currentIndex) => {
-    if (marketDetails.auction.isClosed ||
-      !auctionIndex.eq(marketDetails.auctionIndex)) {
-      acc.push({
-        auctionIndex,
-        amount: sellerClaimsAmounts[currentIndex]
-      })
-    }
-    return acc
-  }, [])
+    return claimsIndices.reduce((acc, auctionIndex, currentIndex) => {
+      if (marketDetails.auction.isClosed ||
+        marketDetails.auction.isTheoreticalClosed ||
+        !auctionIndex.eq(marketDetails.auctionIndex)) {
+        acc.push({
+          auctionIndex,
+          amount: claimsAmounts[currentIndex]
+        })
+      }
+      return acc
+    }, [])
+  }
 
-  const [ buyerClaimsIndex, buyerClaimsAmounts ] = buyerClaims
-  buyerClaims = buyerClaimsIndex.reduce((acc, auctionIndex, currentIndex) => {
-    if (marketDetails.auction.isClosed ||
-      !auctionIndex.eq(marketDetails.auctionIndex)) {
-      acc.push({
-        auctionIndex,
-        amount: buyerClaimsAmounts[currentIndex]
-      })
-    }
-    return acc
-  }, [])
+  sellerClaims = _filterUnfinishedAuctions(sellerClaims)
+  buyerClaims = _filterUnfinishedAuctions(buyerClaims)
 
   return {
     sellerClaims,
