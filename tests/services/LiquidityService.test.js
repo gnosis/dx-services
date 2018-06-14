@@ -6,6 +6,7 @@ const PriceRepoMock = require('../../src/repositories/PriceRepo/PriceRepoMock')
 const priceRepo = new PriceRepoMock()
 
 const auctionsMockData = require('../data/auctions')
+const clone = require('lodash.clonedeep')
 
 const BigNumber = require('bignumber.js')
 
@@ -149,6 +150,34 @@ test('It should not ensureBuyLiquidity if auction has closed', async () => {
   expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
 })
 
+test('It should ensureBuyLiquidity if auction has only one side closed', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWithOneSideTheoreticalClosed()
+  })
+  // we mock the exchange price repo
+  liquidityService._priceRepo = priceRepo
+
+  // GIVEN a RUNNING auction, with one side theoretical closed and other still running
+  expect(await _hasLowBuyVolume(
+    { sellToken: 'WETH', buyToken: 'RDN' },
+    liquidityService._auctionRepo
+  )).toBeTruthy()
+
+  // WHEN we ensure buy liquidity
+  const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+
+  // THEN bot buys in WETH-RDN market, the pair market we expect
+  const expectedBotBuy = [{
+    buyToken: 'RDN',
+    sellToken: 'WETH'
+  }]
+  expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
+})
+
 test('It should detect concurrency when ensuring liquidiy', async () => {
   const { liquidityService } = await setupPromise
 
@@ -180,7 +209,7 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
   expect(postSellOrder.mock.calls.length).toBe(1)
 })
 
-test('It should not ensure liquidity if auction is not waiting for funding', async () => {
+test('It should not ensure sell liquidity if auction is not waiting for funding', async () => {
   const { liquidityService } = await setupPromise
   // we mock the auction repo
   liquidityService._auctionRepo = auctionRepoMock
@@ -256,54 +285,90 @@ async function _hasLowBuyVolume ({ sellToken, buyToken }, auctionRepo) {
 }
 
 function _getAuctionsWithUnderFundingEthOmg () {
+  let localAuctionsData = clone(auctionsMockData)
+
   // GIVEN a not RUNNING auction, without enough sell liquidiy
-  const currentAuctionEthOmgInMock = auctionsMockData.auctions['WETH-OMG'].length - 1
-  const updatedAuction = Object.assign({}, auctionsMockData.auctions['WETH-OMG'][currentAuctionEthOmgInMock],
+  const currentAuctionEthOmgInMock = localAuctionsData.auctions['WETH-OMG'].length - 1
+  const updatedAuction = Object.assign({}, localAuctionsData.auctions['WETH-OMG'][currentAuctionEthOmgInMock],
     { sellVolume: new BigNumber('0.5e18') })
 
-  auctionsMockData.auctions['WETH-OMG'][currentAuctionEthOmgInMock] = updatedAuction
-  return Object.assign({}, auctionsMockData.auctions,
-    { 'WETH-OMG': auctionsMockData.auctions['WETH-OMG'] })
+  localAuctionsData.auctions['WETH-OMG'][currentAuctionEthOmgInMock] = updatedAuction
+  return Object.assign({}, localAuctionsData.auctions,
+    { 'WETH-OMG': localAuctionsData.auctions['WETH-OMG'] })
 }
 
 function _getAuctionsWhereBotShouldBuyEthRdn () {
+  let localAuctionsData = clone(auctionsMockData)
+
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
-  const currentAuctionEthRdnInMock = auctionsMockData.auctions['WETH-RDN'].length - 1
-  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
+  const currentAuctionEthRdnInMock = localAuctionsData.auctions['WETH-RDN'].length - 1
+  const updatedAuctionEthRdn = Object.assign({}, localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
     { price: {
       numerator: new BigNumber('1000000'),
       denominator: new BigNumber('4275') }
     })
-  const currentAuctionRdnEthInMock = auctionsMockData.auctions['RDN-WETH'].length - 1
-  const updatedAuctionRdnEth = Object.assign({}, auctionsMockData.auctions['RDN-WETH'][currentAuctionRdnEthInMock],
+  const currentAuctionRdnEthInMock = localAuctionsData.auctions['RDN-WETH'].length - 1
+  const updatedAuctionRdnEth = Object.assign({}, localAuctionsData.auctions['RDN-WETH'][currentAuctionRdnEthInMock],
     { price: {
       numerator: new BigNumber('4275'),
       denominator: new BigNumber('1000000') }
     })
-  auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
+  localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
 
-  auctionsMockData.auctions['RDN-WETH'][currentAuctionRdnEthInMock] = updatedAuctionRdnEth
+  localAuctionsData.auctions['RDN-WETH'][currentAuctionRdnEthInMock] = updatedAuctionRdnEth
 
-  return Object.assign({}, auctionsMockData.auctions,
+  return Object.assign({}, localAuctionsData.auctions,
     {
-      'WETH-RDN': auctionsMockData.auctions['WETH-RDN'],
-      'RDN-WETH': auctionsMockData.auctions['RDN-WETH']
+      'WETH-RDN': localAuctionsData.auctions['WETH-RDN'],
+      'RDN-WETH': localAuctionsData.auctions['RDN-WETH']
+    })
+}
+
+function _getAuctionsWithOneSideTheoreticalClosed () {
+  let localAuctionsData = clone(auctionsMockData)
+
+  // GIVEN a RUNNING auction, nearly to close but many tokens to sold
+  const currentAuctionEthRdnInMock = localAuctionsData.auctions['WETH-RDN'].length - 1
+  const updatedAuctionEthRdn = Object.assign({}, localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
+    { price: {
+    // Forced very low price
+      numerator: new BigNumber('1000000'),
+      denominator: new BigNumber('999999999999') }
+    })
+  const currentAuctionRdnEthInMock = localAuctionsData.auctions['RDN-WETH'].length - 1
+  const updatedAuctionRdnEth = Object.assign({}, localAuctionsData.auctions['RDN-WETH'][currentAuctionRdnEthInMock],
+    {
+      price: {
+        numerator: new BigNumber('4275'),
+        denominator: new BigNumber('1000000') },
+      buyVolume: new BigNumber('0.3272420335275e18')
+    })
+  localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
+
+  localAuctionsData.auctions['RDN-WETH'][currentAuctionRdnEthInMock] = updatedAuctionRdnEth
+
+  return Object.assign({}, localAuctionsData.auctions,
+    {
+      'WETH-RDN': localAuctionsData.auctions['WETH-RDN'],
+      'RDN-WETH': localAuctionsData.auctions['RDN-WETH']
     })
 }
 
 function _getClosedAuctions () {
-  const currentAuctionEthRdnInMock = auctionsMockData.auctions['WETH-RDN'].length - 1
-  const updatedAuctionEthRdn = Object.assign({}, auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
+  let localAuctionsData = clone(auctionsMockData)
+
+  const currentAuctionEthRdnInMock = localAuctionsData.auctions['WETH-RDN'].length - 1
+  const updatedAuctionEthRdn = Object.assign({}, localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
     { price: {
       numerator: new BigNumber('1000000'),
       denominator: new BigNumber('4275')
     },
     buyVolume: new BigNumber('67.7034e18')
     })
-  auctionsMockData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
+  localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
 
-  return Object.assign({}, auctionsMockData.auctions,
+  return Object.assign({}, localAuctionsData.auctions,
     {
-      'WETH-RDN': auctionsMockData.auctions['WETH-RDN']
+      'WETH-RDN': localAuctionsData.auctions['WETH-RDN']
     })
 }

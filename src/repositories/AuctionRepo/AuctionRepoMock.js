@@ -301,8 +301,9 @@ class AuctionRepoMock {
 
     const currentAuctionInMockIndex = this._auctions[sellToken + '-' + buyToken].length - 1
     let auction = this._auctions[sellToken + '-' + buyToken][currentAuctionInMockIndex]
-    let newBuyVolume = auction.buyVolume.add(amount)
-    Object.assign(auction.buyVolume, newBuyVolume)
+    auction.buyVolume = auction.buyVolume.add(amount)
+    // let newBuyVolume = auction.buyVolume.add(amount)
+    // auction.buyVolume = Object.assign({}, auction.buyVolume, newBuyVolume)
 
     return amount
   }
