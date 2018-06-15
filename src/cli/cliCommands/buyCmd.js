@@ -2,14 +2,13 @@ const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'buy <amount> <token-pair> [auction-index]',
+    'buy <amount> <token-pair>',
     'Buy in a auction for a token pair',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
       cliUtils.addPositionalByName('token-pair', yargs)
-      cliUtils.addPositionalByName('auction-index', yargs)
     }, async function (argv) {
-      const { amount, tokenPair, auctionIndex: auctionIndexAux } = argv
+      const { amount, tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
       const {
         botAccount,
@@ -18,14 +17,9 @@ function registerCommand ({ cli, instances, logger }) {
       } = instances
 
       // Get auction index
-      let auctionIndex
-      if (auctionIndexAux) {
-        auctionIndex = auctionIndexAux
-      } else {
-        auctionIndex = await dxInfoService.getAuctionIndex({
-          sellToken, buyToken
-        })
-      }
+      const auctionIndex = await dxInfoService.getAuctionIndex({
+        sellToken, buyToken
+      })
 
       logger.info(`Buy %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
         amount,
