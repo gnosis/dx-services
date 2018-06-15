@@ -12,7 +12,8 @@ let app
 
 // Run app
 instanceFactory({
-  createReportService: false
+  // FIXME we should disable this once getAuctionsInfo is implemented outside this servie
+  createReportService: true
 }).then(instances => {
     // Create the app
     app = new App(instances)
@@ -40,6 +41,8 @@ class App {
     liquidityService,
     dxInfoService,
     dxTradeService,
+    // FIXME remove once getAuctionsInfo is implemented outside this service
+    reportService,
 
     // Events
     eventBus,
@@ -55,6 +58,7 @@ class App {
     // Services
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
+    this._reportService = reportService
 
     // API
     this._cacheTimeouts = {
@@ -68,6 +72,7 @@ class App {
       host: this._config.PUBLIC_API_HOST,
       dxInfoService: this._dxInfoService,
       dxTradeService: this._dxTradeService,
+      reportService: this._reportService,
       cacheTimeouts: this._cacheTimeouts
     })
   }

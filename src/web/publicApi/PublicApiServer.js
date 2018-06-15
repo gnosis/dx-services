@@ -6,17 +6,20 @@ const Server = require('../helpers/Server')
 const createRouter = require('../helpers/createRouter')
 
 class PublicApiServer extends Server {
-  constructor ({ port = 8080, host, dxInfoService, dxTradeService, cacheTimeouts }) {
+  constructor ({ port = 8080, host, dxInfoService, dxTradeService, reportService, cacheTimeouts }) {
     super({ port, host })
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
+    // FIXME delete report service once getAuctionsInfo is implemented outside this service
+    this._reportService = reportService
     this._cacheTimeouts = cacheTimeouts
   }
 
   async _registerRoutes ({ app, contextPath }) {
     const services = {
       dxInfoService: this._dxInfoService,
-      dxTradeService: this._dxTradeService
+      dxTradeService: this._dxTradeService,
+      reportService: this._reportService
     }
 
     // Get routes

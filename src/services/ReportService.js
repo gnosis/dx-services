@@ -29,7 +29,7 @@ class ReportService {
     this._botAddressPromise = getBotAddress(ethereumRepo._ethereumClient)
   }
 
-  async getAuctionsReportInfo ({ fromDate, toDate }) {
+  async getAuctionsReportInfo ({ fromDate, toDate, filterBotInfo }) {
     _assertDatesOverlap(fromDate, toDate)
 
     return new Promise((resolve, reject) => {
@@ -38,8 +38,23 @@ class ReportService {
         fromDate,
         toDate,
         addAuctionInfo (auctionInfo) {
-          // logger.debug('Add auction info: ', auctionInfo)
-          auctions.push(auctionInfo)
+          // FIXME we filter this info to show it in the publicApi
+          if (filterBotInfo) {
+            const filteredAuctionInfo = Object.assign(
+              {},
+              auctionInfo,
+              {
+                botSellVolume: undefined,
+                botBuyVolume: undefined,
+                ensuredSellVolumePercentage: undefined,
+                ensuredBuyVolumePercentage: undefined
+              }
+            )
+            // logger.debug('Add auction info: ', auctionInfo)
+            auctions.push(filteredAuctionInfo)
+          } else {
+            auctions.push(auctionInfo)
+          }
         },
         end (error) {
           logger.debug('Finish getting the info: ', error ? 'Error' : 'Success')
@@ -89,7 +104,7 @@ class ReportService {
   sendAuctionsReportToSlack ({ fromDate, toDate, senderInfo }) {
     _assertDatesOverlap(fromDate, toDate)
     const id = requestId++
-   
+
     // Generate report file and send it to slack (fire and forget)
     logger.debug('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
       id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
@@ -215,7 +230,7 @@ class ReportService {
             allBotSellOrders: botSellOrders,
             addAuctionInfo
           }
-          
+
           // Generate report for both markets
           return Promise.all([
             // Report for tokenA-tokenB
@@ -233,7 +248,7 @@ class ReportService {
             }))
           ])
         })
-  
+
       return Promise.all(generateInfoPromises)
     } else {
       logger.debug("There aren't any auctions between %s and %s",

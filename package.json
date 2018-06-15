@@ -36,7 +36,7 @@
     "cli2-rinkeby": "DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService NETWORK=rinkeby node tests/playground/cli/bot-cli.js",
     "cli2-debug": "DEBUG=* node tests/playground/cli/bot-cli.js",
     "data": "CACHE_ENABLED=false DEBUG=ERROR-*,WARN-*,*-dx-service:tests*,*:DxTradeService node tests/playground/cli/bot-cli.js --setup",
-    "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500'",
+    "rpc": "ganache-cli -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500000000000'",
     "console": "cd node_modules/@gnosis.pm/dx-contracts && truffle console",
     "networks": "cd node_modules/@gnosis.pm/dx-contracts && truffle network",
     "networks-clean": "cd node_modules/@gnosis.pm/dx-contracts && truffle network --clean",
