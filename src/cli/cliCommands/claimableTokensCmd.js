@@ -23,8 +23,9 @@ function registerCommand ({ cli, instances, logger }) {
         address: botAccount,
         lastNAuctions: count
       })
-
-      logger.info('Seller claimable tokens:')
+      sellerClaims.length > 0
+        ? logger.info('Seller claimable tokens for %s-%s:', sellToken, buyToken)
+        : logger.info('No seller claimable tokens for %s-%s', sellToken, buyToken)
       sellerClaims.forEach(({ auctionIndex, amount }, index) =>
         _printClaims({
           auctionIndex,
@@ -34,13 +35,15 @@ function registerCommand ({ cli, instances, logger }) {
         }, sellToken, logger)
       )
 
-      logger.info('Buyer claimable tokens:')
+      buyerClaims.length > 0
+        ? logger.info('Buyer claimable tokens for %s-%s:', sellToken, buyToken)
+        : logger.info('No buyer claimable tokens for %s-%s', sellToken, buyToken)
       buyerClaims.forEach(({ auctionIndex, amount }, index) =>
         _printClaims({
           auctionIndex,
           amount,
-          sellToken: buyToken,
-          buyToken: sellToken
+          sellToken,
+          buyToken
         }, buyToken, logger)
       )
     })
