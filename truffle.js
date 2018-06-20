@@ -17,5 +17,6 @@ module.exports = truffleConfig({
   mnemonic,
   gasPriceGWei,
   gas,
-  aditionalNetwork
+  aditionalNetwork,
+  optimizedEnabled: true
 })
