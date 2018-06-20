@@ -8,7 +8,7 @@ const deployOwl = require('@gnosis.pm/owl-token/src/migrations/3_deploy_OWL.js')
 const deployAirdrop = require('@gnosis.pm/owl-token/src/migrations/4_deploy_OWL_airdrop.js')
 const setupMinter = require('@gnosis.pm/owl-token/src/migrations/5_set_airdrop_as_OWL_minter')
 
-const migrationsDx = require('../node_modules/@gnosis.pm/dx-contracts/src/migrations')
+const migrationsDx = require('../node_modules/@gnosis.pm/dx-contracts/src/migrations/index')
 
 module.exports = (deployer, network, accounts) => {
   if (network === 'development') {
@@ -22,7 +22,7 @@ module.exports = (deployer, network, accounts) => {
       gnoLockPeriodInHours: process.env.GNO_LOCK_PERIOD_IN_HOURS,
       thresholdNewTokenPairUsd: process.env.GNO_LOCK_PERIOD_IN_HOURS,
       thresholdAuctionStartUsd: process.env.GNO_LOCK_PERIOD_IN_HOURS
-    }    
+    }
 
     deployer
       .then(() => deployMath(deployParams))
@@ -33,15 +33,14 @@ module.exports = (deployer, network, accounts) => {
       .then(() => setupMinter(deployParams))
       .then(() => migrationsDx(deployParams))
 
-    return migrationsDx({
-      artifacts,
-      deployer,
-      network,
-      accounts,
-      web3,
-      
-    })
-
+    // return migrationsDx({
+    //   artifacts,
+    //   deployer,
+    //   network,
+    //   accounts,
+    //   web3,
+    //
+    // })
   } else {
     throw new Error('Migrations are just for development. Current network is %s', network)
   }

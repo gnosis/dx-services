@@ -43,7 +43,7 @@
     "networks-clean": "cd node_modules/@gnosis.pm/dx-contracts && truffle network --clean",
     "contracts-inject-network": "cd node_modules/@gnosis.pm/dx-contracts/ && node scripts/inject_network_info.js",
     "contracts-compile": "cd node_modules/@gnosis.pm/dx-contracts/ && truffle compile",
-    "contracts-deploy": "cd node_modules/@gnosis.pm/dx-contracts/ && truffle deploy",
+    "contracts-deploy": "cd node_modules/@gnosis.pm/dx-contracts/ && truffle migrate",
     "setup": "npm run contracts-deploy && npm run data",
     "tasks-claimFunds": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/claimFunds.js",
     "tasks-generateWeeklyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateWeeklyReport.js",
@@ -59,9 +59,6 @@
   "license": "MIT",
   "dependencies": {
     "@gnosis.pm/dx-contracts": "^0.15.1",
-    "@gnosis.pm/util-contracts": "^1.0.1",
-    "@gnosis.pm/gno-token": "^1.0.1",
-    "@gnosis.pm/owl-token": "^1.0.2",    
     "@slack/client": "^4.2.2",
     "commander": "^2.15.0",
     "cors": "^2.8.4",

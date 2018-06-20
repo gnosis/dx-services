@@ -16,9 +16,9 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@gnosis.pm/dx-contracts@^0.15.0":
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-0.15.0.tgz#16b9531d84aa9cc5f78147c89fde9028827f4080"
+"@gnosis.pm/dx-contracts@^0.15.1":
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-0.15.1.tgz#1b7e6c72c850a4cac8d373c0e44d31da430362d7"
   dependencies:
     "@gnosis.pm/gno-token" "^1.0.1"
     "@gnosis.pm/owl-token" "^1.0.2"
