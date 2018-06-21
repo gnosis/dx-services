@@ -61,11 +61,11 @@ const BOTS_API_PORT = 8081
 const BOTS_API_HOST = '0.0.0.0'
 
 // contracts
-const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
-const CONTRACTS_UTILS_DIR = '@gnosis.pm/util-contracts'
-const CONTRACTS_GNO_DIR = '@gnosis.pm/gno-token'
-const CONTRACTS_OWL_DIR = '@gnosis.pm/owl-token'
-const CONTRACTS_DX_DIR = '@gnosis.pm/dx-contracts'
+const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
+const CONTRACTS_UTILS_DIR = 'node_modules/@gnosis.pm/util-contracts/build/contracts'
+const CONTRACTS_GNO_DIR = 'node_modules/@gnosis.pm/gno-token/build/contracts'
+const CONTRACTS_OWL_DIR = 'node_modules/@gnosis.pm/owl-token/build/contracts'
+const CONTRACTS_DX_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
 
 const CONTRACT_DEFINITIONS = {
   StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
