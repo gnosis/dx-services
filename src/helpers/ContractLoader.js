@@ -5,6 +5,8 @@ const logger = new Logger(loggerNamespace)
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 const assert = require('assert')
+const path = require('path')
+const contract = require('truffle-contract')
 
 class ContractLoader {
   constructor ({
@@ -30,6 +32,7 @@ class ContractLoader {
   }
 
   async _loadDx () {
+    console.log('Load DX from ', this._contractDefinitions.DutchExchange)
     const dxContract = this._ethereumClient
       .loadContract(this._contractDefinitions.DutchExchange)
 
@@ -58,6 +61,7 @@ class ContractLoader {
     let address = this._erc20TokenAddresses[token]
     if (!address) {
       if (isLocal) {
+        // TODO: Maybe deploy here for testing using tokenContract
         const contract = await this._ethereumClient
           .loadContract(`${this._devContractsBaseDir}/Token${token}`)
 

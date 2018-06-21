@@ -62,17 +62,21 @@ const BOTS_API_HOST = '0.0.0.0'
 
 // contracts
 const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
-const CONTRACTS_DUTCH_EXCHANGE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
+const CONTRACTS_UTILS_DIR = '@gnosis.pm/util-contracts'
+const CONTRACTS_GNO_DIR = '@gnosis.pm/gno-token'
+const CONTRACTS_OWL_DIR = '@gnosis.pm/owl-token'
+const CONTRACTS_DX_DIR = '@gnosis.pm/dx-contracts'
+
 const CONTRACT_DEFINITIONS = {
-  StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
-  DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',
-  PriceOracleInterface: CONTRACTS_DUTCH_EXCHANGE_DIR + '/PriceOracleInterface',
-  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchangeProxy',
-  EtherToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/EtherToken',
-  TokenFRT: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenFRT',
-  TokenOWL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWL',
-  TokenOWLProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWLProxy',
-  TokenGNO: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenGNO'
+  StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
+  EtherToken: CONTRACTS_UTILS_DIR + '/EtherToken',
+  TokenGNO: CONTRACTS_GNO_DIR + '/TokenGNO',
+  TokenOWL: CONTRACTS_OWL_DIR + '/TokenOWL',
+  TokenOWLProxy: CONTRACTS_OWL_DIR + '/TokenOWLProxy',
+  TokenFRT: CONTRACTS_DX_DIR + '/TokenFRT',
+  PriceOracleInterface: CONTRACTS_DX_DIR + '/PriceOracleInterface',
+  DutchExchangeProxy: CONTRACTS_DX_DIR + '/DutchExchangeProxy',
+  DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange'
 }
 
 const DX_CONTRACT_ADDRESS = null
@@ -132,8 +136,8 @@ module.exports = {
   GAS_PRICE_GWEI,
 
   // Contracts
-  CONTRACTS_BASE_DIR,
   CONTRACT_DEFINITIONS,
+  CONTRACTS_BASE_DIR,
 
   // Ethereum config
   ETHEREUM_RPC_URL,
