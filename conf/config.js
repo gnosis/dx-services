@@ -61,13 +61,13 @@ const BOTS_API_PORT = 8081
 const BOTS_API_HOST = '0.0.0.0'
 
 // contracts
-const CONTRACTS_BASE_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
-const CONTRACTS_DUTCH_EXCHANGE_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
+const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
+const CONTRACTS_DUTCH_EXCHANGE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
 const CONTRACT_DEFINITIONS = {
   StandardToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/StandardToken',
   DutchExchange: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchange',
   PriceOracleInterface: CONTRACTS_DUTCH_EXCHANGE_DIR + '/PriceOracleInterface',
-  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/Proxy',
+  DutchExchangeProxy: CONTRACTS_DUTCH_EXCHANGE_DIR + '/DutchExchangeProxy',
   EtherToken: CONTRACTS_DUTCH_EXCHANGE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenFRT',
   TokenOWL: CONTRACTS_DUTCH_EXCHANGE_DIR + '/TokenOWL',

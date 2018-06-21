@@ -1,5 +1,5 @@
 pragma solidity ^0.4.21;
- 
+
 import "@gnosis.pm/util-contracts/contracts/StandardToken.sol";
 import "@gnosis.pm/util-contracts/contracts/EtherToken.sol";
 import "@gnosis.pm/gno-token/contracts/TokenGNO.sol";
@@ -10,6 +10,9 @@ import "@gnosis.pm/dx-contracts/contracts/TokenFRT.sol";
 import "@gnosis.pm/dx-contracts/contracts/DutchExchange.sol";
 import "@gnosis.pm/dx-contracts/contracts/DutchExchangeProxy.sol";
 
+/* Testing tokens */
+import "@gnosis.pm/dx-contracts/contracts/ForTestingOnly/TokenRDN.sol";
+import "@gnosis.pm/dx-contracts/contracts/ForTestingOnly/TokenOMG.sol";
 
 contract Getter {
 }
