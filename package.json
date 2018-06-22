@@ -86,6 +86,7 @@
     "eslint-plugin-node": "^6.0.0",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
+    "ganache-cli": "^6.1.0",
     "jest": "^23.1.0",
     "lodash.clonedeep": "^4.5.0",
     "nodemon": "^1.17.5",
