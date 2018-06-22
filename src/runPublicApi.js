@@ -14,17 +14,17 @@ let app
 instanceFactory({
   createReportService: false
 }).then(instances => {
-    // Create the app
-    app = new App(instances)
+  // Create the app
+  app = new App(instances)
 
-    // Let the app stop gracefully
-    gracefullShutdown.onShutdown(() => {
-      return app.stop()
-    })
-
-    // Start the app
-    return app.start()
+  // Let the app stop gracefully
+  gracefullShutdown.onShutdown(() => {
+    return app.stop()
   })
+
+  // Start the app
+  return app.start()
+})
   .catch(error => {
     // Handle boot errors
     handleError(error)

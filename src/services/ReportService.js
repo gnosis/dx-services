@@ -7,7 +7,6 @@ const formatUtil = require('../helpers/formatUtil')
 const dxFilters = require('../helpers/dxFilters')
 const AuctionsReportRS = require('./helpers/AuctionsReportRS')
 const getTokenOrder = require('../helpers/getTokenOrder')
-// const dateUtil = require('../helpers/dateUtil')
 // const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
 const numberUtil = require('../helpers/numberUtil')
 
@@ -89,7 +88,7 @@ class ReportService {
   sendAuctionsReportToSlack ({ fromDate, toDate, senderInfo }) {
     _assertDatesOverlap(fromDate, toDate)
     const id = requestId++
-   
+
     // Generate report file and send it to slack (fire and forget)
     logger.debug('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
       id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
@@ -215,7 +214,7 @@ class ReportService {
             allBotSellOrders: botSellOrders,
             addAuctionInfo
           }
-          
+
           // Generate report for both markets
           return Promise.all([
             // Report for tokenA-tokenB
@@ -233,7 +232,7 @@ class ReportService {
             }))
           ])
         })
-  
+
       return Promise.all(generateInfoPromises)
     } else {
       logger.debug("There aren't any auctions between %s and %s",

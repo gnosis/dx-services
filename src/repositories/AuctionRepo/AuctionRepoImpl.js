@@ -1,6 +1,5 @@
 const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
-// const dateUtil = require('../../helpers/dateUtil')
 const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../../helpers/AuctionLogger')
 const ethereumEventHelper = require('../../helpers/ethereumEventHelper')

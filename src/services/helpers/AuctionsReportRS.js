@@ -36,7 +36,7 @@ Ensured sell volume${dm}\
 Ensured buy volume\n`
   }
 
-  addAuction ({    
+  addAuction ({
     auctionStart,
     auctionEnd,
     auctionIndex,

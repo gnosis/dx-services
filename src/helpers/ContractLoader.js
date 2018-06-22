@@ -5,8 +5,6 @@ const logger = new Logger(loggerNamespace)
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 const assert = require('assert')
-const path = require('path')
-const contract = require('truffle-contract')
 
 class ContractLoader {
   constructor ({
