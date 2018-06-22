@@ -14,7 +14,7 @@ const NUM_TEST_USERS = 1
 const INITIAL_AMOUNTS = {
   WETH: 20,
   GNO: 750,
-  OWL: 1000,
+  // OWL: 1000,
   MGN: 0,
   RDN: 12000,
   OMG: 1500
@@ -167,11 +167,11 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
 
     const initialAmounts = [
       { token: 'WETH', amount: INITIAL_AMOUNTS['WETH'] },
-      { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] },
-      { token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
+      { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] }
+      //{ token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
       // { token: 'MGN', amount: 2 },
     ]
-    const approveERC20Tokens = ['WETH', 'OWL']
+    const approveERC20Tokens = ['WETH'] // , 'OWL'
     if (supportedTokens.includes('RDN')) {
       approveERC20Tokens.push('RDN')
       initialAmounts.push({ token: 'RDN', amount: INITIAL_AMOUNTS['RDN'] })
