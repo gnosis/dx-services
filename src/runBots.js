@@ -92,7 +92,7 @@ class App {
     // Display some basic info
     const version = await this._dxInfoService.getVersion()
     await this._notifyStart(version)
-    
+
     // Run all the bots
     await Promise.all(
       this._bots.map(bot => bot.start())
@@ -181,8 +181,6 @@ class App {
       balanceCheckBot
     ]
   }
-
-  
 
   async _notifyStart (version) {
     const message = `Starting Bots and Bots API Server v${version} in \

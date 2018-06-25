@@ -35,6 +35,8 @@ basePath: /api/v1
 tags:
   - name: markets
     description: Get market info
+  - name: auctions
+    description: Get general auctions info
   - name: accounts
     description: Get account data
     externalDocs:
@@ -436,6 +438,47 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
+  '/auctions/cleared':
+    get:
+      tags:
+        - auctions
+      summary: Returns auction summary in date range
+      description: Returns cleared auctions info in a date range. At least fromDate and toDate parameters or period parameter is required.
+      operationId: getClearedAcutionsInfo
+      produces:
+        - application/json
+      parameters:
+        - name: fromDate
+          in: query
+          description: >-
+            A date string using DD-MM-YYYY format. Required when using toDate.
+          type: string
+        - name: toDate
+          in: query
+          description: >-
+            A date string using DD-MM-YYYY format. Required when using fromDate.
+          type: string
+        - name: period
+          in: query
+          description: >-
+            A relative time period. Valid values are: today, yesterday, week, last-week, current-week
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AuctionSummary'
+        '412':
+          description: >-
+            DATE_RANGE_INVALID:
+              * Missing params 'fromDate' and 'toDate' or 'period'.
+              * Unknown value for period. Valid values are: today, yesterday, week, last-week, current-week
+
+            DATE_FORMAT:
+              * Invalid date format. The required format is DD/MM/YYYY
+
   '/accounts/{accountAddress}/current-fee-ratio':
     get:
       tags:
@@ -639,7 +682,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/ClaimObject'
-
         '404':
           description: There is an unknown token in the token pair
         '412':
@@ -734,6 +776,41 @@ definitions:
       amount:
         type: number
         format: double
+  AuctionSummary:
+    type: object
+    required:
+     - auctionIndex
+     - sellToken
+     - buyToken
+     - auctionStart
+     - auctionEnd
+     - sellVolume
+     - buyVolume
+     - closingPrice
+     - priceIncrement
+    properties:
+      auctionIndex:
+        type: integer
+        format: int32
+      sellToken:
+        type: string
+      buyToken:
+        type: string
+      auctionStart:
+        type: string
+        format: date-time
+      auctionEnd:
+        type: string
+        format: date-time
+      sellVolume:
+        type: number
+      buyVolume:
+        type: number
+      closingPrice:
+        type: number
+        format: double
+      priceIncrement:
+        type: number
 externalDocs:
   description: Find out more about the DutchX in our blog
   url: 'https://blog.gnosis.pm/tagged/dutchx'
