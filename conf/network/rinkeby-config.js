@@ -1,3 +1,6 @@
+const NETWORKS = require('../../node_modules/@gnosis.pm/dx-contracts/networks.json')
+const NETWORKS_DEV = require('../../node_modules/@gnosis.pm/dx-contracts/networks-dev.json')
+
 const env = process.env.NODE_ENV
 let DX_CONTRACT_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS
 
@@ -12,7 +15,7 @@ if (env === 'pre' || env === 'pro') {
 } else if (env === 'dev') {
   // Rinkeby: dev
   //  We use a different DX contract than the one defined in the NPM package
-  DX_CONTRACT_ADDRESS = '0x32f5fd2c7c69668ee21c9aecf54c2f57513e3d76'
+  DX_CONTRACT_ADDRESS = NETWORKS_DEV['DutchExchangeProxy']['4'].address
   RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
   OMG_TOKEN_ADDRESS = '0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054'
 } else {
