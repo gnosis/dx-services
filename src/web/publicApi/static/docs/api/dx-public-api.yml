@@ -471,13 +471,16 @@ paths:
             items:
               $ref: '#/definitions/AuctionSummary'
         '412':
-          description: >-
-            DATE_RANGE_INVALID:
-              * Missing params 'fromDate' and 'toDate' or 'period'.
-              * Unknown value for period. Valid values are: today, yesterday, week, last-week, current-week
-
-            DATE_FORMAT:
-              * Invalid date format. The required format is DD/MM/YYYY
+          description: |-
+            <span class="markdown">
+              DATE_RANGE_INVALID:
+              <ul>
+                <li>Missing params 'fromDate' and 'toDate' or 'period'.</li>
+                <li>Unknown value for period. Valid values are: today, yesterday, week, last-week, current-week</li>
+              </ul>
+              DATE_FORMAT:
+              <ul><li>Invalid date format. The required format is DD/MM/YYYY</li></ul>
+            </span>
 
   '/accounts/{accountAddress}/current-fee-ratio':
     get:
