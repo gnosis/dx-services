@@ -1,6 +1,4 @@
 const loggerNamespace = 'dx-service:services:LiquidityService'
-// const Logger = require('../helpers/Logger')
-// const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
@@ -9,7 +7,7 @@ const getVersion = require('../helpers/getVersion')
 const numberUtil = require('../helpers/numberUtil.js')
 const formatUtil = require('../helpers/formatUtil.js')
 const assert = require('assert')
-const BigNumber = require('bignumber.js')
+
 const MAXIMUM_DX_FEE = 0.05 // 5%
 
 class LiquidityService {

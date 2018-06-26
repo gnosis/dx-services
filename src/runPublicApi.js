@@ -15,17 +15,17 @@ instanceFactory({
   // FIXME we should disable this once getAuctionsInfo is implemented outside this servie
   createReportService: true
 }).then(instances => {
-    // Create the app
-    app = new App(instances)
+  // Create the app
+  app = new App(instances)
 
-    // Let the app stop gracefully
-    gracefullShutdown.onShutdown(() => {
-      return app.stop()
-    })
-
-    // Start the app
-    return app.start()
+  // Let the app stop gracefully
+  gracefullShutdown.onShutdown(() => {
+    return app.stop()
   })
+
+  // Start the app
+  return app.start()
+})
   .catch(error => {
     // Handle boot errors
     handleError(error)

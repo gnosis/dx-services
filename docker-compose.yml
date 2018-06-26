@@ -3,8 +3,8 @@ version: '3.4'
 services:
   setup:
     command: npm run setup
-    # command: ./node_modules/.bin/truffle deploy --network ethereum
-    # command: ./node_modules/.bin/truffle deploy --network ethereum && cd node_modules/@josojo/dutch-exchange-smartcontracts && /usr/src/app/node_modules/.bin/truffle deploy --network ethereum && && npm start
+    # command: ./node_modules/.bin/truffle migrate --network ethereum
+    # command: ./node_modules/.bin/truffle migrate --network ethereum && cd node_modules/@josojo/dutch-exchange-smartcontracts && /usr/src/app/node_modules/.bin/truffle migrate --network ethereum && && npm start
     build:
       context: '.'
     depends_on:
@@ -62,7 +62,7 @@ services:
       - .:/usr/src/app
     networks:
       - webnet
-      
+
   ethereum:
     hostname: ethereum
     image: trufflesuite/ganache-cli:latest

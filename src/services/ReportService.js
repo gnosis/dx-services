@@ -7,7 +7,6 @@ const formatUtil = require('../helpers/formatUtil')
 const dxFilters = require('../helpers/dxFilters')
 const AuctionsReportRS = require('./helpers/AuctionsReportRS')
 const getTokenOrder = require('../helpers/getTokenOrder')
-// const dateUtil = require('../helpers/dateUtil')
 // const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
 const numberUtil = require('../helpers/numberUtil')
 
