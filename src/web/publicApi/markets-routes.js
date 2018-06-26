@@ -1,12 +1,13 @@
 const formatUtil = require('../../helpers/formatUtil')
 const _tokenPairSplit = formatUtil.tokenPairSplit
+const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 
 const addCacheHeader = require('../helpers/addCacheHeader')
 
 const DEFAULT_PAGE_SIZE = 10
 const DEFAULT_MAX_PAGE_SIZE = 50
 
-function createRoutes ({ dxInfoService },
+function createRoutes ({ dxInfoService, reportService },
   { short: CACHE_TIMEOUT_SHORT,
     average: CACHE_TIMEOUT_AVERAGE,
     long: CACHE_TIMEOUT_LONG
