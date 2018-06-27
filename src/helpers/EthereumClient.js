@@ -17,10 +17,10 @@ const CLOSE_POINT_PERCENTAGE = 0.9
 const FAR_POINT_PERCENTAGE = 1 - CLOSE_POINT_PERCENTAGE
 
 const environment = process.env.NODE_ENV
-const isPro = environment === 'pro'
 
 // See: https://ethgasstation.info/json/ethgasAPI.json
-const URL_GAS_PRICE_PROVIDER = 'https://ethgasstation.info/json/ethgasAPI.json'
+const URL_GAS_PRICE_FEED_GAS_STATION = 'https://ethgasstation.info/json/ethgasAPI.json'
+
 const DEFAULT_GAS_PRICES = {
   safeLowWait: 5.4,
   safelow_calc: 20,
@@ -42,40 +42,33 @@ const DEFAULT_GAS_PRICES = {
 // TODO: Check eventWatcher in DX/test/utils.js
 
 class EthereumClient {
-  constructor ({
-    url = 'http://127.0.0.1:8545',
-    mnemonic = null,
-    contractsBaseDir = 'build/contracts',
-    cache
-  }) {
-    logger.debug('Using %s RPC api to connect to Ethereum', url)
-    this._url = url
+  constructor (config) {
+    this._network = config.NETWORK || null
+    this._url = config.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545'
+    logger.debug('Using %s RPC api to connect to Ethereum', this._url)
+    const mnemonic = config.MNEMONIC
     if (mnemonic) {
-      this._provider = new HDWalletProvider(mnemonic, url, 0, 5)
+      this._provider = new HDWalletProvider(mnemonic, this._url, 0, 5)
       this._provider.engine.on('error', error => {
         logger.error({
           msg: 'Error in Web3 engine %s: %s',
-          params: [ url, error.toString() ],
+          params: [ this._url, error.toString() ],
           error
         })
       })
     } else {
-      this._provider = new Web3.providers.HttpProvider(url)
+      this._provider = new Web3.providers.HttpProvider(this._url)
     }
 
     this._web3 = new Web3(this._provider)
-    // var balance = this._web3.eth.getBalance('0x424a46612794dbb8000194937834250Dc723fFa5')
-    // console.log('BALANCE', balance)
-
     this._contractCache = {}
-    this._contractsBaseDir = contractsBaseDir
 
     this._cache = new Cache('EthereumClient')
-    this._cacheEnabled = cache.enabled
+    this._cacheEnabled = config.CACHE_ENABLED
     this._cacheTimeouts = {
-      short: cache.short,
-      medium: cache.medium,
-      large: cache.large
+      short: config.CACHE_TIME_SHORT,
+      medium: config.CACHE_TIME_MEDIUM,
+      large: config.CACHE_TIME_LONG
     }
   }
 
@@ -86,7 +79,7 @@ class EthereumClient {
   async getGasPricesGWei () {
     // In the test nets, we don't have ETH Gas Estation
     let getGasPricePromise
-    if (isPro) {
+    if (environment === 'pro') {
       getGasPricePromise = this
         // Get gas price from a feed
         ._doGetPricesFromFeed()
@@ -95,7 +88,7 @@ class EthereumClient {
           // Notify error
           logger.error({
             msg: 'Error getting the price from the feed. Retrying with web3',
-            params: [ URL_GAS_PRICE_PROVIDER ],
+            params: [ URL_GAS_PRICE_FEED_GAS_STATION ],
             error
           })
           return this._doGetPricesFromWeb3()
@@ -110,7 +103,7 @@ class EthereumClient {
   }
 
   async _doGetPricesFromFeed () {
-    const gasPriceResponse = await got(URL_GAS_PRICE_PROVIDER, {
+    const gasPriceResponse = await got(URL_GAS_PRICE_FEED_GAS_STATION, {
       json: true
     })
     // console.log('gasPrice', gasPriceResponse.body)
@@ -494,7 +487,7 @@ function _handleGetGasPriceError (error) {
   // Notify error
   logger.error({
     msg: 'Error getting the price: %s',
-    params: [ URL_GAS_PRICE_PROVIDER ],
+    params: [ URL_GAS_PRICE_FEED_GAS_STATION ],
     error
   })
 

@@ -129,16 +129,7 @@ async function createInstances ({
 
 function _getEhereumClient (config) {
   const EthereumClient = require('./EthereumClient')
-  const ethereumClient = new EthereumClient({
-    url: config.ETHEREUM_RPC_URL,
-    mnemonic: config.MNEMONIC,
-    cache: {
-      enabled: config.CACHE_ENABLED,
-      short: config.CACHE_TIME_SHORT,
-      medium: config.CACHE_TIME_MEDIUM,
-      long: config.CACHE_TIME_LONG
-    }
-  })
+  const ethereumClient = new EthereumClient(config)
 
   /*
   // TODO: Simplify local development by running the EthereumTestRpcNode
