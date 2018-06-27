@@ -28,7 +28,7 @@ class AuctionRepoImpl {
   }) {
     this._ethereumClient = ethereumClient
     this._defaultGas = config.DEFAULT_GAS
-    this._gasPrice = config.GAS_PRICE_GWEI * 10 ** 9
+    this._gasPriceDefault = config.DEFAULT_GAS_PRICE_USED || 'average' // safeLow, average, fast
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
@@ -1975,7 +1975,7 @@ volume: ${state}`)
       // Get safe low gas price by default
       gasPricePromise = this._ethereumClient
         .getGasPricesGWei()
-        .then(gasPricesGWei => gasPricesGWei.safeLow.mul(1e9))
+        .then(gasPricesGWei => gasPricesGWei[this._gasPriceDefault].mul(1e9))
     }
 
     const [ gasPrice, estimatedGas ] = await Promise.all([
