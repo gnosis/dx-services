@@ -50,8 +50,8 @@ function registerCommand ({ cli, instances, logger }) {
         allPairs = require(PAIRS_DATA_ROUTE + '/' + NETWORK.toLowerCase() + '/allPairs.js')
       }
       allPairs.forEach(async ({ tokenA, tokenB, initialPrice }) => {
-        logger.info('Adding a new token pair %s, funding %s with %d and %s with %d, with an initial price of %O using account %s',
-          tokenPair, tokenA.address, tokenA.funding, tokenB.address, tokenB.funding, initialPrice, account)
+        logger.info('Adding a new token pair, funding %s with %d and %s with %d, with an initial price of %O using account %s',
+          tokenA.address, tokenA.funding, tokenB.address, tokenB.funding, initialPrice, account)
 
         const result = await _addTokenPair(dxManagementService, {
           from: account, tokenA, tokenB, initialPrice
