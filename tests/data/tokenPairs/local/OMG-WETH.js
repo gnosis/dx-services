@@ -13,7 +13,7 @@ module.exports =
   },
   // Price: https://www.coingecko.com/en/coins/omisego
   initialPrice: {
-    numerator: 57,
-    denominator: 1
+    numerator: 1,
+    denominator: 10
   }
 }

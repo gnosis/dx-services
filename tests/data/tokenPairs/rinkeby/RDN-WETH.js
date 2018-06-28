@@ -13,7 +13,7 @@ module.exports =
   },
   // Price: https://www.coingecko.com/en/price_charts/raiden-network/eth
   initialPrice: {
-    numerator: 450,
-    denominator: 1
+    numerator: 1,
+    denominator: 500
   }
 }
