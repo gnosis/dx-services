@@ -22,6 +22,7 @@ after_success:
 
     PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
     echo "Pusing to Docker-hub version $PACKAGE_VERSION, generated from branch $TRAVIS_BRANCH";
+    
     if [[ $PACKAGE_VERSION = *"-SNAPSHOT"* ]]; then
       echo "Pusing image release...";
       docker tag dx-services gnosispm/dx-services:release;
