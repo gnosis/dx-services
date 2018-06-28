@@ -1,6 +1,6 @@
 {
   "name": "dx-services",
-  "version": "0.2.6-SNAPSHOT",
+  "version": "0.3.0-SNAPSHOT",
   "description": "",
   "main": "src/runPublicApi.js",
   "directories": {
