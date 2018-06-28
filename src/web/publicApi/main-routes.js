@@ -10,7 +10,7 @@ function createRoutes ({ dxInfoService },
   const routes = []
 
   routes.push({
-    path: [ '/', '/version' ],
+    path: '/version',
     get (req, res) {
       return dxInfoService.getVersion()
     }

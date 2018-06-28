@@ -1,6 +1,5 @@
 const formatUtil = require('../../helpers/formatUtil')
 const _tokenPairSplit = formatUtil.tokenPairSplit
-const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 
 const addCacheHeader = require('../helpers/addCacheHeader')
 
