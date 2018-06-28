@@ -16,13 +16,14 @@ script:
     -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     --net host dx-services /bin/sh -c "yarn migrate; yarn test-coverage"
 after_success:
-- # Create Docker image if branch master or develop and not on pull requests
+- |
+  # Create Docker image if branch master or develop and not on pull requests
   if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
 
-    PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
+    PACKAGE_VERSION=$(node -p -e "require('./package.json').version");
     echo "Pusing to Docker-hub version $PACKAGE_VERSION, generated from branch $TRAVIS_BRANCH";
-    
+
     if [[ $PACKAGE_VERSION = *"-SNAPSHOT"* ]]; then
       echo "Pusing image release...";
       docker tag dx-services gnosispm/dx-services:release;
