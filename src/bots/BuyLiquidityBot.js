@@ -17,7 +17,8 @@ class BuyLiquidityBot extends Bot {
     botAddress,
     markets,
     slackClient,
-    botTransactionsSlackChannel
+    botTransactionsSlackChannel,
+    buyLiquidityRules
   }) {
     super(name)
     this._eventBus = eventBus
@@ -26,6 +27,7 @@ class BuyLiquidityBot extends Bot {
     this._markets = markets
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
+    this._buyLiquidityRules = buyLiquidityRules
 
     this._lastCheck = null
     this._lastBuy = null
@@ -66,9 +68,10 @@ class BuyLiquidityBot extends Bot {
   async _ensureBuyLiquidity ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
+    const buyLiquidityRules = this._buyLiquidityRules
     try {
       liquidityWasEnsured = await this._liquidityService
-        .ensureBuyLiquidity({ sellToken, buyToken, from })
+        .ensureBuyLiquidity({ sellToken, buyToken, from, buyLiquidityRules })
         .then(boughtTokens => {
           let liquidityWasEnsured = boughtTokens.length > 0
           if (liquidityWasEnsured) {
