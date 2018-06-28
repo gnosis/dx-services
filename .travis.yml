@@ -19,7 +19,12 @@ after_success:
 - # Create Docker image if branch master or develop and not on pull requests
   if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    if [ "$TRAVIS_BRANCH" == "master" ]; then
+
+    PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
+    if [[ $PACKAGE_VERSION = *"-SNAPSHOT"* ]]; then
+      docker tag dx-services gnosispm/dx-services:release;
+      docker push gnosispm/dx-services:release;
+    elif [ "$TRAVIS_BRANCH" == "master" ]; then
       docker tag dx-services gnosispm/dx-services:staging;
       docker push gnosispm/dx-services:staging;
     elif [ "$TRAVIS_BRANCH" == "develop" ]; then
