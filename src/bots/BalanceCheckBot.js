@@ -51,7 +51,7 @@ class BalanceCheckBot extends Bot {
   }
 
   async _doStart () {
-    logger.debug({ msg: 'Initialized bot' })
+    logger.debug({ msg: 'Initialized bot: ' + this.name })
 
     // Check the bots balance periodically
     this._checkBalance()
@@ -61,7 +61,7 @@ class BalanceCheckBot extends Bot {
   }
 
   async _doStop () {
-    logger.debug({ msg: 'Bot stopped' })
+    logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
   async _checkBalance () {

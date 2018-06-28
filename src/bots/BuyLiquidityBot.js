@@ -33,7 +33,7 @@ class BuyLiquidityBot extends Bot {
   }
 
   async _doStart () {
-    logger.debug({ msg: 'Initialized bot' })
+    logger.debug({ msg: 'Initialized bot: ' + this.name })
 
     // Check the liquidity periodically
     setInterval(() => {
@@ -46,7 +46,7 @@ class BuyLiquidityBot extends Bot {
   }
 
   async _doStop () {
-    logger.debug({ msg: 'Bot stopped' })
+    logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
   async _doRoutineLiquidityCheck (sellToken, buyToken) {

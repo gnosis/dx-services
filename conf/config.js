@@ -4,7 +4,7 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' },
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
-const BUY_LIQUIDITY_RULES = [
+const BUY_LIQUIDITY_RULES_DEFAULT = [
   // Buy 1/3 if price equals market price
   {
     marketPriceRatio: {
@@ -41,6 +41,43 @@ const BUY_LIQUIDITY_RULES = [
     }
   }
 ]
+
+const BUY_LIQUIDITY_BOTS = [{
+  name: 'Main buy bot',
+  markets: [
+    { tokenA: 'WETH', tokenB: 'RDN' },
+    { tokenA: 'WETH', tokenB: 'OMG' }
+  ],
+  accountIndex: 0,
+  rules: BUY_LIQUIDITY_RULES_DEFAULT
+}, {
+  name: 'Backup bot for WETH-RDN',
+  markets: [
+    { tokenA: 'WETH', tokenB: 'RDN' }
+  ],
+  accountIndex: 1,
+  rules: [{
+    // Buy the 100% if price falls below 90%
+    marketPriceRatio: {
+      numerator: 90,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }]
+}]
+
+const SELL_LIQUIDITY_BOTS = [{
+  name: 'Main sell bot',
+  markets: [
+    { tokenA: 'WETH', tokenB: 'RDN' },
+    { tokenA: 'WETH', tokenB: 'OMG' }
+  ],
+  accountIndex: 0
+}]
+
 const AUTO_CLAIM_AUCTIONS = 90
 
 const DEFAULT_GAS = 6700000
@@ -130,7 +167,10 @@ module.exports = {
   ENVIRONMENT,
 
   // bot config
-  BUY_LIQUIDITY_RULES,
+  BUY_LIQUIDITY_BOTS,
+  SELL_LIQUIDITY_BOTS,
+  BUY_LIQUIDITY_RULES_DEFAULT,
+  BUY_LIQUIDITY_RULES: BUY_LIQUIDITY_RULES_DEFAULT,
   MARKETS,
   AUTO_CLAIM_AUCTIONS,
 

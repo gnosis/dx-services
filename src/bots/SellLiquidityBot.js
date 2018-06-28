@@ -37,7 +37,7 @@ class SellLiquidityBot extends Bot {
   }
 
   async _doStart () {
-    logger.debug({ msg: 'Initialized bot' })
+    logger.debug({ msg: 'Initialized bot: ' + this.name })
 
     // Ensure the sell liquidity when an aunction has ended
     this._eventBus.listenTo(events.EVENT_AUCTION_CLEARED, ({ eventName, data }) => {
@@ -87,7 +87,7 @@ class SellLiquidityBot extends Bot {
   }
 
   async _doStop () {
-    logger.debug({ msg: 'Bot stopped' })
+    logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
   async _ensureSellLiquidity ({ sellToken, buyToken, from }) {
