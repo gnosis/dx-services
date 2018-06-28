@@ -61,7 +61,6 @@ function message ({
   level,
   callback // = _defaultCaptureExceptionCallback
 }) {
-
   Raven.captureMessage(msg, {
     request,
     user,

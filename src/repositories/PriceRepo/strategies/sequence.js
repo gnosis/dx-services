@@ -31,7 +31,7 @@ async function _doGetPrice ({ tokenA, tokenB }, feeds) {
         sellToken: tokenA,
         buyToken: tokenB,
         msg,
-        params       
+        params
       })
       auctionLogger.warn({
         sellToken: tokenA,

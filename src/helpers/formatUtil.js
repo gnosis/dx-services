@@ -80,8 +80,6 @@ function formatNumber (x, { thousandsSeparator = ',', decimalSeparator = '.', pr
   return parts.join(decimalSeparator)
 }
 
-
-
 function formatBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
