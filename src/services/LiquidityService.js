@@ -514,22 +514,24 @@ keeps happening`
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
 
-    const computedLiquidityRules = buyLiquidityRules
-      // Transform fractions to bigdecimals
-      .map(threshold => ({
-        marketPriceRatio: numberUtil
-          .toBigNumberFraction(threshold.marketPriceRatio),
-        buyRatio: numberUtil
-          .toBigNumberFraction(threshold.buyRatio)
-      }))
-      // Sort the thresholds by buyRatio (in descendant order)
-      .sort((thresholdA, thresholdB) => {
-        return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
-      })
+    let rules = this._buyLiquidityRules
+    if (buyLiquidityRules) {
+      rules = buyLiquidityRules
+        // Transform fractions to bigdecimals
+        .map(threshold => ({
+          marketPriceRatio: numberUtil
+            .toBigNumberFraction(threshold.marketPriceRatio),
+          buyRatio: numberUtil
+            .toBigNumberFraction(threshold.buyRatio)
+        }))
+        // Sort the thresholds by buyRatio (in descendant order)
+        .sort((thresholdA, thresholdB) => {
+          return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
+        })
+    }
 
     // Get the matching rule with the highest
     //  * note that the rules aresorted by buyRatio (in descendant order)
-    let rules = computedLiquidityRules || this._buyLiquidityRules
     const buyRule = rules.find(threshold => {
       return threshold.marketPriceRatio.greaterThanOrEqualTo(priceRatio)
     })
