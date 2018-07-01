@@ -409,6 +409,12 @@ class DxInfoService {
     return tokenList
   }
 
+  async getMagnoliaToken () {
+    const magnoliaToken = await this._auctionRepo.getMagnoliaToken()
+
+    return this._getTokenInfoByAddress(magnoliaToken.address)
+  }
+
   async getFundedTokenList () {
     let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
       if (list.indexOf(tokenA) === -1) {

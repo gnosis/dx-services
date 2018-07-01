@@ -1712,6 +1712,10 @@ volume: ${state}`)
     }
   }
 
+  async getMagnoliaToken () {
+    return this._tokens['MGN']
+  }
+
   _hasClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
     const closingPrice = this.getClosingPrices({ sellToken, buyToken, auctionIndex })
