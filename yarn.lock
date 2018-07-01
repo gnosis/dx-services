@@ -16,12 +16,12 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@gnosis.pm/dx-contracts@^0.15.3":
-  version "0.15.3"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-0.15.3.tgz#219c356d99d32f835db6aa1e0c97e6b513c23e46"
+"@gnosis.pm/dx-contracts@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-1.0.0.tgz#b084a360207241e1d62300bad866560ecde7de22"
   dependencies:
     "@gnosis.pm/gno-token" "^1.0.1"
-    "@gnosis.pm/owl-token" "^1.0.2"
+    "@gnosis.pm/owl-token" "^1.1.0"
     "@gnosis.pm/util-contracts" "^1.0.1"
 
 "@gnosis.pm/gno-token@^1.0.1":
@@ -30,9 +30,9 @@
   dependencies:
     "@gnosis.pm/util-contracts" "^1.0.1"
 
-"@gnosis.pm/owl-token@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-1.0.2.tgz#93a1789e51b3457a33fd49496d50f1b7b7937c80"
+"@gnosis.pm/owl-token@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-1.1.0.tgz#52d9901bdf2beae2283a6e9ffcd533b96f147f18"
   dependencies:
     "@gnosis.pm/gno-token" "^1.0.1"
     "@gnosis.pm/util-contracts" "^1.0.1"

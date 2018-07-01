@@ -31,7 +31,14 @@ function registerCommand ({ cli, instances, logger }) {
       logger.info('\tACCOUNT: %s', account)
       logger.info('\tBALANCE: %d ETH', formatUtil.formatFromWei(balanceETH))
 
-      const { data: tokens } = await dxInfoService.getTokenList()
+      const [ tokenList, magnoliaToken ] = await Promise.all([
+        dxInfoService.getTokenList(),
+        dxInfoService.getMagnoliaToken()
+      ])
+
+      const tokens = tokenList.data
+      tokens.push(magnoliaToken)
+
       const balances = await Promise.all(
         tokens.map(async ({ address: tokenAddress, symbol }) => {
           return Promise
@@ -53,12 +60,12 @@ function registerCommand ({ cli, instances, logger }) {
                   token: symbol, amount: amountInDx
                 })
                 .then(price => price.toFixed(2))
-                .catch(() => '???')
+                .catch(() => null)
 
               const priceUsd = await dxInfoService
                 .getPriceInUSD({ token: symbol, amount })
                 .then(price => price.toFixed(2))
-                .catch(() => '???')
+                .catch(() => null)
 
               return {
                 tokenAddress,
@@ -74,16 +81,16 @@ function registerCommand ({ cli, instances, logger }) {
         }))
 
       balances.forEach(balance => {
-        logger.info('\n\tBalances %s:', balance.token)
+        logger.info('\n\tBalances %s (%s):', balance.token, balance.tokenAddress)
         logger.info(
-          '\t\t- Balance in DX: %s (%s USD)',
+          '\t\t- Balance in DX: %s%s',
           formatUtil.formatFromWei(balance.amountInDx),
-          balance.priceUsdInDx
+          (balance.amountInDx.greaterThan(0) && balance.priceUsdInDx) ? ` (${balance.priceUsdInDx} USD)` : ''
         )
         logger.info(
-          '\t\t- Balance of user: %s (%s USD)',
+          '\t\t- Balance of user: %s%s',
           formatUtil.formatFromWei(balance.amount),
-          balance.priceUsd
+          (balance.amount.greaterThan(0) && balance.priceUsd) ? ` (${balance.priceUsd} USD)` : ''
         )
 
         if (verbose) {
