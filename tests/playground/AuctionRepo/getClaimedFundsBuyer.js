@@ -11,7 +11,7 @@ function run ({
   assert(account, '"account" is mandatory')
 
   return auctionRepo
-    .getClaimedFundsSeller({
+    .getClaimedFundsBuyer({
       fromBlock: 0,
       toBlock: 'latest',
       user: account

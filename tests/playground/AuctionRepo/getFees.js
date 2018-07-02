@@ -11,20 +11,19 @@ function run ({
   assert(account, '"account" is mandatory')
 
   return auctionRepo
-    .getClaimedFundsSeller({
+    .getFees({
       fromBlock: 0,
       toBlock: 'latest',
       user: account
     })
     .then(claimedFunds => {
-      claimedFunds.forEach(({ sellToken, buyToken, user, amount, auctionIndex, frtsIssued }) => {
-        console.log(`\nClaimed amount:\n`, {
+      claimedFunds.forEach(({ sellToken, buyToken, user, auctionIndex, fee }) => {
+        console.log(`\nFee:\n`, {
           sellToken: sellToken.valueOf(),
           buyToken: buyToken.valueOf(),
           user: user.valueOf(),
-          amount: amount.valueOf(),
           auctionIndex: auctionIndex.valueOf(),
-          frtsIssued: frtsIssued.valueOf()
+          fee: fee.valueOf()
         })
       })
     })

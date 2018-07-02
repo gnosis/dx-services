@@ -1331,8 +1331,8 @@ volume: ${state}`)
           'AuctionStartScheduled'
         ]
       })
-      .then(orderEvents => this._toEventsData({
-        events: orderEvents,
+      .then(events => this._toEventsData({
+        events,
         datePropName: 'auctionStartScheduled'
       }))
       .then(auctionStartScheduledEvents => {
@@ -1341,6 +1341,55 @@ volume: ${state}`)
         }))
       })
   }
+
+  async getFees ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    primaryToken,
+    secondarToken,
+    auctionIndex,
+    user
+  } = {}) {
+    let claimedFundsList = await ethereumEventHelper
+      .filter({
+        contract: this._dx,
+        filters: {
+          primaryToken,
+          secondarToken,
+          user
+        },
+        fromBlock,
+        toBlock,
+        events: [ 'Fee' ]
+      })
+      .then(events => this._toEventsData({
+        events,
+        datePropName: 'tradeDate'
+      }))
+      .then(eventsData => eventsData.map(eventData => {
+        // Rename the primaryToken and secondaryToken to sellTokeb, buyToken
+        const eventDataRenamed = Object.assign({}, eventData, {
+          sellToken: eventData.primaryToken,
+          buyToken: eventData.secondarToken/*,
+          primaryToken: undefined,
+          secondarToken: undefined
+          */
+        })
+
+        delete eventDataRenamed.primaryToken
+        delete eventDataRenamed.secondarToken
+
+        return eventDataRenamed
+      }))
+      .then(eventsData => this._addTokensToEventsData(eventsData))
+
+    if (auctionIndex) {
+      claimedFundsList = claimedFundsList.filter(claimedFunds => claimedFunds.auctionIndex.equals(auctionIndex))
+    }
+
+    return claimedFundsList
+  }
+
 
   async getAuctions ({ fromBlock, toBlock }) {
     // Get cleared auctions to select the auctions
@@ -1510,22 +1559,79 @@ volume: ${state}`)
         events: orderEvents,
         datePropName: 'auctionEnd'
       }))
-      // TODO: Review if we should remove this part after reorganizing the symbols and addresses logic
-      .then(clearedAuctions => {
-        const clearedAuctionsWithSymbols = clearedAuctions.map(async clearedAuction => {
-          const [ sellTokenSymbol, buyTokenSymbol ] = await Promise.all([
-            this._getTokenSymbolByAddress(clearedAuction.sellToken),
-            this._getTokenSymbolByAddress(clearedAuction.buyToken)
-          ])
+      .then(eventsData => this._addTokensToEventsData(eventsData))
+  }
 
-          return Object.assign(clearedAuction, {
-            sellTokenSymbol,
-            buyTokenSymbol
-          })
-        })
+  async getClaimedFundsSeller ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    sellToken,
+    buyToken,
+    auctionIndex,
+    user
+  } = {}) {
+    return this._getClaimedFundsAux({
+      eventName: 'NewSellerFundsClaim',
+      fromBlock,
+      toBlock,
+      sellToken,
+      buyToken,
+      auctionIndex,
+      user
+    })
+  }
 
-        return Promise.all(clearedAuctionsWithSymbols)
+  async getClaimedFundsBuyer ({
+    fromBlock = 0,
+    toBlock = 'latest',
+    sellToken,
+    buyToken,
+    auctionIndex,
+    user
+  } = {}) {
+    return this._getClaimedFundsAux({
+      eventName: 'NewBuyerFundsClaim',
+      fromBlock,
+      toBlock,
+      sellToken,
+      buyToken,
+      auctionIndex,
+      user
+    })
+  }
+
+  async _getClaimedFundsAux ({
+    eventName,
+    fromBlock = 0,
+    toBlock = 'latest',
+    sellToken,
+    buyToken,
+    auctionIndex,
+    user
+  } = {}) {
+    let claimedFundsList = await ethereumEventHelper
+      .filter({
+        contract: this._dx,
+        filters: {
+          sellToken,
+          buyToken,
+          user
+        },
+        fromBlock,
+        toBlock,
+        events: [ eventName ]
       })
+      .then(orderEvents => this._toEventsData({
+        events: orderEvents,
+        datePropName: 'claimDate'
+      }))
+      .then(eventsData => this._addTokensToEventsData(eventsData))
+
+    if (auctionIndex) {
+      claimedFundsList = claimedFundsList.filter(claimedFunds => claimedFunds.auctionIndex.equals(auctionIndex))
+    }
+
+    return claimedFundsList
   }
 
   async getPriceInEth ({ token }) {
@@ -1577,6 +1683,22 @@ volume: ${state}`)
       buyToken,
       auctionIndex: auctionIndexBn
     })
+  }
+
+  async _addTokensToEventsData (eventsData) {
+    const eventsDataWithSymbols = eventsData.map(async eventData => {
+      const [ sellTokenSymbol, buyTokenSymbol ] = await Promise.all([
+        this._getTokenSymbolByAddress(eventData.sellToken),
+        this._getTokenSymbolByAddress(eventData.buyToken)
+      ])
+
+      return Object.assign(eventData, {
+        sellTokenSymbol,
+        buyTokenSymbol
+      })
+    })
+
+    return Promise.all(eventsDataWithSymbols)
   }
 
   async _getLastAvaliableClosingPriceAux ({ sellToken, buyToken, auctionIndex }) {
