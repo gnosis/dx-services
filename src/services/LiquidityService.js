@@ -8,7 +8,7 @@ const numberUtil = require('../helpers/numberUtil.js')
 const formatUtil = require('../helpers/formatUtil.js')
 const assert = require('assert')
 
-const MAXIMUM_DX_FEE = 0.05 // 5%
+const MAXIMUM_DX_FEE = 0.005 // 0.5%
 
 class LiquidityService {
   constructor ({
