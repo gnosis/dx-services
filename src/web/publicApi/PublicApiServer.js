@@ -33,7 +33,7 @@ class PublicApiServer extends Server {
     // Static content
     const mainPages = express.Router()
     mainPages.use(contextPath, express.static(path.join(__dirname, './static')))
-    app.use('', mainPages)
+    app.use('/api', mainPages)
 
     // Main routes
     app.use('/api', createRouter(mainRoutes))

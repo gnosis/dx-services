@@ -108,7 +108,7 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
     if (auction.fundingInUSD) {
       logger.info(`\t\t\tsellVolume: %d USD`, auction.fundingInUSD)
     }
-    
+
     if (price) {
       logger.info(`\t\tPrice:`)
       logger.info(
@@ -119,7 +119,7 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
         logger.info(`\t\t\tClosing Price: %s %s/%s`,
           formatUtil.formatFraction(closingPrice), tokenB, tokenA
         )
-  
+
         logger.info(`\t\t\tPrice relation: %s`,
           priceRelationshipPercentage ? priceRelationshipPercentage.toFixed(2) + '%' : 'N/A'
         )
@@ -128,7 +128,6 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
   } else {
     logger.info('\t\tSell volume: 0')
   }
-
 
   if (!sellVolume.isZero()) {
     logger.info('\t\tBuy volume:')

@@ -16,67 +16,46 @@ const SECONDS_PER_BLOCK = 15
 const CLOSE_POINT_PERCENTAGE = 0.9
 const FAR_POINT_PERCENTAGE = 1 - CLOSE_POINT_PERCENTAGE
 
-const environment = process.env.NODE_ENV
-const isPro = environment === 'pro'
+const DAFAULT_GAS_PRICE_SAFE_LOW = 6
+const DAFAULT_GAS_PRICE_AVERAGE = 10
+const DAFAULT_GAS_PRICE_FAST = 20
 
-// See: https://ethgasstation.info/json/ethgasAPI.json
-const URL_GAS_PRICE_PROVIDER = 'https://ethgasstation.info/json/ethgasAPI.json'
-const DEFAULT_GAS_PRICES = {
-  safeLowWait: 5.4,
-  safelow_calc: 20,
-  fastest: 200,
-  fastWait: 0.6,
-  average_calc: 40,
-  fastestWait: 0.6,
-  average_txpool: 30,
-  avgWait: 5.4,
-  safelow_txpool: 30,
-  block_time: 16.596774193548388,
-  blockNum: 5258971,
-  speed: 0.7752244319000815,
-  average: 30,
-  safeLow: 30,
-  fast: 40
-}
+const environment = process.env.NODE_ENV
 
 // TODO: Check eventWatcher in DX/test/utils.js
 
 class EthereumClient {
-  constructor ({
-    url = 'http://127.0.0.1:8545',
-    mnemonic = null,
-    contractsBaseDir = 'build/contracts',
-    cache
-  }) {
-    logger.debug('Using %s RPC api to connect to Ethereum', url)
-    this._url = url
+  constructor (config) {
+    this._network = config.NETWORK || null
+    this._url = config.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545'
+    logger.debug('Using %s RPC api to connect to Ethereum', this._url)
+    const mnemonic = config.MNEMONIC
     if (mnemonic) {
-      this._provider = new HDWalletProvider(mnemonic, url, 0, 5)
+      this._provider = new HDWalletProvider(mnemonic, this._url, 0, 5)
       this._provider.engine.on('error', error => {
         logger.error({
           msg: 'Error in Web3 engine %s: %s',
-          params: [ url, error.toString() ],
+          params: [ this._url, error.toString() ],
           error
         })
       })
     } else {
-      this._provider = new Web3.providers.HttpProvider(url)
+      this._provider = new Web3.providers.HttpProvider(this._url)
     }
 
     this._web3 = new Web3(this._provider)
-    // var balance = this._web3.eth.getBalance('0x424a46612794dbb8000194937834250Dc723fFa5')
-    // console.log('BALANCE', balance)
-
     this._contractCache = {}
-    this._contractsBaseDir = contractsBaseDir
 
     this._cache = new Cache('EthereumClient')
-    this._cacheEnabled = cache.enabled
+    this._cacheEnabled = config.CACHE_ENABLED
     this._cacheTimeouts = {
-      short: cache.short,
-      medium: cache.medium,
-      large: cache.large
+      short: config.CACHE_TIME_SHORT,
+      medium: config.CACHE_TIME_MEDIUM,
+      large: config.CACHE_TIME_LONG
     }
+
+    this._urlPriceFeedGasStation = config.URL_GAS_PRICE_FEED_GAS_STATION
+    this._urlPriceFeedSafe = config.URL_GAS_PRICE_FEED_SAFE
   }
 
   getUrl () {
@@ -84,38 +63,66 @@ class EthereumClient {
   }
 
   async getGasPricesGWei () {
-    // In the test nets, we don't have ETH Gas Estation
-    let getGasPricePromise
-    if (isPro) {
-      getGasPricePromise = this
-        // Get gas price from a feed
-        ._doGetPricesFromFeed()
-        // In case of an error, we get it
-        .catch(error => {
-          // Notify error
-          logger.error({
-            msg: 'Error getting the price from the feed. Retrying with web3',
-            params: [ URL_GAS_PRICE_PROVIDER ],
-            error
-          })
-          return this._doGetPricesFromWeb3()
-        })
+    let pricesPromise
+    if (this._urlPriceFeedSafe) {
+      pricesPromise = this._doGetPricesFromSafe()
+    } else if (this._urlPriceFeedGasStation) {
+      pricesPromise = this._doGetPricesFromGasStation()
     } else {
-      getGasPricePromise = this._doGetPricesFromWeb3()
+      pricesPromise = this._doGetPricesFromWeb3()
     }
 
-    return getGasPricePromise
-      // In case of error, return the default (and notify error)
-      .catch(error => _handleGetGasPriceError(error))
+    return pricesPromise
+    // In case of an error, we get it
+    // .catch(error => {
+    //   // Notify error
+    //   logger.error({
+    //     msg: 'Error getting the price from the feed. Retrying with web3',
+    //     params: [ this._urlPriceFeedGasStation ],
+    //     error
+    //   })
+    //   return this._doGetPricesFromWeb3()
+    // })
+    // In case of error, return the default (and notify error)
+    // .catch(error => _handleGetGasPriceError(error))
   }
 
-  async _doGetPricesFromFeed () {
-    const gasPriceResponse = await got(URL_GAS_PRICE_PROVIDER, {
+  async _doGetPricesFromSafe () {
+    const gasPriceResponse = await got(this._urlPriceFeedSafe, {
       json: true
     })
     // console.log('gasPrice', gasPriceResponse.body)
 
-    return _toGasPricesDto(gasPriceResponse.body)
+    // De prices are not provided in GWei
+    //  * for some reason, they are 10 times bigger than GWei :)
+    //  * So 20 y 2GWei
+    const gasPrices = gasPriceResponse.body
+    return {
+      safeLow: numberUtil.toBigNumber(gasPrices.safe_low).div(1e9),
+      average: numberUtil.toBigNumber(gasPrices.standard).div(1e9),
+      fast: numberUtil.toBigNumber(gasPrices.fast).div(1e9)
+    }
+  }
+
+  async _doGetPricesFromGasStation () {
+    const gasPriceResponse = await got(this._urlPriceFeedGasStation, {
+      json: true
+    })
+    // console.log('gasPrice', gasPriceResponse.body)
+
+    // De prices are not provided in GWei
+    //  * for some reason, they are 10 times bigger than GWei :)
+    //  * So 20 y 2GWei
+
+    const gasPrices = gasPriceResponse.body
+    return {
+      safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(10),
+      average: numberUtil.toBigNumber(gasPrices.average).div(10),
+      fast: numberUtil.toBigNumber(gasPrices.fast).div(10)
+      // safeLowWait: gasPrices.safeLowWait,
+      // averageWait: gasPrices.avgWait,
+      // fastWait: gasPrices.fastWait
+    }
   }
 
   async _doGetPricesFromWeb3 () {
@@ -123,13 +130,8 @@ class EthereumClient {
 
     return {
       safeLow: gasPrice.div(1e9).mul(0.9).ceil(),
-      safeLowWait: DEFAULT_GAS_PRICES.safeLowWait,
-
       average: gasPrice.div(1e9).ceil(),
-      averageWait: DEFAULT_GAS_PRICES.avgWait,
-
-      fast: gasPrice.div(1e9).mul(2).ceil(),
-      fastWait: DEFAULT_GAS_PRICES.fastWait
+      fast: gasPrice.div(1e9).mul(2).ceil()
     }
   }
 
@@ -493,29 +495,21 @@ async function _promisify (fn, params) {
 function _handleGetGasPriceError (error) {
   // Notify error
   logger.error({
-    msg: 'Error getting the price: %s',
-    params: [ URL_GAS_PRICE_PROVIDER ],
+    msg: 'Error getting the price: %o',
+    params: [{
+      environment,
+      network: this._network,
+      gasStation: this._urlPriceFeedGasStation,
+      safe: this._urlPriceFeedSafe
+    }],
     error
   })
 
   // Return fallback default gas price
-  return _toGasPricesDto(DEFAULT_GAS_PRICES)
-}
-
-function _toGasPricesDto (gasPrices) {
-  // De prices are not provided in GWei
-  //  * for some reason, they are 10 times bigger than GWei :)
-  //  * So 20 y 2GWei
-
   return {
-    safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(10),
-    safeLowWait: gasPrices.safeLowWait,
-
-    average: numberUtil.toBigNumber(gasPrices.average, 10),
-    averageWait: gasPrices.avgWait,
-
-    fast: numberUtil.toBigNumber(gasPrices.fast, 10),
-    fastWait: gasPrices.fastWait
+    safeLow: DAFAULT_GAS_PRICE_SAFE_LOW,
+    average: DAFAULT_GAS_PRICE_AVERAGE,
+    fast: DAFAULT_GAS_PRICE_FAST
   }
 }
 

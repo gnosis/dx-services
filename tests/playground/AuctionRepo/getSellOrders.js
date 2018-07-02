@@ -9,9 +9,11 @@ function run ({
   return auctionRepo
     .getSellOrders()
     .then(orders => {
-      orders.forEach(({ sellToken, buyToken, user, amount, auctionIndex }) => {
+      orders.forEach(({ sellTokenSymbol, sellToken, buyToken, buyTokenSymbol, user, amount, auctionIndex }) => {
         console.log(`\nOrder:\n`, {
+          sellTokenSymbol,
           sellToken: sellToken.valueOf(),
+          buyTokenSymbol,
           buyToken: buyToken.valueOf(),
           user: user.valueOf(),
           amount: amount.valueOf(),

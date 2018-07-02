@@ -482,7 +482,6 @@ class ReportService {
       return false
     }
   }
-
 }
 
 function _assertDatesOverlap (fromDate, toDate) {

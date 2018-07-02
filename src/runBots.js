@@ -134,11 +134,10 @@ class App {
 
   _createBots (botAddress) {
     assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
-
     // Sell Liquidity bot
     const SellLiquidityBot = require('./bots/SellLiquidityBot')
     const sellLiquidityBot = new SellLiquidityBot({
-      name: 'SellLiquidityBot',
+      name: 'Main seller bot',
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       botAddress,
@@ -150,7 +149,7 @@ class App {
     // Buy Liquidity Bot
     const BuyLiquidityBot = require('./bots/BuyLiquidityBot')
     const buyLiquidityBot = new BuyLiquidityBot({
-      name: 'BuyLiquidityBot',
+      name: 'Main buyer bot',
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       botAddress,
@@ -162,7 +161,7 @@ class App {
     // Buy Liquidity Bot
     const BalanceCheckBot = require('./bots/BalanceCheckBot')
     const balanceCheckBot = new BalanceCheckBot({
-      name: 'BalanceCheckBot',
+      name: 'Main balance check bot',
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
