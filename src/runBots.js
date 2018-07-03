@@ -159,17 +159,17 @@ class App {
     }
 
     // Sell Liquidity bots
-    const sellLiquidityBotPromise = this._config.SELL_LIQUIDITY_BOTS.map(botConfig => {
+    const sellLiquidityBotPromises = this._config.SELL_LIQUIDITY_BOTS.map(botConfig => {
       return _createBot(botConfig, 'SellLiquidityBot', this._config.SLACK_CHANNEL_OPERATIONS)
     })
 
     // Buy Liquidity Bots
-    const buyLiquidityBotPromise = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
+    const buyLiquidityBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
       return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_OPERATIONS)
     })
 
     // Balance Check Bot
-    const balanceCheckBotPromise = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
+    const balanceCheckBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
       return _createBot(botConfig, 'BalanceCheckBot', this._config.SLACK_CHANNEL_BOT_FUNDING)
     })
     // const SellLiquidityBot = require('./bots/SellLiquidityBot')
@@ -228,8 +228,11 @@ class App {
 
     // Return bots
     return Promise.all(
-      sellLiquidityBotPromise.concat(
-        buyLiquidityBotPromise, balanceCheckBotPromise)
+      [].concat(
+        sellLiquidityBotPromises,
+        buyLiquidityBotPromises,
+        balanceCheckBotPromises
+      )
     )
   }
 

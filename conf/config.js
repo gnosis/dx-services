@@ -44,10 +44,7 @@ const BUY_LIQUIDITY_RULES_DEFAULT = [
 
 const BUY_LIQUIDITY_BOTS = [{
   name: 'Main buyer bot',
-  markets: [
-    { tokenA: 'WETH', tokenB: 'RDN' },
-    { tokenA: 'WETH', tokenB: 'OMG' }
-  ],
+  markets: MARKETS,
   accountIndex: 0,
   rules: BUY_LIQUIDITY_RULES_DEFAULT
 }, {
@@ -71,10 +68,7 @@ const BUY_LIQUIDITY_BOTS = [{
 
 const SELL_LIQUIDITY_BOTS = [{
   name: 'Main seller bot',
-  markets: [
-    { tokenA: 'WETH', tokenB: 'RDN' },
-    { tokenA: 'WETH', tokenB: 'OMG' }
-  ],
+  markets: MARKETS,
   accountIndex: 0
 }]
 
