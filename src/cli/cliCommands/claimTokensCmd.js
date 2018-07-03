@@ -18,8 +18,12 @@ function registerCommand ({ cli, instances, logger }) {
     const [ sellerClaimResult, buyerClaimResult ] = await dxTradeService.claimAll({
       tokenPairs, address: botAccount, lastNAuctions: count
     })
-    logger.info('The seller claim was succesful. Transaction: %s', sellerClaimResult.tx)
-    logger.info('The buyer claim was succesful. Transaction: %s', buyerClaimResult.tx)
+    sellerClaimResult.tx
+      ? logger.info('The seller claim was succesful. Transaction: %s', sellerClaimResult.tx)
+      : logger.info('No tokens to claim as seller for %s', tokenPairString)
+    buyerClaimResult.tx
+      ? logger.info('The buyer claim was succesful. Transaction: %s', buyerClaimResult.tx)
+      : logger.info('No tokens to claim as buyer for %s', tokenPairString)
   })
 }
 

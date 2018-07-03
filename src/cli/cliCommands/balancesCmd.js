@@ -3,11 +3,10 @@ const formatUtil = require('../../helpers/formatUtil')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'balances <account>',
+    'balances',
     'Get the balances for all known tokens for a given account. If no account selected mnemonic account is used (i.e. )',
     yargs => {
-      // cliUtils.addOptionByName({ name: 'account', yargs })
-      cliUtils.addPositionalByName('account', yargs)
+      cliUtils.addOptionByName({ name: 'account', yargs })
       yargs.option('verbose', {
         type: 'boolean',
         alias: 'v',
