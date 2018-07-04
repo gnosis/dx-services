@@ -113,6 +113,18 @@ class LiquidityService {
 
     const lockName = this._getAuctionLockName(baseLockName, sellToken, buyToken)
 
+    const that = this
+    const releaseLock = result => {
+      // Clear concurrency lock and resolve proise
+      that.concurrencyCheck[lockName] = null
+      if (result instanceof Error) {
+        throw result
+      } else {
+        // Success
+        return result
+      }
+    }
+
     // Check if there's an ongoing liquidity check
     if (this.concurrencyCheck[lockName]) {
       // We don't do concurrent liquidity checks
@@ -132,20 +144,10 @@ check should be done`,
         tokenB: buyToken,
         from
       })
-        .then(result => {
-          // Success
-          // Clear concurrency lock and resolve proise
-          this.concurrencyCheck[lockName] = null
-          return result
-        })
-        .catch(error => {
-          // Error
-          // Clear concurrency and reject promise
-          this.concurrencyCheck[lockName] = null
-          throw error
-        })
-
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
+      boughtOrSoldTokensPromise
+        .then(releaseLock)
+        .catch(releaseLock)
     }
 
     return boughtOrSoldTokensPromise
