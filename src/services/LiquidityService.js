@@ -129,15 +129,9 @@ class LiquidityService {
       }
 
       if (isError) {
-        that.concurrencyCheck[lockName] = null
+        // Error
         throw result
       } else {
-        if (waitToReleaseTheLock) {
-          that.concurrencyCheck[lockName] = null
-        } else {
-          that.concurrencyCheck[lockName] = null
-        }
-
         // Success
         return result
       }
