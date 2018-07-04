@@ -1,7 +1,10 @@
 const loggerNamespace = 'dx-service:services:ReportService'
 const Logger = require('../helpers/Logger')
 const assert = require('assert')
-const getBotAddress = require('../helpers/getBotAddress')
+
+// const getBotAddress = require('../helpers/getBotAddress')
+// this._botAddressPromise = getBotAddress(ethereumRepo._ethereumClient)
+
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
 const dxFilters = require('../helpers/dxFilters')
@@ -24,11 +27,9 @@ class ReportService {
     this._slackClient = slackClient
     this._auctionsReportSlackChannel = config.SLACK_CHANNEL_AUCTIONS_REPORT
     this._markets = config.MARKETS
-
-    this._botAddressPromise = getBotAddress(ethereumRepo._ethereumClient)
   }
 
-  async getAuctionsReportInfo ({ fromDate, toDate, filterBotInfo }) {
+  async getAuctionsReportInfo ({ fromDate, toDate, account }) {
     _assertDatesOverlap(fromDate, toDate)
 
     return new Promise((resolve, reject) => {
@@ -36,24 +37,26 @@ class ReportService {
       this._generateAuctionInfoByDates({
         fromDate,
         toDate,
+        account,
         addAuctionInfo (auctionInfo) {
-          // FIXME we filter this info to show it in the publicApi
-          if (filterBotInfo) {
-            const filteredAuctionInfo = Object.assign(
-              {},
-              auctionInfo,
-              {
-                botSellVolume: undefined,
-                botBuyVolume: undefined,
-                ensuredSellVolumePercentage: undefined,
-                ensuredBuyVolumePercentage: undefined
-              }
-            )
-            // logger.debug('Add auction info: ', auctionInfo)
-            auctions.push(filteredAuctionInfo)
-          } else {
-            auctions.push(auctionInfo)
-          }
+          // // FIXME we filter this info to show it in the publicApi
+          // if (filterBotInfo) {
+          //   const filteredAuctionInfo = Object.assign(
+          //     {},
+          //     auctionInfo,
+          //     {
+          //       botSellVolume: undefined,
+          //       botBuyVolume: undefined,
+          //       ensuredSellVolumePercentage: undefined,
+          //       ensuredBuyVolumePercentage: undefined
+          //     }
+          //   )
+          //   // logger.debug('Add auction info: ', auctionInfo)
+          //   auctions.push(filteredAuctionInfo)
+          // } else {
+          //   auctions.push(auctionInfo)
+          // }
+          auctions.push(auctionInfo)
         },
         end (error) {
           logger.debug('Finish getting the info: ', error ? 'Error' : 'Success')
@@ -67,7 +70,7 @@ class ReportService {
     })
   }
 
-  async getAuctionsReportFile ({ fromDate, toDate }) {
+  async getAuctionsReportFile ({ fromDate, toDate, account }) {
     _assertDatesOverlap(fromDate, toDate)
 
     logger.debug('Generate auction report from "%s" to "%s"',
@@ -79,6 +82,7 @@ class ReportService {
     this._generateAuctionInfoByDates({
       fromDate,
       toDate,
+      account,
       addAuctionInfo (auctionInfo) {
         // logger.debug('Add auction into report: ', auctionInfo)
         auctionsReportRS.addAuction(auctionInfo)
@@ -129,10 +133,10 @@ class ReportService {
     }
   }
 
-  _generateAuctionInfoByDates ({ fromDate, toDate, addAuctionInfo, end }) {
+  _generateAuctionInfoByDates ({ fromDate, toDate, account, addAuctionInfo, end }) {
     this
       // Get events info
-      ._getAuctionsEventInfo({ fromDate, toDate, addAuctionInfo })
+      ._getAuctionsEventInfo({ fromDate, toDate, account, addAuctionInfo })
       .then(() => {
         logger.debug('All info was generated')
         end()
@@ -140,13 +144,12 @@ class ReportService {
       .catch(end)
   }
 
-  async _getAuctionsEventInfo ({ fromDate, toDate, addAuctionInfo }) {
-    const [ fromBlock, toBlock, botAddress ] = await Promise.all([
+  async _getAuctionsEventInfo ({ fromDate, toDate, account, addAuctionInfo }) {
+    const [ fromBlock, toBlock ] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
-      this._ethereumRepo.getLastBlockBeforeDate(toDate),
-      this._botAddressPromise
+      this._ethereumRepo.getLastBlockBeforeDate(toDate)
     ])
-    assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+    // assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
 
     // Get auctions info
     let auctions = await this._auctionRepo
@@ -187,21 +190,27 @@ class ReportService {
     )
 
     // Get bot orders
-    const [ botSellOrders, botBuyOrders ] = await Promise.all([
-      // Get the bot's sell orders
-      this._auctionRepo.getSellOrders({
-        fromBlock: fromBlockStartAuctions,
-        toBlock,
-        user: botAddress
-      }),
-
-      // Get the bot's buy orders
-      this._auctionRepo.getBuyOrders({
-        fromBlock: fromBlockStartAuctions,
-        toBlock,
-        user: botAddress
-      })
-    ])
+    let botSellOrders, botBuyOrders
+    if (account) {
+      const [ botSellOrdersAux, botBuyOrdersAux ] = await Promise.all([
+        // Get the bot's sell orders
+        this._auctionRepo.getSellOrders({
+          fromBlock: fromBlockStartAuctions,
+          toBlock,
+          user: account
+        }),
+  
+        // Get the bot's buy orders
+        this._auctionRepo.getBuyOrders({
+          fromBlock: fromBlockStartAuctions,
+          toBlock,
+          user: account
+        })
+      ])
+  
+      botSellOrders = botSellOrdersAux
+      botBuyOrders = botBuyOrdersAux
+    }
 
     // Get info for every token pair
     if (auctions.length > 0) {
@@ -294,11 +303,13 @@ class ReportService {
         })
 
         // Add the auction buy orders and sell orders
-        const auctionInfoWithOrders = Object.assign(auction, {
-          botBuyOrders: allBotBuyOrders.filter(filterOrder),
-          botSellOrders: allBotSellOrders.filter(filterOrder),
+        let auctionInfoWithOrders = Object.assign(auction, {
           addAuctionInfo
         })
+        if (allBotBuyOrders && allBotSellOrders) {
+          auctionInfoWithOrders.botBuyOrders = allBotBuyOrders.filter(filterOrder)
+          auctionInfoWithOrders.botSellOrders = allBotSellOrders.filter(filterOrder)
+        }
 
         return this._generateAuctionInfo(auctionInfoWithOrders)
       })
@@ -331,18 +342,6 @@ class ReportService {
   }) {
     // logger.debug('Get info: %o', arguments[0])
     // TODO: Add auctionEnd, auctionStart, runningTime
-
-    function sumOrdersVolumes (botSellOrders) {
-      return botSellOrders
-        .map(order => order.amount)
-        .reduce((sum, amount) => {
-          return sum.plus(amount)
-        }, numberUtil.toBigNumber(0))
-    }
-
-    const botSellVolume = sumOrdersVolumes(botSellOrders)
-    const botBuyVolume = sumOrdersVolumes(botBuyOrders)
-
     let closingPriceAux
     if (closingPrice) {
       closingPriceAux = closingPrice
@@ -366,14 +365,32 @@ class ReportService {
       priceIncrement = null
     }
 
-    const ensuredSellVolumePercentage = numberUtil.getPercentage({
-      part: botSellVolume,
-      total: sellVolume
-    })
-    const ensuredBuyVolumePercentage = numberUtil.getPercentage({
-      part: botBuyVolume,
-      total: buyVolume
-    })
+    function sumOrdersVolumes (botSellOrders) {
+      return botSellOrders
+        .map(order => order.amount)
+        .reduce((sum, amount) => {
+          return sum.plus(amount)
+        }, numberUtil.toBigNumber(0))
+    }
+
+    let botSellVolume, botBuyVolume, ensuredSellVolumePercentage, ensuredBuyVolumePercentage
+    if (botSellOrders && botBuyOrders) {
+      botSellVolume = sumOrdersVolumes(botSellOrders)
+      botBuyVolume = sumOrdersVolumes(botBuyOrders)
+      ensuredSellVolumePercentage = numberUtil.getPercentage({
+        part: botSellVolume,
+        total: sellVolume
+      })
+      ensuredBuyVolumePercentage = numberUtil.getPercentage({
+        part: botBuyVolume,
+        total: buyVolume
+      })
+
+      botSellVolume = botSellVolume ? botSellVolume.div(1e18).toNumber() : 0
+      botBuyVolume = botBuyVolume ? botBuyVolume.div(1e18).toNumber() : 0
+      ensuredSellVolumePercentage = ensuredSellVolumePercentage ? ensuredSellVolumePercentage.toNumber() : 0
+      ensuredBuyVolumePercentage = ensuredBuyVolumePercentage ? ensuredBuyVolumePercentage.toNumber() : 0
+    }
 
     addAuctionInfo({
       // Auction info
@@ -392,10 +409,10 @@ class ReportService {
       priceIncrement: priceIncrement ? priceIncrement.toNumber() : null,
 
       // Bot sell/buy
-      botSellVolume: botSellVolume ? botSellVolume.div(1e18).toNumber() : 0,
-      botBuyVolume: botBuyVolume ? botBuyVolume.div(1e18).toNumber() : 0,
-      ensuredSellVolumePercentage: ensuredSellVolumePercentage ? ensuredSellVolumePercentage.toNumber() : 0,
-      ensuredBuyVolumePercentage: ensuredBuyVolumePercentage ? ensuredBuyVolumePercentage.toNumber() : 0
+      botSellVolume,
+      botBuyVolume,
+      ensuredSellVolumePercentage,
+      ensuredBuyVolumePercentage
     })
   }
 

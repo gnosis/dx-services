@@ -38,6 +38,7 @@ function registerCommand ({ cli, instances, logger }) {
         formatUtil.formatDateTime(toDate)
       )
 
+      // TODO: Dani
       const fileInfo = await reportService.getAuctionsReportFile({
         fromDate,
         toDate

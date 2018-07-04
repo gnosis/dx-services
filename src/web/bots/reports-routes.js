@@ -43,9 +43,12 @@ function createRoutes ({ reportService, slackClient }) {
       )
 
       // Generate report and send it to slack
+      // TODO: Dani. Please, inject the ethereumClient, botAddress
+      const botAddress = await getBotAddress(ethereumClient)
       const requestReceipt = reportService.sendAuctionsReportToSlack({
         fromDate,
         toDate,
+        account: botAccount,
         senderInfo
       })
       logger.info('[requestId=%d] Got a receipt for the AuctionsReport',
