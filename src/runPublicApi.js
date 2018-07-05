@@ -13,7 +13,15 @@ let app
 // Run app
 instanceFactory({
   // FIXME we should disable this once getAuctionsInfo is implemented outside this servie
-  createReportService: true
+  createReportService: true,
+  config: {
+    // FIXME: Fix event filtering when you don't provide a mnemonic
+    //  * The event filtering depends on having a mnemonic
+    //  * The API shouldn't need one, cause it only reads data (no transaction)
+    //  * We temporarily add an arbitrary mnemonic, just for the API (no funding
+    //   should ever go to this addresses)
+    MNEMONIC: 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+  }
 }).then(instances => {
   // Create the app
   app = new App(instances)

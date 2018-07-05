@@ -5,27 +5,15 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 const BUY_LIQUIDITY_RULES = [
-  // Buy 1/3 if price equals market price
+  // Buy 1/2 if price falls below 99%
   {
     marketPriceRatio: {
-      numerator: 1,
-      denominator: 1
-    },
-    buyRatio: {
-      numerator: 1,
-      denominator: 3
-    }
-  },
-
-  // Buy 2/3 if price falls below 98%
-  {
-    marketPriceRatio: {
-      numerator: 98,
+      numerator: 99,
       denominator: 100
     },
     buyRatio: {
-      numerator: 2,
-      denominator: 3
+      numerator: 1,
+      denominator: 2
     }
   },
 

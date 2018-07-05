@@ -40,7 +40,8 @@ class EthereumClient {
         })
       })
     } else {
-      this._provider = new Web3.providers.HttpProvider(this._url)
+      // this._provider = new Web3.providers.HttpProvider(this._url)
+      throw new Error('The MNEMONIC is required')
     }
 
     this._web3 = new Web3(this._provider)

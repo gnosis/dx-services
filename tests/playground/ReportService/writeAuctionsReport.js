@@ -1,5 +1,6 @@
 const testSetup = require('../../helpers/testSetup')
 const getDateRangeFromParams = require('../../../src/helpers/getDateRangeFromParams')
+const getBotAddress = require('./../../src/helpers/getBotAddress')
 
 const fs = require('fs')
 
@@ -7,12 +8,14 @@ testSetup()
   .then(run)
   .catch(console.error)
 
-function run ({
-  reportService
+async function run ({
+  reportService,
+  ethereumClient
 }) {
   const fromDateStr = process.env.FROM
   const toDateStr = process.env.TO
   const period = process.env.PERIOD || 'today'
+  const botAddress = await getBotAddress(ethereumClient)
 
   const { fromDate, toDate } = getDateRangeFromParams({
     fromDateStr, toDateStr, period
@@ -22,7 +25,8 @@ function run ({
   return reportService
     .getAuctionsReportFile({
       fromDate,
-      toDate
+      toDate,
+      account: botAddress
     })
     .then(({ name, mimeType, content }) => {
       console.log('Generated file: "%s"', name)
