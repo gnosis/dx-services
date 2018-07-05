@@ -58,18 +58,22 @@ class DxTradeService {
         }
 
         const sellerClaimsIndices = _getIndicesList(sellerClaims)
-        auctionsAsSeller.push({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          indices: sellerClaimsIndices
-        })
+        if (sellerClaimsIndices.length > 0) {
+          auctionsAsSeller.push({
+            sellToken: tokenA,
+            buyToken: tokenB,
+            indices: sellerClaimsIndices
+          })
+        }
 
         const buyerClaimsIndices = _getIndicesList(buyerClaims)
-        auctionsAsBuyer.push({
-          sellToken: tokenA,
-          buyToken: tokenB,
-          indices: buyerClaimsIndices
-        })
+        if (buyerClaimsIndices.length > 0) {
+          auctionsAsBuyer.push({
+            sellToken: tokenA,
+            buyToken: tokenB,
+            indices: buyerClaimsIndices
+          })
+        }
 
         return {
           auctionsAsSeller, auctionsAsBuyer
@@ -78,11 +82,19 @@ class DxTradeService {
         auctionsAsSeller: [],
         auctionsAsBuyer: []
       })
+    const claimPromises = []
+    auctionsAsSeller.length > 0
+      ? claimPromises.push(this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
+        auctionsAsSeller, address }))
+      : claimPromises.push([])
+
+    auctionsAsBuyer.length > 0
+      ? claimPromises.push(this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({
+        auctionsAsBuyer, address }))
+      : claimPromises.push([])
+
     // TODO add here a logger.info notifiying quantities
-    return Promise.all([
-      this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({ auctionsAsSeller, address }),
-      this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({ auctionsAsBuyer, address })
-    ])
+    return Promise.all(claimPromises)
   }
 
   async claimSellerFunds ({ tokenA, tokenB, address, auctionIndex }) {

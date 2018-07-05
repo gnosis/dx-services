@@ -41,7 +41,7 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts
-  const botAccount = await getBotAddress(ethereumClient)
+  const botAccount = await getBotAddress(ethereumClient, 0)
 
   const supportedTokens = config.MARKETS.reduce((acc, market) => {
     if (!acc.includes(market.tokenA)) acc.push(market.tokenA)
