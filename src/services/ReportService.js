@@ -104,7 +104,7 @@ class ReportService {
     }
   }
 
-  sendAuctionsReportToSlack ({ fromDate, toDate, senderInfo }) {
+  sendAuctionsReportToSlack ({ fromDate, toDate, account, senderInfo }) {
     _assertDatesOverlap(fromDate, toDate)
     const id = requestId++
 
@@ -113,7 +113,7 @@ class ReportService {
       id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
       senderInfo
     )
-    this._doSendAuctionsReportToSlack({ id, senderInfo, fromDate, toDate })
+    this._doSendAuctionsReportToSlack({ id, senderInfo, account, fromDate, toDate })
       .then(() => {
         logger.debug('The auctions report was sent to slack')
       })
@@ -199,7 +199,7 @@ class ReportService {
           toBlock,
           user: account
         }),
-  
+
         // Get the bot's buy orders
         this._auctionRepo.getBuyOrders({
           fromBlock: fromBlockStartAuctions,
@@ -207,7 +207,7 @@ class ReportService {
           user: account
         })
       ])
-  
+
       botSellOrders = botSellOrdersAux
       botBuyOrders = botBuyOrdersAux
     }
@@ -416,11 +416,12 @@ class ReportService {
     })
   }
 
-  async _doSendAuctionsReportToSlack ({ id, senderInfo, fromDate, toDate }) {
+  async _doSendAuctionsReportToSlack ({ id, senderInfo, account, fromDate, toDate }) {
     // Generate report file
     const file = await this.getAuctionsReportFile({
       fromDate,
-      toDate
+      toDate,
+      account
     })
     logger.debug('[requestId=%d] Report file "%s" was generated. Sending it to slack...',
       id, file.name)
