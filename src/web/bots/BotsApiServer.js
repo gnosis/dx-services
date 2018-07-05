@@ -6,10 +6,11 @@ const express = require('express')
 const path = require('path')
 
 class BotsApiServer extends Server {
-  constructor ({ port = 8081, host, botsService, reportService }) {
+  constructor ({ port = 8081, host, botsService, reportService, ethereumClient }) {
     super({ port, host })
     this._botsService = botsService
     this._reportService = reportService
+    this._ethereumClient = ethereumClient
   }
 
   async _registerRoutes ({ app, contextPath }) {
@@ -25,7 +26,7 @@ class BotsApiServer extends Server {
 
     // Get routes
     const mainRoutes = require('./main-routes')(services)
-    const reportsRoutes = require('./reports-routes')(services)
+    const reportsRoutes = require('./reports-routes')(services, this._ethereumClient)
 
     // Main routes
     app.use('/api', createRouter(mainRoutes))

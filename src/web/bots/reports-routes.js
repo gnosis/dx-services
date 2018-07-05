@@ -7,10 +7,12 @@ const formatUtil = require('../../helpers/formatUtil')
 
 const dateUtil = require('../../helpers/dateUtil')
 
+const getBotAddress = require('../../helpers/getBotAddress')
+
 const DEFAULT_SENDER_INFO = 'Bots API v ' + version
 const AUCTIONS_REPORT_MAX_NUM_DAYS = 15
 
-function createRoutes ({ reportService, slackClient }) {
+function createRoutes ({ reportService, ethereumClient }) {
   const routes = []
 
   // AuctionsReport
@@ -20,7 +22,7 @@ function createRoutes ({ reportService, slackClient }) {
   //      curl https://dx-services-bots.dev.gnosisdev.com/api/v1/reports/auctions-report/requests?from-date=01/04/2018&to-date=30/04/2018
   routes.push({
     path: '/auctions-report/requests',
-    get (req, res) {
+    async get (req, res) {
       // TODO: Throttle this endpoint. It shoul't be called too often...
       // Get the date range
       let [ fromDateStr, toDateStr, period ] = [
@@ -28,7 +30,7 @@ function createRoutes ({ reportService, slackClient }) {
         'to-date',
         'period'
       ].map(p => req.query[p])
-      
+
       const { fromDate, toDate } = getDateRangeFromParams({
         fromDateStr, toDateStr, period
       })
@@ -48,7 +50,7 @@ function createRoutes ({ reportService, slackClient }) {
       const requestReceipt = reportService.sendAuctionsReportToSlack({
         fromDate,
         toDate,
-        account: botAccount,
+        account: botAddress,
         senderInfo
       })
       logger.info('[requestId=%d] Got a receipt for the AuctionsReport',
@@ -60,7 +62,6 @@ function createRoutes ({ reportService, slackClient }) {
 
   return routes
 }
-
 
 function _assertMaxNumDaysAllowed (fromDate, toDate, maxNumberOfDays) {
   const numDaysDifference = dateUtil.diff(fromDate, toDate, 'days')
