@@ -80,7 +80,8 @@ class App {
           port: this._config.BOTS_API_PORT,
           host: this._config.BOTS_API_HOST,
           botsService: this._botsService,
-          reportService: this._reportService
+          reportService: this._reportService,
+          ethereumClient: this._ethereumClient
         })
       })
   }

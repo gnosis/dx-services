@@ -20,7 +20,7 @@ function createRoutes ({ dxInfoService, reportService },
         fromDateStr, toDateStr, period
       })
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
-      return reportService.getAuctionsReportInfo({ fromDate, toDate, filterBotInfo: true })
+      return reportService.getAuctionsReportInfo({ fromDate, toDate })
     }
   })
 
