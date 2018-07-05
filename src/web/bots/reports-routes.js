@@ -12,7 +12,7 @@ const getBotAddress = require('../../helpers/getBotAddress')
 const DEFAULT_SENDER_INFO = 'Bots API v ' + version
 const AUCTIONS_REPORT_MAX_NUM_DAYS = 15
 
-function createRoutes ({ reportService, ethereumClient }) {
+function createRoutes ({ reportService }, ethereumClient) {
   const routes = []
 
   // AuctionsReport
