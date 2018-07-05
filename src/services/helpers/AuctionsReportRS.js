@@ -7,9 +7,10 @@ const DEFAULT_DELIMITER = ';'
 const { Readable } = require('stream')
 
 class AuctionsReportRS extends Readable {
-  constructor ({ delimiter = DEFAULT_DELIMITER } = {}) {
+  constructor ({ delimiter = DEFAULT_DELIMITER, isBot } = {}) {
     super()
     this._delimiter = delimiter
+    this._isBot = isBot
     const header = this._getHeader()
     this.push(header, 'UTF-8')
   }
@@ -19,7 +20,7 @@ class AuctionsReportRS extends Readable {
 
   _getHeader () {
     var dm = this._delimiter
-    return `\
+    let header = `\
 Running time${dm}\
 Auction start${dm}\
 Auction cleared${dm}\
@@ -29,11 +30,16 @@ Buy token${dm}\
 Sell volume${dm}\
 Buy volume${dm}\
 Closing price${dm}\
-Price increment${dm}\
-Bot sell volume${dm}\
-Bot buy volume${dm}\
-Ensured sell volume${dm}\
-Ensured buy volume\n`
+Price increment`
+    if (this._isBot) {
+      header = header + `${dm}\
+      Bot sell volume${dm}\
+      Bot buy volume${dm}\
+      Ensured sell volume${dm}\
+      Ensured buy volume`
+    }
+    header = header + `\n`
+    return header
   }
 
   addAuction ({
@@ -52,7 +58,7 @@ Ensured buy volume\n`
     ensuredBuyVolumePercentage
   }) {
     var dm = this._delimiter
-    const line = `\
+    let line = `\
 ${formatUtil.formatDatesDifferenceCsv(auctionStart, auctionEnd)}${dm}\
 ${formatUtil.formatDateTimeCsv(auctionStart)}${dm}\
 ${formatUtil.formatDateTimeCsv(auctionEnd)}${dm}\
@@ -62,11 +68,16 @@ ${buyToken}${dm}\
 ${sellVolume}${dm}\
 ${buyVolume}${dm}\
 ${closingPrice}${dm}\
-${priceIncrement !== null ? priceIncrement : 'N/A'}${dm}\
-${botSellVolume}${dm}\
-${botBuyVolume}${dm}\
-${ensuredSellVolumePercentage}${dm}\
-${ensuredBuyVolumePercentage}\n`
+${priceIncrement !== null ? priceIncrement : 'N/A'}`
+    if (this._isBot) {
+      line = line + `${dm}\
+      ${botSellVolume}${dm}\
+      ${botBuyVolume}${dm}\
+      ${ensuredSellVolumePercentage}${dm}\
+      ${ensuredBuyVolumePercentage}`
+    }
+
+    line = line + `\n`
 
     this.push(line, 'UTF-8')
   }

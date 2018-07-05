@@ -10,6 +10,7 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addOptionByName({ name: 'from-date', yargs })
       cliUtils.addOptionByName({ name: 'to-date', yargs })
       cliUtils.addOptionByName({ name: 'period', yargs })
+      cliUtils.addOptionByName({ name: 'account', yargs })
       yargs.option('file', {
         type: 'string',
         describe: 'Allow to specify a file were we can export the trades as CSV'
@@ -19,6 +20,7 @@ function registerCommand ({ cli, instances, logger }) {
         fromDate: fromDateStr,
         toDate: toDateStr,
         period,
+        account,
         file
       } = argv
 
@@ -38,10 +40,10 @@ function registerCommand ({ cli, instances, logger }) {
         formatUtil.formatDateTime(toDate)
       )
 
-      // TODO: Dani
       const fileInfo = await reportService.getAuctionsReportFile({
         fromDate,
-        toDate
+        toDate,
+        account
       })
       const { content } = fileInfo
 

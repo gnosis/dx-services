@@ -78,7 +78,8 @@ class ReportService {
       formatUtil.formatDateTime(toDate)
     )
 
-    const auctionsReportRS = new AuctionsReportRS({ delimiter: '\t' })
+    const isBot = account !== undefined
+    const auctionsReportRS = new AuctionsReportRS({ delimiter: '\t', isBot })
     this._generateAuctionInfoByDates({
       fromDate,
       toDate,
