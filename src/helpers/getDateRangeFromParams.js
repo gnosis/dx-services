@@ -9,8 +9,8 @@ function getDateRangeFromParams ({
 }) {
   let toDate, fromDate
   if (fromDateStr && toDateStr) {
-    fromDate = formatUtil.parseDate(fromDateStr)
-    toDate = formatUtil.parseDate(toDateStr)
+    fromDate = formatUtil.parseDateIso(fromDateStr)
+    toDate = formatUtil.parseDateIso(toDateStr)
   } else if (period) {
     const today = new Date()
 

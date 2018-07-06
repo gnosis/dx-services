@@ -451,12 +451,12 @@ paths:
         - name: fromDate
           in: query
           description: >-
-            A date string using DD-MM-YYYY format. Required when using toDate.
+            A date string using ISO 8601 date format. Required when using toDate.
           type: string
         - name: toDate
           in: query
           description: >-
-            A date string using DD-MM-YYYY format. Required when using fromDate.
+            A date string using ISO 8601 date format. Required when using fromDate.
           type: string
         - name: period
           in: query
@@ -479,7 +479,7 @@ paths:
                 <li>Unknown value for period. Valid values are: today, yesterday, week, last-week, current-week</li>
               </ul>
               DATE_FORMAT:
-              <ul><li>Invalid date format. The required format is DD/MM/YYYY</li></ul>
+              <ul><li>Invalid date format. The required format is a valid ISO 8601 date format</li></ul>
             </span>
 
   '/accounts/{accountAddress}/current-fee-ratio':
