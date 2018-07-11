@@ -22,7 +22,7 @@ info:
       repositories and bots to interact with DX.
       * [Github: dx-react](https://github.com/gnosis/dx-react): Front end web
       application for the Dutch X seller interface
-  version: '0.1'
+  version: '1.0'
   title: Dutch X API
   termsOfService: 'https://dutch.d.exchange/terms/'
   contact:
@@ -442,8 +442,13 @@ paths:
     get:
       tags:
         - auctions
-      summary: Returns auction summary in date range
-      description: Returns cleared auctions info in a date range. At least fromDate and toDate parameters or period parameter is required.
+      summary: Returns auctions summary in a date range
+      description: >-
+        <span class="markdown">
+        Returns a list of cleared auctions with details, as closing price or buy and sell volume, in the selected date range.
+        <br/>
+        At least <b>fromDate</b> and <b>toDate</b> parameters or <b>period</b> parameter is <b>required</b> in order to return any results.
+        </span>
       operationId: getClearedAcutionsInfo
       produces:
         - application/json
@@ -451,17 +456,20 @@ paths:
         - name: fromDate
           in: query
           description: >-
-            A date string using ISO 8601 date format. Required when using toDate.
+            A date string using ISO 8601 date format. Required when using
+            <i>toDate</i>. <br/> ex: <i>'2018-07-01', '01-07-2018'</i>
           type: string
         - name: toDate
           in: query
           description: >-
-            A date string using ISO 8601 date format. Required when using fromDate.
+            A date string using ISO 8601 date format. Required when using
+            <i>fromDate</i>. <br/> ex: <i>'2018-07-02', '02-07-2018'</i>
           type: string
         - name: period
           in: query
           description: >-
-            A relative time period. Valid values are: today, yesterday, week, last-week, current-week
+            A relative time period. Valid values are: <i>today, yesterday, week,
+            last-week, current-week</i>
           type: string
       responses:
         '200':
@@ -481,7 +489,6 @@ paths:
               DATE_FORMAT:
               <ul><li>Invalid date format. The required format is a valid ISO 8601 date format</li></ul>
             </span>
-
   '/accounts/{accountAddress}/current-fee-ratio':
     get:
       tags:
@@ -782,15 +789,15 @@ definitions:
   AuctionSummary:
     type: object
     required:
-     - auctionIndex
-     - sellToken
-     - buyToken
-     - auctionStart
-     - auctionEnd
-     - sellVolume
-     - buyVolume
-     - closingPrice
-     - priceIncrement
+      - auctionIndex
+      - sellToken
+      - buyToken
+      - auctionStart
+      - auctionEnd
+      - sellVolume
+      - buyVolume
+      - closingPrice
+      - priceIncrement
     properties:
       auctionIndex:
         type: integer

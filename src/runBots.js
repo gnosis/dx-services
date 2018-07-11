@@ -135,8 +135,7 @@ class App {
   _createBots () {
     const botTypes = {
       SellLiquidityBot: require('./bots/SellLiquidityBot'),
-      BuyLiquidityBot: require('./bots/BuyLiquidityBot'),
-      BalanceCheckBot: require('./bots/BalanceCheckBot')
+      BuyLiquidityBot: require('./bots/BuyLiquidityBot')
     }
 
     const _createBot = async (botConfig, botInstanceType, slackChannel) => {
@@ -158,12 +157,12 @@ class App {
 
     // Sell Liquidity bots
     const sellLiquidityBotPromises = this._config.SELL_LIQUIDITY_BOTS.map(botConfig => {
-      return _createBot(botConfig, 'SellLiquidityBot', this._config.SLACK_CHANNEL_OPERATIONS)
+      return _createBot(botConfig, 'SellLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
     })
 
     // Buy Liquidity Bots
     const buyLiquidityBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
-      return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_OPERATIONS)
+      return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
     })
 
     // Balance Check Bot Config
@@ -171,24 +170,24 @@ class App {
       this._config.BUY_LIQUIDITY_BOTS,
       this._config.SELL_LIQUIDITY_BOTS)
 
-    function _getAccountMarkets (accountMarkets, botConfig) {
-      if (!accountMarkets.hasOwnProperty(botConfig.accountIndex)) {
-        accountMarkets[botConfig.accountIndex] = {
+    function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+      if (!accountMarkets.hasOwnProperty(accountIndex)) {
+        accountMarkets[accountIndex] = {
           name: '',
           tokens: []
         }
       }
-      botConfig.markets.forEach(({ tokenA, tokenB }) => {
-        const SEPARATOR = accountMarkets[botConfig.accountIndex].name.length > 0
+      markets.forEach(({ tokenA, tokenB }) => {
+        const SEPARATOR = accountMarkets[accountIndex].name.length > 0
           ? ', '
           : ''
-        accountMarkets[botConfig.accountIndex].name += SEPARATOR + botConfig.name
+        accountMarkets[accountIndex].name += SEPARATOR + name
 
-        if (!accountMarkets[botConfig.accountIndex].tokens.includes(tokenA)) {
-          accountMarkets[botConfig.accountIndex].tokens.push(tokenA)
+        if (!accountMarkets[accountIndex].tokens.includes(tokenA)) {
+          accountMarkets[accountIndex].tokens.push(tokenA)
         }
-        if (!accountMarkets[botConfig.accountIndex].tokens.includes(tokenB)) {
-          accountMarkets[botConfig.accountIndex].tokens.push(tokenB)
+        if (!accountMarkets[accountIndex].tokens.includes(tokenB)) {
+          accountMarkets[accountIndex].tokens.push(tokenB)
         }
       })
       return accountMarkets

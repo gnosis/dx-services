@@ -38,7 +38,7 @@ const BUY_LIQUIDITY_BOTS = [{
   rules: BUY_LIQUIDITY_RULES_DEFAULT,
   notifications: [{
     type: 'slack',
-    channel: ''
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
   }]
 }, {
   name: 'Backup buyer for RDN-WETH',
@@ -59,10 +59,10 @@ const BUY_LIQUIDITY_BOTS = [{
   }],
   notifications: [{
     type: 'slack',
-    channel: ''
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
   }, {
     type: 'email',
-    channel: ''
+    email: ''
   }]
 }]
 
@@ -72,7 +72,7 @@ const SELL_LIQUIDITY_BOTS = [{
   accountIndex: 0,
   notifications: [{
     type: 'slack',
-    channel: ''
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
   }]
 }]
 
