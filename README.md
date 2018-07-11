@@ -67,8 +67,8 @@ docker run \
   -e NODE_ENV=pre \
   -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
   -e MARKETS=WETH-RDN,WETH-OMG \
-  -e RDN_TOKEN_ADDRESS=0x7e2331beaec0ded82866f4a1388628322c8d5af0 \
-  -e OMG_TOKEN_ADDRESS=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054 \
+  -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
+  -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
   gnosispm/dx-services:staging \
   yarn cli -- \
     state WETH-RDN
@@ -102,8 +102,8 @@ docker run \
   -e NODE_ENV=pre \
   -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
   -e MARKETS=WETH-RDN,WETH-OMG \
-  -e RDN_TOKEN_ADDRESS=0x7e2331beaec0ded82866f4a1388628322c8d5af0 \
-  -e OMG_TOKEN_ADDRESS=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054 \
+  -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
+  -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
   -p 8080:8080 \
   gnosispm/dx-services:staging \
   yarn api
@@ -130,8 +130,8 @@ docker run \
   -e NODE_ENV=pre \
   -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
   -e MARKETS=WETH-RDN,WETH-OMG \
-  -e RDN_TOKEN_ADDRESS=0x7e2331beaec0ded82866f4a1388628322c8d5af0 \
-  -e OMG_TOKEN_ADDRESS=0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054 \
+  -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
+  -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
   -p 8081:8081 \
   gnosispm/dx-services:staging \
   yarn bots
