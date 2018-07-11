@@ -176,32 +176,35 @@ class SellLiquidityBot extends Bot {
   }
 
   _notifySoldTokensSlack ({ channel, soldTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
-    /* eslint quotes: 0 */
     this._slackClient
       .postMessage({
-        "channel": channel || this._botTransactionsSlackChannel,
-        "attachments": [
+        channel: channel || this._botTransactionsSlackChannel,
+        attachments: [
           {
-            "color": "good",
-            "title": "The bot has sold " + soldTokensString,
-            "text": "The bot has sold tokens to ensure the sell liquidity.",
-            "fields": [
+            color: 'good',
+            title: 'The bot has sold ' + soldTokensString,
+            text: 'The bot has sold tokens to ensure the sell liquidity.',
+            fields: [
               {
-                "title": "Token pair",
-                "value": sellToken + '-' + buyToken,
-                "short": false
+                title: 'Bot name',
+                value: this._name,
+                short: false
               }, {
-                "title": "Auction index",
-                "value": auctionIndex,
-                "short": false
+                title: 'Token pair',
+                value: sellToken + '-' + buyToken,
+                short: false
               }, {
-                "title": "Sold tokens",
-                "value": soldTokensString,
-                "short": false
+                title: 'Auction index',
+                value: auctionIndex,
+                short: false
               }, {
-                "title": "USD worth",
-                "value": '$' + amountInUSD,
-                "short": false
+                title: 'Sold tokens',
+                value: soldTokensString,
+                short: false
+              }, {
+                title: 'USD worth',
+                value: '$' + amountInUSD,
+                short: false
               }
             ],
             footer: this.botInfo

@@ -112,7 +112,7 @@ class BuyLiquidityBot extends Bot {
     } = buyOrder
     // Log sold tokens
     const amountInTokens = amount.div(1e18)
-    const boughtTokensString = amountInTokens + " " + buyToken
+    const boughtTokensString = amountInTokens + ' ' + buyToken
 
     auctionLogger.info({
       sellToken,
@@ -151,32 +151,35 @@ class BuyLiquidityBot extends Bot {
   }
 
   _notifyBuyedTokensSlack ({ channel, boughtTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
-    /* eslint quotes: 0 */
     this._slackClient
       .postMessage({
-        "channel": channel || this._botTransactionsSlackChannel,
-        "attachments": [
+        channel: channel || this._botTransactionsSlackChannel,
+        attachments: [
           {
-            "color": "good",
-            "title": "The bot has bought " + boughtTokensString,
-            "text": "The bot has bought tokens to ensure the buy liquidity.",
-            "fields": [
+            color: 'good',
+            title: 'The bot has bought ' + boughtTokensString,
+            text: 'The bot has bought tokens to ensure the buy liquidity.',
+            fields: [
               {
-                "title": "Token pair",
-                "value": sellToken + '-' + buyToken,
-                "short": false
+                title: 'Bot name',
+                value: this._name,
+                short: false
               }, {
-                "title": "Auction index",
-                "value": auctionIndex,
-                "short": false
+                title: 'Token pair',
+                value: sellToken + '-' + buyToken,
+                short: false
               }, {
-                "title": "Bought tokens",
-                "value": boughtTokensString,
-                "short": false
+                title: 'Auction index',
+                value: auctionIndex,
+                short: false
               }, {
-                "title": "USD worth",
-                "value": '$' + amountInUSD,
-                "short": false
+                title: 'Bought tokens',
+                value: boughtTokensString,
+                short: false
+              }, {
+                title: 'USD worth',
+                value: '$' + amountInUSD,
+                short: false
               }
             ],
             footer: this.botInfo
