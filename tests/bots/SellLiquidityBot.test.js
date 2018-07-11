@@ -21,7 +21,8 @@ beforeEach(async () => {
     eventBus: new EventBus(),
     liquidityService,
     botAddress: '0x123',
-    markets: MARKETS
+    markets: MARKETS,
+    notifications: []
   })
 
   jest.useFakeTimers()

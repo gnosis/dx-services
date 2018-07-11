@@ -1,6 +1,6 @@
 const ENVIRONMENT = 'local'
 
-const MARKETS = process.env.MARKETS || [
+const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' },
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
