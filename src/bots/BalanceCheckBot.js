@@ -22,8 +22,6 @@ class BalanceCheckBot extends Bot {
     liquidityService,
     dxInfoService,
     ethereumClient,
-    // botAddress,
-    // markets,
     tokensByAccount,
     slackClient,
     botFundingSlackChannel
@@ -35,18 +33,6 @@ class BalanceCheckBot extends Bot {
     this._ethereumClient = ethereumClient
     this._slackClient = slackClient
     this._botFundingSlackChannel = botFundingSlackChannel
-
-    // this._botAddress = botAddress
-
-    // this._tokens = markets.reduce((accumulator, tokenPair) => {
-    //   if (!accumulator.includes(tokenPair.tokenA)) {
-    //     accumulator.push(tokenPair.tokenA)
-    //   }
-    //   if (!accumulator.includes(tokenPair.tokenB)) {
-    //     accumulator.push(tokenPair.tokenB)
-    //   }
-    //   return accumulator
-    // }, [])
 
     this._tokensByAccount = tokensByAccount
 

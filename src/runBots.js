@@ -166,11 +166,7 @@ class App {
       return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_OPERATIONS)
     })
 
-    // Balance Check Bot
-    // const balanceCheckBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
-    //   return _createBot(botConfig, 'BalanceCheckBot', this._config.SLACK_CHANNEL_BOT_FUNDING)
-    // })
-
+    // Balance Check Bot Config
     const buyAndSellBotsConfig = [].concat(
       this._config.BUY_LIQUIDITY_BOTS,
       this._config.SELL_LIQUIDITY_BOTS)
@@ -179,7 +175,7 @@ class App {
       if (!accountMarkets.hasOwnProperty(botConfig.accountIndex)) {
         accountMarkets[botConfig.accountIndex] = []
       }
-      console.log(accountMarkets)
+
       botConfig.markets.forEach(({ tokenA, tokenB }) => {
         if (!accountMarkets[botConfig.accountIndex].includes(tokenA)) {
           accountMarkets[botConfig.accountIndex].push(tokenA)
@@ -202,8 +198,6 @@ class App {
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
       ethereumClient: this._ethereumClient,
-      // botAddress,
-      // markets: botConfig.markets,
       tokensByAccount,
       slackClient: this._slackClient,
       botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING

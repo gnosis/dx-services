@@ -18,7 +18,8 @@ class BuyLiquidityBot extends Bot {
     markets,
     slackClient,
     botTransactionsSlackChannel,
-    buyLiquidityRules
+    buyLiquidityRules,
+    notifications
   }) {
     super(name)
     this._eventBus = eventBus
@@ -28,6 +29,7 @@ class BuyLiquidityBot extends Bot {
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._buyLiquidityRules = buyLiquidityRules
+    this._notifications = notifications
 
     this._lastCheck = null
     this._lastBuy = null
@@ -124,47 +126,69 @@ class BuyLiquidityBot extends Bot {
       notify: true
     })
 
-    /* eslint quotes: 0 */
-    // Notify to slack
-    if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
-      this._slackClient
-        .postMessage({
-          "channel": this._botTransactionsSlackChannel,
-          "attachments": [
-            {
-              "color": "good",
-              "title": "The bot has bought " + boughtTokensString,
-              "text": "The bot has bought tokens to ensure the buy liquidity.",
-              "fields": [
-                {
-                  "title": "Token pair",
-                  "value": sellToken + '-' + buyToken,
-                  "short": false
-                }, {
-                  "title": "Auction index",
-                  "value": auctionIndex,
-                  "short": false
-                }, {
-                  "title": "Bought tokens",
-                  "value": boughtTokensString,
-                  "short": false
-                }, {
-                  "title": "USD worth",
-                  "value": '$' + amountInUSD,
-                  "short": false
-                }
-              ],
-              footer: this.botInfo
-            }
-          ]
-        })
-        .catch(error => {
+    this._notifications.forEach(({ type, channel }) => {
+      switch (type) {
+        case 'slack':
+          // Notify to slack
+          if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+            this._notifyBuyedTokensSlack({
+              channel,
+              boughtTokensString,
+              sellToken,
+              buyToken,
+              auctionIndex,
+              amountInUSD
+            })
+          }
+          break
+        case 'email':
+        default:
           logger.error({
-            msg: 'Error notifing bought tokens to Slack: ' + error.toString(),
-            error
+            msg: 'Error notification type is unknown: ' + type
           })
+      }
+    })
+  }
+
+  _notifyBuyedTokensSlack ({ channel, boughtTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
+    /* eslint quotes: 0 */
+    this._slackClient
+      .postMessage({
+        "channel": channel || this._botTransactionsSlackChannel,
+        "attachments": [
+          {
+            "color": "good",
+            "title": "The bot has bought " + boughtTokensString,
+            "text": "The bot has bought tokens to ensure the buy liquidity.",
+            "fields": [
+              {
+                "title": "Token pair",
+                "value": sellToken + '-' + buyToken,
+                "short": false
+              }, {
+                "title": "Auction index",
+                "value": auctionIndex,
+                "short": false
+              }, {
+                "title": "Bought tokens",
+                "value": boughtTokensString,
+                "short": false
+              }, {
+                "title": "USD worth",
+                "value": '$' + amountInUSD,
+                "short": false
+              }
+            ],
+            footer: this.botInfo
+          }
+        ]
+      })
+      .catch(error => {
+        logger.error({
+          msg: 'Error notifing bought tokens to Slack: ' + error.toString(),
+          error
         })
-    }
+      })
   }
 
   _handleError (sellToken, buyToken, error) {
@@ -182,7 +206,8 @@ class BuyLiquidityBot extends Bot {
       botAddress: this._botAddress,
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
-      lastError: this._lastError
+      lastError: this._lastError,
+      notifications: this._notifications
     }
   }
 }
