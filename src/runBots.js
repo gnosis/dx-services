@@ -173,15 +173,22 @@ class App {
 
     function _getAccountMarkets (accountMarkets, botConfig) {
       if (!accountMarkets.hasOwnProperty(botConfig.accountIndex)) {
-        accountMarkets[botConfig.accountIndex] = []
-      }
-
-      botConfig.markets.forEach(({ tokenA, tokenB }) => {
-        if (!accountMarkets[botConfig.accountIndex].includes(tokenA)) {
-          accountMarkets[botConfig.accountIndex].push(tokenA)
+        accountMarkets[botConfig.accountIndex] = {
+          name: '',
+          tokens: []
         }
-        if (!accountMarkets[botConfig.accountIndex].includes(tokenB)) {
-          accountMarkets[botConfig.accountIndex].push(tokenB)
+      }
+      botConfig.markets.forEach(({ tokenA, tokenB }) => {
+        const SEPARATOR = accountMarkets[botConfig.accountIndex].name.length > 0
+          ? ', '
+          : ''
+        accountMarkets[botConfig.accountIndex].name += SEPARATOR + botConfig.name
+
+        if (!accountMarkets[botConfig.accountIndex].tokens.includes(tokenA)) {
+          accountMarkets[botConfig.accountIndex].tokens.push(tokenA)
+        }
+        if (!accountMarkets[botConfig.accountIndex].tokens.includes(tokenB)) {
+          accountMarkets[botConfig.accountIndex].tokens.push(tokenB)
         }
       })
       return accountMarkets
