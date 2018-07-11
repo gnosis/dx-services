@@ -42,7 +42,7 @@ const defaultConf = require('./config')
 // Load env conf
 let envConfFileName
 if (environment === 'pre' || environment === 'pro') {
-  // PRE and PRO share the same config on porpoise (so they are more alike)
+  // PRE and PRO share the same config on purpose (so they are more alike)
   // differences are modeled just as ENV_VARs
   envConfFileName = 'prepro-config'
 } else {
