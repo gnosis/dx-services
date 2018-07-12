@@ -9,7 +9,7 @@ const formatUtil = require('../helpers/formatUtil.js')
 const assert = require('assert')
 
 const MAXIMUM_DX_FEE = 0.005 // 0.5%
-const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 mmin
+const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 
 class LiquidityService {
   constructor ({
@@ -65,42 +65,42 @@ class LiquidityService {
     }
   }
 
-  async ensureBuyLiquidity ({ sellToken, buyToken, from }) {
+  async ensureBuyLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
-      liquidityCheckName: 'buy'
+      liquidityCheckName: 'buy',
+      waitToReleaseTheLock
     })
   }
 
-  async ensureSellLiquidity ({ sellToken, buyToken, from }) {
+  async ensureSellLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
-      liquidityCheckName: 'sell'
+      liquidityCheckName: 'sell',
+      waitToReleaseTheLock
     })
   }
 
-  async _ensureLiquidityAux ({ sellToken, buyToken, from, liquidityCheckName }) {
-    // Define some variables to refacor sell/buy liquidity checks
+  async _ensureLiquidityAux ({ sellToken, buyToken, from, liquidityCheckName, waitToReleaseTheLock }) {
+    // Define some variables to refactor sell/buy liquidity checks
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
-      messageCurrentCheck, paramsCurrentCheck, waitToReleaseTheLock
+      messageCurrentCheck, paramsCurrentCheck
     if (liquidityCheckName === 'sell') {
       const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
 
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
       messageCurrentCheck = 'Ensure that sell liquidity is over $%d'
-      waitToReleaseTheLock = true
       paramsCurrentCheck = [ minimumSellVolume ]
     } else if (liquidityCheckName === 'buy') {
       doEnsureLiquidityFnName = '_doEnsureBuyLiquidity'
       baseLockName = 'BUY-LIQUIDITY'
       messageCurrentCheck = 'Ensure that buy liquidity is met'
       paramsCurrentCheck = undefined
-      waitToReleaseTheLock = true
     } else {
       throw new Error('No known liquidity check named: ' + liquidityCheckName)
     }
