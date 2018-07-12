@@ -27,19 +27,30 @@ instanceFactory()
 async function claimFunds ({
   config, dxTradeService, ethereumClient
 }) {
-  const tokenPairs = config.MARKETS.reduce((pairs, { tokenA, tokenB }) => {
-    pairs.push(
-      { sellToken: tokenA, buyToken: tokenB },
-      { sellToken: tokenB, buyToken: tokenA })
-    return pairs
-  }, [])
+  const buyAndSellBotsConfig = [].concat(
+    config.BUY_LIQUIDITY_BOTS,
+    config.SELL_LIQUIDITY_BOTS)
 
-  const botAddress = await getBotAddress(ethereumClient)
-  assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
-  return dxTradeService.claimAll({
-    tokenPairs,
-    address: botAddress,
-    lastNAuctions: config.AUTO_CLAIM_AUCTIONS
+  const _doClaim = async ({ accountIndex, markets }) => {
+    const botAddress = await getBotAddress(ethereumClient, accountIndex)
+    assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+
+    const tokenPairs = markets.reduce((pairs, { tokenA, tokenB }) => {
+      pairs.push(
+        { sellToken: tokenA, buyToken: tokenB },
+        { sellToken: tokenB, buyToken: tokenA })
+      return pairs
+    }, [])
+
+    return dxTradeService.claimAll({
+      tokenPairs,
+      address: botAddress,
+      lastNAuctions: config.AUTO_CLAIM_AUCTIONS
+    })
+  }
+
+  return buyAndSellBotsConfig.map(botConfig => {
+    _doClaim(botConfig)
   })
 }
 
