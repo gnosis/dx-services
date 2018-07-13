@@ -31,10 +31,12 @@ const BUY_LIQUIDITY_RULES_DEFAULT = [
   }
 ]
 
+const MAIN_BOT_ACCOUNT = 0
+
 const BUY_LIQUIDITY_BOTS = [{
   name: 'Main buyer bot',
   markets: MARKETS,
-  accountIndex: 0,
+  accountIndex: MAIN_BOT_ACCOUNT,
   rules: BUY_LIQUIDITY_RULES_DEFAULT,
   notifications: [{
     type: 'slack',
@@ -69,7 +71,7 @@ const BUY_LIQUIDITY_BOTS = [{
 const SELL_LIQUIDITY_BOTS = [{
   name: 'Main seller bot',
   markets: MARKETS,
-  accountIndex: 0,
+  accountIndex: MAIN_BOT_ACCOUNT,
   notifications: [{
     type: 'slack',
     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
@@ -165,6 +167,7 @@ module.exports = {
   ENVIRONMENT,
 
   // bot config
+  MAIN_BOT_ACCOUNT,
   BUY_LIQUIDITY_BOTS,
   SELL_LIQUIDITY_BOTS,
   BUY_LIQUIDITY_RULES_DEFAULT,

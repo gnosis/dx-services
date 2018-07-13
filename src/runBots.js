@@ -81,7 +81,8 @@ class App {
           host: this._config.BOTS_API_HOST,
           botsService: this._botsService,
           reportService: this._reportService,
-          ethereumClient: this._ethereumClient
+          ethereumClient: this._ethereumClient,
+          config: this._config
         })
       })
   }
