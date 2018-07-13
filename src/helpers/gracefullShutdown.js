@@ -1,3 +1,5 @@
+require('./errorHandler')
+
 const loggerNamespace = 'dx-service:helpers:gratefullShutdown'
 const Logger = require('./Logger')
 const logger = new Logger(loggerNamespace)
@@ -11,16 +13,6 @@ POSIX_SIGNALS.forEach(signal => {
   process.on(signal, () => {
     _doShutDown(`I've gotten a ${signal} signal`)
   })
-})
-
-process.on('uncaughtException', error => {
-  logger.error({
-    msg: 'Uncought exception: ' + error.toString(),
-    error
-  })
-
-  // TODO: Decide if we want to shutdown the app here or not
-  // _doShutDown(`There was a glonal unhandled exception`)
 })
 
 function onShutdown (listener) {
