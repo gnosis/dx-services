@@ -1,29 +1,29 @@
 swagger: '2.0'
 info:
   description: |-
-    Welcome to Dutch X API docs.
+    Welcome to DutchX API docs.
 
     In this documents you will find **information about the auctions running
-    on the Dutch X smart contracts**.
+    on the DutchX smart contracts**.
 
     Also we provice the **TRY** button, so the different endpoint can be tested
     from the documentation web itself.
 
     For aditional information and for reference, check out these resources:
-      * [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about Dutch X in
+      * [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about DutchX in
       Gnosis Blog, were you will find a series of posts about it.
       * [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api):
-      Example project and documentation on how to use the Dutch X API.
-      * [Dutch X - Gitter channel](https://gitter.im/gnosis/DutchX): Participate
+      Example project and documentation on how to use the DutchX API.
+      * [DutchX - Gitter channel](https://gitter.im/gnosis/DutchX): Participate
       in the gitter channel.
       * [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart
       contracts of the Duch X
       * [Github: dx-services](https://github.com/gnosis/dx-services): Services,
       repositories and bots to interact with DX.
       * [Github: dx-react](https://github.com/gnosis/dx-react): Front end web
-      application for the Dutch X seller interface
-  version: '0.1'
-  title: Dutch X API
+      application for the DutchX seller interface
+  version: '1.0'
+  title: DutchX API
   termsOfService: 'https://dutch.d.exchange/terms/'
   contact:
     name: DutchX Gitter channel
@@ -296,7 +296,7 @@ paths:
     get:
       tags:
         - markets
-      summary: Returns if a given token pair has been added to the Dutch X
+      summary: Returns if a given token pair has been added to the DutchX
       description: Returns true only if the token pair has been added
       operationId: isValidTokenPair
       produces:
@@ -442,8 +442,13 @@ paths:
     get:
       tags:
         - auctions
-      summary: Returns auction summary in date range
-      description: Returns cleared auctions info in a date range. At least fromDate and toDate parameters or period parameter is required.
+      summary: Returns auctions summary in a date range
+      description: >-
+        <span class="markdown">
+        Returns a list of cleared auctions with details, as closing price or buy and sell volume, in the selected date range.
+        <br/>
+        At least <b>fromDate</b> and <b>toDate</b> parameters or <b>period</b> parameter is <b>required</b> in order to return any results.
+        </span>
       operationId: getClearedAcutionsInfo
       produces:
         - application/json
@@ -451,17 +456,20 @@ paths:
         - name: fromDate
           in: query
           description: >-
-            A date string using DD-MM-YYYY format. Required when using toDate.
+            A date string using ISO 8601 date format. Required when using
+            <i>toDate</i>. <br/> ex: <i>'2018-07-01', '01-07-2018'</i>
           type: string
         - name: toDate
           in: query
           description: >-
-            A date string using DD-MM-YYYY format. Required when using fromDate.
+            A date string using ISO 8601 date format. Required when using
+            <i>fromDate</i>. <br/> ex: <i>'2018-07-02', '02-07-2018'</i>
           type: string
         - name: period
           in: query
           description: >-
-            A relative time period. Valid values are: today, yesterday, week, last-week, current-week
+            A relative time period. Valid values are: <i>today, yesterday, week,
+            last-week, current-week</i>
           type: string
       responses:
         '200':
@@ -479,9 +487,8 @@ paths:
                 <li>Unknown value for period. Valid values are: today, yesterday, week, last-week, current-week</li>
               </ul>
               DATE_FORMAT:
-              <ul><li>Invalid date format. The required format is DD/MM/YYYY</li></ul>
+              <ul><li>Invalid date format. The required format is a valid ISO 8601 date format</li></ul>
             </span>
-
   '/accounts/{accountAddress}/current-fee-ratio':
     get:
       tags:
@@ -782,15 +789,15 @@ definitions:
   AuctionSummary:
     type: object
     required:
-     - auctionIndex
-     - sellToken
-     - buyToken
-     - auctionStart
-     - auctionEnd
-     - sellVolume
-     - buyVolume
-     - closingPrice
-     - priceIncrement
+      - auctionIndex
+      - sellToken
+      - buyToken
+      - auctionStart
+      - auctionEnd
+      - sellVolume
+      - buyVolume
+      - closingPrice
+      - priceIncrement
     properties:
       auctionIndex:
         type: integer

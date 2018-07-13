@@ -4,8 +4,9 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' },
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
-const BUY_LIQUIDITY_RULES = [
+const BUY_LIQUIDITY_RULES_DEFAULT = [
   // Buy 1/2 if price falls below 99%
+
   {
     marketPriceRatio: {
       numerator: 99,
@@ -29,6 +30,54 @@ const BUY_LIQUIDITY_RULES = [
     }
   }
 ]
+
+const MAIN_BOT_ACCOUNT = 0
+
+const BUY_LIQUIDITY_BOTS = [{
+  name: 'Main buyer bot',
+  markets: MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  rules: BUY_LIQUIDITY_RULES_DEFAULT,
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }]
+}, {
+  name: 'Backup buyer for RDN-WETH',
+  markets: [
+    { tokenA: 'WETH', tokenB: 'RDN' }
+  ],
+  accountIndex: 1,
+  rules: [{
+    // Buy the 100% if price falls below 90%
+    marketPriceRatio: {
+      numerator: 90,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }],
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }, {
+    type: 'email',
+    email: ''
+  }]
+}]
+
+const SELL_LIQUIDITY_BOTS = [{
+  name: 'Main seller bot',
+  markets: MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }]
+}]
+
 const AUTO_CLAIM_AUCTIONS = 90
 
 const DEFAULT_GAS = 6700000
@@ -118,7 +167,10 @@ module.exports = {
   ENVIRONMENT,
 
   // bot config
-  BUY_LIQUIDITY_RULES,
+  MAIN_BOT_ACCOUNT,
+  BUY_LIQUIDITY_BOTS,
+  SELL_LIQUIDITY_BOTS,
+  BUY_LIQUIDITY_RULES_DEFAULT,
   MARKETS,
   AUTO_CLAIM_AUCTIONS,
 

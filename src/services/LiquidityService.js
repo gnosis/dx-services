@@ -26,7 +26,7 @@ class LiquidityService {
     this._ethereumRepo = ethereumRepo
 
     // Config
-    this._buyLiquidityRules = config.BUY_LIQUIDITY_RULES
+    this._buyLiquidityRules = config.BUY_LIQUIDITY_RULES_DEFAULT
       // Transform fractions to bigdecimals
       .map(threshold => ({
         marketPriceRatio: numberUtil
@@ -58,20 +58,21 @@ class LiquidityService {
     }, auctionInfo)
 
     return {
-      name: 'Dutch Exchange - Services',
+      name: 'Dutch Exchange - API',
       version: this._version,
       config,
       git: this._gitInfo
     }
   }
 
-  async ensureBuyLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
+  async ensureBuyLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = true }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
-      liquidityCheckName: 'buy',
-      waitToReleaseTheLock
+      buyLiquidityRules,
+      waitToReleaseTheLock,
+      liquidityCheckName: 'buy'
     })
   }
 
@@ -85,8 +86,8 @@ class LiquidityService {
     })
   }
 
-  async _ensureLiquidityAux ({ sellToken, buyToken, from, liquidityCheckName, waitToReleaseTheLock }) {
-    // Define some variables to refactor sell/buy liquidity checks
+  async _ensureLiquidityAux ({ sellToken, buyToken, from, buyLiquidityRules, liquidityCheckName, waitToReleaseTheLock }) {
+    // Define some variables to refacor sell/buy liquidity checks
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
       messageCurrentCheck, paramsCurrentCheck
     if (liquidityCheckName === 'sell') {
@@ -114,7 +115,7 @@ class LiquidityService {
       params: paramsCurrentCheck
     })
 
-    const lockName = this._getAuctionLockName(baseLockName, sellToken, buyToken)
+    const lockName = this._getAuctionLockName(baseLockName, sellToken, buyToken, from)
 
     const that = this
     const releaseLock = result => {
@@ -154,7 +155,8 @@ check should be done`,
       this.concurrencyCheck[lockName] = this[doEnsureLiquidityFnName]({
         tokenA: sellToken,
         tokenB: buyToken,
-        from
+        from,
+        buyLiquidityRules
       })
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
       boughtOrSoldTokensPromise
@@ -247,7 +249,7 @@ keeps happening`
     return soldTokens
   }
 
-  async _doEnsureBuyLiquidity ({ tokenA, tokenB, from }) {
+  async _doEnsureBuyLiquidity ({ tokenA, tokenB, from, buyLiquidityRules }) {
     const buyLiquidityResult = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
     const auctionIndex = await this._auctionRepo.getAuctionIndex(auction)
@@ -261,7 +263,8 @@ keeps happening`
         sellToken: tokenA,
         buyToken: tokenB,
         auctionIndex,
-        from
+        from,
+        buyLiquidityRules
       }),
 
       // tokenB-tokenA: Get soldTokens
@@ -269,7 +272,8 @@ keeps happening`
         sellToken: tokenB,
         buyToken: tokenA,
         auctionIndex,
-        from
+        from,
+        buyLiquidityRules
       })
     ])
 
@@ -283,7 +287,7 @@ keeps happening`
     return buyLiquidityResult
   }
 
-  async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from }) {
+  async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from, buyLiquidityRules }) {
     const auctionState = await this._auctionRepo.getAuctionState({
       sellToken,
       buyToken,
@@ -329,6 +333,7 @@ keeps happening`
             buyToken,
             auctionIndex,
             from,
+            buyLiquidityRules,
             currentMarketPrice: currentMarketPrice,
             price: price,
             auctionState
@@ -392,6 +397,7 @@ keeps happening`
     buyToken,
     auctionIndex,
     from,
+    buyLiquidityRules,
     currentMarketPrice,
     price,
     auctionState
@@ -400,6 +406,7 @@ keeps happening`
 
     // Get the percentage that should be bought
     const percentageThatShouldBeBought = this._getPercentageThatShouldBeBought({
+      buyLiquidityRules,
       currentMarketPrice,
       price
     })
@@ -516,14 +523,30 @@ keeps happening`
     return buyLiquidityOperation
   }
 
-  _getPercentageThatShouldBeBought ({ currentMarketPrice, price }) {
+  _getPercentageThatShouldBeBought ({ buyLiquidityRules, currentMarketPrice, price }) {
     // Get the relation between prices
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
 
+    let rules = this._buyLiquidityRules
+    if (buyLiquidityRules) {
+      rules = buyLiquidityRules
+        // Transform fractions to bigdecimals
+        .map(threshold => ({
+          marketPriceRatio: numberUtil
+            .toBigNumberFraction(threshold.marketPriceRatio),
+          buyRatio: numberUtil
+            .toBigNumberFraction(threshold.buyRatio)
+        }))
+        // Sort the thresholds by buyRatio (in descendant order)
+        .sort((thresholdA, thresholdB) => {
+          return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
+        })
+    }
+
     // Get the matching rule with the highest
     //  * note that the rules aresorted by buyRatio (in descendant order)
-    const buyRule = this._buyLiquidityRules.find(threshold => {
+    const buyRule = rules.find(threshold => {
       return threshold.marketPriceRatio.greaterThanOrEqualTo(priceRatio)
     })
     return buyRule ? buyRule.buyRatio : numberUtil.ZERO
@@ -593,10 +616,10 @@ keeps happening`
     }
   }
 
-  _getAuctionLockName (operation, sellToken, buyToken) {
+  _getAuctionLockName (operation, sellToken, buyToken, from) {
     const sufix = sellToken < buyToken ? sellToken + '-' + buyToken : buyToken + '-' + sellToken
 
-    return operation + sufix
+    return operation + sufix + from
   }
 }
 

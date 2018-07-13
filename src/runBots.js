@@ -68,8 +68,7 @@ class App {
     this._bots = null
 
     // Initialize bots and API
-    this.isReadyPromise = getBotAddress(ethereumClient)
-      .then(botAddress => this._createBots(botAddress))
+    this.isReadyPromise = this._createBots()
       .then(bots => {
         // Set bot list
         logger.info('Created %d bots', bots.length)
@@ -82,7 +81,8 @@ class App {
           host: this._config.BOTS_API_HOST,
           botsService: this._botsService,
           reportService: this._reportService,
-          ethereumClient: this._ethereumClient
+          ethereumClient: this._ethereumClient,
+          config: this._config
         })
       })
   }
@@ -133,53 +133,92 @@ class App {
     logger.info({ msg: 'App is ready to shut down' })
   }
 
-  _createBots (botAddress) {
-    assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
-    // Sell Liquidity bot
-    const SellLiquidityBot = require('./bots/SellLiquidityBot')
-    const sellLiquidityBot = new SellLiquidityBot({
-      name: 'Main seller bot',
-      eventBus: this._eventBus,
-      liquidityService: this._liquidityService,
-      botAddress,
-      markets: this._config.MARKETS,
-      slackClient: this._slackClient,
-      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_OPERATIONS
+  _createBots () {
+    const botTypes = {
+      SellLiquidityBot: require('./bots/SellLiquidityBot'),
+      BuyLiquidityBot: require('./bots/BuyLiquidityBot')
+    }
+
+    const _createBot = async (botConfig, botInstanceType, slackChannel) => {
+      const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
+      assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+
+      return new botTypes[botInstanceType]({
+        name: botConfig.name,
+        eventBus: this._eventBus,
+        liquidityService: this._liquidityService,
+        botAddress,
+        markets: botConfig.markets,
+        slackClient: this._slackClient,
+        botTransactionsSlackChannel: slackChannel,
+        buyLiquidityRules: botConfig.rules,
+        notifications: botConfig.notifications
+      })
+    }
+
+    // Sell Liquidity bots
+    const sellLiquidityBotPromises = this._config.SELL_LIQUIDITY_BOTS.map(botConfig => {
+      return _createBot(botConfig, 'SellLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
     })
 
-    // Buy Liquidity Bot
-    const BuyLiquidityBot = require('./bots/BuyLiquidityBot')
-    const buyLiquidityBot = new BuyLiquidityBot({
-      name: 'Main buyer bot',
-      eventBus: this._eventBus,
-      liquidityService: this._liquidityService,
-      botAddress,
-      markets: this._config.MARKETS,
-      slackClient: this._slackClient,
-      botTransactionsSlackChannel: this._config.SLACK_CHANNEL_OPERATIONS
+    // Buy Liquidity Bots
+    const buyLiquidityBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
+      return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
     })
 
-    // Buy Liquidity Bot
+    // Balance Check Bot Config
+    const buyAndSellBotsConfig = [].concat(
+      this._config.BUY_LIQUIDITY_BOTS,
+      this._config.SELL_LIQUIDITY_BOTS)
+
+    function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+      if (!accountMarkets.hasOwnProperty(accountIndex)) {
+        accountMarkets[accountIndex] = {
+          name: '',
+          tokens: []
+        }
+      }
+      markets.forEach(({ tokenA, tokenB }) => {
+        const SEPARATOR = accountMarkets[accountIndex].name.length > 0
+          ? ', '
+          : ''
+        accountMarkets[accountIndex].name += SEPARATOR + name
+
+        if (!accountMarkets[accountIndex].tokens.includes(tokenA)) {
+          accountMarkets[accountIndex].tokens.push(tokenA)
+        }
+        if (!accountMarkets[accountIndex].tokens.includes(tokenB)) {
+          accountMarkets[accountIndex].tokens.push(tokenB)
+        }
+      })
+      return accountMarkets
+    }
+    const tokensByAccount = buyAndSellBotsConfig.reduce((accountMarkets, botConfig) => {
+      return _getAccountMarkets(accountMarkets, botConfig)
+    }, {})
+
+    // Balance Check Bot
     const BalanceCheckBot = require('./bots/BalanceCheckBot')
-    const balanceCheckBot = new BalanceCheckBot({
-      name: 'Main balance check bot',
+    const balanceCheckBotPromise = new BalanceCheckBot({
+      name: 'BalanceCheckBot',
       eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
-      botAddress,
-      markets: this._config.MARKETS,
+      ethereumClient: this._ethereumClient,
+      tokensByAccount,
       slackClient: this._slackClient,
       botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
-
     // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_AUCTIONS_REPORT
 
     // Return bots
-    return [
-      sellLiquidityBot,
-      buyLiquidityBot,
-      balanceCheckBot
-    ]
+    return Promise.all(
+      [].concat(
+        sellLiquidityBotPromises,
+        buyLiquidityBotPromises,
+        balanceCheckBotPromise
+      )
+    )
   }
 
   async _notifyStart (version) {

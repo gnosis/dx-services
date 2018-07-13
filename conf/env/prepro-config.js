@@ -1,4 +1,4 @@
-const ENVIRONMENT = 'prepro'
+const ENVIRONMENT = process.env.NODE_ENV
 
 // To be set using env vars
 const RDN_TOKEN_ADDRESS = null

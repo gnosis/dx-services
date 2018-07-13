@@ -119,7 +119,7 @@ class PriceRepoHuobi {
       throw Error('No matching markets in Huobi: ' + tokenA + '-' + tokenB)
     }
 
-    debug('Pair order result: %s', matchingPairs)
+    debug('Pair order result: %o', matchingPairs)
     const [ pair ] = matchingPairs
     return tokenALower === pair['quote-currency'] &&
     tokenBLower === pair['base-currency']

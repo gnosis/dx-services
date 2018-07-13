@@ -31,6 +31,10 @@ class PublicApiServer extends Server {
     const uiRoutes = require('./ui-routes')(services, this._cacheTimeouts)
 
     // Static content
+    const landingPage = express.Router()
+    landingPage.use(contextPath, express.static(path.join(__dirname, './static/landing')))
+    app.use('/', landingPage)
+
     const mainPages = express.Router()
     mainPages.use(contextPath, express.static(path.join(__dirname, './static')))
     app.use('/api', mainPages)

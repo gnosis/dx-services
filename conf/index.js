@@ -17,7 +17,8 @@ const ENV_VAR_LIST = [
   'CACHE_ENABLED',
   'SLACK_CHANNEL_DX_BOTS',
   'SLACK_CHANNEL_DX_BOTS_DEV',
-  'BUY_LIQUIDITY_RULES'
+  'BUY_LIQUIDITY_BOTS',
+  'SELL_LIQUIDITY_BOTS'
   //
   // Also:
   //  * NODE_ENV
@@ -41,7 +42,7 @@ const defaultConf = require('./config')
 // Load env conf
 let envConfFileName
 if (environment === 'pre' || environment === 'pro') {
-  // PRE and PRO share the same config on porpoise (so they are more alike)
+  // PRE and PRO share the same config on purpose (so they are more alike)
   // differences are modeled just as ENV_VARs
   envConfFileName = 'prepro-config'
 } else {
@@ -57,6 +58,7 @@ const networkConfig = network ? require(`./network/${network}-config`) : {}
 
 // Get token list and env vars
 const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
+
 const markets = envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 let envVars = getEnvVars(tokens)
@@ -72,9 +74,14 @@ if (cacheEnabled !== undefined) {
   envVars['CACHE_ENABLED'] = cacheEnabled === 'true'
 }
 
+const [ BUY_LIQUIDITY_BOTS, SELL_LIQUIDITY_BOTS ] = updateDefaultBotsMarkets(markets)
+
 // Merge three configs to get final config
 const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars, {
-  MARKETS: markets.map(orderMarketTokens)
+  MARKETS: markets.map(orderMarketTokens),
+  // FIXME this should be done in a more flexible way
+  BUY_LIQUIDITY_BOTS,
+  SELL_LIQUIDITY_BOTS
 })
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
@@ -102,6 +109,17 @@ function getEnvMarkets () {
   } else {
     return null
   }
+}
+
+// FIXME this should be done in a more flexible way
+function updateDefaultBotsMarkets (markets) {
+  let BuyLiquidityBots = defaultConf.BUY_LIQUIDITY_BOTS
+  BuyLiquidityBots[0].markets = markets
+
+  let SellLiquidityBots = defaultConf.SELL_LIQUIDITY_BOTS
+  SellLiquidityBots[0].markets = markets
+
+  return [ BuyLiquidityBots, SellLiquidityBots ]
 }
 
 function getTokenList (markets) {

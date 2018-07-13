@@ -22,7 +22,7 @@ const message = {
           "short": false
         }
       ],
-      "footer": "Dutch X Bots - v1.0",
+      "footer": "DutchX Bots - v1.0",
       "ts": 123456789
     }, {
       "color": "danger",

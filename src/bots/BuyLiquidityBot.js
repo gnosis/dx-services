@@ -17,7 +17,9 @@ class BuyLiquidityBot extends Bot {
     botAddress,
     markets,
     slackClient,
-    botTransactionsSlackChannel
+    botTransactionsSlackChannel,
+    buyLiquidityRules,
+    notifications
   }) {
     super(name)
     this._eventBus = eventBus
@@ -26,6 +28,8 @@ class BuyLiquidityBot extends Bot {
     this._markets = markets
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
+    this._buyLiquidityRules = buyLiquidityRules
+    this._notifications = notifications
 
     this._lastCheck = null
     this._lastBuy = null
@@ -33,7 +37,7 @@ class BuyLiquidityBot extends Bot {
   }
 
   async _doStart () {
-    logger.debug({ msg: 'Initialized bot' })
+    logger.debug({ msg: 'Initialized bot: ' + this.name })
 
     // Check the liquidity periodically
     setInterval(() => {
@@ -46,7 +50,7 @@ class BuyLiquidityBot extends Bot {
   }
 
   async _doStop () {
-    logger.debug({ msg: 'Bot stopped' })
+    logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
   async _doRoutineLiquidityCheck (sellToken, buyToken) {
@@ -66,9 +70,10 @@ class BuyLiquidityBot extends Bot {
   async _ensureBuyLiquidity ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
+    const buyLiquidityRules = this._buyLiquidityRules
     try {
       liquidityWasEnsured = await this._liquidityService
-        .ensureBuyLiquidity({ sellToken, buyToken, from })
+        .ensureBuyLiquidity({ sellToken, buyToken, from, buyLiquidityRules })
         .then(boughtTokens => {
           let liquidityWasEnsured = boughtTokens.length > 0
           if (liquidityWasEnsured) {
@@ -107,7 +112,7 @@ class BuyLiquidityBot extends Bot {
     } = buyOrder
     // Log sold tokens
     const amountInTokens = amount.div(1e18)
-    const boughtTokensString = amountInTokens + " " + buyToken
+    const boughtTokensString = amountInTokens + ' ' + buyToken
 
     auctionLogger.info({
       sellToken,
@@ -121,47 +126,72 @@ class BuyLiquidityBot extends Bot {
       notify: true
     })
 
-    /* eslint quotes: 0 */
-    // Notify to slack
-    if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
-      this._slackClient
-        .postMessage({
-          "channel": this._botTransactionsSlackChannel,
-          "attachments": [
-            {
-              "color": "good",
-              "title": "The bot has bought " + boughtTokensString,
-              "text": "The bot has bought tokens to ensure the buy liquidity.",
-              "fields": [
-                {
-                  "title": "Token pair",
-                  "value": sellToken + '-' + buyToken,
-                  "short": false
-                }, {
-                  "title": "Auction index",
-                  "value": auctionIndex,
-                  "short": false
-                }, {
-                  "title": "Bought tokens",
-                  "value": boughtTokensString,
-                  "short": false
-                }, {
-                  "title": "USD worth",
-                  "value": '$' + amountInUSD,
-                  "short": false
-                }
-              ],
-              footer: this.botInfo
-            }
-          ]
-        })
-        .catch(error => {
+    this._notifications.forEach(({ type, channel }) => {
+      switch (type) {
+        case 'slack':
+          // Notify to slack
+          if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+            this._notifyBuyedTokensSlack({
+              channel,
+              boughtTokensString,
+              sellToken,
+              buyToken,
+              auctionIndex,
+              amountInUSD
+            })
+          }
+          break
+        case 'email':
+        default:
           logger.error({
-            msg: 'Error notifing bought tokens to Slack: ' + error.toString(),
-            error
+            msg: 'Error notification type is unknown: ' + type
           })
+      }
+    })
+  }
+
+  _notifyBuyedTokensSlack ({ channel, boughtTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
+    this._slackClient
+      .postMessage({
+        channel: channel || this._botTransactionsSlackChannel,
+        attachments: [
+          {
+            color: 'good',
+            title: 'The bot has bought ' + boughtTokensString,
+            text: 'The bot has bought tokens to ensure the buy liquidity.',
+            fields: [
+              {
+                title: 'Bot name',
+                value: this._name,
+                short: false
+              }, {
+                title: 'Token pair',
+                value: sellToken + '-' + buyToken,
+                short: false
+              }, {
+                title: 'Auction index',
+                value: auctionIndex,
+                short: false
+              }, {
+                title: 'Bought tokens',
+                value: boughtTokensString,
+                short: false
+              }, {
+                title: 'USD worth',
+                value: '$' + amountInUSD,
+                short: false
+              }
+            ],
+            footer: this.botInfo
+          }
+        ]
+      })
+      .catch(error => {
+        logger.error({
+          msg: 'Error notifing bought tokens to Slack: ' + error.toString(),
+          error
         })
-    }
+      })
   }
 
   _handleError (sellToken, buyToken, error) {
@@ -179,7 +209,8 @@ class BuyLiquidityBot extends Bot {
       botAddress: this._botAddress,
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
-      lastError: this._lastError
+      lastError: this._lastError,
+      notifications: this._notifications
     }
   }
 }

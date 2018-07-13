@@ -10,7 +10,7 @@ const message = {
     {
       "title": "New report avaliable",
       "color": "good",
-      "text": "There's a new report for the last auctions of Dutch X",
+      "text": "There's a new report for the last auctions of DutchX",
       "fields": [
         {
           "title": "From:",
@@ -22,7 +22,7 @@ const message = {
           "short": false
         }
       ],
-      "footer": "Dutch X Bots - v1.0",
+      "footer": "DutchX Bots - v1.0",
       "ts": 123456789
     }
   ]

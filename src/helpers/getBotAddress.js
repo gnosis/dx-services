@@ -1,4 +1,4 @@
-function getBotAddress (ethereumClient) {
+function getBotAddress (ethereumClient, accountIndex) {
   const environment = process.env.NODE_ENV
   return ethereumClient
     .getAccounts()
@@ -14,10 +14,14 @@ function getBotAddress (ethereumClient) {
         //  * the account 0 for the owner
         //  * the account 1 for the bot
         return accounts[1]
-      } else if (accounts.length > 0) {
-        // In DEV,PRE and PRO we use the account 0 for the bot
-        return accounts[0]
-      } else {
+      } else if (accountIndex !== undefined && accounts.length > accountIndex) {
+        return accounts[accountIndex]
+      }
+      // else if (accounts.length > 0) {
+      //   // In DEV,PRE and PRO we use the account 0 for the bot
+      //   return accounts[0]
+      // }
+      else {
         return null
         // throw new Error("The ethereumClient doesn't have the bot account configured")
       }

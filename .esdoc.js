@@ -17,7 +17,7 @@ module.exports = {
       "brand": {
         // "logo": "./src/web/static/img/gnosis-logo-header.jpg",
         "logo": "./src/web/static/favicon.png",
-        "title": "Dutch Exchange Services",
+        "title": "DutchX Services",
         "description": "Services and bots for the dutch exchange",
         /*
         "repository": "https://github.com/foo/bar",
