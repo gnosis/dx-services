@@ -12,6 +12,7 @@ Auction index\t\
 User\t\
 Nonce\t\
 Amount\t\
+Trade token\t\
 Gas limit\t\
 Gas price (GWei)\t\
 Gas used\t\
@@ -52,7 +53,8 @@ function registerCommand ({ cli, instances, logger }) {
       const {
         fromDate: fromDateStr,
         toDate: toDateStr,
-        period, token,
+        period,
+        token,
         type,
         sellToken,
         buyToken,
@@ -171,6 +173,7 @@ ${auctionIndex}\t\
 ${user}\t\
 ${nonce}\t\
 ${amount.div(1e18)}\t\
+${type === 'ask' ? sellToken.symbol : buyToken.symbol}\t\
 ${gasLimit}\t\
 ${gasPriceGwei}\t\
 ${gasUsed}\t\
