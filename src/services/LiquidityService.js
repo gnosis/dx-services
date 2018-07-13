@@ -57,7 +57,7 @@ class LiquidityService {
     }, auctionInfo)
 
     return {
-      name: 'Dutch Exchange - Services',
+      name: 'Dutch Exchange - API',
       version: this._version,
       config,
       git: this._gitInfo
