@@ -1,7 +1,7 @@
 const cliUtils = require('../helpers/cliUtils')
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 const formatUtil = require('../../helpers/formatUtil')
-const numberUtil = require('../../helpers/numberUtil')
+// const numberUtil = require('../../helpers/numberUtil')
 
 const HEADERS = `\
 Trade date\t\

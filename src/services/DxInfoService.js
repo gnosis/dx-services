@@ -551,6 +551,54 @@ class DxInfoService {
     })
   }
 
+  async getFees ({
+    fromDate,
+    toDate,
+
+    // optional params
+    account
+  }) {
+    const [ fromBlock, toBlock ] = await Promise.all([
+      this._ethereumRepo.getFirstBlockAfterDate(fromDate),
+      this._ethereumRepo.getLastBlockBeforeDate(toDate)
+    ])
+
+    const fees = await this._auctionRepo.getFees({
+      fromBlock: fromBlock,
+      toBlock: toBlock,
+      user: account
+    })
+
+    const feesDtoPromises = fees.map(async fee => {
+      const {
+        fee: feeInWei,
+        user,
+        tradeDate,
+        sellToken: sellTokenAddress,
+        buyToken: buyTokenAddress,
+        auctionIndex,
+        ethInfo
+      } = fee
+
+      const [ sellToken, buyToken ] = await Promise.all([
+        this._getTokenInfoByAddress(sellTokenAddress),
+        this._getTokenInfoByAddress(buyTokenAddress)
+      ])
+
+      return {
+        sellToken,
+        buyToken,
+        auctionIndex: auctionIndex.toNumber(),
+        fee: feeInWei.div(1e18).toNumber(),
+        tradeDate,
+        user,
+        transactionHash: ethInfo.transactionHash
+      }
+    })
+
+    return Promise.all(feesDtoPromises)
+  }
+
   async getTrades ({
     fromDate,
     toDate,
