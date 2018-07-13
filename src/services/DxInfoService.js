@@ -599,6 +599,68 @@ class DxInfoService {
     return Promise.all(feesDtoPromises)
   }
 
+  async getClaimings ({
+    fromDate,
+    toDate,
+
+    // optional params
+    account
+  }) {
+    const [ fromBlock, toBlock ] = await Promise.all([
+      this._ethereumRepo.getFirstBlockAfterDate(fromDate),
+      this._ethereumRepo.getLastBlockBeforeDate(toDate)
+    ])
+
+    const filterParams = {
+      fromBlock: fromBlock,
+      toBlock: toBlock,
+      user: account
+    }
+    const buyerClamings = await this._auctionRepo.getClaimedFundsBuyer(filterParams)
+    const sellerClamings = await this._auctionRepo.getClaimedFundsSeller(filterParams)
+
+    const toClaimingDto = async claiming => {
+      const {
+        user,
+        sellToken: sellTokenAddress,
+        buyToken: buyTokenAddress,
+        auctionIndex,
+        amount: amountInWei,
+        frtsIssued: frtsIssuedInWei,
+        claimDate,
+        ethInfo
+      } = claiming
+
+      const [ sellToken, buyToken ] = await Promise.all([
+        this._getTokenInfoByAddress(sellTokenAddress),
+        this._getTokenInfoByAddress(buyTokenAddress)
+      ])
+
+      return {
+        sellToken,
+        buyToken,
+        auctionIndex: auctionIndex.toNumber(),
+        claimDate,
+        amount: amountInWei.div(1e18).toNumber(),
+        user,
+        frtsIssued: frtsIssuedInWei.div(1e18).toNumber(),
+        transactionHash: ethInfo.transactionHash
+      }
+    }
+
+    const buyerClaimingDtoPromises = buyerClamings.map(toClaimingDto)
+    const sellerClaimingDtoPromises = sellerClamings.map(toClaimingDto)
+    const [ buyer, seller ] = await Promise.all([
+      Promise.all(buyerClaimingDtoPromises),
+      Promise.all(sellerClaimingDtoPromises)
+    ])
+
+    return {
+      buyer,
+      seller
+    }
+  }
+
   async getTrades ({
     fromDate,
     toDate,

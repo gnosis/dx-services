@@ -1341,7 +1341,7 @@ volume: ${state}`)
         }))
       })
   }
-
+ 
   async getFees ({
     fromBlock = 0,
     toBlock = 'latest',
@@ -1350,7 +1350,7 @@ volume: ${state}`)
     auctionIndex,
     user
   } = {}) {
-    let claimedFundsList = await ethereumEventHelper
+    let feesList = await ethereumEventHelper
       .filter({
         contract: this._dx,
         filters: {
@@ -1384,10 +1384,10 @@ volume: ${state}`)
       .then(eventsData => this._addTokensToEventsData(eventsData))
 
     if (auctionIndex) {
-      claimedFundsList = claimedFundsList.filter(claimedFunds => claimedFunds.auctionIndex.equals(auctionIndex))
+      feesList = feesList.filter(fee => fee.auctionIndex.equals(auctionIndex))
     }
 
-    return claimedFundsList
+    return feesList
   }
 
 

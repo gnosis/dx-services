@@ -37,7 +37,7 @@ async function run (instances) {
   require('./cliCommands/closingPriceCmd')(commandParams)
   require('./cliCommands/closingPriceOfficialCmd')(commandParams)
   require('./cliCommands/feesCmd')(commandParams)
-  // require('./cliCommands/claimedCommand')(commandParams)
+  require('./cliCommands/claimingsCmd')(commandParams)
 
   // Trade commands
   require('./cliCommands/sendCmd')(commandParams)
