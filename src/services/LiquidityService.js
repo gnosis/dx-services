@@ -65,7 +65,7 @@ class LiquidityService {
     }
   }
 
-  async ensureBuyLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = true }) {
+  async ensureBuyLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
@@ -118,10 +118,12 @@ class LiquidityService {
     const lockName = this._getAuctionLockName(baseLockName, sellToken, buyToken, from)
 
     const that = this
-    const releaseLock = result => {
+    const releaseLock = soldOrBoughtTokens => {
       // Clear concurrency lock and resolve proise
-      const isError = result instanceof Error
-      if (isError || !waitToReleaseTheLock) {
+      const isError = soldOrBoughtTokens instanceof Error
+      // TODO: Review
+
+      if (isError || soldOrBoughtTokens.length === 0 || !waitToReleaseTheLock) {
         that.concurrencyCheck[lockName] = null
       } else {
         setTimeout(() => {
@@ -131,10 +133,10 @@ class LiquidityService {
 
       if (isError) {
         // Error
-        throw result
+        throw soldOrBoughtTokens
       } else {
         // Success
-        return result
+        return soldOrBoughtTokens
       }
     }
 
