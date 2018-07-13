@@ -41,7 +41,7 @@ test('It should ensureSellLiquidity', async () => {
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
 
   // THEN bot sells in OMG-WETH, the pair market we expect
   const expectedBotSell = [{
@@ -80,7 +80,7 @@ test('It should ensureBuyLiquidity', async () => {
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
 
   // THEN bot buys in WETH-RDN market, the pair market we expect
   const expectedBotBuy = [{
@@ -110,7 +110,7 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
   // Ensure with sellToken: RDN and buyToken: WETH on purpose
   // It shouldn't matter the order
   await liquidityService.ensureBuyLiquidity({
-    sellToken: 'RDN', buyToken: 'WETH', from: '0x123' })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
   expect(await _hasLowBuyVolume(
     { sellToken: 'WETH', buyToken: 'RDN' },
     liquidityService._auctionRepo
@@ -118,7 +118,7 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityStateWethRdn = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
 
   // THEN the bot don't buy anything
   const expectedBotBuy = []
@@ -143,7 +143,7 @@ test('It should not ensureBuyLiquidity if auction has closed', async () => {
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
 
   // THEN the bot don't buy anything
   const expectedBotBuy = []
@@ -168,7 +168,7 @@ test('It should ensureBuyLiquidity if auction has only one side closed', async (
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123' })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
 
   // THEN bot buys in WETH-RDN market, the pair market we expect
   const expectedBotBuy = [{
@@ -196,9 +196,9 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
 
   // WHEN we ensure sell liquidity twice
   let ensureLiquidityPromise1 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
   let ensureLiquidityPromise2 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
 
   await Promise.all([
     ensureLiquidityPromise1,
@@ -218,7 +218,7 @@ test('It should not ensure sell liquidity if auction is not waiting for funding'
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'RDN', buyToken: 'WETH', from: '0x123' })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
 
   // THEN we shouldn't be adding funds
   expect(ensureLiquidityState).toEqual([])
@@ -235,7 +235,7 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   try {
     // WHEN we ensure sell liquidity
     await liquidityService.ensureSellLiquidity({
-      sellToken: 'OMG', buyToken: 'WETH', from: '0x123' })
+      sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
   } catch (e) {
     // THEN we get an error becuse we shouldn't ensure liquidity
     expect(e).toBeInstanceOf(Error)

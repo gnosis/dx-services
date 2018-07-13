@@ -9,6 +9,7 @@ const formatUtil = require('../helpers/formatUtil.js')
 const assert = require('assert')
 
 const MAXIMUM_DX_FEE = 0.005 // 0.5%
+const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 
 class LiquidityService {
   constructor ({
@@ -64,26 +65,28 @@ class LiquidityService {
     }
   }
 
-  async ensureBuyLiquidity ({ sellToken, buyToken, from, buyLiquidityRules }) {
+  async ensureBuyLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = true }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
       buyLiquidityRules,
+      waitToReleaseTheLock,
       liquidityCheckName: 'buy'
     })
   }
 
-  async ensureSellLiquidity ({ sellToken, buyToken, from }) {
+  async ensureSellLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
-      liquidityCheckName: 'sell'
+      liquidityCheckName: 'sell',
+      waitToReleaseTheLock
     })
   }
 
-  async _ensureLiquidityAux ({ sellToken, buyToken, from, buyLiquidityRules, liquidityCheckName }) {
+  async _ensureLiquidityAux ({ sellToken, buyToken, from, buyLiquidityRules, liquidityCheckName, waitToReleaseTheLock }) {
     // Define some variables to refacor sell/buy liquidity checks
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
       messageCurrentCheck, paramsCurrentCheck
@@ -114,6 +117,27 @@ class LiquidityService {
 
     const lockName = this._getAuctionLockName(baseLockName, sellToken, buyToken, from)
 
+    const that = this
+    const releaseLock = result => {
+      // Clear concurrency lock and resolve proise
+      const isError = result instanceof Error
+      if (isError || !waitToReleaseTheLock) {
+        that.concurrencyCheck[lockName] = null
+      } else {
+        setTimeout(() => {
+          that.concurrencyCheck[lockName] = null
+        }, WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS)
+      }
+
+      if (isError) {
+        // Error
+        throw result
+      } else {
+        // Success
+        return result
+      }
+    }
+
     // Check if there's an ongoing liquidity check
     if (this.concurrencyCheck[lockName]) {
       // We don't do concurrent liquidity checks
@@ -134,20 +158,10 @@ check should be done`,
         from,
         buyLiquidityRules
       })
-        .then(result => {
-          // Success
-          // Clear concurrency lock and resolve proise
-          this.concurrencyCheck[lockName] = null
-          return result
-        })
-        .catch(error => {
-          // Error
-          // Clear concurrency and reject promise
-          this.concurrencyCheck[lockName] = null
-          throw error
-        })
-
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
+      boughtOrSoldTokensPromise
+        .then(releaseLock)
+        .catch(releaseLock)
     }
 
     return boughtOrSoldTokensPromise
