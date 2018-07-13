@@ -1,6 +1,4 @@
-require('./errorHandler')
-
-const loggerNamespace = 'dx-service:helpers:gratefullShutdown'
+const loggerNamespace = 'dx-service:helpers:gracefullShutdown'
 const Logger = require('./Logger')
 const logger = new Logger(loggerNamespace)
 const POSIX_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGQUIT']
