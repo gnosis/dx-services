@@ -27,15 +27,16 @@ class BotRunner {
 
     // Initialize Bots and API
     if (this._initBots) {
-      this._bots = await this._createBots()
+      // this._bots = await this._createBots()
+      this._bots = []
     }
 
     // Check if the WatchEventBot is defined (is required for some bots)
     // botsService.setBots(this._bots)
-    const watchEventsBotExists = this._bots.some(bot => {
-      return bot.type === 'WatchEventsBot'
-    })
-    assert(watchEventsBotExists, 'WATCH_EVENTS_BOT is mandatory')
+    // const watchEventsBotExists = this._bots.some(bot => {
+    //   return bot.type === 'WatchEventsBot'
+    // })
+    // assert(watchEventsBotExists, 'WATCH_EVENTS_BOT is mandatory')
     logger.info('Initialized %d bots', this._bots.length)
 
     // Initialize the bots API Server
