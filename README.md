@@ -1,30 +1,30 @@
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/dx-services/badge.svg?branch=master)](https://coveralls.io/github/gnosis/dx-services?branch=master)
 
-# Dutch X Services
-Dutch X Services, is a project that contains services and other goodies to make
-easier the interaction with the Duch Exchange smart contracts.
+# DutchX Services
+DutchX Services, is a project that contains services and other goodies to make
+easier the interaction with the Dutch Exchange smart contracts.
 
 # Scope and maing parts of dx-services
 It contains five main elements:
 * **Model**: Set of convenient wrappers and utilities to provide a simpler way
-  to interact with the Dutch X. 
+  to interact with the DutchX. 
     * `repositories`: Provide the data access to external data sources like
-      the Dutch X smart contracts, price feeds, gas price feeds, etc.
+      the DutchX smart contracts, price feeds, gas price feeds, etc.
       They provide also a more intuitive error handling, that gives detailed 
       information about the reasons a smart contract revert a operation.
     * `services`: Provides some common bussiness logic operations to make
-      Dutch X interactation easier.
+      DutchX interactation easier.
 
 * **REST Api**: 
-  * Exposes the Dutch X data in a REST API.
+  * Exposes the DutchX data in a REST API.
   * Also documents it using swagger. Check the [API Documentation](https://dx-services.dev.gnosisdev.com/)
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
 
 * **Cli (Command Line Interface)**:
-  * Allows to interact with the Dutch X from the command line.
-  * Allows to perform operations to retrieve the Dutch X state from any Ethereum
+  * Allows to interact with the DutchX from the command line.
+  * Allows to perform operations to retrieve the DutchX state from any Ethereum
     network
-  * Also, allow to fund accounts, deposit tokens into the Dutch X, participate 
+  * Also, allow to fund accounts, deposit tokens into the DutchX, participate 
     in an auction as a seller or a buyer and mutch more.
   * For an example on how to use the CLI, check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
@@ -46,17 +46,17 @@ It contains five main elements:
 For aditional information and for reference, check out the following 
 repositories:
 
-* [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about Dutch X in 
+* [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about DutchX in 
 Gnosis Blog, were you will find a series of posts about it.
 * [Gitter Channel](https://gitter.im/gnosis/DutchX): Participate in the gitter channel.
 * [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api): 
-Example project and documentation on how to use the Dutch X API.
+Example project and documentation on how to use the DutchX API.
 * [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart 
 contracts of the Duch X
 * [Github: dx-services](https://github.com/gnosis/dx-services): Services, 
 repositories and bots to interact with DX.
 * [Github: dx-react](https://github.com/gnosis/dx-react): Front end web 
-application for the Dutch X seller interface
+application for the DutchX seller interface
 
 
 # Run it in Rinkeby
@@ -81,7 +81,7 @@ In the previous command, notice that:
   i.e. `WETH-RDN,WETH-OMG`
     * For every token, you must provide also it's address using an environment 
       variable with the name: `<token>__TOKEN_ADDRESS`. i.e. `RDN_TOKEN_ADDRESS`.
-    * **WETH, MGN and OWL Tokens** are part of the Dutch X Mechanism, so you don't 
+    * **WETH, MGN and OWL Tokens** are part of the DutchX Mechanism, so you don't 
       have (and shouldn't) provice an address for them.
 * `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is 
   the image generated out of the master branch. You can checkout other images 
@@ -208,7 +208,7 @@ Please, let us know any typo or error in the project or documentation.
 
 Any idea, proposal or colaboration will be welcome.
 
-Also, you are encouraged to participate in the [Gitter Channel for the Dutch X](https://gitter.im/gnosis/DutchX).
+Also, you are encouraged to participate in the [Gitter Channel for the DutchX](https://gitter.im/gnosis/DutchX).
 
 # Contributors
 - Stefan ([Georgi87](https://github.com/Georgi87))

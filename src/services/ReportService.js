@@ -434,7 +434,7 @@ class ReportService {
         {
           title: 'New report avaliable',
           color: 'good',
-          text: "There's a new report for the last auctions of Dutch X",
+          text: "There's a new report for the last auctions of DutchX",
           fields: [
             {
               title: 'From:',
