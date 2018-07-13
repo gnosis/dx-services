@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+const { MNEMONIC: DEFAULT_MNEMONIC } = require('../../conf/env/local-config')
+const mnemonic = process.env.MNEMONIC || DEFAULT_MNEMONIC
+process.env.MNEMONIC = mnemonic
+
 const loggerNamespace = 'cli'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
