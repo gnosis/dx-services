@@ -42,15 +42,17 @@ function registerCommand ({ cli, instances, logger }) {
 
       if (fees.length > 0) {
         // console.log(JSON.stringify(fees, null, 2))
-        fees.forEach(({ sellToken, buyToken, user, auctionIndex, fee }) => {
+        fees.forEach(({ tradeDate, sellToken, buyToken, user, auctionIndex, fee, transactionHash }) => {
           logger.info(
-            '%s-%s-%d (%s): %d %s',
+            '[%s] %s-%s-%d (%s): %d %s. Tx: %s',
+            formatUtil.formatDateTime(tradeDate),
             sellToken.symbol,
             buyToken.symbol,
             auctionIndex,
             user,
             fee,
-            sellToken.symbol
+            sellToken.symbol,
+            transactionHash
           )
         })
       } else {
