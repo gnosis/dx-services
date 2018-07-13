@@ -162,7 +162,7 @@ class BuyLiquidityBot extends Bot {
             fields: [
               {
                 title: 'Bot name',
-                value: this._name,
+                value: this.name,
                 short: false
               }, {
                 title: 'Token pair',

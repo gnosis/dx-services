@@ -137,7 +137,7 @@ class SellLiquidityBot extends Bot {
     } = sellOrder
     // Log sold tokens
     const amountInTokens = amount.div(1e18)
-    const soldTokensString = amountInTokens + " " + sellToken
+    const soldTokensString = amountInTokens + ' ' + sellToken
 
     auctionLogger.info({
       sellToken,
@@ -187,7 +187,7 @@ class SellLiquidityBot extends Bot {
             fields: [
               {
                 title: 'Bot name',
-                value: this._name,
+                value: this.name,
                 short: false
               }, {
                 title: 'Token pair',
