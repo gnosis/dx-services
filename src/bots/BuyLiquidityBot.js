@@ -210,7 +210,10 @@ class BuyLiquidityBot extends Bot {
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
       lastError: this._lastError,
-      notifications: this._notifications
+      notifications: this._notifications,
+      defaultSlackChannel: this._botTransactionsSlackChannel,
+      checkTimeInMilliseconds: ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS,
+      markets: this._markets
     }
   }
 }
