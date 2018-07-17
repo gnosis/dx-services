@@ -2117,7 +2117,7 @@ volume: ${state}`)
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
-    const gas = Math.ceil(estimatedGas * 2) // 1.15
+    const gas = Math.ceil(estimatedGas * 2)
 
     // TODO: Implement solution for: Transaction with the same hash was already imported
     return this
