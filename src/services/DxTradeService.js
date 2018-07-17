@@ -85,12 +85,20 @@ class DxTradeService {
 
     let claimSellerResult = []
     if (auctionsAsSeller.length > 0) {
+      logger.info('I have to claim from %d auctions as seller', auctionsAsSeller.length)
+      auctionsAsSeller.forEach(({ sellToken, buyToken, indices }) => {
+        logger.info('Claiming as seller %s-%s for auctions: %o', sellToken, buyToken, indices)
+      })
       claimSellerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
         auctionsAsSeller, address })
     }
 
     let claimBuyerResult = []
     if (auctionsAsBuyer.length > 0) {
+      logger.info('I have to claim from %d auctions as buyer', auctionsAsBuyer.length)
+      auctionsAsBuyer.forEach(({ sellToken, buyToken, indices }) => {
+        logger.info('Claiming as buyer %s-%s for auctions: %o', sellToken, buyToken, indices)
+      })
       claimBuyerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({
         auctionsAsBuyer, address })
     }
