@@ -137,7 +137,7 @@ class SellLiquidityBot extends Bot {
     } = sellOrder
     // Log sold tokens
     const amountInTokens = amount.div(1e18)
-    const soldTokensString = amountInTokens + " " + sellToken
+    const soldTokensString = amountInTokens + ' ' + sellToken
 
     auctionLogger.info({
       sellToken,
@@ -187,7 +187,7 @@ class SellLiquidityBot extends Bot {
             fields: [
               {
                 title: 'Bot name',
-                value: this._name,
+                value: this.name,
                 short: false
               }, {
                 title: 'Token pair',
@@ -235,7 +235,10 @@ class SellLiquidityBot extends Bot {
       lastCheck: this._lastCheck,
       lastSell: this._lastSell,
       lastError: this._lastError,
-      notifications: this._notifications
+      notifications: this._notifications,
+      defaultSlackChannel: this._botTransactionsSlackChannel,
+      checkTimeInMilliseconds: ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS,
+      markets: this._markets
     }
   }
 }

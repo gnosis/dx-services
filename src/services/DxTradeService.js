@@ -85,12 +85,20 @@ class DxTradeService {
 
     let claimSellerResult = []
     if (auctionsAsSeller.length > 0) {
+      logger.info('I have to claim from %d auctions as seller', auctionsAsSeller.length)
+      auctionsAsSeller.forEach(({ sellToken, buyToken, indices }) => {
+        logger.info('Claiming as seller %s-%s for auctions: %o', sellToken, buyToken, indices)
+      })
       claimSellerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
         auctionsAsSeller, address })
     }
 
     let claimBuyerResult = []
     if (auctionsAsBuyer.length > 0) {
+      logger.info('I have to claim from %d auctions as buyer', auctionsAsBuyer.length)
+      auctionsAsBuyer.forEach(({ sellToken, buyToken, indices }) => {
+        logger.info('Claiming as buyer %s-%s for auctions: %o', sellToken, buyToken, indices)
+      })
       claimBuyerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({
         auctionsAsBuyer, address })
     }
@@ -175,16 +183,16 @@ class DxTradeService {
       await this._depositEtherIfRequired({ amount, accountAddress })
     }
 
-    // Approce DX to use the tokens
-    transactionResult = await this._auctionRepo.approveERC20Token({
-      from: accountAddress,
-      token,
-      amount
-    })
-    logger.info({
-      msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
-      params: [ amountInEth, token, transactionResult.tx ]
-    })
+    // // Approce DX to use the tokens
+    // transactionResult = await this._auctionRepo.approveERC20Token({
+    //   from: accountAddress,
+    //   token,
+    //   amount
+    // })
+    // logger.info({
+    //   msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
+    //   params: [ amountInEth, token, transactionResult.tx ]
+    // })
 
     // Deposit the tokens into the user account balance
     transactionResult = await this._auctionRepo.deposit({

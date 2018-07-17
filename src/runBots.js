@@ -178,12 +178,13 @@ class App {
           tokens: []
         }
       }
-      markets.forEach(({ tokenA, tokenB }) => {
-        const SEPARATOR = accountMarkets[accountIndex].name.length > 0
-          ? ', '
-          : ''
-        accountMarkets[accountIndex].name += SEPARATOR + name
 
+      const SEPARATOR = accountMarkets[accountIndex].name.length > 0
+        ? ', '
+        : ''
+      accountMarkets[accountIndex].name += SEPARATOR + name
+
+      markets.forEach(({ tokenA, tokenB }) => {
         if (!accountMarkets[accountIndex].tokens.includes(tokenA)) {
           accountMarkets[accountIndex].tokens.push(tokenA)
         }

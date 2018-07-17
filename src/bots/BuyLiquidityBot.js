@@ -162,7 +162,7 @@ class BuyLiquidityBot extends Bot {
             fields: [
               {
                 title: 'Bot name',
-                value: this._name,
+                value: this.name,
                 short: false
               }, {
                 title: 'Token pair',
@@ -210,7 +210,10 @@ class BuyLiquidityBot extends Bot {
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
       lastError: this._lastError,
-      notifications: this._notifications
+      notifications: this._notifications,
+      defaultSlackChannel: this._botTransactionsSlackChannel,
+      checkTimeInMilliseconds: ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS,
+      markets: this._markets
     }
   }
 }
