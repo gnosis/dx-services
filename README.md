@@ -25,8 +25,15 @@ It contains five main elements:
       Dutch X interactation easier.
 
 * **REST Api**: 
+<<<<<<< HEAD
   * Exposes the Dutch X data in a REST API.
   * Also documents it using swagger. Check the [API Documentation](https://dx-services.dev.gnosisdev.com/)
+=======
+  * Exposes the DutchX data in a REST API.
+  * Also documents it using swagger. Check the:
+    * [API and it's documentation for Rinkeby](https://dutchx-rinkeby.d.exchange/api)
+    * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
+>>>>>>> 7d4a6d7... Improve README
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
 
 * **Cli (Command Line Interface)**:
@@ -52,6 +59,7 @@ It contains five main elements:
   * **Used for Autoclaiming**: Allows the bots to claim their funds of past 
     auctions so they can reuse them in the upcoming ones.
 
+<<<<<<< HEAD
 For aditional information and for reference, check out the following 
 repositories:
 
@@ -68,6 +76,8 @@ repositories and bots to interact with DX.
 application for the Dutch X seller interface
 
 
+=======
+>>>>>>> 7d4a6d7... Improve README
 # Run it in Rinkeby
 ## Cli - Command Line Interface
 Use the CLI:
@@ -189,22 +199,6 @@ Some examples:
 * `npm run cli -- sell 100 WETH-RDN`
 * `npm run cli -- buy 100 RDN-WETH`
 
-
-## cli2 (Deprecated)
-The `cli2`, is deprectated, but it still has some methods that were not migrated
- to the new cli (they are methods used testing during development).
-
-Use the bot-cli2:
-```bash
-npm run cli2
-```
-
-Some examples:
-* `npm run cli2 -- --balances`
-* `npm run cli2 -- --approve-token RDN`
-* `npm run cli2 -- --deposit WETH,100`
-* `npm run cli2 -- --time 0.5`
-
 # License
 This project is released under [MIT License](./LICENSE.md)
 
@@ -212,6 +206,7 @@ This project is released under [MIT License](./LICENSE.md)
 All the code is provided WITHOUT ANY WARRANTY; without even the implied warranty
  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+<<<<<<< HEAD
 # Feedback, suggestions, collaborations
 Please, let us know any typo or error in the project or documentation. 
 
@@ -219,6 +214,8 @@ Any idea, proposal or colaboration will be welcome.
 
 Also, you are encouraged to participate in the [Gitter Channel for the Dutch X](https://gitter.im/gnosis/DutchX).
 
+=======
+>>>>>>> 7d4a6d7... Improve README
 # Contributors
 - Stefan ([Georgi87](https://github.com/Georgi87))
 - Martin ([koeppelmann](https://github.com/koeppelmann))
