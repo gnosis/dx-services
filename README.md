@@ -26,7 +26,7 @@ It contains five main elements:
 
 * **REST Api**: 
   * Exposes the DutchX data in a REST API.
-  * Also documents it using swagger. Check the:
+  * The API methods are documented in:
     * [API and it's documentation for Rinkeby](https://dutchx-rinkeby.d.exchange/api)
     * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
