@@ -25,15 +25,10 @@ It contains five main elements:
       Dutch X interactation easier.
 
 * **REST Api**: 
-<<<<<<< HEAD
-  * Exposes the Dutch X data in a REST API.
-  * Also documents it using swagger. Check the [API Documentation](https://dx-services.dev.gnosisdev.com/)
-=======
   * Exposes the DutchX data in a REST API.
   * Also documents it using swagger. Check the:
     * [API and it's documentation for Rinkeby](https://dutchx-rinkeby.d.exchange/api)
     * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
->>>>>>> 7d4a6d7... Improve README
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
 
 * **Cli (Command Line Interface)**:
@@ -59,25 +54,6 @@ It contains five main elements:
   * **Used for Autoclaiming**: Allows the bots to claim their funds of past 
     auctions so they can reuse them in the upcoming ones.
 
-<<<<<<< HEAD
-For aditional information and for reference, check out the following 
-repositories:
-
-* [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about Dutch X in 
-Gnosis Blog, were you will find a series of posts about it.
-* [Gitter Channel](https://gitter.im/gnosis/DutchX): Participate in the gitter channel.
-* [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api): 
-Example project and documentation on how to use the Dutch X API.
-* [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart 
-contracts of the Duch X
-* [Github: dx-services](https://github.com/gnosis/dx-services): Services, 
-repositories and bots to interact with DX.
-* [Github: dx-react](https://github.com/gnosis/dx-react): Front end web 
-application for the Dutch X seller interface
-
-
-=======
->>>>>>> 7d4a6d7... Improve README
 # Run it in Rinkeby
 ## Cli - Command Line Interface
 Use the CLI:
@@ -206,16 +182,6 @@ This project is released under [MIT License](./LICENSE.md)
 All the code is provided WITHOUT ANY WARRANTY; without even the implied warranty
  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-<<<<<<< HEAD
-# Feedback, suggestions, collaborations
-Please, let us know any typo or error in the project or documentation. 
-
-Any idea, proposal or colaboration will be welcome.
-
-Also, you are encouraged to participate in the [Gitter Channel for the Dutch X](https://gitter.im/gnosis/DutchX).
-
-=======
->>>>>>> 7d4a6d7... Improve README
 # Contributors
 - Stefan ([Georgi87](https://github.com/Georgi87))
 - Martin ([koeppelmann](https://github.com/koeppelmann))
