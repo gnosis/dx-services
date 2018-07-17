@@ -162,16 +162,16 @@ class DxTradeService {
       await this._depositEtherIfRequired({ amount, accountAddress })
     }
 
-    // // Approce DX to use the tokens
-    // transactionResult = await this._auctionRepo.approveERC20Token({
-    //   from: accountAddress,
-    //   token,
-    //   amount
-    // })
-    // logger.info({
-    //   msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
-    //   params: [ amountInEth, token, transactionResult.tx ]
-    // })
+    // Approce DX to use the tokens
+    transactionResult = await this._auctionRepo.approveERC20Token({
+      from: accountAddress,
+      token,
+      amount
+    })
+    logger.info({
+      msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
+      params: [ amountInEth, token, transactionResult.tx ]
+    })
 
     // Deposit the tokens into the user account balance
     transactionResult = await this._auctionRepo.deposit({
