@@ -31,24 +31,24 @@ async function claimFunds ({
     config.BUY_LIQUIDITY_BOTS,
     config.SELL_LIQUIDITY_BOTS)
 
+  // List markets grouped by account
   function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+    // First time we see this account
     if (!accountMarkets.hasOwnProperty(accountIndex)) {
       accountMarkets[accountIndex] = {
-        name: '',
+        name: accountMarkets[accountIndex].name,
         markets: []
       }
+    } else {
+      accountMarkets[accountIndex].name += ', ' + name
     }
-
-    const SEPARATOR = accountMarkets[accountIndex].name.length > 0
-      ? ', '
-      : ''
-    accountMarkets[accountIndex].name += SEPARATOR + name
 
     function _compareTokenPair (tokenPair, {sellToken, buyToken}) {
       return tokenPair.sellToken === sellToken && tokenPair.buyToken === buyToken
     }
 
     markets.forEach(({ tokenA, tokenB }) => {
+      // Check if market already used with this account in another bot
       if (accountMarkets[accountIndex].markets.findIndex(market =>
         _compareTokenPair(market, { sellToken: tokenA, buyToken: tokenB })) === -1) {
         accountMarkets[accountIndex].markets.push({ sellToken: tokenA, buyToken: tokenB })
@@ -68,6 +68,7 @@ async function claimFunds ({
   const accountKeys = Object.keys(marketsByAccount)
 
   const _doClaim = async ({ accountIndex, markets, name }) => {
+    // Execute the claim
     const botAddress = await getBotAddress(ethereumClient, accountIndex)
     assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
 

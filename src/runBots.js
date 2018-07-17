@@ -174,15 +174,12 @@ class App {
     function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
       if (!accountMarkets.hasOwnProperty(accountIndex)) {
         accountMarkets[accountIndex] = {
-          name: '',
+          name: accountMarkets[accountIndex].name,
           tokens: []
         }
+      } else {
+        accountMarkets[accountIndex].name += ', ' + name
       }
-
-      const SEPARATOR = accountMarkets[accountIndex].name.length > 0
-        ? ', '
-        : ''
-      accountMarkets[accountIndex].name += SEPARATOR + name
 
       markets.forEach(({ tokenA, tokenB }) => {
         if (!accountMarkets[accountIndex].tokens.includes(tokenA)) {
