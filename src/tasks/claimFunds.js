@@ -31,26 +31,62 @@ async function claimFunds ({
     config.BUY_LIQUIDITY_BOTS,
     config.SELL_LIQUIDITY_BOTS)
 
-  const _doClaim = async ({ accountIndex, markets }) => {
+  function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+    if (!accountMarkets.hasOwnProperty(accountIndex)) {
+      accountMarkets[accountIndex] = {
+        name: '',
+        markets: []
+      }
+    }
+
+    const SEPARATOR = accountMarkets[accountIndex].name.length > 0
+      ? ', '
+      : ''
+    accountMarkets[accountIndex].name += SEPARATOR + name
+
+    function _compareTokenPair (tokenPair, {sellToken, buyToken}) {
+      return tokenPair.sellToken === sellToken && tokenPair.buyToken === buyToken
+    }
+
+    markets.forEach(({ tokenA, tokenB }) => {
+      if (accountMarkets[accountIndex].markets.findIndex(market =>
+        _compareTokenPair(market, { sellToken: tokenA, buyToken: tokenB })) === -1) {
+        accountMarkets[accountIndex].markets.push({ sellToken: tokenA, buyToken: tokenB })
+      }
+      if (accountMarkets[accountIndex].markets.findIndex(market =>
+        _compareTokenPair(market, { sellToken: tokenB, buyToken: tokenA })) === -1) {
+        accountMarkets[accountIndex].markets.push({ sellToken: tokenB, buyToken: tokenA })
+      }
+    })
+    return accountMarkets
+  }
+
+  const marketsByAccount = buyAndSellBotsConfig.reduce((accountMarkets, botConfig) => {
+    return _getAccountMarkets(accountMarkets, botConfig)
+  }, {})
+
+  const accountKeys = Object.keys(marketsByAccount)
+
+  const _doClaim = async ({ accountIndex, markets, name }) => {
     const botAddress = await getBotAddress(ethereumClient, accountIndex)
     assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
 
-    const tokenPairs = markets.reduce((pairs, { tokenA, tokenB }) => {
-      pairs.push(
-        { sellToken: tokenA, buyToken: tokenB },
-        { sellToken: tokenB, buyToken: tokenA })
-      return pairs
-    }, [])
+    logger.info('Claiming for address %s affected bots: %s', botAddress, name)
 
-    return dxTradeService.claimAll({
-      tokenPairs,
+    const claimResult = await dxTradeService.claimAll({
+      tokenPairs: markets,
       address: botAddress,
       lastNAuctions: config.AUTO_CLAIM_AUCTIONS
     })
+
+    return claimResult
   }
 
-  return buyAndSellBotsConfig.map(botConfig => {
-    _doClaim(botConfig)
+  return accountKeys.forEach(accountKey => {
+    _doClaim({
+      accountIndex: accountKey,
+      markets: marketsByAccount[accountKey].markets,
+      name: marketsByAccount[accountKey].name})
   })
 }
 
