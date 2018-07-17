@@ -1,8 +1,17 @@
+[![Build Status](https://travis-ci.org/gnosis/dx-services.svg?branch=master)](https://travis-ci.org/gnosis/dx-services?branch=master)
+[![npm version](https://badge.fury.io/js/dx-services.svg)](https://badge.fury.io/js/dx-services)
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/dx-services/badge.svg?branch=master)](https://coveralls.io/github/gnosis/dx-services?branch=master)
+
+<p align="center">
+  <img width="350px" src="http://dutchx.readthedocs.io/en/latest/_static/DutchX-logo_blue.svg" />
+</p>
 
 # DutchX Services
 DutchX Services, is a project that contains services and other goodies to make
 easier the interaction with the Dutch Exchange smart contracts.
+
+# Documentation
+Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 
 # Scope and maing parts of dx-services
 It contains five main elements:
