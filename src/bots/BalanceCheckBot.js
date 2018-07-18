@@ -136,6 +136,7 @@ class BalanceCheckBot extends Bot {
 
   async getInfo () {
     return {
+      botAddress: this._botAddress,
       minimunAmountInUsd: MINIMUM_AMOUNT_IN_USD_FOR_TOKENS,
       minimumAmountInEth: MINIMUM_AMOUNT_FOR_ETHER * 1e-18,
       tokensByAccount: this._tokensByAccount,
