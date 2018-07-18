@@ -36,7 +36,7 @@ async function claimFunds ({
     // First time we see this account
     if (!accountMarkets.hasOwnProperty(accountIndex)) {
       accountMarkets[accountIndex] = {
-        name: accountMarkets[accountIndex].name,
+        name: name,
         markets: []
       }
     } else {
