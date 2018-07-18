@@ -174,7 +174,7 @@ class App {
     function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
       if (!accountMarkets.hasOwnProperty(accountIndex)) {
         accountMarkets[accountIndex] = {
-          name: accountMarkets[accountIndex].name,
+          name: name,
           tokens: []
         }
       } else {
