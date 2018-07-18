@@ -16,17 +16,17 @@ Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 # Scope and maing parts of dx-services
 It contains five main elements:
 * **Model**: Set of convenient wrappers and utilities to provide a simpler way
-  to interact with the DutchX. 
+  to interact with the DutchX.
     * `repositories`: Provide the data access to external data sources like
       the DutchX smart contracts, price feeds, gas price feeds, etc.
-      They provide also a more intuitive error handling, that gives detailed 
+      They provide also a more intuitive error handling, that gives detailed
       information about the reasons a smart contract revert a operation.
     * `services`: Provides some common bussiness logic operations to make
       DutchX interactation easier.
 
-* **REST Api**: 
+* **REST Api**:
   * Exposes the DutchX data in a REST API.
-  * Also documents it using swagger. Check the:
+  * The API methods are documented in:
     * [API and it's documentation for Rinkeby](https://dutchx-rinkeby.d.exchange/api)
     * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
@@ -35,7 +35,7 @@ It contains five main elements:
   * Allows to interact with the DutchX from the command line.
   * Allows to perform operations to retrieve the DutchX state from any Ethereum
     network
-  * Also, allow to fund accounts, deposit tokens into the DutchX, participate 
+  * Also, allow to fund accounts, deposit tokens into the DutchX, participate
     in an auction as a seller or a buyer and mutch more.
   * For an example on how to use the CLI, check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
@@ -49,9 +49,9 @@ It contains five main elements:
 
 * **Scheduled tasks**:
   * Allow to execute certain tasks at certain times.
-  * **Used for Reporting**: Allows to send reports periodically with the 
+  * **Used for Reporting**: Allows to send reports periodically with the
     informarmition of the lasts auctions and the actions the bots has been taking.
-  * **Used for Autoclaiming**: Allows the bots to claim their funds of past 
+  * **Used for Autoclaiming**: Allows the bots to claim their funds of past
     auctions so they can reuse them in the upcoming ones.
 
 # Run it in Rinkeby
@@ -72,21 +72,21 @@ docker run \
 In the previous command, notice that:
 * `NODE_ENV`: Stablish the environment. Valid values are `dev`, `pre`, `pro`.
 * `ETHEREUM_RPC_URL`: Ethereum node. i.e. http://localhost:8545 or https://rinkeby.infura.io
-* `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`, 
+* `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`,
   i.e. `WETH-RDN,WETH-OMG`
-    * For every token, you must provide also it's address using an environment 
+    * For every token, you must provide also it's address using an environment
       variable with the name: `<token>__TOKEN_ADDRESS`. i.e. `RDN_TOKEN_ADDRESS`.
-    * **WETH, MGN and OWL Tokens** are part of the DutchX Mechanism, so you don't 
+    * **WETH, MGN and OWL Tokens** are part of the DutchX Mechanism, so you don't
       have (and shouldn't) provice an address for them.
-* `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is 
-  the image generated out of the master branch. You can checkout other images 
+* `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is
+  the image generated out of the master branch. You can checkout other images
   in [https://hub.docker.com/r/gnosispm/dx-services]()
 * `yarn cli`: Is the npm script that will run the CLI
 * `state WETH-RDN`:
   * Is the command executed by the CLI.
-  * There's a lot of commands 
+  * There's a lot of commands
   * You can run many other commands, just run `-h` to get the complete list.
-  * For more information about the CLI, check out the 
+  * For more information about the CLI, check out the
     [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
 
 
@@ -133,7 +133,7 @@ docker run \
 ```
 To check out the Bots API, just open [http://localhost:8081]() in any Browser.
 
-In the previous command, notice that it has a similar configuration as in the 
+In the previous command, notice that it has a similar configuration as in the
 Public API run, with the difference of:
 * `MNEMONIC`: Allows to setup the bots account used to sign the transactions.
 * `-p 8081:8081`: The Bots API it's exposed on port 8081.
