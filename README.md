@@ -1,8 +1,17 @@
+[![Build Status](https://travis-ci.org/gnosis/dx-services.svg?branch=master)](https://travis-ci.org/gnosis/dx-services?branch=master)
+[![npm version](https://badge.fury.io/js/dx-services.svg)](https://badge.fury.io/js/dx-services)
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/dx-services/badge.svg?branch=master)](https://coveralls.io/github/gnosis/dx-services?branch=master)
+
+<p align="center">
+  <img width="350px" src="http://dutchx.readthedocs.io/en/latest/_static/DutchX-logo_blue.svg" />
+</p>
 
 # DutchX Services
 DutchX Services, is a project that contains services and other goodies to make
 easier the interaction with the Dutch Exchange smart contracts.
+
+# Documentation
+Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 
 # Scope and maing parts of dx-services
 It contains five main elements:
@@ -17,7 +26,9 @@ It contains five main elements:
 
 * **REST Api**: 
   * Exposes the DutchX data in a REST API.
-  * Also documents it using swagger. Check the [API Documentation](https://dx-services.dev.gnosisdev.com/)
+  * Also documents it using swagger. Check the:
+    * [API and it's documentation for Rinkeby](https://dutchx-rinkeby.d.exchange/api)
+    * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
 
 * **Cli (Command Line Interface)**:
@@ -42,22 +53,6 @@ It contains five main elements:
     informarmition of the lasts auctions and the actions the bots has been taking.
   * **Used for Autoclaiming**: Allows the bots to claim their funds of past 
     auctions so they can reuse them in the upcoming ones.
-
-For aditional information and for reference, check out the following 
-repositories:
-
-* [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about DutchX in 
-Gnosis Blog, were you will find a series of posts about it.
-* [Gitter Channel](https://gitter.im/gnosis/DutchX): Participate in the gitter channel.
-* [Github: dx-examples-api](https://github.com/gnosis/dx-examples-api): 
-Example project and documentation on how to use the DutchX API.
-* [Github: dx-contracts](https://github.com/gnosis/dx-contracts): Smart 
-contracts of the Duch X
-* [Github: dx-services](https://github.com/gnosis/dx-services): Services, 
-repositories and bots to interact with DX.
-* [Github: dx-react](https://github.com/gnosis/dx-react): Front end web 
-application for the DutchX seller interface
-
 
 # Run it in Rinkeby
 ## Cli - Command Line Interface
@@ -180,35 +175,12 @@ Some examples:
 * `npm run cli -- sell 100 WETH-RDN`
 * `npm run cli -- buy 100 RDN-WETH`
 
-
-## cli2 (Deprecated)
-The `cli2`, is deprectated, but it still has some methods that were not migrated
- to the new cli (they are methods used testing during development).
-
-Use the bot-cli2:
-```bash
-npm run cli2
-```
-
-Some examples:
-* `npm run cli2 -- --balances`
-* `npm run cli2 -- --approve-token RDN`
-* `npm run cli2 -- --deposit WETH,100`
-* `npm run cli2 -- --time 0.5`
-
 # License
 This project is released under [MIT License](./LICENSE.md)
 
 # Security and Liability
 All the code is provided WITHOUT ANY WARRANTY; without even the implied warranty
  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-# Feedback, suggestions, collaborations
-Please, let us know any typo or error in the project or documentation. 
-
-Any idea, proposal or colaboration will be welcome.
-
-Also, you are encouraged to participate in the [Gitter Channel for the DutchX](https://gitter.im/gnosis/DutchX).
 
 # Contributors
 - Stefan ([Georgi87](https://github.com/Georgi87))
