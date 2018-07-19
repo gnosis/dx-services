@@ -51,6 +51,7 @@ class PublicApiServer extends Server {
     app.use('/api/v1/accounts', createRouter(accountsRoutes))
     // UI routes
     app.use('/api/v1/ui', createRouter(uiRoutes))
+    app.use(contextPath + '/api', express.static(path.join(__dirname, './static')))
   }
   async _getServiceName () {
     const version = await this._dxInfoService.getVersion()
