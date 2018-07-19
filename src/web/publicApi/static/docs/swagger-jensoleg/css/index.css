@@ -15470,7 +15470,7 @@ header.site-header.site-header nav .navbar-brand {
     width: 120px;
 }
 header.site-header.site-header nav .navbar-brand a {
-    background: url("../../../../img/DutchX-logo.svg") center left no-repeat;
+    background: url("/api/img/DutchX-logo.svg") center left no-repeat;
     /*background-size: 76%;*/
     width: 128px;
     height: 42px;
