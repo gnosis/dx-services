@@ -443,10 +443,10 @@ paths:
       tags:
         - auctions
       summary: Returns auctions summary in a date range
-      description: >-
+      description: |-
         <span class="markdown">
         Returns a list of cleared auctions with details, as closing price or buy and sell volume, in the selected date range.
-        <br/>
+
         At least <b>fromDate</b> and <b>toDate</b> parameters or <b>period</b> parameter is <b>required</b> in order to return any results.
         </span>
       operationId: getClearedAcutionsInfo
@@ -455,21 +455,25 @@ paths:
       parameters:
         - name: fromDate
           in: query
-          description: >-
+          description: |-
             A date string using ISO 8601 date format. Required when using
-            <i>toDate</i>. <br/> ex: <i>'2018-07-01', '01-07-2018'</i>
+            *toDate*.
+
+            ex: *'2018-07-01', '01-07-2018'*
           type: string
         - name: toDate
           in: query
-          description: >-
+          description: |-
             A date string using ISO 8601 date format. Required when using
-            <i>fromDate</i>. <br/> ex: <i>'2018-07-02', '02-07-2018'</i>
+            *fromDate*.
+
+            ex: *'2018-07-02', '02-07-2018'*
           type: string
         - name: period
           in: query
-          description: >-
-            A relative time period. Valid values are: <i>today, yesterday, week,
-            last-week, current-week</i>
+          description: |-
+            A relative time period. Valid values are: *today, yesterday, week,
+            last-week, current-week*
           type: string
       responses:
         '200':
