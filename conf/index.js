@@ -59,7 +59,10 @@ const networkConfig = network ? require(`./network/${network}-config`) : {}
 // Get token list and env vars
 const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
 
-const markets = envMarkets || envConf.MARKETS || defaultConf.MARKETS
+const customConfigFile = process.env.CONFIG_FILE
+const customConfig = customConfigFile ? require(customConfigFile) : {}
+
+const markets = customConfig.MARKETS || envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getTokenList(markets)
 let envVars = getEnvVars(tokens)
 
@@ -74,14 +77,14 @@ if (cacheEnabled !== undefined) {
   envVars['CACHE_ENABLED'] = cacheEnabled === 'true'
 }
 
-const [ BUY_LIQUIDITY_BOTS, SELL_LIQUIDITY_BOTS ] = updateDefaultBotsMarkets(markets)
+// const [ BUY_LIQUIDITY_BOTS, SELL_LIQUIDITY_BOTS ] = updateDefaultBotsMarkets(markets)
 
 // Merge three configs to get final config
-const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars, {
-  MARKETS: markets.map(orderMarketTokens),
+const config = Object.assign({}, defaultConf, envConf, networkConfig, envVars, customConfig, {
+  MARKETS: markets.map(orderMarketTokens)// ,
   // FIXME this should be done in a more flexible way
-  BUY_LIQUIDITY_BOTS,
-  SELL_LIQUIDITY_BOTS
+  // BUY_LIQUIDITY_BOTS,
+  // SELL_LIQUIDITY_BOTS
 })
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
@@ -111,16 +114,16 @@ function getEnvMarkets () {
   }
 }
 
-// FIXME this should be done in a more flexible way
-function updateDefaultBotsMarkets (markets) {
-  let BuyLiquidityBots = defaultConf.BUY_LIQUIDITY_BOTS
-  BuyLiquidityBots[0].markets = markets
-
-  let SellLiquidityBots = defaultConf.SELL_LIQUIDITY_BOTS
-  SellLiquidityBots[0].markets = markets
-
-  return [ BuyLiquidityBots, SellLiquidityBots ]
-}
+// // FIXME this should be done in a more flexible way
+// function updateDefaultBotsMarkets (markets) {
+//   let BuyLiquidityBots = defaultConf.BUY_LIQUIDITY_BOTS
+//   BuyLiquidityBots[0].markets = markets
+//
+//   let SellLiquidityBots = defaultConf.SELL_LIQUIDITY_BOTS
+//   SellLiquidityBots[0].markets = markets
+//
+//   return [ BuyLiquidityBots, SellLiquidityBots ]
+// }
 
 function getTokenList (markets) {
   const result = []
