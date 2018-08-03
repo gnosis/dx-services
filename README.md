@@ -13,7 +13,7 @@ easier the interaction with the Dutch Exchange smart contracts.
 # Documentation
 Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 
-# Scope and maing parts of dx-services
+# Scope and main parts of dx-services
 It contains five main elements:
 * **Model**: Set of convenient wrappers and utilities to provide a simpler way
   to interact with the DutchX.
@@ -61,6 +61,7 @@ Use the CLI:
 docker run \
   -e NODE_ENV=pre \
   -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
+  -e NETWORK=rinkeby \
   -e MARKETS=WETH-RDN,WETH-OMG \
   -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
   -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
@@ -119,14 +120,79 @@ run, with the difference of:
 
 ## Liquidity Bots
 Start bots:
+First of all you need to configure the bots using a file with this structure:
+```javascript
+const MARKETS = [
+  { tokenA: 'WETH', tokenB: 'RDN' }
+]
+const BUY_LIQUIDITY_RULES_DEFAULT = [
+  // Buy 1/2 if price falls below 99%
+
+  {
+    marketPriceRatio: {
+      numerator: 99,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 2
+    }
+  },
+
+  // Buy the 100% if price falls below 96%
+  {
+    marketPriceRatio: {
+      numerator: 96,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }
+]
+
+const MAIN_BOT_ACCOUNT = 0
+
+const BUY_LIQUIDITY_BOTS = [{
+  name: 'Main buyer bot',
+  markets: MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  rules: BUY_LIQUIDITY_RULES_DEFAULT,
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }]
+}]
+
+const SELL_LIQUIDITY_BOTS = [{
+  name: 'Main seller bot',
+  markets: MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }]
+}]
+
+module.exports = {
+  MARKETS,
+  MAIN_BOT_ACCOUNT,
+  BUY_LIQUIDITY_BOTS,
+  SELL_LIQUIDITY_BOTS
+}
+```
+
 ```bash
 docker run \
   -e MNEMONIC="super secret thing that nobody should know ..." \
   -e NODE_ENV=pre \
+  -e NETWORK=rinkeby \
   -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
-  -e MARKETS=WETH-RDN,WETH-OMG \
   -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
   -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
+  --mount type=bind,source=route/for/custom/config,destination=/usr/src/app/custom_conf
+  -e CONFIG_FILE=/usr/src/app/custom_conf/config_file.js
   -p 8081:8081 \
   gnosispm/dx-services:staging \
   yarn bots
@@ -136,6 +202,9 @@ To check out the Bots API, just open [http://localhost:8081]() in any Browser.
 In the previous command, notice that it has a similar configuration as in the
 Public API run, with the difference of:
 * `MNEMONIC`: Allows to setup the bots account used to sign the transactions.
+* `MARKETS`: It's not used in this case
+* `CONFIG_FILE`: The file with details about bot configuration
+* `--mount`: Mount a volume in the docker container that should contain the CONFIG_FILE. The `source` route should be the route containing the desired config file. The route passed to `CONFIG_FILE` should be relative to `destination` folder in the container
 * `-p 8081:8081`: The Bots API it's exposed on port 8081.
 * `yarn bots`: NPM Script used to run the Liquidity Bots.
 

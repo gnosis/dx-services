@@ -15,7 +15,7 @@ if (env === 'pre' || env === 'pro') {
 } else if (env === 'dev') {
   // Rinkeby: dev
   //  We use a different DX contract than the one defined in the NPM package
-  DX_CONTRACT_ADDRESS = NETWORKS_DEV['DutchExchangeProxy']['4'].address  
+  DX_CONTRACT_ADDRESS = NETWORKS_DEV['DutchExchangeProxy']['4'].address
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'
 

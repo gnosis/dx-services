@@ -44,8 +44,6 @@
     "networks": "cd node_modules/@gnosis.pm/dx-contracts && truffle network",
     "networks-clean": "cd node_modules/@gnosis.pm/dx-contracts && truffle network --clean",
     "contracts-inject-network": "cd node_modules/@gnosis.pm/dx-contracts/ && node scripts/inject_network_info.js",
-    "contracts-compile": "cd node_modules/@gnosis.pm/dx-contracts/ && truffle compile",
-    "contracts-deploy": "cd node_modules/@gnosis.pm/dx-contracts/ && truffle migrate",
     "setup": "npm run migrate && npm run data",
     "tasks-claimFunds": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/claimFunds.js",
     "tasks-generateWeeklyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateWeeklyReport.js",
