@@ -159,7 +159,7 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   }
 }
 
-const DEFAULT_GAS_PRICE_USED = 'fast'
+const DEFAULT_GAS_PRICE_USED = 'safeLow'
 const URL_GAS_PRICE_FEED_GAS_STATION = null
 const URL_GAS_PRICE_FEED_SAFE = null
 

@@ -1341,7 +1341,7 @@ volume: ${state}`)
         }))
       })
   }
- 
+
   async getFees ({
     fromBlock = 0,
     toBlock = 'latest',
@@ -2094,23 +2094,35 @@ volume: ${state}`)
     })
 
     let gasPricePromise
+    let fastGasPricePromise
     if (gasPriceParam) {
       // Use the provided gas price
-      gasPricePromise = Promise.resolve(gasPriceParam)
+      fastGasPricePromise = gasPricePromise = Promise.resolve(gasPriceParam)
     } else {
       // Get safe low gas price by default
       gasPricePromise = this._ethereumClient
         .getGasPricesGWei()
         .then(gasPricesGWei => gasPricesGWei[this._gasPriceDefault].mul(1e9))
+
+      if (this._gasPriceDefault === 'fast') {
+        fastGasPricePromise = gasPricePromise
+      } else {
+        fastGasPricePromise = this._ethereumClient
+          .getGasPricesGWei()
+          .then(gasPricesGWei => gasPricesGWei['fast'].mul(1e9))
+      }
     }
 
-    const [ gasPrice, estimatedGas ] = await Promise.all([
+    const [ initialGasPrice, estimatedGas, fastGasPrice ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
 
       // Estimate gas
       this._dx[operation]
-        .estimateGas(...params, { from })
+        .estimateGas(...params, { from }),
+
+      // Get fast gas price
+      fastGasPricePromise
     ])
 
     logger.debug({
@@ -2120,21 +2132,60 @@ volume: ${state}`)
     const gas = Math.ceil(estimatedGas * 2)
 
     // TODO: Implement solution for: Transaction with the same hash was already imported
-    return this
-      ._dx[operation](...params, {
-        from,
-        // gas: this._defaultGas,
-        gas,
-        gasPrice
-      }).catch(error => {
+    // const transactionPromise = this
+    //   ._dx[operation](...params, {
+    //     from,
+    //     gas,
+    //     gasPrice: initialGasPrice
+    //   }).catch(error => {
+    //     logger.error({
+    //       msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
+    //       params: [ operation, from, params, gas, initialGasPrice, error ],
+    //       error
+    //     })
+    //     // Rethrow error after logging
+    //     throw error
+    //   })
+
+    const retryFunction = async ({ gasPrice = initialGasPrice } = {}) => {
+      if (gasPrice < fastGasPrice * 2) { // TODO set as config
+        return new Promise((resolve, reject) => {
+          let timer = setTimeout(() => {
+            retryFunction({ gasPrice: gasPrice * 2 }) // TODO set increment param by config
+          }, 10000) // TODO set as config param
+
+          this
+            ._dx[operation](...params, {
+              from,
+              gas,
+              gasPrice
+            }).then(result => {
+              clearTimeout(timer)
+              resolve(result)
+            }).catch(error => {
+              clearTimeout(timer)
+              logger.error({
+                msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
+                params: [ operation, from, params, gas, gasPrice, error ],
+                error
+              })
+
+              reject(error)
+            })
+        })
+      } else {
+        const error = new Error('Unhandled error in transaction')
+
         logger.error({
           msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
           params: [ operation, from, params, gas, gasPrice, error ],
           error
         })
-        // Rethrow error after logging
         throw error
-      })
+      }
+    }
+
+    return retryFunction()
   }
 
   async _getTime () {
