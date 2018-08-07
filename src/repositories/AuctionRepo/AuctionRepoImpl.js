@@ -2130,62 +2130,79 @@ volume: ${state}`)
       params: [ operation, estimatedGas ]
     })
     const gas = Math.ceil(estimatedGas * 2)
+    const maxGasWillingToPay = fastGasPrice * 2 // TODO
 
-    // TODO: Implement solution for: Transaction with the same hash was already imported
-    // const transactionPromise = this
-    //   ._dx[operation](...params, {
-    //     from,
-    //     gas,
-    //     gasPrice: initialGasPrice
-    //   }).catch(error => {
-    //     logger.error({
-    //       msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-    //       params: [ operation, from, params, gas, initialGasPrice, error ],
-    //       error
-    //     })
-    //     // Rethrow error after logging
-    //     throw error
-    //   })
+    return new Promise((resolve, reject) => {
+      _doTransactionWithRetry({
+        resolve,
+        reject,
+        gasPrice: initialGasPrice,
+        maxGasWillingToPay,
+        operation,
+        from,
+        params,
+        gas 
+      })
+    })
+  }
 
-    const retryFunction = async ({ gasPrice = initialGasPrice } = {}) => {
-      if (gasPrice < fastGasPrice * 2) { // TODO set as config
-        return new Promise((resolve, reject) => {
-          let timer = setTimeout(() => {
-            retryFunction({ gasPrice: gasPrice * 2 }) // TODO set increment param by config
-          }, 10000) // TODO set as config param
 
-          this
-            ._dx[operation](...params, {
-              from,
-              gas,
-              gasPrice
-            }).then(result => {
-              clearTimeout(timer)
-              resolve(result)
-            }).catch(error => {
-              clearTimeout(timer)
-              logger.error({
-                msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-                params: [ operation, from, params, gas, gasPrice, error ],
-                error
-              })
-
-              reject(error)
-            })
-        })
-      } else {
-        const error = new Error('Unhandled error in transaction')
-
-        logger.error({
-          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-          params: [ operation, from, params, gas, gasPrice, error ],
-          error
-        })
-        throw error
+  async _doTransactionWithRetry ({
+    resolve,
+    reject,
+    gasPrice,
+    maxGasWillingToPay,
+    operation,
+    from,
+    params,
+    gas 
+  }) {      
+    let timer
+    const clearTimer = () => {
+      if (timer) {
+        clearTimeout(timer)
       }
     }
 
-    return retryFunction()
+    let transactionPromise = this
+      ._dx[operation](...params, {
+        from,
+        gas,
+        gasPrice
+    }).then(result => {
+      clearTimer()
+      resolve(result)
+    }).catch(error => {
+      clearTimer()
+
+      logger.error({
+        msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
+        params: [ operation, from, params, gas, gasPrice, error ],
+        error
+      })
+
+      reject(error)
+    })
+
+    timer = setTimeout(() => {
+      let newGasPrice = gasPrice * 2 // TODO
+      if (newGasPrice < maxGasWillingToPay) {
+        _doTransactionWithRetry({
+          resolve,
+          reject,
+          gasPrice: newGasPrice,
+          maxGasWillingToPay,
+          operation,
+          from,
+          params,
+          gas 
+        })
+      } else {
+        transactionPromise
+          .then(resolve)
+          .catch(reject)
+      }
+    }, 10000) // TODO set as config param
   }
 
   async _getTime () {
