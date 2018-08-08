@@ -2094,36 +2094,34 @@ volume: ${state}`)
     })
 
     let gasPricePromise
-    let fastGasPricePromise
     if (gasPriceParam) {
       // Use the provided gas price
-      fastGasPricePromise = gasPricePromise = Promise.resolve(gasPriceParam)
+      gasPricePromise = Promise.resolve({
+        initialGasPrice: gasPriceParam,
+        fastGasPrice: gasPriceParam
+      })
     } else {
       // Get safe low gas price by default
       gasPricePromise = this._ethereumClient
         .getGasPricesGWei()
-        .then(gasPricesGWei => gasPricesGWei[this._gasPriceDefault].mul(1e9))
-
-      if (this._gasPriceDefault === 'fast') {
-        fastGasPricePromise = gasPricePromise
-      } else {
-        fastGasPricePromise = this._ethereumClient
-          .getGasPricesGWei()
-          .then(gasPricesGWei => gasPricesGWei['fast'].mul(1e9))
-      }
+        .then(gasPricesGWei => {
+          return {
+            initialGasPrice: gasPricesGWei[this._gasPriceDefault].mul(1e9),
+            fastGasPrice: gasPricesGWei['fast'].mul(1e9)
+          }
+        })
     }
 
-    const [ initialGasPrice, estimatedGas, fastGasPrice ] = await Promise.all([
+    const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
 
       // Estimate gas
       this._dx[operation]
-        .estimateGas(...params, { from }),
-
-      // Get fast gas price
-      fastGasPricePromise
+        .estimateGas(...params, { from })
     ])
+
+    const { initialGasPrice, fastGasPrice } = gasPrices
 
     logger.debug({
       msg: '_doTransaction. Estimated gas for "%s": %d',
@@ -2133,7 +2131,7 @@ volume: ${state}`)
     const maxGasWillingToPay = fastGasPrice * 2 // TODO
 
     return new Promise((resolve, reject) => {
-      _doTransactionWithRetry({
+      this._doTransactionWithRetry({
         resolve,
         reject,
         gasPrice: initialGasPrice,
@@ -2141,11 +2139,10 @@ volume: ${state}`)
         operation,
         from,
         params,
-        gas 
+        gas
       })
     })
   }
-
 
   async _doTransactionWithRetry ({
     resolve,
@@ -2155,8 +2152,8 @@ volume: ${state}`)
     operation,
     from,
     params,
-    gas 
-  }) {      
+    gas
+  }) {
     let timer
     const clearTimer = () => {
       if (timer) {
@@ -2169,25 +2166,25 @@ volume: ${state}`)
         from,
         gas,
         gasPrice
-    }).then(result => {
-      clearTimer()
-      resolve(result)
-    }).catch(error => {
-      clearTimer()
+      }).then(result => {
+        clearTimer()
+        resolve(result)
+      }).catch(error => {
+        clearTimer()
 
-      logger.error({
-        msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-        params: [ operation, from, params, gas, gasPrice, error ],
-        error
+        logger.error({
+          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
+          params: [ operation, from, params, gas, gasPrice, error ],
+          error
+        })
+
+        reject(error)
       })
-
-      reject(error)
-    })
 
     timer = setTimeout(() => {
       let newGasPrice = gasPrice * 2 // TODO
       if (newGasPrice < maxGasWillingToPay) {
-        _doTransactionWithRetry({
+        this._doTransactionWithRetry({
           resolve,
           reject,
           gasPrice: newGasPrice,
@@ -2195,7 +2192,7 @@ volume: ${state}`)
           operation,
           from,
           params,
-          gas 
+          gas
         })
       } else {
         transactionPromise
