@@ -163,6 +163,11 @@ const DEFAULT_GAS_PRICE_USED = 'safeLow'
 const URL_GAS_PRICE_FEED_GAS_STATION = null
 const URL_GAS_PRICE_FEED_SAFE = null
 
+const TRANSACTION_RETRY_TIME = 3 * 60 * 1000 // 3 minutes (in miliseconds)
+const GAS_RETRY_INCREMENT = 1.2 // (previous_gas * GAS_RETRY_INCREMENT) === increment 20%
+const OVER_FAST_PRICE_FACTOR = 1.25 // (fast_price * OVER_FAST_PRICE_FACTOR) === increment 25%
+const GAS_ESTIMATION_CORRECTION_FACTOR = 2 // Gas estimation correction for proxied contract
+
 module.exports = {
   ENVIRONMENT,
 
@@ -194,6 +199,10 @@ module.exports = {
   DEFAULT_GAS_PRICE_USED,
   URL_GAS_PRICE_FEED_GAS_STATION,
   URL_GAS_PRICE_FEED_SAFE,
+  TRANSACTION_RETRY_TIME,
+  GAS_RETRY_INCREMENT,
+  OVER_FAST_PRICE_FACTOR,
+  GAS_ESTIMATION_CORRECTION_FACTOR,
 
   // CONTRACTS
   DX_CONTRACT_ADDRESS,

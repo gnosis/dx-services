@@ -30,7 +30,6 @@ class ContractLoader {
   }
 
   async _loadDx () {
-    console.log('Load DX from ', this._contractDefinitions.DutchExchange)
     const dxContract = this._ethereumClient
       .loadContract(this._contractDefinitions.DutchExchange)
 

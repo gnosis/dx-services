@@ -28,6 +28,10 @@ class AuctionRepoImpl {
   }) {
     this._ethereumClient = ethereumClient
     this._defaultGas = config.DEFAULT_GAS
+    this._transactionRetryTime = config.TRANSACTION_RETRY_TIME
+    this._gasRetryIncrement = config.GAS_RETRY_INCREMENT
+    this._overFastPriceFactor = config.OVER_FAST_PRICE_FACTOR
+    this._gasEstimationCorrectionFactor = config.GAS_ESTIMATION_CORRECTION_FACTOR
     this._gasPriceDefault = config.DEFAULT_GAS_PRICE_USED || 'average' // safeLow, average, fast
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
@@ -1390,7 +1394,6 @@ volume: ${state}`)
     return feesList
   }
 
-
   async getAuctions ({ fromBlock, toBlock }) {
     // Get cleared auctions to select the auctions
 
@@ -2127,8 +2130,8 @@ volume: ${state}`)
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
-    const gas = Math.ceil(estimatedGas * 2)
-    const maxGasWillingToPay = fastGasPrice * 2 // TODO
+    const gas = Math.ceil(estimatedGas * this._gasEstimationCorrectionFactor)
+    const maxGasWillingToPay = fastGasPrice * this._overFastPriceFactor
 
     return new Promise((resolve, reject) => {
       this._doTransactionWithRetry({
@@ -2161,8 +2164,9 @@ volume: ${state}`)
       }
     }
 
+    // We call send transaction explicitly because is more semantic and easier mocking tests
     let transactionPromise = this
-      ._dx[operation](...params, {
+      ._dx[operation].sendTransaction(...params, {
         from,
         gas,
         gasPrice
@@ -2182,7 +2186,7 @@ volume: ${state}`)
       })
 
     timer = setTimeout(() => {
-      let newGasPrice = gasPrice * 2 // TODO
+      let newGasPrice = gasPrice * this._gasRetryIncrement
       if (newGasPrice < maxGasWillingToPay) {
         this._doTransactionWithRetry({
           resolve,
@@ -2199,7 +2203,7 @@ volume: ${state}`)
           .then(resolve)
           .catch(reject)
       }
-    }, 10000) // TODO set as config param
+    }, this._transactionRetryTime)
   }
 
   async _getTime () {
