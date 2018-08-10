@@ -609,6 +609,136 @@ describe('Market interacting tests', async () => {
       .lessThanOrEqualTo(decimalInitialClosingPrice)
     ).toBeTruthy()
   })
+
+  test('It should retry the transaction in case of failure', async () => {
+    const { user1, auctionRepo } = await setupPromise
+
+    // GIVEN a new token pair
+    await _addRdnEthTokenPair({})
+
+    // Config the params to have more control in test cases
+    auctionRepo._transactionRetryTime = 200
+    auctionRepo._gasRetryIncrement = 2
+    auctionRepo._overFastPriceFactor = 2
+
+    // wrap scope function with mock properties
+    auctionRepo._dx.postSellOrder.sendTransaction = jest.fn(auctionRepo._dx.postSellOrder.sendTransaction)
+    const sendTransactionFn = auctionRepo._dx.postSellOrder.sendTransaction
+
+    auctionRepo._doTransactionWithRetry = jest.fn(auctionRepo._doTransactionWithRetry)
+
+    // WHEN we get an unresolved promise twice
+    const promise = new Promise((resolve, reject) => {})
+    sendTransactionFn
+      .mockReturnValueOnce(promise)
+
+    // WHEN we do a transaction
+    await _buySell('postSellOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('2')
+    })
+
+    // THEN The send transaction function is called 2 times
+    expect(sendTransactionFn).toHaveBeenCalledTimes(2)
+
+    // THEN _doTransactionWithRetry is called 2 times
+    expect(auctionRepo._doTransactionWithRetry).toHaveBeenCalledTimes(2)
+  })
+
+  test('It should not retry the transaction if max gas price reached', async () => {
+    const { user1, auctionRepo } = await setupPromise
+
+    // GIVEN a new token pair
+    await _addRdnEthTokenPair({})
+
+    // Config the params to have more control in test cases
+    auctionRepo._transactionRetryTime = 200
+    auctionRepo._gasRetryIncrement = 2
+    auctionRepo._overFastPriceFactor = 2
+
+    // wrap scope function with mock properties
+    auctionRepo._dx.postSellOrder.sendTransaction = jest.fn(auctionRepo._dx.postSellOrder.sendTransaction)
+    const sendTransactionFn = auctionRepo._dx.postSellOrder.sendTransaction
+
+    auctionRepo._doTransactionWithRetry = jest.fn(auctionRepo._doTransactionWithRetry)
+
+    // WHEN we get an unresolved promise twice
+    const promise = new Promise((resolve, reject) => {})
+    const resolvingPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve()
+      }, 1000)
+    })
+    sendTransactionFn
+      .mockReturnValueOnce(promise)
+      .mockReturnValueOnce(resolvingPromise)
+      .mockReturnValueOnce(promise)
+      .mockReturnValueOnce(promise)
+
+    // WHEN we do a transaction
+    await _buySell('postSellOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('2')
+    })
+
+    // THEN The send transaction function is called 3 times
+    expect(sendTransactionFn).toHaveBeenCalledTimes(3)
+
+    // THEN _doTransactionWithRetry is called 3 times
+    expect(auctionRepo._doTransactionWithRetry).toHaveBeenCalledTimes(3)
+  })
+
+  test('It return a rejected transaction', async () => {
+    const { user1, auctionRepo } = await setupPromise
+
+    // GIVEN a new token pair
+    await _addRdnEthTokenPair({})
+
+    // Config the params to have more control in test cases
+    auctionRepo._transactionRetryTime = 200
+    auctionRepo._gasRetryIncrement = 2
+    auctionRepo._overFastPriceFactor = 2
+
+    // wrap scope function with mock properties
+    auctionRepo._dx.postSellOrder.sendTransaction = jest.fn(auctionRepo._dx.postSellOrder.sendTransaction)
+    const sendTransactionFn = auctionRepo._dx.postSellOrder.sendTransaction
+
+    auctionRepo._doTransactionWithRetry = jest.fn(auctionRepo._doTransactionWithRetry)
+
+    // WHEN we get an unresolved promise twice
+    const promise = new Promise((resolve, reject) => {})
+    const rejectingPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('Expect rejected'))
+      }, 500)
+    })
+    sendTransactionFn
+      .mockReturnValueOnce(rejectingPromise)
+      .mockReturnValueOnce(promise)
+      .mockReturnValueOnce(promise)
+
+    // WHEN we do a transaction expecting an error
+    try {
+      await _buySell('postSellOrder', {
+        from: user1,
+        sellToken: 'RDN',
+        buyToken: 'WETH',
+        amount: parseFloat('2')
+      })
+    } catch (e) {
+      expect(e).toEqual(new Error('Expect rejected'))
+    }
+
+    // THEN The send transaction function is called 2 times
+    expect(sendTransactionFn).toHaveBeenCalledTimes(2)
+
+    // THEN _doTransactionWithRetry is called 2 times
+    expect(auctionRepo._doTransactionWithRetry).toHaveBeenCalledTimes(2)
+  })
 })
 
 // ********* Test helpers *********
