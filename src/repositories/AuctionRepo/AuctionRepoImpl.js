@@ -2188,6 +2188,11 @@ volume: ${state}`)
     timer = setTimeout(() => {
       let newGasPrice = gasPrice * this._gasRetryIncrement
       if (newGasPrice < maxGasWillingToPay) {
+        logger.info({
+          msg: 'Reached timeout (%d secs), retrying "%s" from "%s" with higher gas. Previous gas: %d, new gas price: %d. Params: [%s]',
+          params: [ (this._transactionRetryTime / 1000), operation, from, gasPrice, newGasPrice, params ]
+        })
+
         this._doTransactionWithRetry({
           resolve,
           reject,
@@ -2199,6 +2204,11 @@ volume: ${state}`)
           gas
         })
       } else {
+        logger.info({
+          msg: 'Max gas price reached: %d, waiting transaction for "%s" from "%s". Params: [%s]',
+          params: [ gasPrice, operation, from, params ]
+        })
+
         transactionPromise
           .then(resolve)
           .catch(reject)
