@@ -2096,24 +2096,7 @@ volume: ${state}`)
       ]
     })
 
-    let gasPricePromise
-    if (gasPriceParam) {
-      // Use the provided gas price
-      gasPricePromise = Promise.resolve({
-        initialGasPrice: gasPriceParam,
-        fastGasPrice: gasPriceParam
-      })
-    } else {
-      // Get safe low gas price by default
-      gasPricePromise = this._ethereumClient
-        .getGasPricesGWei()
-        .then(gasPricesGWei => {
-          return {
-            initialGasPrice: gasPricesGWei[this._gasPriceDefault].mul(1e9),
-            fastGasPrice: gasPricesGWei['fast'].mul(1e9)
-          }
-        })
-    }
+    let gasPricePromise = this._getGasPrices(gasPriceParam)
 
     const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice
@@ -2142,9 +2125,30 @@ volume: ${state}`)
         operation,
         from,
         params,
-        gas
+        gas,
+        gasPriceParam
       })
     })
+  }
+
+  async _getGasPrices (gasPriceParam) {
+    if (gasPriceParam) {
+      // Use the provided gas price
+      return Promise.resolve({
+        initialGasPrice: gasPriceParam,
+        fastGasPrice: gasPriceParam
+      })
+    } else {
+      // Get safe low gas price by default
+      return this._ethereumClient
+        .getGasPricesGWei()
+        .then(gasPricesGWei => {
+          return {
+            initialGasPrice: gasPricesGWei[this._gasPriceDefault].mul(1e9),
+            fastGasPrice: gasPricesGWei['fast'].mul(1e9)
+          }
+        })
+    }
   }
 
   async _doTransactionWithRetry ({
@@ -2155,7 +2159,8 @@ volume: ${state}`)
     operation,
     from,
     params,
-    gas
+    gas,
+    gasPriceParam // if manually setted
   }) {
     let timer
     const clearTimer = () => {
@@ -2185,19 +2190,26 @@ volume: ${state}`)
         reject(error)
       })
 
-    timer = setTimeout(() => {
+    timer = setTimeout(async () => {
       let newGasPrice = gasPrice * this._gasRetryIncrement
-      if (newGasPrice < maxGasWillingToPay) {
+
+      // If fastGasPrice increases we update the maxGasWillingToPay
+      const { fastGasPrice } = await this._getGasPrices(gasPriceParam)
+      let newMaxGasWillingToPay = fastGasPrice > maxGasWillingToPay
+        ? fastGasPrice * this._overFastPriceFactor
+        : maxGasWillingToPay
+
+      if (newGasPrice < newMaxGasWillingToPay) {
         logger.info({
-          msg: 'Reached timeout (%d secs), retrying "%s" from "%s" with higher gas. Previous gas: %d, new gas price: %d. Params: [%s]',
-          params: [ (this._transactionRetryTime / 1000), operation, from, gasPrice, newGasPrice, params ]
+          msg: 'Transaction is taking too long (%d min), retrying "%s" from "%s" with higher gas. Previous gas: %d, new gas price: %d. Params: [%s]',
+          params: [ (this._transactionRetryTime / 60000), operation, from, gasPrice, newGasPrice, params ]
         })
 
         this._doTransactionWithRetry({
           resolve,
           reject,
           gasPrice: newGasPrice,
-          maxGasWillingToPay,
+          maxGasWillingToPay: newMaxGasWillingToPay,
           operation,
           from,
           params,
@@ -2205,8 +2217,8 @@ volume: ${state}`)
         })
       } else {
         logger.info({
-          msg: 'Max gas price reached: %d, waiting transaction for "%s" from "%s". Params: [%s]',
-          params: [ gasPrice, operation, from, params ]
+          msg: 'Transaction took too long. Max gas price reached, current gas price: %d, max gas willing to pay: %d, waiting transaction for "%s" from "%s". Params: [%s]',
+          params: [ gasPrice, newMaxGasWillingToPay, operation, from, params ]
         })
 
         transactionPromise
