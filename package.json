@@ -1,5 +1,5 @@
 {
-  "name": "dx-services",
+  "name": "@gnosis.pm/dx-services",
   "version": "0.5.0",
   "description": "",
   "main": "src/runPublicApi.js",
