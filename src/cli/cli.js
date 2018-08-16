@@ -2,6 +2,8 @@
 const { MNEMONIC: DEFAULT_MNEMONIC } = require('../../conf/env/local-config')
 const mnemonic = process.env.MNEMONIC || DEFAULT_MNEMONIC
 process.env.MNEMONIC = mnemonic
+const DEBUG = process.env.DEBUG || 'ERROR-*,WARN-*,INFO-*'
+process.env.DEBUG = DEBUG
 
 const loggerNamespace = 'cli'
 const Logger = require('../helpers/Logger')
