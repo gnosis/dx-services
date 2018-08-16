@@ -7,7 +7,9 @@
     "test": "test"
   },
   "bin": {
-    "dutch-exchange": "./src/cli/cli.js"
+    "dutchx-kovan": "./src/cli/cli-kovan.js",
+    "dutchx-rinkeby": "./src/cli/cli-rinkeby.js",
+    "dutchx-mainnet": "./src/cli/cli-mainnet.js"
   },
   "scripts": {
     "start": "npm run api",
