@@ -7,9 +7,9 @@
     "test": "test"
   },
   "bin": {
-    "dutchx-kovan": "./src/cli/cli-kovan.js",
-    "dutchx-rinkeby": "./src/cli/cli-rinkeby.js",
-    "dutchx-mainnet": "./src/cli/cli-mainnet.js"
+    "dutchx-kovan": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=kovan node src/cli/cli.js",
+    "dutchx-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=rinkeby node src/cli/cli.js",
+    "dutchx-mainnet": "MARKETS=RDN-WETH RDN_TOKEN_ADDRESS=0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6 OMG_TOKEN_ADDRESS=0xd26114cd6EE289AccF82350c8d8487fedB8A0C07 DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=mainnet node src/cli/cli.js"
   },
   "scripts": {
     "start": "npm run api",
