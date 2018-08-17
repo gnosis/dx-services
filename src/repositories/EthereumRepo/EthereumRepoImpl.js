@@ -156,9 +156,6 @@ class EthereumRepoImpl {
   }
 
   async tokenGetInfo ({ tokenAddress }) {
-    // TODO: Add cache
-    // If cache exists and the value is null (notice difference between null and undefined) => cache MEDIUM
-    // If cache exists and the value is no null cache LONG
     const fetchFn = () => this._tokenGetInfo({ tokenAddress })
 
     const cacheKey = 'tokenInfo:' + tokenAddress
@@ -188,10 +185,15 @@ class EthereumRepoImpl {
   async _tokenGetInfo ({ tokenAddress }) {
     const tokenContract = this._getTokenContract(tokenAddress)
 
+    // Since symbol, name, decimals are not mandatory
+    // any error fetching those data will be ignored, and we just assume
+    // no-value.
+    //  i.e. DAI defined the symbol as a byte32, so it fails to fetch it using 
+    //      the ERC20 ABI.
     const [ symbol, name, decimals ] = await Promise.all([
-      promisify(tokenContract.symbol),
-      promisify(tokenContract.name),
-      promisify(tokenContract.decimals).then(parseInt)
+      promisify(tokenContract.symbol).catch(() => null),
+      promisify(tokenContract.name).catch(() => null),
+      promisify(tokenContract.decimals).then(parseInt).catch(() => null)
     ])
 
     return {

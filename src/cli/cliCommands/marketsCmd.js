@@ -22,8 +22,8 @@ function registerCommand ({ cli, instances, logger }) {
       markets.forEach((market, number) => {
         logger.info('%d) %s-%s:',
           number + 1,
-          market.tokenA.symbol,
-          market.tokenB.symbol
+          market.tokenA.symbol || 'Unknown',
+          market.tokenB.symbol || 'Unknown'
         )
         printToken(market.tokenA, logger)
         printToken(market.tokenB, logger)
@@ -36,7 +36,7 @@ function registerCommand ({ cli, instances, logger }) {
 
 function printToken (token, logger) {
   logger.info('')
-  logger.info('  - Token: %s', token.symbol)
+  logger.info('  - Token: %s', (token.symbol || 'Unknown'))
   logger.info('    Name: %s', token.name)
   logger.info('    Address: %s', token.address)
   logger.info('    Decimals: %d', token.decimals)
