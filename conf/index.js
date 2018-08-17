@@ -66,7 +66,7 @@ const customConfigFile = process.env.CONFIG_FILE
 const customConfig = customConfigFile ? require(customConfigFile) : {}
 
 const markets = customConfig.MARKETS || envMarkets || envConf.MARKETS || defaultConf.MARKETS
-const tokens = getTokenList(markets)
+const tokens = getConfiguredTokenList(markets)
 let envVars = getEnvVars(tokens)
 
 const slackConfig = getSlackConfig(envVars)
@@ -128,7 +128,7 @@ function getEnvMarkets () {
 //   return [ BuyLiquidityBots, SellLiquidityBots ]
 // }
 
-function getTokenList (markets) {
+function getConfiguredTokenList (markets) {
   const result = []
 
   function isSpecialToken (token) {

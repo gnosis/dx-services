@@ -5,6 +5,20 @@ const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const ENVIRONMENT = process.env.NODE_ENV
 
+// TODO: Implement real pagination
+//  While there's not too many tokens, we defer the pagination implementation
+const MOCK_PAGINATION = {
+  endingBefore: null,
+  startingAfter: null,
+  limit: 0,
+  order: [{
+    param: 'symbol',
+    direction: 'ASC'
+  }],
+  previousUri: null,
+  nextUri: null
+}
+
 const numberUtil = require('../helpers/numberUtil.js')
 
 const getGitInfo = require('../helpers/getGitInfo')
@@ -364,35 +378,47 @@ class DxInfoService {
       }
     })
 
-    const tokenPairs = {
-      data: [],
-      pagination: {}
+    return {
+      data: await Promise.all(tokenPairsPromises),
+      pagination: { ...MOCK_PAGINATION, count }
     }
-
-    tokenPairs.data = await Promise.all(tokenPairsPromises)
-    tokenPairs.pagination = {
-      endingBefore: null,
-      startingAfter: null,
-      limit: count,
-      order: [{
-        param: 'symbol',
-        direction: 'ASC'
-      }],
-      previousUri: null,
-      nextUri: null
-    }
-
-    return tokenPairs
   }
 
   // TODO implement pagination
   async getTokenList ({ count, approved = true } = {}) {
+    const tokenPairs = await this._auctionRepo.getTokenPairs()
+    const tokenAddresses = tokenPairs.reduce((addresses, {
+      sellToken,
+      buyToken
+    }) => {
+      if (!addresses.includes(sellToken)) {
+        addresses.push(sellToken)
+      }
+
+      if (!addresses.includes(buyToken)) {
+        addresses.push(buyToken)
+      }
+
+      return addresses
+    }, [])
+
+    const tokenPromises = tokenAddresses.map(async address => {
+      return this._getTokenInfoByAddress(address)
+    })
+
+    return {
+      data: await Promise.all(tokenPromises),
+      pagination: { ...MOCK_PAGINATION, count }
+    }
+  }
+
+  async getConfiguredTokenList ({ count, approved = true } = {}) {
     // TODO implement retrieving data from blockchain
     const tokenList = {
       data: [],
       pagination: {}
     }
-    const fundedTokenList = await this.getFundedTokenList()
+    const fundedTokenList = await this._getConfiguredTokenList()
 
     tokenList.data = fundedTokenList
     tokenList.pagination = {
@@ -413,31 +439,6 @@ class DxInfoService {
     const magnoliaToken = await this._auctionRepo.getMagnoliaToken()
 
     return this._getTokenInfoByAddress(magnoliaToken.address)
-  }
-
-  async getFundedTokenList () {
-    let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
-      if (list.indexOf(tokenA) === -1) {
-        list.push(tokenA)
-      }
-
-      if (list.indexOf(tokenB) === -1) {
-        list.push(tokenB)
-      }
-      return list
-    }, [])
-
-    let addressesList = await Promise.all(
-      tokenList.map(token => {
-        return this._auctionRepo.getTokenAddress({ token })
-      }))
-
-    let detailedTokenList = await Promise.all(addressesList.map(address => {
-      return this._getTokenInfoByAddress(address)
-    }))
-
-    return detailedTokenList
-    // return this._auctionRepo.getTokens()
   }
 
   async _getTokenInfoByAddress (address) {
@@ -755,6 +756,31 @@ class DxInfoService {
     }
 
     return ordersDto
+  }
+
+  async _getConfiguredTokenList () {
+    let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
+      if (list.indexOf(tokenA) === -1) {
+        list.push(tokenA)
+      }
+
+      if (list.indexOf(tokenB) === -1) {
+        list.push(tokenB)
+      }
+      return list
+    }, [])
+
+    let addressesList = await Promise.all(
+      tokenList.map(token => {
+        return this._auctionRepo.getTokenAddress({ token })
+      }))
+
+    let detailedTokenList = await Promise.all(addressesList.map(address => {
+      return this._getTokenInfoByAddress(address)
+    }))
+
+    return detailedTokenList
+    // return this._auctionRepo.getTokens()
   }
 
   async _toOrderDto (orders, etherPrice) {

@@ -39,7 +39,7 @@ test('It should return a token list', async () => {
     { name: 'OmiseGO', symbol: 'OMG', address: '0x345', decimals: 18 }
   ]
 
-  let tokenList = await dxInfoService.getTokenList()
+  let tokenList = await dxInfoService.getConfiguredTokenList()
   expect(tokenList.data).toMatchObject(EXPECTED_TOKENS)
 })
 

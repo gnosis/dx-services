@@ -21,7 +21,7 @@ function createRoutes ({ dxInfoService },
     get (req, res) {
       const count = req.query.count !== undefined ? req.query.count : 20
       addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
-      return dxInfoService.getTokenList({ count })
+      return dxInfoService.getConfiguredTokenList({ count })
     }
   })
 
