@@ -41,7 +41,8 @@ const BUY_LIQUIDITY_BOTS = [{
   notifications: [{
     type: 'slack',
     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }]
+  }],
+  checkTimeInMilliseconds: 60 * 1000 // 60s
 }, {
   name: 'Backup buyer for RDN-WETH',
   markets: [
@@ -65,7 +66,8 @@ const BUY_LIQUIDITY_BOTS = [{
   }, {
     type: 'email',
     email: ''
-  }]
+  }],
+  checkTimeInMilliseconds: 60 * 1000 // 60s
 }]
 
 const SELL_LIQUIDITY_BOTS = [{
@@ -75,7 +77,8 @@ const SELL_LIQUIDITY_BOTS = [{
   notifications: [{
     type: 'slack',
     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }]
+  }],
+  checkTimeInMilliseconds: 60 * 1000 // 60s
 }]
 
 const AUTO_CLAIM_AUCTIONS = 90

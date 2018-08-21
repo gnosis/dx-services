@@ -20,7 +20,8 @@ class SellLiquidityBot extends Bot {
     markets,
     slackClient,
     botTransactionsSlackChannel,
-    notifications
+    notifications,
+    checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name)
     this._eventBus = eventBus
@@ -30,6 +31,7 @@ class SellLiquidityBot extends Bot {
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._notifications = notifications
+    this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
     this._lastCheck = null
     this._lastSell = null
@@ -85,7 +87,7 @@ class SellLiquidityBot extends Bot {
           }
         })
       })
-    }, ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS)
+    }, this._checkTimeInMilliseconds)
   }
 
   async _doStop () {
@@ -237,7 +239,7 @@ class SellLiquidityBot extends Bot {
       lastError: this._lastError,
       notifications: this._notifications,
       defaultSlackChannel: this._botTransactionsSlackChannel,
-      checkTimeInMilliseconds: ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS,
+      checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets
     }
   }

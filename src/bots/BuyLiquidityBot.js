@@ -19,9 +19,11 @@ class BuyLiquidityBot extends Bot {
     slackClient,
     botTransactionsSlackChannel,
     buyLiquidityRules,
-    notifications
+    notifications,
+    checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name)
+
     this._eventBus = eventBus
     this._liquidityService = liquidityService
     this._botAddress = botAddress
@@ -30,6 +32,7 @@ class BuyLiquidityBot extends Bot {
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._buyLiquidityRules = buyLiquidityRules
     this._notifications = notifications
+    this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
     this._lastCheck = null
     this._lastBuy = null
@@ -46,7 +49,7 @@ class BuyLiquidityBot extends Bot {
         const buyToken = market.tokenB
         this._doRoutineLiquidityCheck(sellToken, buyToken)
       })
-    }, ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS)
+    }, this._checkTimeInMilliseconds)
   }
 
   async _doStop () {
@@ -212,7 +215,7 @@ class BuyLiquidityBot extends Bot {
       lastError: this._lastError,
       notifications: this._notifications,
       defaultSlackChannel: this._botTransactionsSlackChannel,
-      checkTimeInMilliseconds: ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS,
+      checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets
     }
   }

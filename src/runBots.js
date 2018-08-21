@@ -142,17 +142,19 @@ class App {
     const _createBot = async (botConfig, botInstanceType, slackChannel) => {
       const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
       assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+      const { name, markets, rules, notifications, ...aditionalBotConfig } = botConfig
 
       return new botTypes[botInstanceType]({
-        name: botConfig.name,
+        name,
         eventBus: this._eventBus,
         liquidityService: this._liquidityService,
         botAddress,
-        markets: botConfig.markets,
+        markets,
         slackClient: this._slackClient,
         botTransactionsSlackChannel: slackChannel,
-        buyLiquidityRules: botConfig.rules,
-        notifications: botConfig.notifications
+        buyLiquidityRules: rules,
+        notifications,
+        ...aditionalBotConfig
       })
     }
 
