@@ -82,7 +82,7 @@ class BalanceCheckBot extends Bot {
         })
       })
 
-      const balanceOfEther = await Promise.all(balanceOfEtherPromises)
+      const balancesOfEther = await Promise.all(balanceOfEtherPromises)
 
       const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
 
@@ -95,13 +95,13 @@ class BalanceCheckBot extends Bot {
       })
 
       // Check if the account has ETHER below the minimum amount
-      balanceOfEther.forEach((balance, index) => {
-        if (balanceOfEther < MINIMUM_AMOUNT_FOR_ETHER) {
+      balancesOfEther.forEach((balance, index) => {
+        if (balance < MINIMUM_AMOUNT_FOR_ETHER) {
           const account = accountAddresses[index]
           const name = this._tokensByAccount[accountKeys[index]].name
           this._lastWarnNotification = new Date()
           // Notify lack of ether
-          this._notifyLackOfEther(balanceOfEther, account, name)
+          this._notifyLackOfEther(balance, account, name)
         }
       })
 
@@ -151,6 +151,7 @@ class BalanceCheckBot extends Bot {
 
   _notifyLackOfEther (balanceOfEther, account, name) {
     const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER / 1e18
+    console.log('balanceOfEther: ', balanceOfEther)
     const balance = balanceOfEther.div(1e18).valueOf()
 
     const message = 'The bot account has ETHER balance below ' + minimunAmount
