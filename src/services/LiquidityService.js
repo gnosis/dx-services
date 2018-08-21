@@ -445,7 +445,6 @@ keeps happening`
       // should have
       const buyTokensRequiredToMeetLiquidity = expectedBuyVolume
         .minus(buyVolume)
-        .mul(numberUtil.ONE.plus(MAXIMUM_DX_FEE))
         .ceil()
 
       // (1 - (sellVolumeInBuyTokes - buyVolume / sellVolumeInBuyTokes)) * 100
@@ -460,6 +459,9 @@ keeps happening`
       const needToEnsureLiquidity = buyTokensRequiredToMeetLiquidity.greaterThan(0)
 
       if (needToEnsureLiquidity) {
+        const buyTokensWithFee = buyTokensRequiredToMeetLiquidity
+          .div(numberUtil.ONE.minus(MAXIMUM_DX_FEE))
+
         const remainPercentage = percentageThatShouldBeBought
           .mul(100)
           .minus(boughtPercentage)
@@ -477,7 +479,7 @@ keeps happening`
         // Get the price in USD for the tokens we are buying
         const amountToBuyInUSD = await this._auctionRepo.getPriceInUSD({
           token: buyToken,
-          amount: buyTokensRequiredToMeetLiquidity
+          amount: buyTokensWithFee
         })
 
         // We need to ensure liquidity
@@ -486,12 +488,12 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Posting a buy order for %d %s ($%d)',
-          params: [ buyTokensRequiredToMeetLiquidity.div(1e18), buyToken, amountToBuyInUSD ]
+          params: [ buyTokensWithFee.div(1e18), buyToken, amountToBuyInUSD ]
         })
         const buyOrder = await this._auctionRepo.postBuyOrder({
           sellToken,
           buyToken,
-          amount: buyTokensRequiredToMeetLiquidity,
+          amount: buyTokensWithFee,
           auctionIndex,
           from
         })
@@ -506,7 +508,7 @@ keeps happening`
           sellToken,
           buyToken,
           auctionIndex,
-          amount: buyTokensRequiredToMeetLiquidity,
+          amount: buyTokensWithFee,
           amountInUSD: amountToBuyInUSD
         }
       } else {
@@ -574,7 +576,7 @@ keeps happening`
     // We round up the dollars
     amountToSellInUSD = amountToSellInUSD
       // We add the maximun fee as an extra amount
-      .mul(numberUtil.ONE.plus(MAXIMUM_DX_FEE))
+      .div(numberUtil.ONE.minus(MAXIMUM_DX_FEE))
 
     // Round USD to 2 decimals
     amountToSellInUSD = numberUtil.roundUp(amountToSellInUSD)
