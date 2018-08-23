@@ -74,7 +74,7 @@
     "qs": "^6.5.2",
     "raven": "^2.6.3",
     "truffle-contract": "^3.0.3",
-    "truffle-hdwallet-provider": "git+https://github.com/trufflesuite/truffle-hdwallet-provider.git#71520a2",
+    "truffle-hdwallet-provider": "git+https://github.com/anxolin/truffle-hdwallet-provider",
     "yamljs": "^0.3.0",
     "yargs": "^11.0.0"
   },
