@@ -88,6 +88,10 @@ class EthereumClient {
     // .catch(error => _handleGetGasPriceError(error))
   }
 
+  stop () {
+    this._web3.currentProvider.engine.stop()
+  }
+
   async _doGetPricesFromSafe () {
     const gasPriceResponse = await got(this._urlPriceFeedSafe, {
       json: true

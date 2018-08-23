@@ -22,6 +22,7 @@ testSetup()
 async function run (instances) {
   const cli = yargs.usage('$0 <cmd> [args]')
   const commandParams = { cli, instances, logger }
+  const { ethereumClient } = instances
 
   // Info commands
   require('./cliCommands/balancesCmd')(commandParams)
@@ -76,5 +77,8 @@ async function run (instances) {
 
   if (!argv._[0]) {
     cli.showHelp()
+  } else {
+    console.log('')
+    ethereumClient.stop()
   }
 }
