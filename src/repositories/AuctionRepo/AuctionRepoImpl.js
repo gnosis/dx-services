@@ -692,7 +692,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       .call()
   }
 
-  async approveERC20Token ({ token, from, amount }) {
+  async setAllowance ({ token, from, amount }) {
     assert(token, 'The token is required')
     assert(from, 'The from param is required')
     assert(amount, 'The amount is required')

@@ -43,6 +43,7 @@ async function run (instances) {
 
   // Trade commands
   require('./cliCommands/sendCmd')(commandParams)
+  require('./cliCommands/getAllowance')(commandParams)
   require('./cliCommands/depositCmd')(commandParams)
   require('./cliCommands/withdrawCmd')(commandParams)
   require('./cliCommands/buyCmd')(commandParams)

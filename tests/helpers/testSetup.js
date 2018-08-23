@@ -168,19 +168,19 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
     const initialAmounts = [
       { token: 'WETH', amount: INITIAL_AMOUNTS['WETH'] },
       { token: 'GNO', amount: INITIAL_AMOUNTS['GNO'] }
-      //{ token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
+      // { token: 'OWL', amount: INITIAL_AMOUNTS['OWL'] }
       // { token: 'MGN', amount: 2 },
     ]
-    const approveERC20Tokens = ['WETH'] // , 'OWL'
+    const setAllowances = ['WETH'] // , 'OWL'
     if (supportedTokens.includes('RDN')) {
-      approveERC20Tokens.push('RDN')
+      setAllowances.push('RDN')
       initialAmounts.push({ token: 'RDN', amount: INITIAL_AMOUNTS['RDN'] })
     }
     if (supportedTokens.includes('OMG')) {
-      approveERC20Tokens.push('OMG')
+      setAllowances.push('OMG')
       initialAmounts.push({ token: 'OMG', amount: INITIAL_AMOUNTS['OMG'] })
     }
-    const depositERC20Tokens = approveERC20Tokens.concat(['GNO'])
+    const depositERC20Tokens = setAllowances.concat(['GNO'])
     // const ethUsdPrice = 1100.0
 
     function getAmount (token) {
@@ -197,7 +197,7 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
     // Aprove tokens
     debug('\tAprove tokens:')
     await Promise.all(
-      approveERC20Tokens.map(token => {
+      setAllowances.map(token => {
         return auctionRepo
           .approveToken({ token, from: owner })
           .then(() => debug(`\t\t- The "owner" has approved the token "${token}"`))
@@ -241,7 +241,7 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
         const amount = getAmount(token)
 
         const amountInWei = numberUtil.toWei(amount)
-        return auctionRepo.approveERC20Token({
+        return auctionRepo.setAllowance({
           from: userAddress,
           token,
           amount: amountInWei

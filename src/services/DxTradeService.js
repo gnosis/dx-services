@@ -167,6 +167,21 @@ class DxTradeService {
     return transactionResult
   }
 
+  async setAllowance ({ token, amount, accountAddress }) {
+    return this._auctionRepo.setAllowance({
+      from: accountAddress,
+      token,
+      amount
+    })
+  }
+
+  async getAllowance ({ token, accountAddress }) {
+    return this._auctionRepo.getAllowance({
+      accountAddress,
+      token
+    })
+  }
+
   async deposit ({ token, amount, accountAddress }) {
     const amountInEth = numberUtil.toBigNumber(amount).div(1e18)
     // Get the account we want to fund
@@ -177,20 +192,20 @@ class DxTradeService {
     })
 
     let transactionResult
-    // const amountInWei = numberUtil.toWei(amount)
     if (token === 'WETH') {
       // In case of the WETH, we make sure we have enough EtherTokens
       await this._depositEtherIfRequired({ amount, accountAddress })
     }
-
-    // Approve DX to use the tokens
+    
+    // Check the allowance
+    const amountInWei = numberUtil.toWei(amount)
     const allowance = await this._auctionRepo.getAllowance({
       accountAddress,
       token
     })
-    if (!allowance.greaterThanOrEqualTo(amount)) {
+    if (!allowance.greaterThanOrEqualTo(amountInWei)) {
       // We don't have enough allowance
-      transactionResult = await this._auctionRepo.approveERC20Token({
+      transactionResult = await this._auctionRepo.setAllowance({
         from: accountAddress,
         token,
         amount
