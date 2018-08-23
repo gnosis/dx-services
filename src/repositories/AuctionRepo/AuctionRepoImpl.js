@@ -700,8 +700,18 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     // Let DX use the ether
     const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract
-      .approve(this._dx.address, amount, { from })
+      .approve(this._dx.address, amount /*, { from, gas: 200000 } */)
       // .then(toTransactionNumber)
+  }
+
+  async getAllowance ({ token, accountAddress }) {
+    assert(token, 'The token is required')
+    assert(accountAddress, 'The accountAddress is required')
+
+    const tokenContract = this._getTokenContractBySymbol(token)
+
+    return tokenContract
+      .allowance.call(accountAddress, this._dx.address)
   }
 
   async transferERC20Token ({ token, from, to, amount }) {
