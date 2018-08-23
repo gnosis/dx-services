@@ -183,16 +183,29 @@ class DxTradeService {
       await this._depositEtherIfRequired({ amount, accountAddress })
     }
 
-    // Approce DX to use the tokens
-    transactionResult = await this._auctionRepo.approveERC20Token({
-      from: accountAddress,
-      token,
-      amount
+    // Approve DX to use the tokens
+    const allowance = await this._auctionRepo.getAllowance({
+      accountAddress,
+      token
     })
-    logger.info({
-      msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
-      params: [ amountInEth, token, transactionResult.tx ]
-    })
+    if (!allowance.greaterThanOrEqualTo(amount)) {
+      // We don't have enough allowance
+      transactionResult = await this._auctionRepo.approveERC20Token({
+        from: accountAddress,
+        token,
+        amount
+      })
+      logger.info({
+        msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
+        params: [ amountInEth, token, transactionResult.tx ]
+      })
+    } else {
+      // We have anough allowance
+      logger.info({
+        msg: 'Not need to do any approval. The DX already have an allowance of %d',
+        params: [ allowance.div(1e-18) ]
+      })
+    }
 
     // Deposit the tokens into the user account balance
     transactionResult = await this._auctionRepo.deposit({
