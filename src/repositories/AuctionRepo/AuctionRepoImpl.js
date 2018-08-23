@@ -700,7 +700,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     // Let DX use the ether
     const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract
-      .approve(this._dx.address, amount /*, { from, gas: 200000 } */)
+      .approve(this._dx.address, amount, { from }) /*,  gas: 200000 */
       // .then(toTransactionNumber)
   }
 
@@ -1868,7 +1868,7 @@ volume: ${state}`)
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
       const knownTokens = Object.keys(this._tokens)
-      const error = new Error(`Unknown token ${token}. Known tokens are ${knownTokens}`)
+      const error = new Error(`Unknown token ${token}. Known tokens are ${knownTokens}. Otherwise use the token address`)
       error.type = 'UNKNOWN_TOKEN'
       error.status = 404
       throw error
