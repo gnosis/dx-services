@@ -198,12 +198,11 @@ class DxTradeService {
     }
     
     // Check the allowance
-    const amountInWei = numberUtil.toWei(amount)
     const allowance = await this._auctionRepo.getAllowance({
       accountAddress,
       token
     })
-    if (!allowance.greaterThanOrEqualTo(amountInWei)) {
+    if (!allowance.greaterThanOrEqualTo(amount)) {
       // We don't have enough allowance
       transactionResult = await this._auctionRepo.setAllowance({
         from: accountAddress,

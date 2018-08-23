@@ -14,7 +14,7 @@ function registerCommand ({ cli, instances, logger }) {
         dxTradeService
       } = instances
 
-      logger.info(`Get the DutchX allowance of:
+      logger.info(`Set the DutchX allowance to:
   Account: %s
   Token: %s
   Amount: %d`,
