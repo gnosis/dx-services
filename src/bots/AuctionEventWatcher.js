@@ -170,7 +170,8 @@ error watching the blockchain): ` + errorStoppingWatch.toString(),
       auctionLogger.warn({
         sellToken,
         buyToken,
-        msg: 'One auction cleared, but it was for a known pair: %s-%s'
+        msg: 'One auction cleared, but it was for a known pair: %s-%s',
+        params: [ sellToken, buyToken ]
       })
     }
   }
