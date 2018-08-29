@@ -7,11 +7,11 @@
 </p>
 
 # DutchX Services
-DutchX Services, is a project that contains services and other goodies to make
-easier the interaction with the Dutch Exchange smart contracts.
+DutchX Services is a project that contains services and other goodies to 
+facilitate the interaction with the DutchX smart contracts.
 
 # Documentation
-Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
+Check out the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 
 # Develop
 ## Run a local node and setup
@@ -235,7 +235,7 @@ It contains five main elements:
     * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
 
-* **Cli (Command Line Interface)**:
+* **CLI (Command Line Interface)**:
   * Allows to interact with the DutchX from the command line.
   * Allows to perform operations to retrieve the DutchX state from any Ethereum
     network
@@ -244,8 +244,8 @@ It contains five main elements:
   * For an example on how to use the CLI, check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
 * **Liquidity Bots**
-  * Allows to launch bots watching certain token pairs with the goal or ensuring
-    the market liquidity.
+  * Allows to launch bots watching certain token pairs with the goal of ensuring
+    minimal market liquidity.
   * The bots will automatically participate in the auctions usign the provided
     configuration.
   * For documentation about the bots, and example on how to run your own bots,

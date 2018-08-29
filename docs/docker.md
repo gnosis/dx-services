@@ -1,5 +1,5 @@
 # Docker
-## Cli - Command Line Interface
+## CLI - Command Line Interface
 Use the CLI:
 ```bash
 docker run \
@@ -19,10 +19,10 @@ In the previous command, notice that:
 * `ETHEREUM_RPC_URL`: Ethereum node. i.e. http://localhost:8545 or https://rinkeby.infura.io
 * `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`,
   i.e. `WETH-RDN,WETH-OMG`
-    * For every token, you must provide also it's address using an environment
+    * For every token, you must also provide its address using an environment
       variable with the name: `<token>__TOKEN_ADDRESS`. i.e. `RDN_TOKEN_ADDRESS`.
-    * **WETH, MGN and OWL Tokens** are part of the DutchX Mechanism, so you don't
-      have (and shouldn't) provice an address for them.
+    * **WETH, MGN and OWL Tokens** are part of the DutchX mechanism, so you don't
+      have (and shouldn't) have to provide an address for them.
 * `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is
   the image generated out of the master branch. You can checkout other images
   in [https://hub.docker.com/r/gnosispm/dx-services]()
@@ -57,7 +57,7 @@ run, with the difference of:
   in the host machine.
 * `yarn api`: NPM script used to run the Public API.
 
-> For more information about the Public API, checkout:
+> For more information about the Public API, chec kout:
 >   * [API Documentation](https://dx-services.dev.gnosisdev.com/)
 >   * [Example of API usage](https://github.com/gnosis/dx-examples-api)
 
