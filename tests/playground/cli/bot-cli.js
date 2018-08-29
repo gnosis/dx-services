@@ -98,209 +98,213 @@ async function run ({
 
   commander.parse(process.argv)
 
-  if (commander.now) {
-    // now
-    await printTime('Current time')
-  } else if (commander.addresses) {
-    // Addresses
-    await printAddresses()
-  } else if (commander.setup) {
-    // Setup for testing
-    await setAuctionRunningAndFundUser({})
-  } else if (commander.setupFunding) {
-    // Setup funding for the bot user
-    await fundUser1()
-  } else if (commander.send) {
-    // Send tokens
-    const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
-    const amount = parseFloat(amountString)
-    const fromAddress = fromAddressOpc || owner
-    const toAddress = toAddressOpc || botAccount
-
-    await dxTradeService.sendTokens({
-      token,
-      amount: amount * 1e18,
-      fromAddress: fromAddress || owner,
-      toAddress: toAddress || botAccount
-    })
-  } else if (commander.fund) {
-    // Fund account
-    const [ token, amountString, accountAddressOpt ] = commander.fund
-    const amount = parseFloat(amountString)
-    const accountAddress = accountAddressOpt || botAccount
-
-    const newBalance = await dxTradeService.deposit({
-      token,
-      amount: amount * 1e18,
-      accountAddress
-    })
-    debug('New Balance: %d %s', newBalance, token)
-  } else if (commander.fundBots) {
-    // Fund the user 1
-    await fundUser1()
-  } else if (commander.approveToken) {
-    const token = commander.approveToken
-    await auctionRepo.approveToken({ token, from: owner })
-    console.log('The token %s has been approved', token)
-  } else if (commander.state) {
-    // State
-    const [buyToken, sellToken] = commander.state
-    await printState('State', { buyToken, sellToken })
-  } else if (commander.deposit) {
-    // deposit
-    const [token, amountString] = commander.deposit
-    // const amount = new BigNumber(amountString)
-    const amount = parseFloat(amountString)
-
-    await deposit({
-      account: botAccount,
-      token,
-      amount
-    })
-  } else if (commander.addTokens) {
-    // add tokens
-    await printState('State before add tokens', {
-      buyToken: 'RDN',
-      sellToken: 'WETH'
-    })
-    await addTokens()
-    await printState('State after add tokens', {
-      buyToken: 'RDN',
-      sellToken: 'WETH'
-    })
-  } else if (commander.closingPrice) {
-    // closing price
-    const [sellToken, buyToken, auctionIndex] = commander.closingPrice
-    const closingPrice = await auctionRepo.getPastAuctionPrice({
-      sellToken, buyToken, auctionIndex
-    })
-    console.log('Closing price: ' + fractionFormatter(closingPrice))
-  } else if (commander.price) {
-    // Price
-    const [sellToken, buyToken, auctionIndex] = commander.price
-    const price = await auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
-    console.log(`Price for ${sellToken}-${buyToken} (${auctionIndex}): ${fractionFormatter(price)}`)
-  } else if (commander.oracle) {
-    // Oracle price
-    const token = commander.oracle
-    const oraclePrice = await auctionRepo.getPriceOracle({ token })
-    const price = fractionFormatter(oraclePrice)
-    console.log(`Oracle price for ${token}: ${price}`)
-  } else if (commander.time) {
-    // time
-    await printTime('Time before increase time')
-    await ethereumClient.increaseTime(commander.time * 60 * 60)
-    await printTime(`Time after increase ${commander.time} hours`)
-  } else if (commander.mine) {
-    // mine
-    await printTime('Time before minining: ')
-    await ethereumClient.mineBlock()
-    await printTime('Time after minining: ')
-  } else if (commander.buy) {
-    // buy
-    const [sellToken, buyToken, amountString, ...extra] = commander.buy
-    const auctionIndex = (extra.lenth === 1) ? extra[0] : null
-    await buySell('postBuyOrder', {
-      from: botAccount,
-      sellToken,
-      buyToken,
-      amount: parseFloat(amountString),
-      auctionIndex
-    })
-  } else if (commander.sell) {
-    // sell
-    const [sellToken, buyToken, amountString, ...extra] = commander.sell
-    const auctionIndex = (extra.length === 1) ? extra[0] : null
-    console.log('auctionIndex', extra, auctionIndex)
-
-    await buySell('postSellOrder', {
-      from: botAccount,
-      sellToken,
-      buyToken,
-      amount: parseFloat(amountString),
-      auctionIndex
-    })
-  } else if (commander.test) {
-    const testNumber = parseInt(commander.test)
-
-    switch (testNumber) {
-      case 1:
-        const sellToken = 'WETH'
-        const buyToken = 'RDN'
-        const ethToSell = 0.1
-        // const ethToBuy = 0.4
-        const rdnToSell = 150
-        const rdnToBuy = 200
-
-        const tokenPair = { sellToken, buyToken }
-        const auctionIndex = await auctionRepo.getAuctionIndex(tokenPair)
-
-        debug('*** Test 1 ***')
-        await setAuctionRunningAndFundUser(tokenPair)
-
-        debug(`[in 3s] User1 is will try to sell ${ethToSell} WETH in current \
-auction - it must fail`)
-        await delay(() => {
-          return buySell('postSellOrder', {
-            from: user1,
-            sellToken,
-            buyToken,
-            amount: ethToSell
-          }).catch(error => {
-            debug('Nice! The postSellOrder failed for the current auction, because it was RUNNING: ' + error.toString())
-          })
-        }, 3000)
-
-        debug('[in 3s] User1 is will try to sell %d WETH in next auction (%d) - it must succed',
-          ethToSell, auctionIndex + 1)
-        await delay(() => {
-          return buySell('postSellOrder', {
-            from: user1,
-            sellToken,
-            buyToken,
-            amount: ethToSell,
-            auctionIndex: auctionIndex + 1
-          }).then(() => {
-            debug(`Nice! The postSellOrder succeded for the next auction. We've \
-sold ${ethToSell} WETH for auction ${auctionIndex + 1}`)
-          })
-        }, 3000)
-
-        debug('[in 3s] User1 is will try to sell %d RDN in next auction (%d) - it must succed',
-          rdnToSell, auctionIndex + 1)
-        await delay(() => {
-          return buySell('postSellOrder', {
-            from: user1,
-            sellToken: buyToken,
-            buyToken: sellToken,
-            amount: rdnToSell,
-            auctionIndex: auctionIndex + 1
-          }).then(() => {
-            debug(`Nice! The postSellOrder succeded for the next auction. We've \
-sold ${rdnToSell} RDN for auction %d${auctionIndex + 1}`)
-          })
-        }, 3000)
-
-        debug('[in 3s] User1 is buying in WETH-RDN bidding %d RDN', rdnToBuy)
-        await delay(() => {
-          return buySell('postBuyOrder', {
-            from: user1,
-            sellToken,
-            buyToken,
-            amount: rdnToBuy
-          }).then(() => {
-            debug("Nice! The postBuyOrder, we've bought %d RDN", rdnToBuy)
-          })
-        }, 3000)
-
-        await printState('Final state', { buyToken, sellToken })
-        debug('Test 1 finished! Well done')
-        break
-      default:
-        throw new Error('Unknown test case: ' + testNumber)
-    }
-  } else {
-    // help
-    commander.help()
+  try {
+    if (commander.now) {
+      // now
+      await printTime('Current time')
+    } else if (commander.addresses) {
+      // Addresses
+      await printAddresses()
+    } else if (commander.setup) {
+      // Setup for testing
+      await setAuctionRunningAndFundUser({})
+    } else if (commander.setupFunding) {
+      // Setup funding for the bot user
+      await fundUser1()
+    } else if (commander.send) {
+      // Send tokens
+      const [ token, amountString, toAddressOpc, fromAddressOpc ] = commander.send
+      const amount = parseFloat(amountString)
+      const fromAddress = fromAddressOpc || owner
+      const toAddress = toAddressOpc || botAccount
+  
+      await dxTradeService.sendTokens({
+        token,
+        amount: amount * 1e18,
+        fromAddress: fromAddress || owner,
+        toAddress: toAddress || botAccount
+      })
+    } else if (commander.fund) {
+      // Fund account
+      const [ token, amountString, accountAddressOpt ] = commander.fund
+      const amount = parseFloat(amountString)
+      const accountAddress = accountAddressOpt || botAccount
+  
+      const newBalance = await dxTradeService.deposit({
+        token,
+        amount: amount * 1e18,
+        accountAddress
+      })
+      debug('New Balance: %d %s', newBalance, token)
+    } else if (commander.fundBots) {
+      // Fund the user 1
+      await fundUser1()
+    } else if (commander.approveToken) {
+      const token = commander.approveToken
+      await auctionRepo.approveToken({ token, from: owner })
+      console.log('The token %s has been approved', token)
+    } else if (commander.state) {
+      // State
+      const [buyToken, sellToken] = commander.state
+      await printState('State', { buyToken, sellToken })
+    } else if (commander.deposit) {
+      // deposit
+      const [token, amountString] = commander.deposit
+      // const amount = new BigNumber(amountString)
+      const amount = parseFloat(amountString)
+  
+      await deposit({
+        account: botAccount,
+        token,
+        amount
+      })
+    } else if (commander.addTokens) {
+      // add tokens
+      await printState('State before add tokens', {
+        buyToken: 'RDN',
+        sellToken: 'WETH'
+      })
+      await addTokens()
+      await printState('State after add tokens', {
+        buyToken: 'RDN',
+        sellToken: 'WETH'
+      })
+    } else if (commander.closingPrice) {
+      // closing price
+      const [sellToken, buyToken, auctionIndex] = commander.closingPrice
+      const closingPrice = await auctionRepo.getPastAuctionPrice({
+        sellToken, buyToken, auctionIndex
+      })
+      console.log('Closing price: ' + fractionFormatter(closingPrice))
+    } else if (commander.price) {
+      // Price
+      const [sellToken, buyToken, auctionIndex] = commander.price
+      const price = await auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+      console.log(`Price for ${sellToken}-${buyToken} (${auctionIndex}): ${fractionFormatter(price)}`)
+    } else if (commander.oracle) {
+      // Oracle price
+      const token = commander.oracle
+      const oraclePrice = await auctionRepo.getPriceOracle({ token })
+      const price = fractionFormatter(oraclePrice)
+      console.log(`Oracle price for ${token}: ${price}`)
+    } else if (commander.time) {
+      // time
+      await printTime('Time before increase time')
+      await ethereumClient.increaseTime(commander.time * 60 * 60)
+      await printTime(`Time after increase ${commander.time} hours`)
+    } else if (commander.mine) {
+      // mine
+      await printTime('Time before minining: ')
+      await ethereumClient.mineBlock()
+      await printTime('Time after minining: ')
+    } else if (commander.buy) {
+      // buy
+      const [sellToken, buyToken, amountString, ...extra] = commander.buy
+      const auctionIndex = (extra.lenth === 1) ? extra[0] : null
+      await buySell('postBuyOrder', {
+        from: botAccount,
+        sellToken,
+        buyToken,
+        amount: parseFloat(amountString),
+        auctionIndex
+      })
+    } else if (commander.sell) {
+      // sell
+      const [sellToken, buyToken, amountString, ...extra] = commander.sell
+      const auctionIndex = (extra.length === 1) ? extra[0] : null
+      console.log('auctionIndex', extra, auctionIndex)
+  
+      await buySell('postSellOrder', {
+        from: botAccount,
+        sellToken,
+        buyToken,
+        amount: parseFloat(amountString),
+        auctionIndex
+      })
+    } else if (commander.test) {
+      const testNumber = parseInt(commander.test)
+  
+      switch (testNumber) {
+        case 1:
+          const sellToken = 'WETH'
+          const buyToken = 'RDN'
+          const ethToSell = 0.1
+          // const ethToBuy = 0.4
+          const rdnToSell = 150
+          const rdnToBuy = 200
+  
+          const tokenPair = { sellToken, buyToken }
+          const auctionIndex = await auctionRepo.getAuctionIndex(tokenPair)
+  
+          debug('*** Test 1 ***')
+          await setAuctionRunningAndFundUser(tokenPair)
+  
+          debug(`[in 3s] User1 is will try to sell ${ethToSell} WETH in current \
+  auction - it must fail`)
+          await delay(() => {
+            return buySell('postSellOrder', {
+              from: user1,
+              sellToken,
+              buyToken,
+              amount: ethToSell
+            }).catch(error => {
+              debug('Nice! The postSellOrder failed for the current auction, because it was RUNNING: ' + error.toString())
+            })
+          }, 3000)
+  
+          debug('[in 3s] User1 is will try to sell %d WETH in next auction (%d) - it must succed',
+            ethToSell, auctionIndex + 1)
+          await delay(() => {
+            return buySell('postSellOrder', {
+              from: user1,
+              sellToken,
+              buyToken,
+              amount: ethToSell,
+              auctionIndex: auctionIndex + 1
+            }).then(() => {
+              debug(`Nice! The postSellOrder succeded for the next auction. We've \
+  sold ${ethToSell} WETH for auction ${auctionIndex + 1}`)
+            })
+          }, 3000)
+  
+          debug('[in 3s] User1 is will try to sell %d RDN in next auction (%d) - it must succed',
+            rdnToSell, auctionIndex + 1)
+          await delay(() => {
+            return buySell('postSellOrder', {
+              from: user1,
+              sellToken: buyToken,
+              buyToken: sellToken,
+              amount: rdnToSell,
+              auctionIndex: auctionIndex + 1
+            }).then(() => {
+              debug(`Nice! The postSellOrder succeded for the next auction. We've \
+  sold ${rdnToSell} RDN for auction %d${auctionIndex + 1}`)
+            })
+          }, 3000)
+  
+          debug('[in 3s] User1 is buying in WETH-RDN bidding %d RDN', rdnToBuy)
+          await delay(() => {
+            return buySell('postBuyOrder', {
+              from: user1,
+              sellToken,
+              buyToken,
+              amount: rdnToBuy
+            }).then(() => {
+              debug("Nice! The postBuyOrder, we've bought %d RDN", rdnToBuy)
+            })
+          }, 3000)
+  
+          await printState('Final state', { buyToken, sellToken })
+          debug('Test 1 finished! Well done')
+          break
+        default:
+          throw new Error('Unknown test case: ' + testNumber)
+      }
+    } else {
+      // help
+      commander.help()
+    } 
+  } finally {
+    ethereumClient.stop()
   }
 }
