@@ -7,11 +7,10 @@
 </p>
 
 # DutchX Services
-DutchX Services, is a project that contains services and other goodies to make
-easier the interaction with the Dutch Exchange smart contracts.
+DutchX Services is a project that contains services and other goodies to facilitate the interaction with the DutchX smart contracts.
 
 # Documentation
-Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
+Check out the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 
 # Scope and main parts of dx-services
 It contains five main elements:
@@ -31,7 +30,7 @@ It contains five main elements:
     * [API and it's documentation for Mainnet](https://dutchx.d.exchange/api)
   * For an example on how to use the API, check [dx-examples-api](https://github.com/gnosis/dx-examples-api)
 
-* **Cli (Command Line Interface)**:
+* **CLI (Command Line Interface)**:
   * Allows to interact with the DutchX from the command line.
   * Allows to perform operations to retrieve the DutchX state from any Ethereum
     network
@@ -40,8 +39,8 @@ It contains five main elements:
   * For an example on how to use the CLI, check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
 * **Liquidity Bots**
-  * Allows to launch bots watching certain token pairs with the goal or ensuring
-    the market liquidity.
+  * Allows to launch bots watching certain token pairs with the goal of ensuring
+    minimal market liquidity.
   * The bots will automatically participate in the auctions usign the provided
     configuration.
   * For documentation about the bots, and example on how to run your own bots,
@@ -55,7 +54,7 @@ It contains five main elements:
     auctions so they can reuse them in the upcoming ones.
 
 # Run it in Rinkeby
-## Cli - Command Line Interface
+## CLI - Command Line Interface
 Use the CLI:
 ```bash
 docker run \
@@ -75,10 +74,10 @@ In the previous command, notice that:
 * `ETHEREUM_RPC_URL`: Ethereum node. i.e. http://localhost:8545 or https://rinkeby.infura.io
 * `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`,
   i.e. `WETH-RDN,WETH-OMG`
-    * For every token, you must provide also it's address using an environment
+    * For every token, you must also provide its address using an environment
       variable with the name: `<token>__TOKEN_ADDRESS`. i.e. `RDN_TOKEN_ADDRESS`.
-    * **WETH, MGN and OWL Tokens** are part of the DutchX Mechanism, so you don't
-      have (and shouldn't) provice an address for them.
+    * **WETH, MGN and OWL Tokens** are part of the DutchX mechanism, so you don't
+     (and shouldn't) have to provide an address for them.
 * `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is
   the image generated out of the master branch. You can checkout other images
   in [https://hub.docker.com/r/gnosispm/dx-services]()
