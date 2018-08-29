@@ -9,6 +9,7 @@ const Cache = require('../helpers/Cache')
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
 const HDWalletProvider = require('truffle-hdwallet-provider')
+const gracefullShutdown = require('./gracefullShutdown')
 const got = require('got')
 
 const ROOT_DIR = '../../'
@@ -57,6 +58,8 @@ class EthereumClient {
 
     this._urlPriceFeedGasStation = config.URL_GAS_PRICE_FEED_GAS_STATION
     this._urlPriceFeedSafe = config.URL_GAS_PRICE_FEED_SAFE
+
+    gracefullShutdown.onShutdown(() => this.stop())
   }
 
   getUrl () {

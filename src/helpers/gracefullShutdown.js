@@ -2,7 +2,7 @@ const loggerNamespace = 'dx-service:helpers:gracefullShutdown'
 const Logger = require('./Logger')
 const logger = new Logger(loggerNamespace)
 const POSIX_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGQUIT']
-const listerners = []
+const listeners = []
 let shuttedDown = false
 
 require('./globalErrorHandler')
@@ -15,18 +15,18 @@ POSIX_SIGNALS.forEach(signal => {
 
 function onShutdown (listener) {
   // debug('Registering a new listener')
-  listerners.push(listener)
+  listeners.push(listener)
 }
 
 async function shutDown (reason) {
   if (!shuttedDown) {
     shuttedDown = true
     let reasonPrefix = reason ? reason + ': ' : ''
-    logger.info(reasonPrefix + 'Closing gracefully...')
+    logger.debug(reasonPrefix + 'Closing gracefully...')
 
     // Wait for all shutdow listeners
     await Promise.all(
-      listerners.map(listener => {
+      listeners.map(listener => {
         return listener()
       })
     )
@@ -35,7 +35,7 @@ async function shutDown (reason) {
 
 function _doShutDown (reason) {
   function _doExit (returnCode) {
-    logger.info('The app is ready to shutdown! Good bye! :)')
+    logger.debug('The app is ready to shutdown! Good bye! :)')
     process.exit(returnCode)
   }
 
