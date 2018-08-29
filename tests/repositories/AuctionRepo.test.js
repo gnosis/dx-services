@@ -610,7 +610,7 @@ describe('Market interacting tests', async () => {
     ).toBeTruthy()
   })
 
-  test('It should retry the transaction in case of failure', async () => {
+  test.skip('It should retry the transaction in case of failure', async () => {
     const { user1, auctionRepo } = await setupPromise
 
     // GIVEN a new token pair
@@ -647,7 +647,7 @@ describe('Market interacting tests', async () => {
     expect(auctionRepo._doTransactionWithRetry).toHaveBeenCalledTimes(2)
   })
 
-  test('It should not retry the transaction if max gas price reached', async () => {
+  test.skip('It should not retry the transaction if max gas price reached', async () => {
     const { user1, auctionRepo } = await setupPromise
 
     // GIVEN a new token pair
@@ -692,7 +692,7 @@ describe('Market interacting tests', async () => {
     expect(auctionRepo._doTransactionWithRetry).toHaveBeenCalledTimes(3)
   })
 
-  test('It return a rejected transaction', async () => {
+  test.skip('It return a rejected transaction', async () => {
     const { user1, auctionRepo } = await setupPromise
 
     // GIVEN a new token pair
