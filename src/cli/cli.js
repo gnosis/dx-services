@@ -8,7 +8,7 @@ process.env.DEBUG = DEBUG
 const loggerNamespace = 'cli'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
-require('../helpers/gracefullShutdown')
+const gracefullShutdown = require('../helpers/gracefullShutdown')
 
 // TODO: Use instance factory instead
 // TODO: If MARKETS is undefined or NULL --> load all
@@ -17,12 +17,15 @@ const testSetup = require('../../tests/helpers/testSetup')
 
 testSetup()
   .then(run)
-  .catch(console.error)
+  .then(() => gracefullShutdown.shutDown())
+  .catch(error => {
+    console.error(error)
+    gracefullShutdown.shutDown()
+  })
 
 async function run (instances) {
   const cli = yargs.usage('$0 <cmd> [args]')
   const commandParams = { cli, instances, logger }
-  const { ethereumClient } = instances
 
   // Info commands
   require('./cliCommands/balancesCmd')(commandParams)
@@ -79,6 +82,5 @@ async function run (instances) {
     cli.showHelp()
   } else {
     console.log('')
-    ethereumClient.stop()
   }
 }

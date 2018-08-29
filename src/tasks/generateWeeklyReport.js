@@ -17,6 +17,7 @@ logger.info('Generate weekly report for %s', environment)
 // Run app
 instanceFactory()
   .then(generateWeeklyReport)
+  .then(() => gracefullShutdown.shutDown())
   .catch(error => {
     // Handle boot errors
     handleError(error)
