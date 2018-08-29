@@ -105,7 +105,20 @@ yarn cli --help
 yarn cli buy --help
 ```
 
-So, for example, we can post a buy order:
+So for example, we can check our balance of the tokens, and our balance within
+the DutchX:
+```bash
+# Balance for our default account
+#  - 2nd one generated from the mnemonic in local (we use the 1st one for the 
+#    auctioneer of the DutchX contracts)
+#  - 1st ine generated from the mnemonic in any other environment
+yarn cli balances
+
+# Check the balance of any account
+yarn cli balances --account 0xf17f52151ebef6c7334fad080c5704d77216b732
+```
+
+Another example, we can post a buy order:
 ```bash
 # Submit a postBuyOrder of 2500 RDN into WETH-RDN auction
 yarn cli buy 2500 WETH-RDN
@@ -161,6 +174,7 @@ INFO-cli **************************************
 ```
 
 Enjoy the CLI! These are some other examples to start with:
+* `yarn cli balances --account 0xf17f52151ebef6c7334fad080c5704d77216b732`
 * `yarn cli state WETH-RDN`
 * `yarn cli send 0.5 WETH 0x627306090abaB3A6e1400e9345bC60c78a8BEf57`
 * `yarn cli deposit 0.5 WETH`
