@@ -2127,7 +2127,7 @@ volume: ${state}`)
     const maxGasWillingToPay = fastGasPrice * this._overFastPriceFactor
 
     return new Promise((resolve, reject) => {
-      this._doTransactionWithRetry({
+      this._doTransactionWithoutRetry({
         resolve,
         reject,
         gasPrice: initialGasPrice,
@@ -2159,6 +2159,37 @@ volume: ${state}`)
           }
         })
     }
+  }
+
+  // FIXME: I removed the retry as an easy fix for the problem described in DX-553
+  async _doTransactionWithoutRetry ({
+    resolve,
+    reject,
+    gasPrice,
+    maxGasWillingToPay,
+    operation,
+    from,
+    params,
+    gas,
+    gasPriceParam // if manually setted
+  }) {
+    // We call send transaction explicitly because is more semantic and easier mocking tests
+    return this
+      ._dx[operation](...params, {
+        from,
+        gas,
+        gasPrice
+      }).then(result => {
+        resolve(result)
+      }).catch(error => {
+        logger.error({
+          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
+          params: [ operation, from, params, gas, gasPrice, error ],
+          error
+        })
+
+        reject(error)
+      })
   }
 
   async _doTransactionWithRetry ({
