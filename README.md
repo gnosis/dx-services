@@ -13,6 +13,196 @@ easier the interaction with the Dutch Exchange smart contracts.
 # Documentation
 Checkout the [DutchX Documentation](http://dutchx.readthedocs.io/en/latest).
 
+# Develop
+## Run a local node and setup
+Setup a working environment:
+```bash
+# Install dependencies
+yarn install
+
+# In one tab, run a local ganache
+yarn rpc
+
+# Run the setup script, which will:
+#   - migrate all contracts into your local node
+#   - create some test data, basically:
+#       - I'll fund the the second account of generated with the mnemonic, so 
+#         it has some funds for trading
+#       - It'll add a RDN-WETH token pair into the DX
+#       - It'll make sure RDN-WETH is running. It'll automatically advance time,
+#         or participate in the auctions if it's required
+yarn setup
+```
+
+You can make sure the auction is running:
+```bash
+yarn cli state RDN-WETH
+```
+
+You should see something like:
+```
+ INFO-cli
+  INFO-cli **********  State of RDN-WETH  **********
+  INFO-cli  +0ms
+  INFO-cli  Token pair: RDN-WETH
+  INFO-cli  +0ms
+  INFO-cli  Has the token pair been added? Yes +0ms
+  INFO-cli  State: RUNNING
+  INFO-cli  +0ms
+  INFO-cli  Are tokens Approved? +0ms
+  INFO-cli    - RDN: Yes +0ms
+  INFO-cli    - WETH: Yes
+  INFO-cli  +1ms
+  INFO-cli  State info: +0ms
+  INFO-cli    - auctionIndex: 1 +0ms
+  INFO-cli    - auctionStart: 29/08/18 20:03 +1ms
+  INFO-cli    - It started: a few seconds ago +1ms
+  INFO-cli    - It will reach the last auction closing price in: 6 hours +0ms
+  INFO-cli  +0ms
+  INFO-cli  Auction RDN-WETH: +0ms
+  INFO-cli    Is closed: Yes (closed from start) +0ms
+  INFO-cli    Sell volume: 0 +0ms
+  INFO-cli  +0ms
+  INFO-cli  Auction WETH-RDN: +0ms
+  INFO-cli    Is closed: No +1ms
+  INFO-cli    Sell volume: +0ms
+  INFO-cli      sellVolume: 13.057385 WETH +0ms
+  INFO-cli      sellVolume: 14363.1235 USD +0ms
+  INFO-cli    Price: +0ms
+  INFO-cli      Current Price: 489.0246361597564471047 RDN/WETH +0ms
+  INFO-cli      Closing Price: 245.15812699190978180926 RDN/WETH +0ms
+  INFO-cli      Price relation: 199.47% +0ms
+  INFO-cli    Buy volume: +0ms
+  INFO-cli      buyVolume: 0 RDN +1ms
+  INFO-cli      Bought percentage: 0.0000 % +0ms
+  INFO-cli      Outstanding volume: 6385.382948822861 RDN +0ms
+  INFO-cli
+  INFO-cli **************************************
+```
+
+One interesting thing you can do is advance time:
+```bash
+# Advance 5.5 hours forward
+yarn cli2 --time 5.5
+
+# DEBUG-dx-service:tests:helpers:testSetup Time before increase time:  Wed, 29 Aug 2018 18:03:38 GMT +0ms
+# DEBUG-dx-service:tests:helpers:testSetup Time after increase 5.5 hours:  Wed, 29 Aug 2018 18:03:38 GMT +23ms
+```
+
+If you check the state of the auction now, you'll see how the price droped. 
+Also you'll see that we are 30min away from the last closing price.
+
+There's a lot of operations you can do with the `CLI`, for some examples you
+can check 
+[dx-examples-cli](https://github.com/gnosis/dx-examples-cli#basic-usage) project
+. For a complete list, just type:
+
+```bash
+# Get help from the CLI
+yarn cli --help
+
+# Or, get help from a specific command from it
+yarn cli buy --help
+```
+
+So, for example, we can post a buy order:
+```bash
+# Submit a postBuyOrder of 2500 RDN into WETH-RDN auction
+yarn cli buy 2500 WETH-RDN
+
+# INFO-cli Buy 2500 RDN on WETH-RDN (auction 1) using the account 0xf17f52151ebef6c7334fad080c5704d77216b732 +0ms
+# INFO-cli The buy was succesful. Transaction: undefined +253ms
+```
+
+The state now should show:
+* That we bought most of the sell volume
+* Now the outstanding volume is smaller. Note that in this case, the outstanding
+volume is how much RDN do we need to clear the auction at the current 
+price.
+
+```
+INFO-cli
+INFO-cli **********  State of RDN-WETH  **********
+INFO-cli  +0ms
+INFO-cli  Token pair: RDN-WETH
+INFO-cli  +1ms
+INFO-cli  Has the token pair been added? Yes +0ms
+INFO-cli  State: RUNNING
+INFO-cli  +0ms
+INFO-cli  Are tokens Approved? +0ms
+INFO-cli    - RDN: Yes +0ms
+INFO-cli    - WETH: Yes
+INFO-cli  +0ms
+INFO-cli  State info: +0ms
+INFO-cli    - auctionIndex: 1 +0ms
+INFO-cli    - auctionStart: 29/08/18 20:03 +1ms
+INFO-cli    - It started: 6 hours ago +1ms
+INFO-cli    - It will reach the last auction closing price in: 16 minutes +1ms
+INFO-cli  +0ms
+INFO-cli  Auction RDN-WETH: +0ms
+INFO-cli    Is closed: Yes (closed from start) +0ms
+INFO-cli    Sell volume: 0 +0ms
+INFO-cli  +0ms
+INFO-cli  Auction WETH-RDN: +0ms
+INFO-cli    Is closed: No +0ms
+INFO-cli    Sell volume: +0ms
+INFO-cli      sellVolume: 13.057385 WETH +0ms
+INFO-cli      sellVolume: 14363.1235 USD +0ms
+INFO-cli    Price: +1ms
+INFO-cli      Current Price: 252.42997784500481456805 RDN/WETH +0ms
+INFO-cli      Closing Price: 245.15812699190978180926 RDN/WETH +0ms
+INFO-cli      Price relation: 102.96% +0ms
+INFO-cli    Buy volume: +0ms
+INFO-cli      buyVolume: 2487.5 RDN +0ms
+INFO-cli      Bought percentage: 75.4600 % +0ms
+INFO-cli      Outstanding volume: 808.5754062636981 RDN +0ms
+INFO-cli
+INFO-cli **************************************
+```
+
+Enjoy the CLI! These are some other examples to start with:
+* `yarn cli state WETH-RDN`
+* `yarn cli send 0.5 WETH 0x627306090abaB3A6e1400e9345bC60c78a8BEf57`
+* `yarn cli deposit 0.5 WETH`
+* `yarn cli deposit 150 RDN`
+* `yarn cli sell 100 WETH-RDN`
+* `yarn cli buy 100 RDN-WETH`
+
+## Public API
+Start API:
+```bash
+yarn api
+```
+
+## Liquidity Bots
+Start Bots:
+```bash
+yarn bots
+```
+
+# Testnets or Mainnet
+There's scripts for running the `cli`, `bots` and `api` for testnets and rinkeby.
+
+You just add the network like this
+```bash
+# i.e. Rinkeby
+yarn cli-rinkeby --help
+yarn bots-rinkeby
+yarn api-rinkeby
+```
+
+# Run it with docker
+One easy way to run the `bots`, the `api`, the `cli` or any other script or 
+utility of this proyect is using the docker image we provide:
+* You can read how to run it from `dx-services`: [docs/docker.md](docs/docker.md)
+* A better approach would be to use the **Docker Image published on Docker Hub**
+  * **Dockerhub**:
+    [https://hub.docker.com/r/gnosispm/dx-services/](https://hub.docker.com/r/gnosispm/dx-services/)
+  * **Example on how to run the CLI**: 
+    [https://github.com/gnosis/dx-examples-cli](https://github.com/gnosis/dx-examples-cli)
+  * **Example on how to run the Bots**: 
+    [https://github.com/gnosis/dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
+
 # Scope and main parts of dx-services
 It contains five main elements:
 * **Model**: Set of convenient wrappers and utilities to provide a simpler way
@@ -53,196 +243,6 @@ It contains five main elements:
     informarmition of the lasts auctions and the actions the bots has been taking.
   * **Used for Autoclaiming**: Allows the bots to claim their funds of past
     auctions so they can reuse them in the upcoming ones.
-
-# Run it in Rinkeby
-## Cli - Command Line Interface
-Use the CLI:
-```bash
-docker run \
-  -e NODE_ENV=pre \
-  -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
-  -e NETWORK=rinkeby \
-  -e MARKETS=WETH-RDN,WETH-OMG \
-  -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
-  -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
-  gnosispm/dx-services:staging \
-  yarn cli -- \
-    state WETH-RDN
-```
-
-In the previous command, notice that:
-* `NODE_ENV`: Stablish the environment. Valid values are `dev`, `pre`, `pro`.
-* `ETHEREUM_RPC_URL`: Ethereum node. i.e. http://localhost:8545 or https://rinkeby.infura.io
-* `MARKETS`: List of token pairs in the format: `<token1>-<token2>[,<tokenN>-<tokenM>]*`,
-  i.e. `WETH-RDN,WETH-OMG`
-    * For every token, you must provide also it's address using an environment
-      variable with the name: `<token>__TOKEN_ADDRESS`. i.e. `RDN_TOKEN_ADDRESS`.
-    * **WETH, MGN and OWL Tokens** are part of the DutchX Mechanism, so you don't
-      have (and shouldn't) provice an address for them.
-* `gnosispm/dx-services:staging`: Is the name of the Docker image. `staging` is
-  the image generated out of the master branch. You can checkout other images
-  in [https://hub.docker.com/r/gnosispm/dx-services]()
-* `yarn cli`: Is the npm script that will run the CLI
-* `state WETH-RDN`:
-  * Is the command executed by the CLI.
-  * There's a lot of commands
-  * You can run many other commands, just run `-h` to get the complete list.
-  * For more information about the CLI, check out the
-    [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
-
-
-## Public API
-Start API:
-```bash
-docker run \
-  -e NODE_ENV=pre \
-  -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
-  -e MARKETS=WETH-RDN,WETH-OMG \
-  -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
-  -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
-  -p 8080:8080 \
-  gnosispm/dx-services:staging \
-  yarn api
-```
-
-To check out the Public API, just open [http://localhost:8080]() in any Browser.
-
-In the previous command, notice that it has a similar configuration as in the CLI
-run, with the difference of:
-* `-p 8080:8080`: It tells Docker to expose the container port 8080 (the API one)
-  in the host machine.
-* `yarn api`: NPM script used to run the Public API.
-
-> For more information about the Public API, checkout:
->   * [API Documentation](https://dx-services.dev.gnosisdev.com/)
->   * [Example of API usage](https://github.com/gnosis/dx-examples-api)
-
-
-## Liquidity Bots
-Start bots:
-First of all you need to configure the bots using a file with this structure:
-```javascript
-const MARKETS = [
-  { tokenA: 'WETH', tokenB: 'RDN' }
-]
-const BUY_LIQUIDITY_RULES_DEFAULT = [
-  // Buy 1/2 if price falls below 99%
-
-  {
-    marketPriceRatio: {
-      numerator: 99,
-      denominator: 100
-    },
-    buyRatio: {
-      numerator: 1,
-      denominator: 2
-    }
-  },
-
-  // Buy the 100% if price falls below 96%
-  {
-    marketPriceRatio: {
-      numerator: 96,
-      denominator: 100
-    },
-    buyRatio: {
-      numerator: 1,
-      denominator: 1
-    }
-  }
-]
-
-const MAIN_BOT_ACCOUNT = 0
-
-const BUY_LIQUIDITY_BOTS = [{
-  name: 'Main buyer bot',
-  markets: MARKETS,
-  accountIndex: MAIN_BOT_ACCOUNT,
-  rules: BUY_LIQUIDITY_RULES_DEFAULT,
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }]
-}]
-
-const SELL_LIQUIDITY_BOTS = [{
-  name: 'Main seller bot',
-  markets: MARKETS,
-  accountIndex: MAIN_BOT_ACCOUNT,
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }]
-}]
-
-module.exports = {
-  MARKETS,
-  MAIN_BOT_ACCOUNT,
-  BUY_LIQUIDITY_BOTS,
-  SELL_LIQUIDITY_BOTS
-}
-```
-
-```bash
-docker run \
-  -e MNEMONIC="super secret thing that nobody should know ..." \
-  -e NODE_ENV=pre \
-  -e NETWORK=rinkeby \
-  -e ETHEREUM_RPC_URL=https://rinkeby.infura.io \
-  -e RDN_TOKEN_ADDRESS=0x3615757011112560521536258c1e7325ae3b48ae \
-  -e OMG_TOKEN_ADDRESS=0x00df91984582e6e96288307e9c2f20b38c8fece9 \
-  --mount type=bind,source=route/for/custom/config,destination=/usr/src/app/custom_conf
-  -e CONFIG_FILE=/usr/src/app/custom_conf/config_file.js
-  -p 8081:8081 \
-  gnosispm/dx-services:staging \
-  yarn bots
-```
-To check out the Bots API, just open [http://localhost:8081]() in any Browser.
-
-In the previous command, notice that it has a similar configuration as in the
-Public API run, with the difference of:
-* `MNEMONIC`: Allows to setup the bots account used to sign the transactions.
-* `MARKETS`: It's not used in this case
-* `CONFIG_FILE`: The file with details about bot configuration
-* `--mount`: Mount a volume in the docker container that should contain the CONFIG_FILE. The `source` route should be the route containing the desired config file. The route passed to `CONFIG_FILE` should be relative to `destination` folder in the container
-* `-p 8081:8081`: The Bots API it's exposed on port 8081.
-* `yarn bots`: NPM Script used to run the Liquidity Bots.
-
-> For more information about the Bots, check out the [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots) project.
-
-# Develop
-## Run a local node and setup
-```bash
-yarn install
-npm run rpc
-npm run setup
-```
-
-## Public API
-Start API:
-```bash
-npm run api
-```
-
-## Liquidity Bots
-Start Bots:
-```bash
-npm run bots
-```
-
-## CLI - Command Line Interface
-Use the bot-cli:
-```bash
-npm run cli
-```
-
-Some examples:
-* `npm run cli -- state WETH-RDN`
-* `npm run cli -- send 0.5 WETH 0x627306090abaB3A6e1400e9345bC60c78a8BEf57`
-* `npm run cli -- deposit 0.5 WETH`
-* `npm run cli -- deposit 150 RDN`
-* `npm run cli -- sell 100 WETH-RDN`
-* `npm run cli -- buy 100 RDN-WETH`
 
 # License
 This project is released under [MIT License](./LICENSE.md)

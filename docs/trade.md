@@ -1,2 +1,0 @@
-# Bid and Sell
-TODO:
