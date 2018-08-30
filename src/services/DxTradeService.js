@@ -87,7 +87,7 @@ class DxTradeService {
     if (auctionsAsSeller.length > 0) {
       logger.info('I have to claim from %d auctions as seller', auctionsAsSeller.length)
       auctionsAsSeller.forEach(({ sellToken, buyToken, indices }) => {
-        logger.info('Claiming as seller %s-%s for auctions: %o', sellToken, buyToken, indices)
+        logger.info('Claiming as seller %s-%s for auctions: %s', sellToken, buyToken, indices)
       })
       claimSellerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
         auctionsAsSeller, address })
@@ -97,7 +97,7 @@ class DxTradeService {
     if (auctionsAsBuyer.length > 0) {
       logger.info('I have to claim from %d auctions as buyer', auctionsAsBuyer.length)
       auctionsAsBuyer.forEach(({ sellToken, buyToken, indices }) => {
-        logger.info('Claiming as buyer %s-%s for auctions: %o', sellToken, buyToken, indices)
+        logger.info('Claiming as buyer %s-%s for auctions: %s', sellToken, buyToken, indices)
       })
       claimBuyerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({
         auctionsAsBuyer, address })
@@ -196,7 +196,7 @@ class DxTradeService {
       // In case of the WETH, we make sure we have enough EtherTokens
       await this._depositEtherIfRequired({ amount, accountAddress })
     }
-    
+
     // Check the allowance
     const allowance = await this._auctionRepo.getAllowance({
       accountAddress,

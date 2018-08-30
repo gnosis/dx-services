@@ -3,7 +3,7 @@ const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const commander = require('commander')
 
 const getVersion = require('../../../src/helpers/getVersion')
-const gracefullShutdown = require('../helpers/gracefullShutdown')
+const gracefullShutdown = require('../../../src/helpers/gracefullShutdown')
 const testSetup = require('../../helpers/testSetup')
 // const BigNumber = require('bignumber.js')
 const BOT_CLI_SCRIPT = 'npm run cli --'
