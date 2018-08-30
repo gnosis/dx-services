@@ -44,6 +44,12 @@ function registerCommand ({ cli, instances, logger }) {
         }
       })
 
+      // Add WETH to the ERC20 list to see balance as is an special token
+      tokens.push({
+        symbol: 'WETH',
+        tokenAddress: await dxInfoService.getTokenAddress('WETH')
+      })
+
       const balancePromises = tokens.map(token => _getBalance({
         account,
         token,
