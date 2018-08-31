@@ -8,6 +8,7 @@ const Cache = require('../../helpers/Cache')
 
 // See: https://github.com/ethereum/eips/issues/20
 const ERC20_ABI = require('./ERC20Abi')
+const AlternativeERC20_ABI = require('./AlternativeERC20Abi')
 
 const tokenContractsCache = {}
 
@@ -185,21 +186,43 @@ class EthereumRepoImpl {
   async _tokenGetInfo ({ tokenAddress }) {
     const tokenContract = this._getTokenContract(tokenAddress)
 
+    // Use alternative token contract ABI.
+    // Symbol and name are set to bytes32 instead of string
+    let _useAlternativeTokenContract = infoField => {
+      const alternativeTokenContract = this._getAltAbiTokenContract(tokenAddress)
+      return promisify(alternativeTokenContract[infoField]).catch(() => null)
+    }
+
+    let _bytesToUtf8 = byteString => {
+      let resultString
+      byteString && byteString.startsWith('0x')
+        // If web3 is updated to v1.0 this method should be changed for:
+        // web3.utils.hexToUtf8
+        ? resultString = this._web3.toUtf8(byteString)
+        : resultString = byteString
+
+      return resultString
+    }
+
     // Since symbol, name, decimals are not mandatory
     // any error fetching those data will be ignored, and we just assume
     // no-value.
-    //  i.e. DAI defined the symbol as a byte32, so it fails to fetch it using 
+    //  i.e. DAI defined the symbol as a byte32, so it fails to fetch it using
     //      the ERC20 ABI.
     const [ symbol, name, decimals ] = await Promise.all([
-      promisify(tokenContract.symbol).catch(() => null),
-      promisify(tokenContract.name).catch(() => null),
+      promisify(tokenContract.symbol).catch(() => {
+        return _useAlternativeTokenContract('symbol')
+      }),
+      promisify(tokenContract.name).catch(() => {
+        return _useAlternativeTokenContract('name')
+      }),
       promisify(tokenContract.decimals).then(parseInt).catch(() => null)
     ])
 
     return {
       // TODO remove when ensured using EtherToken contract with WETH symbol
-      symbol: symbol !== 'ETH' ? symbol : 'WETH',
-      name,
+      symbol: symbol !== 'ETH' ? _bytesToUtf8(symbol) : 'WETH',
+      name: _bytesToUtf8(name),
       address: tokenAddress,
       decimals
     }
@@ -226,6 +249,10 @@ class EthereumRepoImpl {
     }
 
     return contract
+  }
+
+  _getAltAbiTokenContract (address) {
+    return this._web3.eth.contract(AlternativeERC20_ABI).at(address)
   }
 }
 
