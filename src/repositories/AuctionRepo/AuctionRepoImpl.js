@@ -2127,7 +2127,7 @@ volume: ${state}`)
     const maxGasWillingToPay = fastGasPrice * this._overFastPriceFactor
 
     return new Promise((resolve, reject) => {
-      this._doTransactionWithoutRetry({
+      this._doTransactionWithRetry({
         resolve,
         reject,
         gasPrice: initialGasPrice,
@@ -2173,7 +2173,6 @@ volume: ${state}`)
     gas,
     gasPriceParam // if manually setted
   }) {
-    // We call send transaction explicitly because is more semantic and easier mocking tests
     return this
       ._dx[operation](...params, {
         from,
@@ -2210,9 +2209,8 @@ volume: ${state}`)
       }
     }
 
-    // We call send transaction explicitly because is more semantic and easier mocking tests
     let transactionPromise = this
-      ._dx[operation].sendTransaction(...params, {
+      ._dx[operation](...params, {
         from,
         gas,
         gasPrice
