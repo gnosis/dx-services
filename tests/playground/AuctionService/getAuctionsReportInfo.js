@@ -1,30 +1,33 @@
 const testSetup = require('../../helpers/testSetup')
 const getDateRangeFromParams = require('../../../src/helpers/getDateRangeFromParams')
-const getBotAddress = require('../../../src/helpers/getBotAddress')
 
 testSetup()
   .then(run)
   .catch(console.error)
 
 async function run ({
-  reportService,
+  auctionService,
   ethereumClient
 }) {
   const fromDateStr = process.env.FROM
   const toDateStr = process.env.TO
   const period = process.env.PERIOD || 'today'
 
+  const sellToken = process.env.SELL_TOKEN || 'WETH'
+  const buyToken = process.env.BUY_TOKEN || 'RDN'
+
   const { fromDate, toDate } = getDateRangeFromParams({
     fromDateStr, toDateStr, period
   })
-  const botAddress = await getBotAddress(ethereumClient)
+  // const botAddress = await getBotAddress(ethereumClient)
 
-  return reportService
+  return auctionService
     .getAuctionsReportInfo({
       period,
       fromDate,
       toDate,
-      account: botAddress
+      sellToken,
+      buyToken
     })
     .then(auctions => {
       console.log('Got %d auctions:', auctions.length)

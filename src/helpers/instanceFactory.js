@@ -80,6 +80,12 @@ async function createInstances ({
     priceRepo
   })
 
+  const auctionService = _getAuctionService({
+    config: config,
+    auctionRepo,
+    ethereumRepo
+  })
+
   let reportService
   if (createReportService) {
     reportService = _getReportService({
@@ -112,6 +118,7 @@ async function createInstances ({
     dxTradeService,
     botsService,
     marketService,
+    auctionService,
     reportService
   }
 
@@ -302,6 +309,17 @@ function _getMarketService ({ config, priceRepo }) {
 
     // Repos
     priceRepo
+  })
+}
+
+function _getAuctionService ({ config, auctionRepo, ethereumRepo }) {
+  const AuctionService = require('../services/AuctionService')
+  return new AuctionService({
+    config,
+
+    // Repos
+    auctionRepo,
+    ethereumRepo
   })
 }
 
