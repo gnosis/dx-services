@@ -17,7 +17,9 @@ function createRoutes ({ dxInfoService, auctionService },
       const fromDateStr = req.query.fromDate
       const toDateStr = req.query.toDate
       const period = req.query.period
-      const { sellToken, buyToken } = _tokenPairSplit(req.query.tokenPair)
+      const { sellToken, buyToken } = req.query.tokenPair
+        ? _tokenPairSplit(req.query.tokenPair)
+        : { sellToken: undefined, buyToken: undefined }
       const { fromDate, toDate } = getDateRangeFromParams({
         fromDateStr, toDateStr, period
       })
