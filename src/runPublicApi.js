@@ -77,6 +77,7 @@ class App {
       host: this._config.PUBLIC_API_HOST,
       dxInfoService: this._dxInfoService,
       dxTradeService: this._dxTradeService,
+      auctionService: this._auctionService,
       cacheTimeouts: this._cacheTimeouts
     })
   }

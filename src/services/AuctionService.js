@@ -162,27 +162,32 @@ class ReportService {
 
     // console.log(auctions)
     let markets
+    const getMarketsFromFilteredAuctions = (tokenPairs, { sellToken, buyToken }) => {
+      const [tokenA, tokenB] = getTokenOrder(sellToken, buyToken)
+      const _equalsTokenPair = tokenPair => {
+        return tokenPair.tokenA === tokenA && tokenPair.tokenB === tokenB
+      }
+      if (!tokenPairs.find(_equalsTokenPair)) {
+        tokenPairs.push({ tokenA, tokenB })
+      }
+      return tokenPairs
+    }
     if (!sellToken || !buyToken) {
       // Remove the unknown markets
       auctions = auctions.filter(({ sellTokenSymbol, buyTokenSymbol }) => {
         return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
       })
-      markets = this._markets
+      markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
     } else {
+      // Remove unnecesary auctions
       auctions = auctions.filter(({ sellToken: auctionSellToken, sellTokenSymbol, buyToken: auctionBuyToken, buyTokenSymbol }) => {
-        return ((auctionSellToken === sellToken || sellTokenSymbol === sellToken) && (auctionBuyToken === buyToken || buyTokenSymbol === buyToken)) ||
-          ((auctionSellToken === buyToken || sellTokenSymbol === buyToken) && (auctionBuyToken === sellToken || buyTokenSymbol === sellToken))
-      })
-      markets = auctions.reduce((tokenPairs, { sellToken, buyToken }) => {
         const [tokenA, tokenB] = getTokenOrder(sellToken, buyToken)
-        const equalsTokenPair = tokenPair => {
-          return tokenPair.tokenA === tokenA && tokenPair.tokenB === tokenB
-        }
-        if (!tokenPairs.find(equalsTokenPair)) {
-          tokenPairs.push({ tokenA, tokenB })
-        }
-        return tokenPairs
-      }, [])
+        const [auctionTokenA, auctionTokenB] = getTokenOrder(auctionSellToken, auctionBuyToken)
+        const [tokenASymbol, tokenBSymbol] = getTokenOrder(sellTokenSymbol, buyTokenSymbol)
+        return (auctionTokenA === tokenA || tokenASymbol === tokenA) &&
+          (auctionTokenB === tokenB || tokenBSymbol === tokenB)
+      })
+      markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
     }
 
     // Get the start of the first of the auctions

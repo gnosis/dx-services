@@ -1,4 +1,6 @@
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
+const formatUtil = require('../../helpers/formatUtil')
+const _tokenPairSplit = formatUtil.tokenPairSplit
 
 const addCacheHeader = require('../helpers/addCacheHeader')
 
@@ -15,8 +17,7 @@ function createRoutes ({ dxInfoService, auctionService },
       const fromDateStr = req.query.fromDate
       const toDateStr = req.query.toDate
       const period = req.query.period
-      const sellToken = req.query.sellToken
-      const buyToken = req.query.buyToken
+      const { sellToken, buyToken } = _tokenPairSplit(req.query.tokenPair)
       const { fromDate, toDate } = getDateRangeFromParams({
         fromDateStr, toDateStr, period
       })
