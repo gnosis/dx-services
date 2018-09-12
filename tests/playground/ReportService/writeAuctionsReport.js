@@ -1,6 +1,6 @@
 const testSetup = require('../../helpers/testSetup')
 const getDateRangeFromParams = require('../../../src/helpers/getDateRangeFromParams')
-const getBotAddress = require('./../../src/helpers/getBotAddress')
+const getBotAddress = require('../../../src/helpers/getBotAddress')
 
 const fs = require('fs')
 

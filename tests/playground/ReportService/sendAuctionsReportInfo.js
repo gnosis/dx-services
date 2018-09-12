@@ -1,7 +1,7 @@
 const testSetup = require('../../helpers/testSetup')
 const getDateRangeFromParams = require('../../../src/helpers/getDateRangeFromParams')
 const formatUtil = require('../../../src/helpers/formatUtil')
-const getBotAddress = require('./../../src/helpers/getBotAddress')
+const getBotAddress = require('../../../src/helpers/getBotAddress')
 
 testSetup()
   .then(run)

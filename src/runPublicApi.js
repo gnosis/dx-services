@@ -12,8 +12,6 @@ let app
 
 // Run app
 instanceFactory({
-  // FIXME we should disable this once getAuctionsInfo is implemented outside this servie
-  createReportService: true,
   config: {
     // FIXME: Fix event filtering when you don't provide a mnemonic
     //  * The event filtering depends on having a mnemonic
@@ -49,8 +47,7 @@ class App {
     liquidityService,
     dxInfoService,
     dxTradeService,
-    // FIXME remove once getAuctionsInfo is implemented outside this service
-    reportService,
+    auctionService,
 
     // Events
     eventBus,
@@ -66,7 +63,7 @@ class App {
     // Services
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
-    this._reportService = reportService
+    this._auctionService = auctionService
 
     // API
     this._cacheTimeouts = {
@@ -80,7 +77,6 @@ class App {
       host: this._config.PUBLIC_API_HOST,
       dxInfoService: this._dxInfoService,
       dxTradeService: this._dxTradeService,
-      reportService: this._reportService,
       cacheTimeouts: this._cacheTimeouts
     })
   }
