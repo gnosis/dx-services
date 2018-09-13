@@ -3,10 +3,10 @@ info:
   description: |-
     Welcome to DutchX API docs.
 
-    On this interface you will find information about the auctions running on 
+    On this interface you will find information about the auctions running on
     the **DutchX** smart contracts.
 
-    We provide you with the TRY button, such that the different endpoints can 
+    We provide you with the TRY button, such that the different endpoints can
     be tested from the documentation web itself.
 
     For all available information, please check the [Documentation](https://dutchx.readthedocs.io/en/latest/)
@@ -437,6 +437,7 @@ paths:
         Returns a list of cleared auctions with details, as closing price or buy and sell volume, in the selected date range.
 
         At least <b>fromDate</b> and <b>toDate</b> parameters or <b>period</b> parameter is <b>required</b> in order to return any results.
+        It can also be filtered by token pair with the param <i>tokenPair</i>.
         </span>
       operationId: getClearedAcutionsInfo
       produces:
@@ -463,6 +464,15 @@ paths:
           description: |-
             A relative time period. Valid values are: *today, yesterday, week,
             last-week, current-week*
+          schema:
+            type: string
+            enum: [today, yesterday, week, last-week, current-week]
+            example: today
+        - name: tokenPair
+          in: query
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           type: string
       responses:
         '200':
@@ -785,6 +795,8 @@ definitions:
       - auctionIndex
       - sellToken
       - buyToken
+      - sellTokenAddress
+      - buyTokenAddress
       - auctionStart
       - auctionEnd
       - sellVolume
@@ -798,6 +810,10 @@ definitions:
       sellToken:
         type: string
       buyToken:
+        type: string
+      sellTokenAddress:
+        type: string
+      buyTokenAddress:
         type: string
       auctionStart:
         type: string
