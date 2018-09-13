@@ -3,11 +3,13 @@ info:
   description: |-
     Welcome to DutchX API docs.
 
-    In this documents you will find **information about the auctions running
-    on the DutchX smart contracts**.
+    On this interface you will find information about the auctions running on
+    the **DutchX** smart contracts.
 
-    Also we provice the **TRY** button, so the different endpoint can be tested
-    from the documentation web itself.
+    We provide you with the TRY button, such that the different endpoints can
+    be tested from the documentation web itself.
+
+    For all available information, please check the [Documentation](https://dutchx.readthedocs.io/en/latest/)
 
     For aditional information and for reference, check out these resources:
       * [Gnosis Blog](https://blog.gnosis.pm/tagged/dutchx): Learn about DutchX in
@@ -448,6 +450,7 @@ paths:
         Returns a list of cleared auctions with details, as closing price or buy and sell volume, in the selected date range.
         <br/>
         At least <b>fromDate</b> and <b>toDate</b> parameters or <b>period</b> parameter is <b>required</b> in order to return any results.
+        It can also be filtered by token pair with the param <i>tokenPair</i>.
         </span>
       operationId: getClearedAcutionsInfo
       produces:
@@ -455,21 +458,34 @@ paths:
       parameters:
         - name: fromDate
           in: query
-          description: >-
+          description: |-
             A date string using ISO 8601 date format. Required when using
-            <i>toDate</i>. <br/> ex: <i>'2018-07-01', '01-07-2018'</i>
+            *toDate*.
+
+            ex: *'2018-07-01', '01-07-2018'*
           type: string
         - name: toDate
           in: query
-          description: >-
+          description: |-
             A date string using ISO 8601 date format. Required when using
-            <i>fromDate</i>. <br/> ex: <i>'2018-07-02', '02-07-2018'</i>
+            *fromDate*.
+
+            ex: *'2018-07-02', '02-07-2018'*
           type: string
         - name: period
           in: query
+          description: |-
+            A relative time period. Valid values are: *today, yesterday, week,
+            last-week, current-week*
+          schema:
+            type: string
+            enum: [today, yesterday, week, last-week, current-week]
+            example: today
+        - name: tokenPair
+          in: query
           description: >-
-            A relative time period. Valid values are: <i>today, yesterday, week,
-            last-week, current-week</i>
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
           type: string
       responses:
         '200':
@@ -792,6 +808,8 @@ definitions:
       - auctionIndex
       - sellToken
       - buyToken
+      - sellTokenAddress
+      - buyTokenAddress
       - auctionStart
       - auctionEnd
       - sellVolume
@@ -805,6 +823,10 @@ definitions:
       sellToken:
         type: string
       buyToken:
+        type: string
+      sellTokenAddress:
+        type: string
+      buyTokenAddress:
         type: string
       auctionStart:
         type: string
