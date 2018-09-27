@@ -6,6 +6,7 @@ const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
 const dxFilters = require('../../helpers/dxFilters')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const Cache = require('../../helpers/Cache')
+const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
 
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
 
@@ -2107,21 +2108,15 @@ volume: ${state}`)
     })
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
-    let getNoncePromise = this._ethereumClient.getTransactionCount(from, 'pending')
 
-    const [ gasPrices, estimatedGas, nonce ] = await Promise.all([
+    const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
 
       // Estimate gas
       this._dx[operation]
-        .estimateGas(...params, { from }),
-
-      // getNext nonce
-      getNoncePromise
+        .estimateGas(...params, { from })
     ])
-
-    console.log(nonce)
 
     const { initialGasPrice, fastGasPrice } = gasPrices
 
@@ -2132,7 +2127,35 @@ volume: ${state}`)
     const gas = Math.ceil(estimatedGas * this._gasEstimationCorrectionFactor)
     const maxGasWillingToPay = fastGasPrice * this._overFastPriceFactor
 
+    // // Serialize the transactions, so we ensure we don't have nonce collitions
+    // // we calculate the nonce in advance, so we can retry the transaction when
+    // // they take long
+    // return sendTxWithUniqueNonce({
+    //   from,
+    //   ethereumClient: this._ethereumClient,
+    //   sendTransaction: nonce => {
+    //     logger.debug('Send transaction using nonce: %d', nonce)
+
+    //     return new Promise((resolve, reject) => {
+    //       // Do transaction, and retry if it takes to long
+    //       this._doTransactionWithRetry({
+    //         resolve,
+    //         reject,
+    //         gasPrice: initialGasPrice,
+    //         maxGasWillingToPay,
+    //         operation,
+    //         from,
+    //         params,
+    //         gas,
+    //         gasPriceParam,
+    //         nonce
+    //       })
+    //     })
+    //   }
+    // })
+
     return new Promise((resolve, reject) => {
+      // Do transaction, and retry if it takes to long
       this._doTransactionWithRetry({
         resolve,
         reject,
@@ -2143,7 +2166,7 @@ volume: ${state}`)
         params,
         gas,
         gasPriceParam,
-        nonce
+        nonce: undefined
       })
     })
   }

@@ -8,7 +8,7 @@ const Cache = require('../helpers/Cache')
 
 const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
-const HDWalletProvider = require('truffle-hdwallet-provider')
+const HDWalletProvider = require('./HDWalletProvider')
 const gracefullShutdown = require('./gracefullShutdown')
 const got = require('got')
 
@@ -32,7 +32,12 @@ class EthereumClient {
     logger.debug('Using %s RPC api to connect to Ethereum', this._url)
     const mnemonic = config.MNEMONIC
     if (mnemonic) {
-      this._provider = new HDWalletProvider(mnemonic, this._url, 0, 5)
+      this._provider = new HDWalletProvider({
+        mnemonic,
+        url: this._url,
+        addressIndex: 0,
+        numAddresses: 5
+      })
       this._provider.engine.on('error', error => {
         logger.error({
           msg: 'Error in Web3 engine %s: %s',
@@ -144,9 +149,9 @@ class EthereumClient {
   }
 
   async getTransactionCount (account, block) {
-    console.log('Getting nonce for account: ', account)
-    console.log('Usign block:', block)
-    return _promisify(this._web3.eth.getTransactionCount, [account, block])
+    // console.log('Getting nonce for account: ', account)
+    // console.log('Usign block:', block)
+    return _promisify(this._web3.eth.getTransactionCount, [ account, block ])
   }
 
   async getBlock (blockNumber) {
