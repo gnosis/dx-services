@@ -93,6 +93,7 @@
     "jest": "^23.5.0",
     "lodash.clonedeep": "^4.5.0",
     "nodemon": "^1.18.4",
-    "truffle": "4.1.5"
+    "truffle": "4.1.5",
+    "truffle-hdwallet-provider-privkey": "^0.3.0"
   }
 }
