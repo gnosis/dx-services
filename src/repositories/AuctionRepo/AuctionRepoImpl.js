@@ -2107,15 +2107,21 @@ volume: ${state}`)
     })
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
+    let getNoncePromise = this._ethereumClient.getTransactionCount(from, 'pending')
 
-    const [ gasPrices, estimatedGas ] = await Promise.all([
+    const [ gasPrices, estimatedGas, nonce ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
 
       // Estimate gas
       this._dx[operation]
-        .estimateGas(...params, { from })
+        .estimateGas(...params, { from }),
+
+      // getNext nonce
+      getNoncePromise
     ])
+
+    console.log(nonce)
 
     const { initialGasPrice, fastGasPrice } = gasPrices
 
@@ -2136,7 +2142,8 @@ volume: ${state}`)
         from,
         params,
         gas,
-        gasPriceParam
+        gasPriceParam,
+        nonce
       })
     })
   }
@@ -2171,7 +2178,8 @@ volume: ${state}`)
     from,
     params,
     gas,
-    gasPriceParam // if manually setted
+    gasPriceParam, // if manually setted
+    nonce
   }) {
     return this
       ._dx[operation](...params, {
@@ -2200,7 +2208,8 @@ volume: ${state}`)
     from,
     params,
     gas,
-    gasPriceParam // if manually setted
+    gasPriceParam, // if manually setted
+    nonce
   }) {
     let timer
     const clearTimer = () => {
@@ -2213,7 +2222,8 @@ volume: ${state}`)
       ._dx[operation](...params, {
         from,
         gas,
-        gasPrice
+        gasPrice,
+        nonce
       }).then(result => {
         clearTimer()
         resolve(result)
@@ -2240,8 +2250,8 @@ volume: ${state}`)
 
       if (newGasPrice < newMaxGasWillingToPay) {
         logger.info({
-          msg: 'Transaction is taking too long (%d min), retrying "%s" from "%s" with higher gas. Previous gas: %d, new gas price: %d. Params: [%s]',
-          params: [ (this._transactionRetryTime / 60000), operation, from, gasPrice, newGasPrice, params ]
+          msg: 'Transaction with nonce %d is taking too long (%d min), retrying "%s" from "%s" with higher gas. Previous gas: %d, new gas price: %d. Params: [%s]',
+          params: [ nonce, (this._transactionRetryTime / 60000), operation, from, gasPrice, newGasPrice, params ]
         })
 
         this._doTransactionWithRetry({
@@ -2252,12 +2262,13 @@ volume: ${state}`)
           operation,
           from,
           params,
-          gas
+          gas,
+          nonce
         })
       } else {
         logger.info({
-          msg: 'Transaction took too long. Max gas price reached, current gas price: %d, max gas willing to pay: %d, waiting transaction for "%s" from "%s". Params: [%s]',
-          params: [ gasPrice, newMaxGasWillingToPay, operation, from, params ]
+          msg: 'Transaction with nonce %d took too long. Max gas price reached, current gas price: %d, max gas willing to pay: %d, waiting transaction for "%s" from "%s". Params: [%s]',
+          params: [ nonce, gasPrice, newMaxGasWillingToPay, operation, from, params ]
         })
 
         transactionPromise
