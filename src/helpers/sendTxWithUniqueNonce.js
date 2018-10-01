@@ -1,13 +1,15 @@
 // List of pending transactions
 const Logger = require('./Logger')
 const logger = new Logger('dx-service:helpers:sendTxWithUniqueNonce')
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
 
 const pendingTransaction = []
 
 // This time, is just to allow the transaction
 // to distribute to other nodes. Its triggered after we know it's at list in one
 // node (i.e. important in case of using a pool of nodes)
-const TIME_TO_RELEASE_LOCK = 100 || process.env.SEND_TX_RELEASE_LOCK_MS
+const TIME_TO_RELEASE_LOCK = isLocal ? 0 : (100 || process.env.SEND_TX_RELEASE_LOCK_MS)
 
 const NONCE_INCREMENT_CHECK_TIME = 3000
 
@@ -59,17 +61,26 @@ async function _sendTransaction ({
 }
 
 function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock) {
-  const intervalId = setInterval(() => {
-    getNonceFn().then(newNonce => {
-      logger.debug(`Checking nonce update: ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
-      // check if the transaction has been incremented
-      if (newNonce === nonce + 1) {
-        releaseLock()
-        // The transaction is in the mempool
-        clearInterval(intervalId)
-      }
-    })
-  }, NONCE_INCREMENT_CHECK_TIME)
+  try {
+    if (isLocal) {
+      setTimeout(releaseLock, 0)
+    } else {
+      const intervalId = setInterval(() => {
+        getNonceFn().then(newNonce => {
+          logger.debug(`Checking nonce update: ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
+          // check if the transaction has been incremented
+          if (newNonce === nonce + 1) {
+            releaseLock()
+            // The transaction is in the mempool
+            clearInterval(intervalId)
+          }
+        })
+      }, NONCE_INCREMENT_CHECK_TIME)
+    }
+  } catch (error) {
+    logger.error('Error waiting for nonce increment: %s', error)
+    console.error(error)
+  }
 }
 
 module.exports = sendTxWithUniqueNonce

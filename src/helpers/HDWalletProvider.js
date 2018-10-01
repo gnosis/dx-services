@@ -60,7 +60,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
         sendTransaction: nonce => {
           logger.debug('Using nonce: %d', nonce)
           options.params.nonce = nonce
-          // console.log('[HDWalletProvider] Params: ', params)
+          // console.log('[HDWalletProvider] Params: %O', options)
           return super.sendAsync(options, callback)
         }
       })

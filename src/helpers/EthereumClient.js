@@ -150,7 +150,7 @@ class EthereumClient {
 
   async getTransactionCount (account, block) {
     // console.log('Getting nonce for account: ', account)
-    // console.log('Usign block:', block)
+    // console.log('getTransactionCount: ', block)
     return _promisify(this._web3.eth.getTransactionCount, [ account, block ])
   }
 
