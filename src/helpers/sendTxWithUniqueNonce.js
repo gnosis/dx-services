@@ -32,7 +32,7 @@ async function _sendTransaction ({
 }) {
   lock = true
   const releaseLock = () => {
-    logger.debug('Realising lock')
+    logger.debug('Releasing lock...')
     setTimeout(() => {
       // Check if we have pending transactions
       if (pendingTransaction.length > 0) {
@@ -41,6 +41,7 @@ async function _sendTransaction ({
         _sendTransaction(transactionParams)
       } else {
         // No pending transaction, we release the lock
+        logger.debug('Lock released')
         lock = false
       }
     }, TIME_TO_RELEASE_LOCK)
