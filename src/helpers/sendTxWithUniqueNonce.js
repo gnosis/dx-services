@@ -32,7 +32,7 @@ async function _sendTransaction ({
 }) {
   lock = true
   const releaseLock = () => {
-    logger.debug('Releasing lock...')
+    logger.info('Releasing lock...')
     setTimeout(() => {
       // Check if we have pending transactions
       if (pendingTransaction.length > 0) {
@@ -41,7 +41,7 @@ async function _sendTransaction ({
         _sendTransaction(transactionParams)
       } else {
         // No pending transaction, we release the lock
-        logger.debug('Lock released')
+        logger.info('Lock released')
         lock = false
       }
     }, TIME_TO_RELEASE_LOCK)
@@ -49,7 +49,7 @@ async function _sendTransaction ({
 
   // Get the current nonce
   const nonce = await getNonceFn()
-  logger.debug(`Nonce: ${nonce}`)
+  logger.info(`Nonce: ${nonce}`)
 
   // Trigger the transaction
   const txPromise = sendTransaction(nonce)
@@ -68,7 +68,7 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock) {
     } else {
       const intervalId = setInterval(() => {
         getNonceFn().then(newNonce => {
-          logger.debug(`Checking nonce update: ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
+          logger.info(`Checking nonce update: ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
           // check if the transaction has been incremented
           if (newNonce === nonce + 1) {
             releaseLock()
