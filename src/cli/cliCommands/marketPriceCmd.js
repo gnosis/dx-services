@@ -19,7 +19,7 @@ function registerCommand ({ cli, instances, logger }) {
         tokenA: sellToken,
         tokenB: buyToken
       })
-      logger.info('The market price is: %d %s/%s', price, buyToken, sellToken)
+      logger.info('The market price is: %d %s/%s', price, sellToken, buyToken)
     })
 }
 

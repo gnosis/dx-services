@@ -49,7 +49,7 @@ const PARAM_BY_NAME = {
 
   'account': {
     type: 'string',
-    describe: 'Address were you send the tokens'
+    describe: 'Address where you send the tokens'
   },
 
   'period': {

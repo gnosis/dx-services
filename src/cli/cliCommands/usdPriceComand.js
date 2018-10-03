@@ -20,7 +20,7 @@ function registerCommand ({ cli, instances, logger }) {
         token,
         amount: amount * 1e18
       })
-      logger.info('The current price is: %s USD/%s',
+      logger.info('The current price is: %s %s/USD',
         numberUtil.round(price),
         token
       )

@@ -21,8 +21,8 @@ function registerCommand ({ cli, instances, logger }) {
       })
       logger.info('The current price is: %s %s/%s',
         (price !== null ? price : 'N/A'),
-        buyToken,
-        sellToken
+        sellToken,
+        buyToken
       )
     })
 }
