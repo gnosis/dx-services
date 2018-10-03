@@ -21,6 +21,13 @@ class PublicApiServer extends Server {
       auctionService: this._auctionService
     }
 
+    // Redirect www to non-www
+    app.get('/*', function (req, res, next) {
+      req.headers.host.match(/^www/) !== null
+        ? res.redirect('https://' + req.headers.host.replace(/^www\./, '') + req.url, 301)
+        : next()
+    })
+
     // Get routes
     const mainRoutes = require('./main-routes')(services, this._cacheTimeouts)
     const testRoutes = require('./test-routes')(services)
