@@ -94,7 +94,7 @@ Also you'll see that we are 30min away from the last closing price.
 
 There's a lot of operations you can do with the `CLI`, for some examples you
 can check 
-[dx-examples-cli](https://github.com/gnosis/dx-examples-cli#basic-usage) project
+[dx-cli](https://github.com/gnosis/dx-cli#basic-usage) project
 . For a complete list, just type:
 
 ```bash
@@ -213,7 +213,7 @@ utility of this proyect is using the docker image we provide:
   * **Dockerhub**:
     [https://hub.docker.com/r/gnosispm/dx-services/](https://hub.docker.com/r/gnosispm/dx-services/)
   * **Example on how to run the CLI**: 
-    [https://github.com/gnosis/dx-examples-cli](https://github.com/gnosis/dx-examples-cli)
+    [https://github.com/gnosis/dx-cli](https://github.com/gnosis/dx-cli)
   * **Example on how to run the Bots**: 
     [https://github.com/gnosis/dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
