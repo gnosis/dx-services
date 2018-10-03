@@ -18,7 +18,7 @@ Transaction hash
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'claimings [--account account] [--from-date fromDate --to-date toDate] [--period period]',
-    'Get the claimed amomounts',
+    'Get the claimed amounts',
     yargs => {
       cliUtils.addOptionByName({ name: 'from-date', yargs })
       cliUtils.addOptionByName({ name: 'to-date', yargs })
