@@ -9,11 +9,11 @@ module.exports =
   // WETH
   tokenB: {
     address: '0xc778417e063141139fce010982780140aa0cd5ab',
-    funding: 9.5
+    funding: 20.1
   },
   // Price: https://www.coingecko.com/en/coins/omisego
   initialPrice: {
     numerator: 1,
-    denominator: 10
+    denominator: 60
   }
 }
