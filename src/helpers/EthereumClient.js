@@ -106,7 +106,7 @@ class EthereumClient {
     //  * So 20 y 2GWei
     const gasPrices = gasPriceResponse.body
     return {
-      safeLow: numberUtil.toBigNumber(gasPrices.safe_low).div(1e9),
+      safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(1e9),
       average: numberUtil.toBigNumber(gasPrices.standard).div(1e9),
       fast: numberUtil.toBigNumber(gasPrices.fast).div(1e9)
     }
