@@ -123,8 +123,10 @@ class EthereumClient {
     //  * So 20 y 2GWei
 
     const gasPrices = gasPriceResponse.body
+    // FIXME when safe-relay gas station is updated in mainnet this will be no necessary any more
+    const safeLowPropName = gasPrices.safeLow ? 'safeLow' : 'safe_low'
     return {
-      safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(10),
+      safeLow: numberUtil.toBigNumber(gasPrices[safeLowPropName]).div(10),
       average: numberUtil.toBigNumber(gasPrices.average).div(10),
       fast: numberUtil.toBigNumber(gasPrices.fast).div(10)
       // safeLowWait: gasPrices.safeLowWait,
