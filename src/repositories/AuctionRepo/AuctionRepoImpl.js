@@ -2124,6 +2124,10 @@ volume: ${state}`)
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
+    logger.info({
+      msg: 'Initial gas price is set to %d by %s',
+      params: [ initialGasPrice, this._gasPriceDefault ]
+    })
     const gas = Math.ceil(estimatedGas * this._gasEstimationCorrectionFactor)
     const maxGasWillingToPay = fastGasPrice * this._overFastPriceFactor
 
