@@ -2,8 +2,8 @@ const cliUtils = require('../helpers/cliUtils')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
-    'deposit <amount> <token> [--acount account]',
-    'Deposit the DX account depositing tokens into it',
+    'deposit <amount> <token> [--account account]',
+    'Deposit funds in order to be used on the DX',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
       cliUtils.addPositionalByName('token', yargs)
@@ -27,7 +27,7 @@ function registerCommand ({ cli, instances, logger }) {
         amount: amount * 1e18,
         accountAddress
       })
-      logger.info('The delivery was succesful. Transaction: %s', depositResult.tx)
+      logger.info('The delivery was successful. Transaction: %s', depositResult.tx)
     })
 }
 
