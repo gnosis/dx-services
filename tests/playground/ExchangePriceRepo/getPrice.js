@@ -2,21 +2,21 @@ const PriceRepoImpl = require('../../../src/repositories/PriceRepo/PriceRepoImpl
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
   strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'liquid']
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex']
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
   'WETH-OMG': {
     strategy: 'sequence',
-    feeds: ['binance', 'huobi', 'bitfinex', 'liquid']
+    feeds: ['binance', 'huobi', 'bitfinex']
   },
   'WETH-RDN': {
     strategy: 'sequence',
-    feeds: ['huobi', 'binance', 'bitfinex', 'liquid']
+    feeds: ['huobi', 'binance', 'bitfinex']
   },
   'WETH-GEN': {
     strategy: 'sequence',
-    feeds: ['huobi', 'binance', 'bitfinex', 'liquid']
+    feeds: ['liquid']
   }
 }
 
