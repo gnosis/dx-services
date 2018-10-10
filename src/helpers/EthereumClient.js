@@ -105,8 +105,11 @@ class EthereumClient {
     //  * for some reason, they are 10 times bigger than GWei :)
     //  * So 20 y 2GWei
     const gasPrices = gasPriceResponse.body
+    // FIXME when safe-relay gas station is updated in mainnet this will be no necessary any more
+    const safeLowPropName = gasPrices.safeLow ? 'safeLow' : 'safe_low'
     return {
-      safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(1e9),
+      lowest: numberUtil.toBigNumber(gasPrices.lowest).div(1e9),
+      safeLow: numberUtil.toBigNumber(gasPrices[safeLowPropName]).div(1e9),
       average: numberUtil.toBigNumber(gasPrices.standard).div(1e9),
       fast: numberUtil.toBigNumber(gasPrices.fast).div(1e9)
     }
@@ -123,10 +126,8 @@ class EthereumClient {
     //  * So 20 y 2GWei
 
     const gasPrices = gasPriceResponse.body
-    // FIXME when safe-relay gas station is updated in mainnet this will be no necessary any more
-    const safeLowPropName = gasPrices.safeLow ? 'safeLow' : 'safe_low'
     return {
-      safeLow: numberUtil.toBigNumber(gasPrices[safeLowPropName]).div(10),
+      safeLow: numberUtil.toBigNumber(gasPrices.safeLow).div(10),
       average: numberUtil.toBigNumber(gasPrices.average).div(10),
       fast: numberUtil.toBigNumber(gasPrices.fast).div(10)
       // safeLowWait: gasPrices.safeLowWait,
