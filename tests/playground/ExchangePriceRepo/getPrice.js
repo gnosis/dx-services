@@ -13,6 +13,10 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   'WETH-RDN': {
     strategy: 'sequence',
     feeds: ['huobi', 'binance', 'bitfinex']
+  },
+  'WETH-GEN': {
+    strategy: 'sequence',
+    feeds: ['liquid']
   }
 }
 
