@@ -182,6 +182,19 @@ Enjoy the CLI! These are some other examples to start with:
 * `yarn cli sell 100 WETH-RDN`
 * `yarn cli buy 100 RDN-WETH`
 
+## Run the tests
+```bash
+# Launch a ganach-cli in one tab
+yarn rpc
+
+# Migrate the contracts
+yarn migrate
+
+# Execute the tests
+yarn test
+```
+
+
 ## Public API
 Start API:
 ```bash
