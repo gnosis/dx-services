@@ -421,7 +421,7 @@ keeps happening`
       auctionLogger.info({
         sellToken,
         buyToken,
-        msg: 'We need to ensure that %d % of the buy volume is bought. Market Price: %d, Price: %d, Relation: %d %',
+        msg: 'We need to ensure that %d % of the buy volume is bought. Market Price: %s, Price: %s, Relation: %d %',
         params: [
           percentageThatShouldBeBought.mul(100).toFixed(2),
           formatUtil.formatFraction(currentMarketPrice),
