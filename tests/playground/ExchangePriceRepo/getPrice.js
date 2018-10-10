@@ -1,4 +1,6 @@
 const PriceRepoImpl = require('../../../src/repositories/PriceRepo/PriceRepoImpl')
+const formatUtil = require('../../../src/helpers/formatUtil.js')
+const numberUtil = require('../../../src/helpers/numberUtil.js')
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
   strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
@@ -20,14 +22,28 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   }
 }
 
+const config = {
+  EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
+  EXCHANGE_PRICE_FEED_STRATEGIES
+}
+
 const priceRepo = new PriceRepoImpl({
-  priceFeedStrategiesDefault: EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
-  priceFeedStrategies: EXCHANGE_PRICE_FEED_STRATEGIES
+  config
 })
 
 priceRepo.getPrice({
   tokenA: 'OMG',
   tokenB: 'WETH'
 })
-  .then(console.log)
+  .then(response => {
+    // plain response
+    console.log(response)
+    let price = {
+      numerator: numberUtil.toBigNumber(response.toString()),
+      denominator: numberUtil.ONE
+    }
+    let fraction = formatUtil.formatFraction(price)
+    // After converting number to BigNumber and handling for printing
+    console.log(fraction)
+  })
   .catch(console.error)
