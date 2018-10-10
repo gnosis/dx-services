@@ -1,5 +1,8 @@
 const debug = require("debug")("DEBUG-dx-service:repositories:PriceRepoLiquid");
 const httpRequest = require("../../../helpers/httpRequest");
+const Cache = require('../../../helpers/Cache')
+const CACHE_SYMBOLS_KEY = 'PriceRepoLiquid:'
+const CACHE_SYMBOLS_TIME = 2 * 60 * 60 // 2 hours
 
 class PriceRepoLiquid {
   constructor({
@@ -10,6 +13,19 @@ class PriceRepoLiquid {
     this._timeout = timeout;
     this._version = version;
     this._baseUrl = url;
+    this._cache = new Cache('PriceRepoLiquid')
+  }
+
+  // Get Liquid token pairs
+  async getProducts () {
+    debug('Get products')
+    return this._cache.get({
+      key: CACHE_SYMBOLS_KEY,
+      time: CACHE_SYMBOLS_TIME,
+      fetchFn: () => {
+        return this._getProducts()
+      }
+    })
   }
 
   async getPrice({ tokenA, tokenB }) {
@@ -71,7 +87,7 @@ class PriceRepoLiquid {
 
   // Check if a token pair exists
   async _getTokenPair({ tokenA, tokenB }) {
-    var products = await this._getProducts();
+    var products = await this.getProducts();
 
     products = products.filter(product => {
       if (product["currency_pair_code"].toLowerCase() ===
@@ -102,7 +118,7 @@ class PriceRepoLiquid {
 
   // Check if a token pair exists
   async _existTokenPair({ tokenA, tokenB }) {
-    let products = await this._getProducts();
+    let products = await this.getProducts();
 
     products.filter(product => {
       return (
