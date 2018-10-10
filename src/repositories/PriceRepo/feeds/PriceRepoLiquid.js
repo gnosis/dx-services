@@ -90,17 +90,6 @@ class PriceRepoLiquid {
     var products = await this.getProducts();
 
     products = products.filter(product => {
-      if (product["currency_pair_code"].toLowerCase() ===
-      (tokenA + tokenB).toLowerCase() ||
-    product["currency_pair_code"].toLowerCase() ===
-      (tokenB + tokenA).toLowerCase()) {
-        console.log(product["currency_pair_code"].toLowerCase() ===
-        (tokenA + tokenB).toLowerCase() ||
-      product["currency_pair_code"].toLowerCase() ===
-        (tokenB + tokenA).toLowerCase())
-        console.log(product["currency_pair_code"].toLowerCase())
-      }
-     
       return (
         product["currency_pair_code"].toLowerCase() ===
           (tokenA + tokenB).toLowerCase() ||
