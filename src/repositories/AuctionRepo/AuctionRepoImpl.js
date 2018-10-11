@@ -2124,7 +2124,7 @@ volume: ${state}`)
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
-    logger.info({
+    logger.debug({
       msg: 'Initial gas price is set to %d by %s',
       params: [ initialGasPrice, this._gasPriceDefault ]
     })
@@ -2160,7 +2160,7 @@ volume: ${state}`)
 
     return new Promise((resolve, reject) => {
       // Do transaction, and retry if it takes to long
-      this._doTransactionWithRetry({
+      this._doTransactionWithoutRetry({
         resolve,
         reject,
         gasPrice: initialGasPrice,

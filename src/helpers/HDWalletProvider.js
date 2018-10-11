@@ -5,6 +5,9 @@ const TruffleHDWalletProvider = require('truffle-hdwallet-provider')
 const sendTxWithUniqueNonce = require('./sendTxWithUniqueNonce')
 const Web3 = require('web3')
 
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
+
 class HDWalletProvider extends TruffleHDWalletProvider {
   constructor ({
     mnemonic,
@@ -41,27 +44,27 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     })
   }
 
-  sendAsync (params) {
-    let options
-    if (Array.isArray(params)) {
-      options = params[0]
-    } else {
-      options = params
-    }
+  sendAsync (args) {
+    let { method, params } = args
+
     // console.log('[HDWalletProvider] Intercepting sendAsync: ', arguments)
-    const { method } = options
     // console.log('[HDWalletProvider] Intercepting sendAsync - Method: %s', method)
-    if (method === 'eth_sendTransaction') {
+    if (method === 'eth_sendTransaction' && !isLocal) {
       const [, callback] = arguments
-      // console.log('[HDWalletProvider] Send transaction params: ', options.params)
+      // console.log('[HDWalletProvider] Send transaction params: ', options)
       sendTxWithUniqueNonce({
         from: this._address,
         getNonceFn: () => this.getNonce(),
         sendTransaction: nonce => {
           logger.debug('Using nonce: %d', nonce)
-          options.params.nonce = nonce
-          // console.log('[HDWalletProvider] Params: %O', options)
-          return super.sendAsync(options, callback)
+          if (Array.isArray(params)) {
+            params[0].nonce = nonce
+          } else {
+            params.nonce = nonce
+          }
+          // console.log('[HDWalletProvider] Params: %O', params)
+          const sendParams = Object.assign({}, args, { params })
+          return super.sendAsync(sendParams, callback)
         }
       })
     } else {
