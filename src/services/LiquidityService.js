@@ -214,7 +214,7 @@ check should be done`,
 
       // Check if we surplus it
       if (
-        fundingA.lessThan(minimumSellVolume) &&
+        fundingA.lessThan(minimumSellVolume) ||
         fundingB.lessThan(minimumSellVolume)
       ) {
         // Not enough liquidity
@@ -225,11 +225,29 @@ check should be done`,
           params: [ auctionIndex, tokenA, fundingA, tokenB, fundingB ],
           notify: true
         })
-        // Do sell in the correct auction
-        const soldToken = await this._sellTokenToCreateLiquidity({
-          tokenA, fundingA, tokenB, fundingB, auctionIndex, from
-        })
-        soldTokens.push(soldToken)
+
+        let soldTokenAB, soldTokenBA
+        // Ensure liquidity for both sides or the side that needs it
+        if (fundingA.lessThan(minimumSellVolume)) {
+          soldTokenAB = await this._sellTokenToCreateLiquidity({
+            sellToken: tokenA,
+            buyToken: tokenB,
+            funding: fundingA,
+            auctionIndex,
+            from
+          })
+          soldTokens.push(soldTokenAB)
+        }
+        if (fundingB.lessThan(minimumSellVolume)) {
+          soldTokenBA = await this._sellTokenToCreateLiquidity({
+            sellToken: tokenB,
+            buyToken: tokenA,
+            funding: fundingB,
+            auctionIndex,
+            from
+          })
+          soldTokens.push(soldTokenBA)
+        }
       } else {
         // ERROR: Why there is no auctionStart if there is enough liquidity
         // It shouldn't happen (the liquidity criteria should be the same for the SC and the bots)
@@ -556,22 +574,11 @@ keeps happening`
     return buyRule ? buyRule.buyRatio : numberUtil.ZERO
   }
 
-  async _sellTokenToCreateLiquidity ({ tokenA, fundingA, tokenB, fundingB, auctionIndex, from }) {
+  async _sellTokenToCreateLiquidity ({ sellToken, buyToken, funding, auctionIndex, from }) {
     // decide if we sell on the auction A-B or the B-A
     //  * We sell on the auction with more liquidity
-    let sellToken, buyToken, amountToSellInUSD
     const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
-    if (fundingA.lessThan(fundingB)) {
-      // We sell in the B-A auction
-      sellToken = tokenB
-      buyToken = tokenA
-      amountToSellInUSD = minimumSellVolume.minus(fundingB)
-    } else {
-      // We sell in the A-B auction
-      sellToken = tokenA
-      buyToken = tokenB
-      amountToSellInUSD = minimumSellVolume.minus(fundingA)
-    }
+    let amountToSellInUSD = minimumSellVolume.minus(funding)
 
     // We round up the dollars
     amountToSellInUSD = amountToSellInUSD

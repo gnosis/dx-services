@@ -11,6 +11,14 @@ const pricesInUSD = [{
   price: 13.957 // $/OMG
 }]
 
+const pricesInETH = [{
+  token: 'RDN',
+  price: { numerator: new BigNumber('1000000'), denominator: new BigNumber('4133') }
+}, {
+  token: 'OMG',
+  price: { numerator: new BigNumber('100000'), denominator: new BigNumber('2222') }
+}]
+
 const balances = {
   'RDN': {
     '0x8c3fab73727E370C1f319Bc7fE5E25fD9BEa991e': new BigNumber('30.20e18'),
@@ -155,6 +163,7 @@ const auctions = {
 
 module.exports = {
   pricesInUSD,
+  pricesInETH,
   balances,
   auctions
 }
