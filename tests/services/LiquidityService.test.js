@@ -43,8 +43,11 @@ test('It should ensureSellLiquidity', async () => {
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
     sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
 
-  // THEN bot sells in OMG-WETH, the pair market we expect
+  // THEN bot sells in both sides, WETH-OMG and OMG-WETH, the pair market we expect
   const expectedBotSell = [{
+    buyToken: 'WETH',
+    sellToken: 'OMG'
+  }, {
     buyToken: 'OMG',
     sellToken: 'WETH'
   }]
@@ -205,8 +208,9 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
     ensureLiquidityPromise2
   ])
 
-  // THEN expect 1 call to postSellOrder function
-  expect(postSellOrder.mock.calls.length).toBe(1)
+  // THEN expect 2 calls to postSellOrder function ensuring liquidity to both sides
+  // of the token pair
+  expect(postSellOrder.mock.calls.length).toBe(2)
 })
 
 test('It should not ensure sell liquidity if auction is not waiting for funding', async () => {
@@ -231,6 +235,10 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   liquidityService._auctionRepo = auctionRepoMock
 
   // GIVEN an auction with enough funds
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWithBothSidesFundedEthOmg()
+  })
 
   try {
     // WHEN we ensure sell liquidity
@@ -371,4 +379,17 @@ function _getClosedAuctions () {
     {
       'WETH-RDN': localAuctionsData.auctions['WETH-RDN']
     })
+}
+
+function _getAuctionsWithBothSidesFundedEthOmg () {
+  let localAuctionsData = clone(auctionsMockData)
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  const currentAuctionEthOmgInMock = localAuctionsData.auctions['OMG-WETH'].length - 1
+  const updatedAuction = Object.assign({}, localAuctionsData.auctions['OMG-WETH'][currentAuctionEthOmgInMock],
+    { sellVolume: new BigNumber('860.5e18') })
+
+  localAuctionsData.auctions['OMG-WETH'][currentAuctionEthOmgInMock] = updatedAuction
+  return Object.assign({}, localAuctionsData.auctions,
+    { 'OMG-WETH': localAuctionsData.auctions['OMG-WETH'] })
 }
