@@ -24,18 +24,20 @@ async function _doGetPrice ({ tokenA, tokenB }, feeds) {
   return _getPriceRepo(bestFeed)
     .getPrice({ tokenA, tokenB })
     .catch(error => {
+      // Display a ERROR or WARN depending on if we have more feeds
       const msg = 'Error getting the price from "%s". '
-      const params = [ bestFeed,
-        remainingFeeds.length > 0 ? 'remaining feeds: %s' + remainingFeeds.join(',') : 'No feeds left'
-      ]
+      let feedsLeftMsg, debugLevel
+      if (remainingFeeds.length > 0) {
+        feedsLeftMsg = 'remaining feeds: %s' + remainingFeeds.join(',')
+        debugLevel = 'warn'
+      } else {
+        feedsLeftMsg = 'No feeds left'
+        debugLevel = 'error'
+      }
+      const params = [ bestFeed, feedsLeftMsg ]
 
-      auctionLogger.error({
-        sellToken: tokenA,
-        buyToken: tokenB,
-        msg,
-        params
-      })
-      auctionLogger.warn({
+      // Print the log
+      auctionLogger[debugLevel]({
         sellToken: tokenA,
         buyToken: tokenB,
         msg,
@@ -44,8 +46,10 @@ async function _doGetPrice ({ tokenA, tokenB }, feeds) {
       })
 
       if (remainingFeeds.length > 0) {
+        // Retry with next feeds
         return _doGetPrice({ tokenA, tokenB }, remainingFeeds)
       } else {
+        // No more feeds avaliable
         throw new Error('Not more feeds avaliable. All of the price feeds have failed')
       }
     })
