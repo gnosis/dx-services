@@ -33,7 +33,7 @@ class AuctionRepoImpl {
     this._gasRetryIncrement = config.GAS_RETRY_INCREMENT
     this._overFastPriceFactor = config.OVER_FAST_PRICE_FACTOR
     this._gasEstimationCorrectionFactor = config.GAS_ESTIMATION_CORRECTION_FACTOR
-    this._gasPriceDefault = config.DEFAULT_GAS_PRICE_USED || 'average' // safeLow, average, fast
+    this._gasPriceDefault = config.DEFAULT_GAS_PRICE_USED || 'fast' // safeLow, average, fast
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
