@@ -116,7 +116,7 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
         formatUtil.formatFraction(price), tokenA, tokenB
       )
       if (closingPrice) {
-        logger.info(`\t\t\tClosing Price: %s %s/%s`,
+        logger.info(`\t\t\tPrevious closing Price: %s %s/%s`,
           formatUtil.formatFraction(closingPrice), tokenA, tokenB
         )
 
