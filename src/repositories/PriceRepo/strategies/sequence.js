@@ -27,14 +27,14 @@ async function _doGetPrice ({ tokenA, tokenB }, feeds) {
       // Display a ERROR or WARN depending on if we have more feeds
       let feedsLeftMsg, debugLevel
       if (remainingFeeds.length > 0) {
-        feedsLeftMsg = 'remaining feeds: %s' + remainingFeeds.join(',')
+        feedsLeftMsg = 'Remaining feeds: ' + remainingFeeds.join(', ')
         debugLevel = 'warn'
       } else {
         feedsLeftMsg = 'No feeds left'
         debugLevel = 'error'
       }
       const params = [ bestFeed, error.message, feedsLeftMsg ]
-      const msg = 'Error getting the price from "%s": %s. %s'
+      const msg = 'Unable to get the price from "%s": %s. %s'
 
       // Print the log
       auctionLogger[debugLevel]({
