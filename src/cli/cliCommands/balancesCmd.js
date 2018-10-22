@@ -136,7 +136,7 @@ async function _getBasicBalances ({
     amountInDx
   ] = await Promise.all([
     // get token balance
-    dxInfoService.getAccountBalanceForTokenNotDeposited({ tokenAddress, account }),
+    dxInfoService.getAccountBalanceForTokenNotDeposited({ token: tokenAddress, account }),
     dxInfoService.getTokenAllowance({
       tokenAddress,
       owner: account,

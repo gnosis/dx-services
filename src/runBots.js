@@ -211,12 +211,26 @@ class App {
     })
     // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_AUCTIONS_REPORT
 
+    const DepositBot = require('./bots/DepositBot')
+    const depositBotPromise = new DepositBot({
+      name: 'DepositBot',
+      eventBus: this._eventBus,
+      liquidityService: this._liquidityService,
+      dxTradeService: this._dxTradeService,
+      dxInfoService: this._dxInfoService,
+      ethereumClient: this._ethereumClient,
+      tokensByAccount,
+      slackClient: this._slackClient,
+      botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
+    })
+
     // Return bots
     return Promise.all(
       [].concat(
         sellLiquidityBotPromises,
         buyLiquidityBotPromises,
-        balanceCheckBotPromise
+        balanceCheckBotPromise,
+        depositBotPromise
       )
     )
   }

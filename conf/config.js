@@ -81,6 +81,19 @@ const SELL_LIQUIDITY_BOTS = [{
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }]
 
+const DEPOSIT_BOT = {
+  name: 'Deposit bot',
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }],
+  inactiveTimeLapse: [{
+    from: '',
+    to: ''
+  }],
+  checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
+}
+
 const AUTO_CLAIM_AUCTIONS = 90
 
 const DEFAULT_GAS = 6700000
@@ -178,6 +191,7 @@ module.exports = {
   MAIN_BOT_ACCOUNT,
   BUY_LIQUIDITY_BOTS,
   SELL_LIQUIDITY_BOTS,
+  DEPOSIT_BOT,
   BUY_LIQUIDITY_RULES_DEFAULT,
   MARKETS,
   AUTO_CLAIM_AUCTIONS,
