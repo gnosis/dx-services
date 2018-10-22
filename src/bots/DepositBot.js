@@ -1,5 +1,4 @@
 const loggerNamespace = 'dx-service:bots:DepositBot'
-const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const getVersion = require('../helpers/getVersion')
@@ -9,8 +8,7 @@ const getBotAddress = require('../helpers/getBotAddress')
 const numberUtil = require('../../src/helpers/numberUtil')
 
 const logger = new Logger(loggerNamespace)
-const auctionLogger = new AuctionLogger(loggerNamespace)
-const events = require('../helpers/events')
+// const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const ETHER_RESERVE_AMOUNT =
   process.env.ETHER_RESERVE_AMOUNT || 1.5
@@ -20,13 +18,11 @@ const DEPOSIT_PERIODIC_CHECK_MILLISECONDS =
 class DepositBot extends Bot {
   constructor ({
     name,
-    eventBus,
+    // eventBus,
     dxInfoService,
     dxTradeService,
-    liquidityService,
     ethereumClient,
-    botAddress,
-    markets,
+    // markets,
     slackClient,
     botTransactionsSlackChannel,
     tokensByAccount,
@@ -34,12 +30,10 @@ class DepositBot extends Bot {
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name)
-    this._eventBus = eventBus
+    // this._eventBus = eventBus
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
-    // this._liquidityService = liquidityService
     this._ethereumClient = ethereumClient
-    // this._botAddress = botAddress
     // this._markets = markets
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
@@ -59,10 +53,8 @@ class DepositBot extends Bot {
   async _doStart () {
     logger.debug({ msg: 'Initialized bot: ' + this.name })
 
+    // Check if the bots need to deposit periodically
     this._depositFunds()
-
-    // Backup strategy: From time to time, we ensure the liquidity
-    // Used only in case events fail to notify the bot
     setInterval(() => {
       return this._depositFunds()
     }, this._checkTimeInMilliseconds)
@@ -74,8 +66,9 @@ class DepositBot extends Bot {
 
   async _depositFunds () {
     this._lastCheck = new Date()
+    let botHasDepositedFunds
     try {
-      logger.debug('%O', this._tokensByAccount)
+      logger.debug('Tokens by account: %O', this._tokensByAccount)
       const accountKeys = Object.keys(this._tokensByAccount)
 
       const accountAddressesPromises = accountKeys.map(accountKey => {
@@ -83,12 +76,12 @@ class DepositBot extends Bot {
       })
 
       const accountAddresses = await Promise.all(accountAddressesPromises)
+      logger.debug('Account addresses: %O', accountAddresses)
 
       const balanceOfEtherPromises = accountAddresses.map(account => {
         // Get ETH balance
         return this._dxInfoService.getBalanceOfEther({ account })
       })
-      logger.debug('%O', accountAddresses)
 
       const balanceOfTokensPromises = accountAddresses.map((account, index) => {
         // Get balance of ERC20 tokens
@@ -99,7 +92,7 @@ class DepositBot extends Bot {
       })
 
       const balancesOfEther = await Promise.all(balanceOfEtherPromises)
-      logger.debug('%O', balancesOfEther)
+      logger.debug('Balances of ether: %O', balancesOfEther)
 
       const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
       logger.debug('Balances of tokens: %O', balancesOfTokens)
@@ -124,7 +117,6 @@ class DepositBot extends Bot {
             amount,
             accountAddress: accountAddresses[index]
           })
-          // this._lastWarnNotification = new Date()
           // Notify ether deposited
           this._notifyDepositedTokens(amount, 'ETH', accountAddresses[index])
         } else {
@@ -150,15 +142,19 @@ class DepositBot extends Bot {
           }
         })
       })
+      logger.debug('Finished task depositbot')
+      botHasDepositedFunds = true
     } catch (error) {
       this.lastError = new Date()
-      // botHasEnoughTokens = false
+      botHasDepositedFunds = false
       logger.error({
         msg: 'There was an error if a deposit is needed %s',
         params: [ error ],
         error
       })
     }
+
+    return botHasDepositedFunds
   }
 
   _notifyDepositedTokens (amount, token, account) {
@@ -187,53 +183,53 @@ class DepositBot extends Bot {
     })
   }
 
-  _notifySoldTokens (sellOrder) {
-    const {
-      sellToken,
-      buyToken,
-      amount,
-      amountInUSD,
-      auctionIndex
-    } = sellOrder
-    // Log sold tokens
-    const amountInTokens = amount.div(1e18)
-    const soldTokensString = amountInTokens + ' ' + sellToken
-
-    auctionLogger.info({
-      sellToken,
-      buyToken,
-      msg: "I've sold %s (%d USD) in auction %d to ensure SELL liquidity",
-      params: [
-        soldTokensString,
-        amountInUSD,
-        auctionIndex
-      ],
-      notify: true
-    })
-
-    this._notifications.forEach(({ type, channel }) => {
-      switch (type) {
-        case 'slack':
-          // Notify to slack
-          if (this._slackClient.isEnabled()) {
-            this._notifySoldTokensSlack({
-              channel,
-              soldTokensString,
-              sellToken,
-              buyToken,
-              auctionIndex,
-              amountInUSD
-            })
-          }
-          break
-        case 'email':
-        default:
-          logger.error({
-            msg: 'Error notification type is unknown: ' + type
-          })
-      }
-    })
-  }
+  // _notifySoldTokens (sellOrder) {
+  //   const {
+  //     sellToken,
+  //     buyToken,
+  //     amount,
+  //     amountInUSD,
+  //     auctionIndex
+  //   } = sellOrder
+  //   // Log sold tokens
+  //   const amountInTokens = amount.div(1e18)
+  //   const soldTokensString = amountInTokens + ' ' + sellToken
+  //
+  //   auctionLogger.info({
+  //     sellToken,
+  //     buyToken,
+  //     msg: "I've sold %s (%d USD) in auction %d to ensure SELL liquidity",
+  //     params: [
+  //       soldTokensString,
+  //       amountInUSD,
+  //       auctionIndex
+  //     ],
+  //     notify: true
+  //   })
+  //
+  //   this._notifications.forEach(({ type, channel }) => {
+  //     switch (type) {
+  //       case 'slack':
+  //         // Notify to slack
+  //         if (this._slackClient.isEnabled()) {
+  //           this._notifySoldTokensSlack({
+  //             channel,
+  //             soldTokensString,
+  //             sellToken,
+  //             buyToken,
+  //             auctionIndex,
+  //             amountInUSD
+  //           })
+  //         }
+  //         break
+  //       case 'email':
+  //       default:
+  //         logger.error({
+  //           msg: 'Error notification type is unknown: ' + type
+  //         })
+  //     }
+  //   })
+  // }
 
   _notifyDepositedTokensSlack ({ channel, account, depositedTokensString }) {
     this._slackClient
@@ -271,26 +267,24 @@ class DepositBot extends Bot {
       })
   }
 
-  _handleError (sellToken, buyToken, error) {
-    auctionLogger.error({
-      sellToken,
-      buyToken,
-      msg: 'There was an error ensuring sell liquidity with the account %s: %s',
-      params: [ this._botAddress, error ],
-      error
-    })
-  }
+  // _handleError (sellToken, buyToken, error) {
+  //   auctionLogger.error({
+  //     sellToken,
+  //     buyToken,
+  //     msg: 'There was an error ensuring sell liquidity with the account %s: %s',
+  //     params: [ this._botAddress, error ],
+  //     error
+  //   })
+  // }
 
   async getInfo () {
     return {
-      // botAddress: this._botAddress,
       lastCheck: this._lastCheck,
       lastDeposit: this._lastDeposit,
       lastError: this._lastError,
       notifications: this._notifications,
       defaultSlackChannel: this._botTransactionsSlackChannel,
-      checkTimeInMilliseconds: this._checkTimeInMilliseconds// ,
-      // markets: this._markets
+      checkTimeInMilliseconds: this._checkTimeInMilliseconds
     }
   }
 }
