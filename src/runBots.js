@@ -44,6 +44,7 @@ class App {
     dxTradeService,
     botsService,
     reportService,
+    marketService,
 
     // Events
     eventBus,
@@ -63,6 +64,7 @@ class App {
     this._dxTradeService = dxTradeService
     this._botsService = botsService
     this._reportService = reportService
+    this._marketService = marketService
 
     // Bots
     this._bots = null
@@ -168,6 +170,27 @@ class App {
       return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
     })
 
+    const HighSellVolumeBot = require('./bots/HighSellVolumeBot')
+    const highSellVolumeBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(async botConfig => {
+      const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
+      assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+      const { name, markets, notifications, ...aditionalBotConfig } = botConfig
+
+      return new HighSellVolumeBot({
+        name: 'HighSellVolumeBot for: ' + botConfig.name,
+        eventBus: this._eventBus,
+        liquidityService: this._liquidityService,
+        dxInfoService: this._dxInfoService,
+        marketService: this._marketService,
+        botAddress,
+        markets,
+        slackClient: this._slackClient,
+        botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING,
+        notifications,
+        ...aditionalBotConfig
+      })
+    })
+
     // Balance Check Bot Config
     const buyAndSellBotsConfig = [].concat(
       this._config.BUY_LIQUIDITY_BOTS,
@@ -216,6 +239,7 @@ class App {
       [].concat(
         sellLiquidityBotPromises,
         buyLiquidityBotPromises,
+        highSellVolumeBotPromises,
         balanceCheckBotPromise
       )
     )
