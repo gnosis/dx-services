@@ -215,7 +215,6 @@ class App {
       const aditionalBotConfig = this._config.DEPOSIT_BOT
       const DepositBot = require('./bots/DepositBot')
       const depositBotPromise = new DepositBot({
-        // eventBus: this._eventBus,
         dxTradeService: this._dxTradeService,
         dxInfoService: this._dxInfoService,
         ethereumClient: this._ethereumClient,

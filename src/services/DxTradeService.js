@@ -188,7 +188,7 @@ class DxTradeService {
     // const accountAddress = await this._getAccountAddress(accountIndex)
     logger.info({
       msg: 'Fund the account %s with %d %s',
-      params: [ accountAddress, amount, token ]
+      params: [ accountAddress, amountInEth, token ]
     })
 
     let transactionResult
@@ -217,7 +217,7 @@ class DxTradeService {
       // We have anough allowance
       logger.info({
         msg: 'Not need to do any approval. The DX already have an allowance of %d',
-        params: [ allowance.div(1e-18) ]
+        params: [ allowance.div(1e18) ]
       })
     }
 
@@ -271,7 +271,7 @@ class DxTradeService {
     // const accountAddress = await this._getAccountAddress(accountIndex)
     logger.info({
       msg: 'Withdraw the account %s with %d %s',
-      params: [ accountAddress, amount, token ]
+      params: [ accountAddress, amountInEth, token ]
     })
 
     let transactionResult

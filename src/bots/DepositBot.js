@@ -18,11 +18,9 @@ const DEPOSIT_PERIODIC_CHECK_MILLISECONDS =
 class DepositBot extends Bot {
   constructor ({
     name,
-    // eventBus,
     dxInfoService,
     dxTradeService,
     ethereumClient,
-    // markets,
     slackClient,
     botTransactionsSlackChannel,
     tokensByAccount,
@@ -30,11 +28,9 @@ class DepositBot extends Bot {
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name)
-    // this._eventBus = eventBus
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
     this._ethereumClient = ethereumClient
-    // this._markets = markets
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
 
@@ -107,48 +103,59 @@ class DepositBot extends Bot {
       logger.debug('%O', balancesOfTokensWithAddress)
 
       // Check if the account has ETHER over the reserve amount
-      balancesOfEther.forEach((balance, index) => {
+      const balancesOfEtherPromises = balancesOfEther.map((balance, index) => {
         let weiReserveAmount = numberUtil.toWei(ETHER_RESERVE_AMOUNT)
         if (balance > weiReserveAmount) {
           logger.debug('I have to deposit %d ether for account %s', balance - weiReserveAmount, accountAddresses[index])
           const amount = balance.sub(weiReserveAmount)
-          this._dxTradeService.deposit({
+          return this._dxTradeService.deposit({
             token: 'WETH',
             amount,
             accountAddress: accountAddresses[index]
+          }).then(result => {
+            // Notify ether deposited
+            this._notifyDepositedTokens(amount, 'ETH', accountAddresses[index])
+          }).catch(error => {
+            this._handleError('WETH', accountAddresses[index], error)
           })
-          // Notify ether deposited
-          this._notifyDepositedTokens(amount, 'ETH', accountAddresses[index])
         } else {
           logger.debug('No Ether tokens to deposit for account: %s', accountAddresses[index])
         }
       })
 
       // Check if there is ERC20 tokens balance not deposited in any account
-      balancesOfTokens.forEach((accountBalances, index) => {
+      const balancesOfTokensPromises = balancesOfTokens.reduce((balancesPromises, accountBalances, index) => {
         // Check if there are tokens below the minimun amount
-        accountBalances.forEach(({ token, amount }) => {
+        const accountBalancesPromises = accountBalances.map(({ token, amount }) => {
           if (amount > 0) {
             logger.debug('I have to deposit %s for account %s', token, accountAddresses[index])
-            this._dxTradeService.deposit({
+            return this._dxTradeService.deposit({
               token,
               amount,
               accountAddress: accountAddresses[index]
+            }).then(result => {
+              // Notify tokens deposited
+              this._notifyDepositedTokens(amount, token, accountAddresses[index])
+            }).catch(error => {
+              this._handleError(token, accountAddresses[index], error)
             })
-            // Notify tokens deposited
-            this._notifyDepositedTokens(amount, token, accountAddresses[index])
           } else {
             logger.debug('No %s tokens to deposit for account: %s', token, accountAddresses[index])
           }
         })
-      })
+
+        return balancesPromises.concat(accountBalancesPromises)
+      }, [])
+
+      await Promise.all(balancesOfEtherPromises.concat(balancesOfTokensPromises))
       logger.debug('Finished task depositbot')
-      botHasDepositedFunds = true
+      botHasDepositedFunds = balancesOfEtherPromises.length > 0 ||
+        balancesOfTokensPromises.length > 0
     } catch (error) {
       this.lastError = new Date()
       botHasDepositedFunds = false
       logger.error({
-        msg: 'There was an error if a deposit is needed %s',
+        msg: 'There was an error trying to automaticaly deposit %s',
         params: [ error ],
         error
       })
@@ -176,60 +183,14 @@ class DepositBot extends Bot {
     })
 
     // Notify to slack
-    this._notifyDepositedTokensSlack({
-      channel: '',
-      account,
-      depositedTokensString
-    })
+    if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+      this._notifyDepositedTokensSlack({
+        channel: '',
+        account,
+        depositedTokensString
+      })
+    }
   }
-
-  // _notifySoldTokens (sellOrder) {
-  //   const {
-  //     sellToken,
-  //     buyToken,
-  //     amount,
-  //     amountInUSD,
-  //     auctionIndex
-  //   } = sellOrder
-  //   // Log sold tokens
-  //   const amountInTokens = amount.div(1e18)
-  //   const soldTokensString = amountInTokens + ' ' + sellToken
-  //
-  //   auctionLogger.info({
-  //     sellToken,
-  //     buyToken,
-  //     msg: "I've sold %s (%d USD) in auction %d to ensure SELL liquidity",
-  //     params: [
-  //       soldTokensString,
-  //       amountInUSD,
-  //       auctionIndex
-  //     ],
-  //     notify: true
-  //   })
-  //
-  //   this._notifications.forEach(({ type, channel }) => {
-  //     switch (type) {
-  //       case 'slack':
-  //         // Notify to slack
-  //         if (this._slackClient.isEnabled()) {
-  //           this._notifySoldTokensSlack({
-  //             channel,
-  //             soldTokensString,
-  //             sellToken,
-  //             buyToken,
-  //             auctionIndex,
-  //             amountInUSD
-  //           })
-  //         }
-  //         break
-  //       case 'email':
-  //       default:
-  //         logger.error({
-  //           msg: 'Error notification type is unknown: ' + type
-  //         })
-  //     }
-  //   })
-  // }
 
   _notifyDepositedTokensSlack ({ channel, account, depositedTokensString }) {
     this._slackClient
@@ -267,15 +228,14 @@ class DepositBot extends Bot {
       })
   }
 
-  // _handleError (sellToken, buyToken, error) {
-  //   auctionLogger.error({
-  //     sellToken,
-  //     buyToken,
-  //     msg: 'There was an error ensuring sell liquidity with the account %s: %s',
-  //     params: [ this._botAddress, error ],
-  //     error
-  //   })
-  // }
+  _handleError (token, account, error) {
+    // Log message
+    logger.error({
+      msg: 'There was an error depositing %s with the account %s',
+      params: [token, account],
+      error
+    })
+  }
 
   async getInfo () {
     return {
