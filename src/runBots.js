@@ -174,19 +174,17 @@ class App {
     const highSellVolumeBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(async botConfig => {
       const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
       assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
-      const { name, markets, notifications, ...aditionalBotConfig } = botConfig
+      const { name, ...aditionalBotConfig } = botConfig
 
       return new HighSellVolumeBot({
         name: 'HighSellVolumeBot for: ' + botConfig.name,
-        eventBus: this._eventBus,
-        liquidityService: this._liquidityService,
+        // eventBus: this._eventBus,
+        // liquidityService: this._liquidityService,
         dxInfoService: this._dxInfoService,
         marketService: this._marketService,
         botAddress,
-        markets,
         slackClient: this._slackClient,
         botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING,
-        notifications,
         ...aditionalBotConfig
       })
     })
