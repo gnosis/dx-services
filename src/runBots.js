@@ -178,8 +178,6 @@ class App {
 
       return new HighSellVolumeBot({
         name: 'HighSellVolumeBot for: ' + botConfig.name,
-        // eventBus: this._eventBus,
-        // liquidityService: this._liquidityService,
         dxInfoService: this._dxInfoService,
         marketService: this._marketService,
         botAddress,

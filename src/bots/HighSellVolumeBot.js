@@ -12,37 +12,33 @@ const formatUtil = require('../helpers/formatUtil')
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.BUY_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
+const BALANCE_MARGIN_FACTOR =
+  process.env.HIGH_SELL_VOLUME_BALANCE_MARGIN_FACTOR || 1.10 // 10%
+
 class HighSellVolumeBot extends Bot {
   constructor ({
     name,
-    // eventBus,
-    // liquidityService,
     dxInfoService,
     marketService,
     botAddress,
     markets,
     slackClient,
     botTransactionsSlackChannel,
-    // buyLiquidityRules,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name)
 
-    // this._eventBus = eventBus
-    // this._liquidityService = liquidityService
     this._dxInfoService = dxInfoService
     this._marketService = marketService
     this._botAddress = botAddress
     this._markets = markets
     this._slackClient = slackClient
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
-    // this._buyLiquidityRules = buyLiquidityRules
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
     this._lastCheck = null
-    this._lastBuy = null
     this._lastError = null
   }
 
@@ -70,7 +66,7 @@ class HighSellVolumeBot extends Bot {
   }
 
   async _doRoutineLiquidityCheck (sellToken, buyToken) {
-    // Do ensure liquidity on the market
+    // Do check if we have enough balances to ensure liquidity
     auctionLogger.debug({
       sellToken,
       buyToken,
@@ -88,12 +84,13 @@ class HighSellVolumeBot extends Bot {
     let liquidityWasChecked
     try {
       // We must check both auction sides
-      await this._checkEnoughBalance({ sellToken, buyToken, from })
-      await this._checkEnoughBalance({ sellToken: buyToken, buyToken: sellToken, from })
-
+      await Promise.all([
+        this._checkEnoughBalance({ sellToken, buyToken, from }),
+        this._checkEnoughBalance({ sellToken: buyToken, buyToken: sellToken, from })
+      ])
       liquidityWasChecked = true
     } catch (error) {
-      this.lastError = new Date()
+      this._lastError = new Date()
       liquidityWasChecked = false
       this._handleError(sellToken, buyToken, error)
     }
@@ -105,27 +102,23 @@ class HighSellVolumeBot extends Bot {
     logger.debug('Checking enough balance for %s-%s in %s', sellToken, buyToken, from)
     const auctionSellVolumePromise = this._dxInfoService.getSellVolume({
       sellToken, buyToken })
-    const accountBalancesPromise = this._dxInfoService.getBalances({
-      address: from })
+    const buyTokenBalancePromise = this._dxInfoService.getAccountBalanceForToken({
+      token: buyToken, address: from })
     const auctionIndexPromise = this._dxInfoService.getAuctionIndex({
       sellToken, buyToken })
     const externalPricePromise = this._marketService.getPrice({
       tokenA: sellToken, tokenB: buyToken })
-    const [ auctionSellVolume, accountBalances, auctionIndex, externalPrice ] =
+    const [ auctionSellVolume, buyTokenBalance, auctionIndex, externalPrice ] =
     await Promise.all([
       auctionSellVolumePromise,
-      accountBalancesPromise,
+      buyTokenBalancePromise,
       auctionIndexPromise,
       externalPricePromise
     ])
 
     const lastAvailableClosingPrice = await this._dxInfoService.getLastClosingPrices({
       sellToken, buyToken, auctionIndex })
-    const { amount: buyTokenBalance } = accountBalances.find(({ token, amount }) => {
-      if (token === buyToken) {
-        return amount
-      }
-    })
+
     const estimatedPrice = lastAvailableClosingPrice[lastAvailableClosingPrice.length - 1]
       ? lastAvailableClosingPrice[lastAvailableClosingPrice.length - 1]
       : externalPrice
@@ -136,7 +129,7 @@ class HighSellVolumeBot extends Bot {
       estimatedPrice, sellToken, buyToken,
       formatUtil.formatFromWei(estimatedBuyVolume), buyToken)
 
-    if (estimatedBuyVolume.mul(1.10).greaterThan(buyTokenBalance)) {
+    if (estimatedBuyVolume.mul(BALANCE_MARGIN_FACTOR).greaterThan(buyTokenBalance)) {
       logger.debug('We estimate we won`t be able to buy everything')
       this._notifyBalanceBelowEstimate({
         sellToken, buyToken, from, balance: buyTokenBalance, estimatedBuyVolume })
@@ -147,15 +140,18 @@ class HighSellVolumeBot extends Bot {
 
   _notifyBalanceBelowEstimate ({ sellToken, buyToken, from, balance, estimatedBuyVolume }) {
     // Log low balance tokens
-    const balanceInWei = formatUtil.formatFromWei(balance)
+    const balanceInEth = formatUtil.formatFromWei(balance)
+    const estimatedBuyVolumeInEth = formatUtil.formatFromWei(estimatedBuyVolume)
 
     auctionLogger.warn({
       sellToken,
       buyToken,
-      msg: "I've detected a high sell volume %s and we only have %s to ensure BUY liquidity",
+      msg: "I've detected a high sell volume %s %s and we only have %s %s to ensure BUY liquidity",
       params: [
-        estimatedBuyVolume,
-        balanceInWei
+        estimatedBuyVolumeInEth,
+        buyToken,
+        balanceInEth,
+        buyToken
       ],
       notify: true
     })
@@ -170,8 +166,8 @@ class HighSellVolumeBot extends Bot {
               sellToken,
               buyToken,
               from,
-              balance: balanceInWei,
-              estimatedBuyVolume
+              balance: balanceInEth,
+              estimatedBuyVolume: estimatedBuyVolumeInEth
             })
           }
           break
@@ -242,7 +238,6 @@ class HighSellVolumeBot extends Bot {
     return {
       botAddress: this._botAddress,
       lastCheck: this._lastCheck,
-      lastBuy: this._lastBuy,
       lastError: this._lastError,
       notifications: this._notifications,
       defaultSlackChannel: this._botTransactionsSlackChannel,
