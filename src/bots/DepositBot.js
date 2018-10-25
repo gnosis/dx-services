@@ -6,6 +6,7 @@ const getVersion = require('../helpers/getVersion')
 const getBotAddress = require('../helpers/getBotAddress')
 
 const numberUtil = require('../../src/helpers/numberUtil')
+const dateUtil = require('../../src/helpers/dateUtil')
 
 const logger = new Logger(loggerNamespace)
 // const auctionLogger = new AuctionLogger(loggerNamespace)
@@ -25,7 +26,8 @@ class DepositBot extends Bot {
     botTransactionsSlackChannel,
     tokensByAccount,
     notifications,
-    checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS
+    checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
+    inactiveTimeLapse
   }) {
     super(name)
     this._dxInfoService = dxInfoService
@@ -38,6 +40,8 @@ class DepositBot extends Bot {
 
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
+
+    this._inactiveTimeLapse = inactiveTimeLapse
 
     this._lastCheck = null
     this._lastDeposit = null
@@ -63,6 +67,20 @@ class DepositBot extends Bot {
   async _depositFunds () {
     this._lastCheck = new Date()
     let botHasDepositedFunds
+
+    function isInactiveTimeLapse ({ from, to }) {
+      const date1 = dateUtil.newDate(from, 'HH:mm')
+      const date2 = dateUtil.newDate(to, 'HH:mm')
+      return dateUtil.nowIsBetween(date1, date2)
+    }
+
+    const isWaitingTime = this._inactiveTimeLapse.some(isInactiveTimeLapse)
+    if (isWaitingTime) {
+      // We stop deposit funds execution
+      logger.debug('We are at an inactive time lapse, claim your funds now')
+      return false
+    }
+
     try {
       logger.debug('Tokens by account: %O', this._tokensByAccount)
       const accountKeys = Object.keys(this._tokensByAccount)
