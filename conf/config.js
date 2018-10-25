@@ -88,8 +88,11 @@ const DEPOSIT_BOT = {
     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
   }],
   inactiveTimeLapse: [{
-    from: '',
-    to: ''
+    from: '11:30',
+    to: '12:00'
+  }, {
+    from: '15:30',
+    to: '16:00'
   }],
   checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
 }

@@ -27,7 +27,7 @@ class DepositBot extends Bot {
     tokensByAccount,
     notifications,
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
-    inactiveTimeLapse
+    inactiveTimeLapse = []
   }) {
     super(name)
     this._dxInfoService = dxInfoService
