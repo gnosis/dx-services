@@ -12,6 +12,18 @@ const TOKENS_BY_ACCOUNT = {
 }
 
 let depositBot
+beforeAll(async () => {
+  const { dxInfoService, dxTradeService } = await setupPromise
+
+  // we wrap functions we will mock with jest.fn
+  dxInfoService.getBalanceOfEther =
+    jest.fn(dxInfoService.getBalanceOfEther)
+
+  dxInfoService.getAccountBalancesForTokensNotDeposited =
+    jest.fn(dxInfoService.getAccountBalancesForTokensNotDeposited)
+
+  dxTradeService.deposit = jest.fn(dxTradeService.deposit)
+})
 
 beforeEach(async () => {
   const { dxInfoService, dxTradeService, ethereumClient } = await setupPromise
@@ -56,20 +68,15 @@ test('It should not do a deposit if nothing to deposit.', async () => {
   expect.assertions(7)
 
   // we mock getBalanceOfEther function
-  depositBot._dxInfoService.getBalanceOfEther =
-    jest.fn(depositBot._dxInfoService.getBalanceOfEther)
   const GET_ETHER_BALANCE_FN = depositBot._dxInfoService.getBalanceOfEther
   GET_ETHER_BALANCE_FN.mockImplementationOnce(_getEtherBalanceWithNoEthToDeposit)
 
   // we mock getAccountBalancesForTokensNotDeposited function
-  depositBot._dxInfoService.getAccountBalancesForTokensNotDeposited =
-    jest.fn(depositBot._dxInfoService.getAccountBalancesForTokensNotDeposited)
   const GET_TOKEN_BALANCES_FN =
     depositBot._dxInfoService.getAccountBalancesForTokensNotDeposited
   GET_TOKEN_BALANCES_FN.mockImplementationOnce(_getAccountBalancesWithNoTokensToDeposit)
 
   // we mock ensureSellLiquidity function
-  depositBot._dxTradeService.deposit = jest.fn(depositBot._dxTradeService.deposit)
   const DEPOSIT_FN = depositBot._dxTradeService.deposit
   DEPOSIT_FN.mockImplementationOnce(_deposit)
 
@@ -90,12 +97,16 @@ test('It should not do a deposit if nothing to deposit.', async () => {
   expect(DEPOSIT_FN).toHaveBeenCalledTimes(0)
 })
 
-test('It should do a deposit.', async () => {
+test('It should deposit ether and tokens.', async () => {
   expect.assertions(3)
   // we mock ensureSellLiquidity function
-  depositBot._dxTradeService.deposit = jest.fn(depositBot._dxTradeService.deposit)
   const DEPOSIT_FN = depositBot._dxTradeService.deposit
   DEPOSIT_FN.mockImplementationOnce(_deposit)
+
+  // we mock getAccountBalancesForTokensNotDeposited function
+  const GET_TOKEN_BALANCES_FN =
+    depositBot._dxInfoService.getAccountBalancesForTokensNotDeposited
+  GET_TOKEN_BALANCES_FN.mockImplementationOnce(_getAccountBalancesForTokensNotDeposited)
 
   // GIVEN a never checked balances for deposit
   expect(DEPOSIT_FN).toHaveBeenCalledTimes(0)
@@ -107,33 +118,50 @@ test('It should do a deposit.', async () => {
   await CHECK_DEPOSIT.then(result => {
     expect(result).toBeTruthy()
   })
-  expect(DEPOSIT_FN).toHaveBeenCalledTimes(1)
+  expect(DEPOSIT_FN).toHaveBeenCalledTimes(2)
 })
 
-// test('It should handle errors if something goes wrong.', () => {
-//   expect.assertions(3)
-//   // we mock ensureSellLiquidity function
-//   depositBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidityError)
-//   depositBot._handleError = jest.fn(depositBot._handleError)
-//   const HANDLE_ERROR_FN = depositBot._handleError
-//
-//   // GIVEN never called handling error function
-//   expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(0)
-//
-//   // WHEN we ensure liquidity but an error is thrown
-//   const ENSURE_LIQUIDITY = depositBot._ensureSellLiquidity({
-//     buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
-//
-//   // THEN liquidity can't be ensured
-//   ENSURE_LIQUIDITY.then(result => {
-//     expect(result).toBeFalsy()
-//   })
-//   // THEN handling error function is called
-//   expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(1)
-// })
+test('It should handle errors if something goes wrong while checking balances.', async () => {
+  expect.assertions(3)
+  // we mock deposit function to throw an error
+  const GET_ETHER_BALANCE_FN = depositBot._dxInfoService.getBalanceOfEther
+  GET_ETHER_BALANCE_FN.mockClear()
+  GET_ETHER_BALANCE_FN.mockImplementationOnce(_forceError)
+
+  // GIVEN never called get balances function
+  expect(GET_ETHER_BALANCE_FN).toHaveBeenCalledTimes(0)
+
+  // WHEN we check balances but an error is thrown
+  const CHECK_DEPOSIT = depositBot._depositFunds()
+
+  // THEN we can't finish depositing funds
+  await CHECK_DEPOSIT.then(result => {
+    expect(result).toBeFalsy()
+  })
+  // THEN function was called once but errored
+  expect(GET_ETHER_BALANCE_FN).toHaveBeenCalledTimes(1)
+})
+
+test('It should handle errors if something goes wrong while depositing.', async () => {
+  expect.assertions(2)
+  // we mock deposit function to throw an error
+  const DEPOSIT_FN = depositBot._dxTradeService.deposit
+  DEPOSIT_FN.mockImplementationOnce(_promiseReject)
+
+  depositBot._handleError = jest.fn(depositBot._handleError)
+  const HANDLE_ERROR_FN = depositBot._handleError
+
+  // GIVEN never called handling error function
+  expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(0)
+
+  // WHEN we check and deposit funds but an error is thrown
+  await depositBot._depositFunds()
+
+  // THEN handling error function is called
+  expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(1)
+})
 
 function _getAccountBalancesForTokensNotDeposited ({ tokens, account }) {
-  console.log('Mocking get account balances for tokens not deposited')
   return Promise.resolve([{
     token: 'RDN',
     amount: new BigNumber('522943983903581200')
@@ -157,6 +185,10 @@ function _deposit ({ token, amount, accounAddress }) {
   return Promise.resolve([])
 }
 
-function _ensureLiquidityError ({ sellToken, buyToken, from }) {
+function _promiseReject () {
+  return Promise.reject(new Error('This is an EXPECTED test error'))
+}
+
+function _forceError () {
   throw Error('This is an EXPECTED test error')
 }
