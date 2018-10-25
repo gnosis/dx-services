@@ -10,7 +10,7 @@ const numberUtil = require('../helpers/numberUtil')
 const formatUtil = require('../helpers/formatUtil')
 
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
-  process.env.BUY_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
+  process.env.HIGH_SELL_VOLUME_BOT_CHECK_TIME_MS || (5 * 60 * 1000) // 5 min
 
 const BALANCE_MARGIN_FACTOR =
   process.env.HIGH_SELL_VOLUME_BALANCE_MARGIN_FACTOR || 1.10 // 10%
@@ -104,24 +104,15 @@ class HighSellVolumeBot extends Bot {
       sellToken, buyToken })
     const buyTokenBalancePromise = this._dxInfoService.getAccountBalanceForToken({
       token: buyToken, address: from })
-    const auctionIndexPromise = this._dxInfoService.getAuctionIndex({
-      sellToken, buyToken })
     const externalPricePromise = this._marketService.getPrice({
       tokenA: sellToken, tokenB: buyToken })
-    const [ auctionSellVolume, buyTokenBalance, auctionIndex, externalPrice ] =
+    const [ auctionSellVolume, buyTokenBalance, estimatedPrice ] =
     await Promise.all([
       auctionSellVolumePromise,
       buyTokenBalancePromise,
-      auctionIndexPromise,
       externalPricePromise
     ])
 
-    const lastAvailableClosingPrice = await this._dxInfoService.getLastClosingPrices({
-      sellToken, buyToken, auctionIndex })
-
-    const estimatedPrice = lastAvailableClosingPrice[lastAvailableClosingPrice.length - 1]
-      ? lastAvailableClosingPrice[lastAvailableClosingPrice.length - 1]
-      : externalPrice
     const estimatedBuyVolume = auctionSellVolume.mul(numberUtil.toBigNumber(estimatedPrice))
     logger.debug('Auction sell volume is %s %s and we have %s %s. With last available price %s %s/%s that should mean we need %s %s',
       formatUtil.formatFromWei(auctionSellVolume), sellToken,

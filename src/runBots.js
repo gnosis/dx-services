@@ -174,7 +174,8 @@ class App {
     const highSellVolumeBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(async botConfig => {
       const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
       assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
-      const { name, ...aditionalBotConfig } = botConfig
+      // We discard checkTimeInMilliseconds because that is for the buyBot
+      const { name, checkTimeInMilliseconds, ...aditionalBotConfig } = botConfig
 
       return new HighSellVolumeBot({
         name: 'HighSellVolumeBot for: ' + botConfig.name,
