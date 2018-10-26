@@ -136,6 +136,7 @@ class App {
   }
 
   _createBots () {
+    let bots = []
     const botTypes = {
       SellLiquidityBot: require('./bots/SellLiquidityBot'),
       BuyLiquidityBot: require('./bots/BuyLiquidityBot')
@@ -221,7 +222,6 @@ class App {
     const BalanceCheckBot = require('./bots/BalanceCheckBot')
     const balanceCheckBotPromise = new BalanceCheckBot({
       name: 'BalanceCheckBot',
-      eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
       ethereumClient: this._ethereumClient,
@@ -231,9 +231,24 @@ class App {
     })
     // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_AUCTIONS_REPORT
 
+    if (this._config.DEPOSIT_BOT) {
+      const aditionalBotConfig = this._config.DEPOSIT_BOT
+      const DepositBot = require('./bots/DepositBot')
+      const depositBotPromise = new DepositBot({
+        dxTradeService: this._dxTradeService,
+        dxInfoService: this._dxInfoService,
+        ethereumClient: this._ethereumClient,
+        tokensByAccount,
+        slackClient: this._slackClient,
+        botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_TRANSACTIONS,
+        ...aditionalBotConfig
+      })
+      bots.push(depositBotPromise)
+    }
+
     // Return bots
     return Promise.all(
-      [].concat(
+      bots.concat(
         sellLiquidityBotPromises,
         buyLiquidityBotPromises,
         highSellVolumeBotPromises,

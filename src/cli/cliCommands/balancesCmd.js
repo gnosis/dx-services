@@ -18,8 +18,7 @@ function registerCommand ({ cli, instances, logger }) {
       const {
         botAccount,
         dxInfoService,
-        contracts,
-        config
+        contracts
       } = instances
 
       if (!account) {
@@ -37,10 +36,10 @@ function registerCommand ({ cli, instances, logger }) {
       // ])
       // const tokens = tokenList.data
       // tokens.push(magnoliaToken)
-      const tokens = Object.keys(config.ERC20_TOKEN_ADDRESSES).map(symbol => {
+      const tokens = Object.keys(contracts.erc20TokenContracts).map(symbol => {
         return {
           symbol,
-          tokenAddress: config.ERC20_TOKEN_ADDRESSES[symbol]
+          tokenAddress: contracts.erc20TokenContracts[symbol].address
         }
       })
 
@@ -136,7 +135,7 @@ async function _getBasicBalances ({
     amountInDx
   ] = await Promise.all([
     // get token balance
-    dxInfoService.getAccountBalanceForTokenNotDeposited({ tokenAddress, account }),
+    dxInfoService.getAccountBalanceForTokenNotDeposited({ token: tokenAddress, account }),
     dxInfoService.getTokenAllowance({
       tokenAddress,
       owner: account,

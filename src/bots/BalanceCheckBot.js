@@ -27,7 +27,6 @@ class BalanceCheckBot extends Bot {
     botFundingSlackChannel
   }) {
     super(name)
-    this._eventBus = eventBus
     this._liquidityService = liquidityService
     this._dxInfoService = dxInfoService
     this._ethereumClient = ethereumClient
