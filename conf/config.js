@@ -87,7 +87,8 @@ const DEPOSIT_BOT = {
     type: 'slack',
     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
   }],
-  inactiveTimeLapse: [{
+  // You can use this to have some time to manually withdraw funds
+  inactivityPeriods: [{
     from: '11:30',
     to: '12:00'
   }, {

@@ -23,11 +23,13 @@ function diff (date1, date2, period) {
     .diff(date1, period)
 }
 
-function nowIsBetween (date1, date2) {
-  return moment().isBetween(date1, date2)
+function isNowBetweenPeriod (date1, date2, format) {
+  const moment1 = _newMoment(date1, format)
+  const moment2 = _newMoment(date2, format)
+  return moment().isBetween(moment1, moment2)
 }
 
-function newDate (date, format) {
+function _newMoment (date, format) {
   return moment(date, format)
 }
 
@@ -36,6 +38,5 @@ module.exports = {
   toStartOf,
   toEndOf,
   diff,
-  nowIsBetween,
-  newDate
+  isNowBetweenPeriod
 }

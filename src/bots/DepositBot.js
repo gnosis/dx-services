@@ -27,7 +27,7 @@ class DepositBot extends Bot {
     tokensByAccount,
     notifications,
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
-    inactiveTimeLapse = []
+    inactivityPeriods = []
   }) {
     super(name)
     this._dxInfoService = dxInfoService
@@ -41,7 +41,7 @@ class DepositBot extends Bot {
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
-    this._inactiveTimeLapse = inactiveTimeLapse
+    this._inactivityPeriods = inactivityPeriods
 
     this._lastCheck = null
     this._lastDeposit = null
@@ -68,13 +68,10 @@ class DepositBot extends Bot {
     this._lastCheck = new Date()
     let botHasDepositedFunds
 
-    function isInactiveTimeLapse ({ from, to }) {
-      const date1 = dateUtil.newDate(from, 'HH:mm')
-      const date2 = dateUtil.newDate(to, 'HH:mm')
-      return dateUtil.nowIsBetween(date1, date2)
-    }
+    const isWaitingTime = this._inactivityPeriods.some(({ from, to }) => {
+      return dateUtil.isNowBetweenPeriod(from, to, 'HH:mm')
+    })
 
-    const isWaitingTime = this._inactiveTimeLapse.some(isInactiveTimeLapse)
     if (isWaitingTime) {
       // We stop deposit funds execution
       logger.debug('We are at an inactive time lapse, claim your funds now')
@@ -85,18 +82,18 @@ class DepositBot extends Bot {
       logger.debug('Tokens by account: %O', this._tokensByAccount)
       const accountKeys = Object.keys(this._tokensByAccount)
 
+      // Get account addresses
       const accountAddressesPromises = accountKeys.map(accountKey => {
         return getBotAddress(this._ethereumClient, accountKey)
       })
-
       const accountAddresses = await Promise.all(accountAddressesPromises)
       logger.debug('Account addresses: %O', accountAddresses)
 
+      // Prepare balances promises
       const balanceOfEtherPromises = accountAddresses.map(account => {
         // Get ETH balance
         return this._dxInfoService.getBalanceOfEther({ account })
       })
-
       const balanceOfTokensPromises = accountAddresses.map((account, index) => {
         // Get balance of ERC20 tokens
         return this._dxInfoService.getAccountBalancesForTokensNotDeposited({
@@ -105,72 +102,68 @@ class DepositBot extends Bot {
         })
       })
 
+      // Execute balances promises
       const balancesOfEther = await Promise.all(balanceOfEtherPromises)
       logger.debug('Balances of ether: %O', balancesOfEther)
-
       const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
       logger.debug('Balances of tokens: %O', balancesOfTokens)
 
-      const balancesOfTokensWithAddress = accountAddresses.map((account, index) => {
-        return {
-          account,
-          name: this._tokensByAccount[accountKeys[index]].name,
-          balancesInfo: balancesOfTokens[index]
-        }
-      })
-      logger.debug('%O', balancesOfTokensWithAddress)
+      // Function to check and handle token depositing
+      const _depositTokens = (depositPromises, { token, amount }, accountAddress, threshold) => {
+        const weiReserveAmount = numberUtil.toWei(threshold)
+        if (amount > weiReserveAmount) {
+          // We have tokens to deposit
+          const amountToDeposit = amount.sub(weiReserveAmount)
+          const tokenToDeposit = token === 'ETH' ? 'WETH' : token
+          logger.debug('I have to deposit %d %s for account %s',
+            numberUtil.fromWei(amountToDeposit), token, accountAddress)
 
-      // Check if the account has ETHER over the reserve amount
-      const balancesOfEtherPromises = balancesOfEther.reduce((balancePromises, balance, index) => {
-        const weiReserveAmount = numberUtil.toWei(ETHER_RESERVE_AMOUNT)
-        if (balance > weiReserveAmount) {
-          const amount = balance.sub(weiReserveAmount)
-          logger.debug('I have to deposit %d ether for account %s', numberUtil.fromWei(amount), accountAddresses[index])
-          balancePromises.push(this._dxTradeService.deposit({
-            token: 'WETH',
-            amount,
-            accountAddress: accountAddresses[index]
+          depositPromises.push(this._dxTradeService.deposit({
+            token: tokenToDeposit,
+            amount: amountToDeposit,
+            accountAddress
           }).then(result => {
-            // Notify ether deposited
-            this._notifyDepositedTokens(amount, 'ETH', accountAddresses[index])
+            // Notify deposited token
+            this._notifyDepositedTokens(amount, token, accountAddress)
           }).catch(error => {
-            this._handleError('WETH', accountAddresses[index], error)
+            this._handleError(token, accountAddress, error)
           }))
         } else {
-          logger.debug('No Ether tokens to deposit for account: %s', accountAddresses[index])
+          logger.debug('No %s tokens to deposit for account: %s', token, accountAddress)
         }
-        return balancePromises
+        return depositPromises
+      }
+
+      // If any account has Ether over the RESERVE_AMOUNT we deposit it
+      const depositEtherPromises = balancesOfEther.reduce((depositPromises, balance, index) => {
+        const accountAddress = accountAddresses[index]
+        const etherBalance = { token: 'ETH', amount: balance }
+        return _depositTokens(
+          depositPromises, etherBalance, accountAddress, ETHER_RESERVE_AMOUNT)
       }, [])
 
-      // Check if there is ERC20 tokens balance not deposited in any account
-      const balancesOfTokensPromises = balancesOfTokens.reduce((balancesPromises, accountBalances, index) => {
-        // Check if there are tokens below the minimun amount
-        const accountBalancesPromises = accountBalances.reduce((accPromises, { token, amount }) => {
-          if (amount > 0) {
-            logger.debug('I have to deposit %s for account %s', token, accountAddresses[index])
-            accPromises.push(this._dxTradeService.deposit({
-              token,
-              amount,
-              accountAddress: accountAddresses[index]
-            }).then(result => {
-              // Notify tokens deposited
-              this._notifyDepositedTokens(amount, token, accountAddresses[index])
-            }).catch(error => {
-              this._handleError(token, accountAddresses[index], error)
-            }))
-          } else {
-            logger.debug('No %s tokens to deposit for account: %s', token, accountAddresses[index])
-          }
-          return accPromises
+      const _depositTokensByAccount = (accountAddress, accountBalances) => {
+        // For each token we check if there are some balance not deposited in the DutchX
+        return accountBalances.reduce((depositPromises, balance) => {
+          return _depositTokens(depositPromises, balance, accountAddress, 0)
+        }, [])
+      }
+
+      // If any account has not deposited ERC20 tokens we deposit them
+      const depositTokensPromises = balancesOfTokens.reduce(
+        (depositPromises, accountBalances, index) => {
+          // We check deposit for all tokens of an account
+          const accountAddress = accountAddresses[index]
+          const depositTokensByAccountPromises =
+            _depositTokensByAccount(accountAddress, accountBalances)
+
+          return depositPromises.concat(depositTokensByAccountPromises)
         }, [])
 
-        return balancesPromises.concat(accountBalancesPromises)
-      }, [])
+      await Promise.all(depositEtherPromises.concat(depositTokensPromises))
 
-      await Promise.all(balancesOfEtherPromises.concat(balancesOfTokensPromises))
-
-      botHasDepositedFunds = balancesOfEtherPromises.length > 0 ||
-        balancesOfTokensPromises.length > 0
+      botHasDepositedFunds = depositEtherPromises.length > 0 ||
+        depositTokensPromises.length > 0
     } catch (error) {
       this.lastError = new Date()
       botHasDepositedFunds = false
