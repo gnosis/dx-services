@@ -9,7 +9,7 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('token-pair', yargs)
       cliUtils.addPositionalByName('auction-index', yargs)
     }, async function (argv) {
-      const { amount, auctionIndex: auctionIndexAux, tokenPair } = argv
+      const { amount, auctionIndex: auctionIndexParam, tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
       const {
         botAccount,
@@ -19,12 +19,21 @@ function registerCommand ({ cli, instances, logger }) {
 
       // Get auction index
       let auctionIndex
-      if (auctionIndexAux) {
-        auctionIndex = auctionIndexAux
+      if (auctionIndexParam) {
+        auctionIndex = auctionIndexParam
       } else {
-        auctionIndex = await dxInfoService.getAuctionIndex({
-          sellToken, buyToken
-        })
+        const [ auctionIndexCurrent, state ] = await Promise.all([
+          dxInfoService.getAuctionIndex({ sellToken, buyToken }),
+          dxInfoService.getState({ sellToken, buyToken })
+        ])
+
+        if (state === 'WAITING_FOR_FUNDING' || state === 'WAITING_FOR_AUCTION_TO_START') {
+          // If we are in a waiting period
+          auctionIndex = auctionIndexCurrent
+        } else {
+          // If the prior auction is not cleared yet
+          auctionIndex = auctionIndexCurrent + 1
+        }
       }
 
       logger.info(`Sell %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
