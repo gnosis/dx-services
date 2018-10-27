@@ -30,8 +30,10 @@ class HDWalletProvider extends TruffleHDWalletProvider {
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           // console.error('[HDWalletProvider] Error getting the nonce')
+          logger.info('Error getting the nonce', error)
           reject(error)
         } else {
+          logger.info('Got nonce %d for account %s', nonce, from)
           resolve(nonce)
           /*
           console.log('[HDWalletProvider] Using nonce: ', nonce)
@@ -70,6 +72,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
           } else {
             params.nonce = nonce
           }
+          logger.info('Send transaction with params %O', params)
           // console.log('[HDWalletProvider] Params: %O', params)
           const sendParams = Object.assign({}, args, { params })
           return super.sendAsync(sendParams, callback)

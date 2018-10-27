@@ -48,7 +48,7 @@ async function _sendTransaction ({
   }
 
   // Get the current nonce
-  const nonce = await getNonceFn()
+  const nonce = await getNonceFn(from)
   logger.info(`Nonce: ${nonce}`)
 
   // Trigger the transaction
@@ -67,8 +67,8 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock) {
       setTimeout(releaseLock, 0)
     } else {
       const intervalId = setInterval(() => {
-        getNonceFn().then(newNonce => {
-          logger.info(`Checking nonce update: ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
+        getNonceFn(from).then(newNonce => {
+          logger.info(`Checking nonce update from: ${from}, ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
           // check if the transaction has been incremented
           if (newNonce === nonce + 1) {
             releaseLock()
