@@ -65,8 +65,12 @@ const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
 const customConfigFile = process.env.CONFIG_FILE
 
 // FIXME restore to original when deployed by devops
-// const customConfig = customConfigFile ? require(customConfigFile) : {}
-const customConfig = customConfigFile ? require(customConfigFile) : require('./bots')
+let customConfig
+if (environment === 'test') {
+  customConfig = customConfigFile ? require(customConfigFile) : {}
+} else {
+  customConfig = customConfigFile ? require(customConfigFile) : require('./bots')
+}
 
 const markets = customConfig.MARKETS || envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getConfiguredTokenList(markets)
