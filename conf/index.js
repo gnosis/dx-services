@@ -63,7 +63,10 @@ const networkConfig = network ? require(`./network/${network}-config`) : {}
 const envMarkets = LET_ENV_VAR_MARKETS_OVERRIDE_CONFIG ? getEnvMarkets() : null
 
 const customConfigFile = process.env.CONFIG_FILE
-const customConfig = customConfigFile ? require(customConfigFile) : {}
+
+// FIXME restore to original when deployed by devops
+// const customConfig = customConfigFile ? require(customConfigFile) : {}
+const customConfig = customConfigFile ? require(customConfigFile) : require('./bots')
 
 const markets = customConfig.MARKETS || envMarkets || envConf.MARKETS || defaultConf.MARKETS
 const tokens = getConfiguredTokenList(markets)
