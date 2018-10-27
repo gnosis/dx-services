@@ -25,9 +25,9 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     // console.log('[HDWalletProvider] Wallet address: ', this._address)
   }
 
-  getNonce () {
+  getNonce (from) {
     return new Promise((resolve, reject) => {
-      this._web3.eth.getTransactionCount(this._address, this._blockForNonceCalculation, (error, nonce) => {
+      this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           // console.error('[HDWalletProvider] Error getting the nonce')
           reject(error)
@@ -46,15 +46,23 @@ class HDWalletProvider extends TruffleHDWalletProvider {
 
   sendAsync (args) {
     let { method, params } = args
-
     // console.log('[HDWalletProvider] Intercepting sendAsync: ', arguments)
     // console.log('[HDWalletProvider] Intercepting sendAsync - Method: %s', method)
+    // if (method === 'eth_sendTransaction') {
+    //   console.log(args)
+    // }
     if (method === 'eth_sendTransaction' && !isLocal) {
       const [, callback] = arguments
+      let from
+      if (Array.isArray(params)) {
+        from = params[0].from
+      } else {
+        from = params.nonce
+      }
       // console.log('[HDWalletProvider] Send transaction params: ', options)
       sendTxWithUniqueNonce({
-        from: this._address,
-        getNonceFn: () => this.getNonce(),
+        from,
+        getNonceFn: () => this.getNonce(from),
         sendTransaction: nonce => {
           logger.debug('Using nonce: %d', nonce)
           if (Array.isArray(params)) {
