@@ -64,6 +64,29 @@ class DepositBot extends Bot {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
+  async _getTokenBalances (accountKeys, accountAddresses) {
+    // Prepare balances promises
+    const balanceOfEtherPromises = accountAddresses.map(account => {
+      // Get ETH balance
+      return this._dxInfoService.getBalanceOfEther({ account })
+    })
+    const balanceOfTokensPromises = accountAddresses.map((account, index) => {
+      // Get balance of ERC20 tokens
+      return this._dxInfoService.getAccountBalancesForTokensNotDeposited({
+        tokens: this._tokensByAccount[accountKeys[index]].tokens,
+        account
+      })
+    })
+
+    // Execute balances promises
+    const balancesOfEther = await Promise.all(balanceOfEtherPromises)
+    logger.debug('Balances of ether: %O', balancesOfEther)
+    const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
+    logger.debug('Balances of tokens: %O', balancesOfTokens)
+
+    return [ balancesOfEther, balancesOfTokens ]
+  }
+
   async _depositFunds () {
     this._lastCheck = new Date()
     let botHasDepositedFunds
@@ -89,33 +112,18 @@ class DepositBot extends Bot {
       const accountAddresses = await Promise.all(accountAddressesPromises)
       logger.debug('Account addresses: %O', accountAddresses)
 
-      // Prepare balances promises
-      const balanceOfEtherPromises = accountAddresses.map(account => {
-        // Get ETH balance
-        return this._dxInfoService.getBalanceOfEther({ account })
-      })
-      const balanceOfTokensPromises = accountAddresses.map((account, index) => {
-        // Get balance of ERC20 tokens
-        return this._dxInfoService.getAccountBalancesForTokensNotDeposited({
-          tokens: this._tokensByAccount[accountKeys[index]].tokens,
-          account
-        })
-      })
-
-      // Execute balances promises
-      const balancesOfEther = await Promise.all(balanceOfEtherPromises)
-      logger.debug('Balances of ether: %O', balancesOfEther)
-      const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
-      logger.debug('Balances of tokens: %O', balancesOfTokens)
+      const [ balancesOfEther, balancesOfTokens ] = await this._getTokenBalances(
+        accountKeys, accountAddresses)
 
       // Function to check and handle token depositing
       const _depositTokens = (depositPromises, { token, amount }, accountAddress, threshold) => {
         const weiReserveAmount = numberUtil.toWei(threshold)
-        if (amount > weiReserveAmount) {
+        logger.info('Wei reserve amount for token %s: %O', token, weiReserveAmount)
+        if (amount.greaterThan(weiReserveAmount)) {
           // We have tokens to deposit
-          const amountToDeposit = amount.sub(weiReserveAmount)
+          const amountToDeposit = amount.minus(weiReserveAmount)
           const tokenToDeposit = token === 'ETH' ? 'WETH' : token
-          logger.debug('I have to deposit %d %s for account %s',
+          logger.info('I have to deposit %d %s for account %s',
             numberUtil.fromWei(amountToDeposit), token, accountAddress)
 
           depositPromises.push(this._dxTradeService.deposit({
