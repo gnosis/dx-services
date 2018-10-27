@@ -20,9 +20,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     // console.log('[HDWalletProvider] New provider for: %s', url)
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._web3 = new Web3(this)
-    this._address = this.addresses[0]
     this._blockForNonceCalculation = blockForNonceCalculation
-    // console.log('[HDWalletProvider] Wallet address: ', this._address)
   }
 
   getNonce (from) {
