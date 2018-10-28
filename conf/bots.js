@@ -87,9 +87,6 @@ const BUY_LIQUIDITY_BOTS = [{
   notifications: [{
     type: 'slack',
     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }, {
-    type: 'email',
-    email: ''
   }],
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }]

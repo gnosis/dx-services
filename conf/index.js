@@ -195,12 +195,12 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
 function getSlackConfig (envVars) {
   let slackConfig = {}
   if (envVars.SLACK_CHANNEL_DX_BOTS) {
-    slackConfig.SLACK_CHANNEL_BOT_FUNDING = envVars.SLACK_CHANNEL_DX_BOTS
     slackConfig.SLACK_CHANNEL_AUCTIONS_REPORT = envVars.SLACK_CHANNEL_DX_BOTS
+    slackConfig.SLACK_CHANNEL_BOT_TRANSACTIONS = envVars.SLACK_CHANNEL_DX_BOTS
   }
   if (envVars.SLACK_CHANNEL_DX_BOTS_DEV) {
-    slackConfig.SLACK_CHANNEL_BOT_TRANSACTIONS = envVars.SLACK_CHANNEL_DX_BOTS_DEV
     slackConfig.SLACK_CHANNEL_OPERATIONS = envVars.SLACK_CHANNEL_DX_BOTS_DEV
+    slackConfig.SLACK_CHANNEL_BOT_FUNDING = envVars.SLACK_CHANNEL_DX_BOTS_DEV
   }
   return slackConfig
 }
