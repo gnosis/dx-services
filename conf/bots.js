@@ -1,7 +1,7 @@
 // FIXME remove this when deployed by devops
 const MARKETS = [
-  { tokenA: 'WETH', tokenB: 'RDN' },
-  { tokenA: 'WETH', tokenB: 'OMG' },
+  // { tokenA: 'WETH', tokenB: 'RDN' },
+  // { tokenA: 'WETH', tokenB: 'OMG' },
   { tokenA: 'WETH', tokenB: 'DAI' },
   { tokenA: 'WETH', tokenB: 'GEN' },
   { tokenA: 'WETH', tokenB: 'MKR' }]
