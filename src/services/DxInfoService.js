@@ -530,8 +530,22 @@ class DxInfoService {
     return this._ethereumRepo.balanceOf({ account })
   }
 
-  async getAccountBalanceForTokenNotDeposited ({ tokenAddress, account }) {
+  async getAccountBalanceForTokenNotDeposited ({ token, account }) {
+    const tokenAddress = await this.getTokenAddress(token)
+
     return this._ethereumRepo.tokenBalanceOf({ tokenAddress, account })
+  }
+
+  async getAccountBalancesForTokensNotDeposited ({ tokens, account }) {
+    const balancesPromises = tokens.map(async token => {
+      const amount = await this.getAccountBalanceForTokenNotDeposited({ token, account })
+
+      return {
+        token, amount
+      }
+    })
+
+    return Promise.all(balancesPromises)
   }
 
   async getTokenTotalSupply ({ tokenAddress }) {

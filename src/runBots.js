@@ -44,6 +44,7 @@ class App {
     dxTradeService,
     botsService,
     reportService,
+    marketService,
 
     // Events
     eventBus,
@@ -63,6 +64,7 @@ class App {
     this._dxTradeService = dxTradeService
     this._botsService = botsService
     this._reportService = reportService
+    this._marketService = marketService
 
     // Bots
     this._bots = null
@@ -134,6 +136,7 @@ class App {
   }
 
   _createBots () {
+    let bots = []
     const botTypes = {
       SellLiquidityBot: require('./bots/SellLiquidityBot'),
       BuyLiquidityBot: require('./bots/BuyLiquidityBot')
@@ -166,6 +169,24 @@ class App {
     // Buy Liquidity Bots
     const buyLiquidityBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(botConfig => {
       return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
+    })
+
+    const HighSellVolumeBot = require('./bots/HighSellVolumeBot')
+    const highSellVolumeBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(async botConfig => {
+      const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
+      assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+      // We discard checkTimeInMilliseconds because that is for the buyBot
+      const { name, checkTimeInMilliseconds, ...aditionalBotConfig } = botConfig
+
+      return new HighSellVolumeBot({
+        name: 'HighSellVolumeBot for: ' + botConfig.name,
+        dxInfoService: this._dxInfoService,
+        marketService: this._marketService,
+        botAddress,
+        slackClient: this._slackClient,
+        botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING,
+        ...aditionalBotConfig
+      })
     })
 
     // Balance Check Bot Config
@@ -201,7 +222,6 @@ class App {
     const BalanceCheckBot = require('./bots/BalanceCheckBot')
     const balanceCheckBotPromise = new BalanceCheckBot({
       name: 'BalanceCheckBot',
-      eventBus: this._eventBus,
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
       ethereumClient: this._ethereumClient,
@@ -211,11 +231,27 @@ class App {
     })
     // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_AUCTIONS_REPORT
 
+    if (this._config.DEPOSIT_BOT) {
+      const aditionalBotConfig = this._config.DEPOSIT_BOT
+      const DepositBot = require('./bots/DepositBot')
+      const depositBotPromise = new DepositBot({
+        dxTradeService: this._dxTradeService,
+        dxInfoService: this._dxInfoService,
+        ethereumClient: this._ethereumClient,
+        tokensByAccount,
+        slackClient: this._slackClient,
+        botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_TRANSACTIONS,
+        ...aditionalBotConfig
+      })
+      bots.push(depositBotPromise)
+    }
+
     // Return bots
     return Promise.all(
-      [].concat(
+      bots.concat(
         sellLiquidityBotPromises,
         buyLiquidityBotPromises,
+        highSellVolumeBotPromises,
         balanceCheckBotPromise
       )
     )

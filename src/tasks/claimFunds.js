@@ -9,9 +9,7 @@ const instanceFactory = require('../helpers/instanceFactory')
 const getBotAddress = require('../helpers/getBotAddress')
 
 // Env
-const environment = process.env.NODE_ENV
-
-logger.info('Claiming funds for %s', environment)
+logger.info('Claiming funds')
 
 // Run app
 instanceFactory()

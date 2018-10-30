@@ -20,6 +20,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
   <![endif]-->
 
+  <script type="text/javascript">
+  if (window.location.hostname.indexOf("www") == 0) {
+      window.location = window.location.href.replace("www.","");
+  }
+  </script>
+
   <link rel="stylesheet" href="main.css?v=1.0">
 </head>
 
@@ -30,8 +36,6 @@
     <p>Check out the <a href="https://blog.gnosis.pm/tagged/dutchx" target="_blank">Blog</a> to learn more about the DutchX<span id="versionContainer"></span></p>
     <p>Developers, read the <a href="http://dutchx.readthedocs.io/en/latest" target="_blank">documentation</a> to learn how to integrate with the DutchX.</p>
   </header>
-
-  <script src="main.js"></script>
 </body>
 
 </html>

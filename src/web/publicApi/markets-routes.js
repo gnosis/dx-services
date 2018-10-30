@@ -144,7 +144,7 @@ function createRoutes ({ dxInfoService, reportService },
 }
 
 function _isValidCount (count) {
-  return count > 0 && count < DEFAULT_MAX_PAGE_SIZE
+  return count > 0 && count <= DEFAULT_MAX_PAGE_SIZE
 }
 
 module.exports = createRoutes

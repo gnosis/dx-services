@@ -7,11 +7,13 @@ class AuctionRepoMock {
   constructor ({
     auctions,
     balances,
-    pricesInUSD
+    pricesInUSD,
+    pricesInETH
   }) {
     this._auctions = auctions || auctionsMockData.auctions
     this._balances = balances || auctionsMockData.balances
     this._pricesInUSD = pricesInUSD || auctionsMockData.pricesInUSD
+    this._pricesInETH = pricesInETH || auctionsMockData.pricesInETH
     this._tokens = { WETH: '', RDN: '', OMG: '' }
   }
 
@@ -120,6 +122,15 @@ class AuctionRepoMock {
 
   async getLastAvaliableClosingPrice ({ sellToken, buyToken, auctionIndex }) {
     return this._getClosingPrice({ sellToken, buyToken, auctionIndex })
+  }
+
+  async getPriceInEth ({ token }) {
+    const price = this._pricesInETH.find(price => {
+      return price.token === token
+    }).price
+    debug('Price in ETH for %s: %s', token, price)
+
+    return price
   }
 
   async isApprovedToken ({ token }) {
@@ -235,7 +246,7 @@ class AuctionRepoMock {
     }
   }
 
-  async getPriceFromUSDInTokens ({token, amountOfUsd}) {
+  async getPriceFromUSDInTokens ({ token, amountOfUsd }) {
     const ethUsdPrice = await this.getPriceEthUsd()
     debug('Eth/Usd Price for %s: %d', token, ethUsdPrice)
     let amountInEth = amountOfUsd.div(ethUsdPrice)

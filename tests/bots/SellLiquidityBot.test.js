@@ -80,7 +80,7 @@ test('It should not ensure liquidity if already ensuring liquidity.', () => {
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
 
   // THEN liquidiy is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -99,7 +99,7 @@ test('It should ensure liquidity.', () => {
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
 
   // THEN liquidity is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -120,7 +120,7 @@ test('It should handle errors if something goes wrong.', () => {
 
   // WHEN we ensure liquidity but an error is thrown
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'})
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
 
   // THEN liquidity can't be ensured
   ENSURE_LIQUIDITY.then(result => {
