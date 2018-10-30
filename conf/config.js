@@ -81,22 +81,23 @@ const SELL_LIQUIDITY_BOTS = [{
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }]
 
-const DEPOSIT_BOT = {
-  name: 'Deposit bot',
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }],
-  // You can use this to have some time to manually withdraw funds
-  inactivityPeriods: [{
-    from: '11:30',
-    to: '12:00'
-  }, {
-    from: '15:30',
-    to: '16:00'
-  }],
-  checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
-}
+// TODO Enable by default in future versions
+// const DEPOSIT_BOT = {
+//   name: 'Deposit bot',
+//   notifications: [{
+//     type: 'slack',
+//     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+//   }],
+//   // You can use this to have some time to manually withdraw funds
+//   inactivityPeriods: [{
+//     from: '11:30',
+//     to: '12:00'
+//   }, {
+//     from: '15:30',
+//     to: '16:00'
+//   }],
+//   checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
+// }
 
 const AUTO_CLAIM_AUCTIONS = 90
 
@@ -195,7 +196,7 @@ module.exports = {
   MAIN_BOT_ACCOUNT,
   BUY_LIQUIDITY_BOTS,
   SELL_LIQUIDITY_BOTS,
-  DEPOSIT_BOT,
+  // DEPOSIT_BOT,
   BUY_LIQUIDITY_RULES_DEFAULT,
   MARKETS,
   AUTO_CLAIM_AUCTIONS,
