@@ -24,7 +24,9 @@ class BalanceCheckBot extends Bot {
     ethereumClient,
     tokensByAccount,
     slackClient,
-    botFundingSlackChannel
+    botFundingSlackChannel,
+    minimunAmountInUsdForToken = MINIMUM_AMOUNT_IN_USD_FOR_TOKENS,
+    minimunAmountForEther = MINIMUM_AMOUNT_FOR_ETHER
   }) {
     super(name)
     this._liquidityService = liquidityService
@@ -32,6 +34,8 @@ class BalanceCheckBot extends Bot {
     this._ethereumClient = ethereumClient
     this._slackClient = slackClient
     this._botFundingSlackChannel = botFundingSlackChannel
+    this._minimunAmountInUsdForToken = minimunAmountInUsdForToken
+    this._minimunAmountForEther = minimunAmountForEther
 
     this._tokensByAccount = tokensByAccount
 
@@ -95,11 +99,9 @@ class BalanceCheckBot extends Bot {
 
       // Check if the account has ETHER below the minimum amount
       balancesOfEther.forEach((balance, index) => {
-        const tokenByAccountInfo = this._tokensByAccount[accountKeys[index]]
-        const minimunAmountForEther = tokenByAccountInfo.minimunAmountForEther || MINIMUM_AMOUNT_FOR_ETHER
-        if (balance < minimunAmountForEther) {
+        if (balance < this._minimunAmountForEther) {
           const account = accountAddresses[index]
-          const name = tokenByAccountInfo.name
+          const name = this._tokensByAccount[accountKeys[index]].name
           this._lastWarnNotification = new Date()
           // Notify lack of ether
           this._notifyLackOfEther(balance, account, name)
@@ -107,14 +109,10 @@ class BalanceCheckBot extends Bot {
       })
 
       balancesOfTokensWithAddress.forEach(({ account, name, balancesInfo }) => {
-        const tokenByAccountInfo = this._tokensByAccount[account]
-        const minimunAmountInUsdForToken =
-          tokenByAccountInfo.minimunAmountInUsdForToken || MINIMUM_AMOUNT_IN_USD_FOR_TOKENS
-
         // Check if there are tokens below the minimun amount
 
         const tokenBelowMinimun = balancesInfo.filter(balanceInfo => {
-          return balanceInfo.amountInUSD.lessThan(minimunAmountInUsdForToken)
+          return balanceInfo.amountInUSD.lessThan(this._minimunAmountInUsdForToken)
         })
 
         if (tokenBelowMinimun.length > 0) {
@@ -142,8 +140,8 @@ class BalanceCheckBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
-      minimunAmountInUsd: MINIMUM_AMOUNT_IN_USD_FOR_TOKENS,
-      minimumAmountInEth: MINIMUM_AMOUNT_FOR_ETHER * 1e-18,
+      minimunAmountInUsd: this._minimunAmountInUsdForToken,
+      minimumAmountInEth: this._minimunAmountForEther * 1e-18,
       tokensByAccount: this._tokensByAccount,
       botFundingSlackChannel: this._botFundingSlackChannel,
       lastCheck: this._lastCheck,
@@ -155,7 +153,7 @@ class BalanceCheckBot extends Bot {
   }
 
   _notifyLackOfEther (balanceOfEther, account, name) {
-    const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER * 1e-18
+    const minimunAmount = this._minimunAmountForEther / 1e18
     const balance = balanceOfEther.div(1e18).valueOf()
 
     const message = 'The bot account has ETHER balance below ' + minimunAmount
@@ -212,7 +210,7 @@ class BalanceCheckBot extends Bot {
       })
     })
 
-    const message = `The bot account has tokens below the ${MINIMUM_AMOUNT_IN_USD_FOR_TOKENS} USD worth of value`
+    const message = `The bot account has tokens below the ${this._minimunAmountInUsdForToken} USD worth of value`
     const tokenNames = tokenBelowMinimun.map(balanceInfo => balanceInfo.token).join(', ')
     let fields = tokenBelowMinimunValue.map(({ token, amount, amountInUSD }) => ({
       title: token,

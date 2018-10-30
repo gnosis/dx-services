@@ -200,11 +200,19 @@ class App {
       this._config.BUY_LIQUIDITY_BOTS,
       this._config.SELL_LIQUIDITY_BOTS)
 
-    function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+    function _getAccountMarkets (accountMarkets, {
+      accountIndex,
+      markets,
+      name,
+      minimunAmountInUsdForToken,
+      minimunAmountForEther
+    }) {
       if (!accountMarkets.hasOwnProperty(accountIndex)) {
         accountMarkets[accountIndex] = {
           name: name,
-          tokens: []
+          tokens: [],
+          minimunAmountInUsdForToken,
+          minimunAmountForEther
         }
       } else {
         accountMarkets[accountIndex].name += ', ' + name
@@ -220,6 +228,8 @@ class App {
       })
       return accountMarkets
     }
+
+    // i.e { '0x12345': { name: '', tokens: [] }]
     const tokensByAccount = buyAndSellBotsConfig.reduce((accountMarkets, botConfig) => {
       return _getAccountMarkets(accountMarkets, botConfig)
     }, {})
