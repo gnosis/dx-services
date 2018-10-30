@@ -106,7 +106,7 @@ class BalanceCheckBot extends Bot {
           const name = tokenByAccountInfo.name
           this._lastWarnNotification = new Date()
           // Notify lack of ether
-          this._notifyLackOfEther(balance, account, name)
+          this._notifyLackOfEther(balance, account, name, minimunAmountForEther)
         }
       })
 
@@ -119,7 +119,7 @@ class BalanceCheckBot extends Bot {
 
         if (tokenBelowMinimun.length > 0) {
           // Notify lack of tokens
-          this._notifyLackOfTokens(tokenBelowMinimun, account, name)
+          this._notifyLackOfTokens(tokenBelowMinimun, account, name, minimunAmountInUsdForToken)
         } else {
           logger.debug('Everything is fine for account: %s', account)
         }
@@ -142,8 +142,6 @@ class BalanceCheckBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
-      minimunAmountInUsd: MINIMUM_AMOUNT_IN_USD_FOR_TOKENS,
-      minimumAmountInEth: MINIMUM_AMOUNT_FOR_ETHER * 1e-18,
       tokensByAccount: this._tokensByAccount,
       botFundingSlackChannel: this._botFundingSlackChannel,
       lastCheck: this._lastCheck,
@@ -154,8 +152,8 @@ class BalanceCheckBot extends Bot {
     }
   }
 
-  _notifyLackOfEther (balanceOfEther, account, name) {
-    const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER * 1e-18
+  _notifyLackOfEther (balanceOfEther, account, name, minimunAmountForEther) {
+    const minimunAmount = minimunAmountForEther * 1e-18
     const balance = balanceOfEther.div(1e18).valueOf()
 
     const message = 'The bot account has ETHER balance below ' + minimunAmount
@@ -202,7 +200,7 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  _notifyLackOfTokens (tokenBelowMinimun, account, name) {
+  _notifyLackOfTokens (tokenBelowMinimun, account, name, minimunAmountInUsdForToken) {
     // Notify which tokens are below the minimun value
     this._lastWarnNotification = new Date()
     const tokenBelowMinimunValue = tokenBelowMinimun.map(balanceInfo => {
@@ -212,7 +210,7 @@ class BalanceCheckBot extends Bot {
       })
     })
 
-    const message = `The bot account has tokens below the ${MINIMUM_AMOUNT_IN_USD_FOR_TOKENS} USD worth of value`
+    const message = `The bot account has tokens below the ${minimunAmountInUsdForToken} USD worth of value`
     const tokenNames = tokenBelowMinimun.map(balanceInfo => balanceInfo.token).join(', ')
     let fields = tokenBelowMinimunValue.map(({ token, amount, amountInUSD }) => ({
       title: token,

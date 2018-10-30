@@ -32,6 +32,7 @@ const BUY_LIQUIDITY_RULES_DEFAULT = [
 ]
 
 const MAIN_BOT_ACCOUNT = 0
+const BACKUP_BOT_ACCOUNT = 1
 
 const BUY_LIQUIDITY_BOTS = [{
   name: 'Main buyer bot',
@@ -48,7 +49,7 @@ const BUY_LIQUIDITY_BOTS = [{
   markets: [
     { tokenA: 'WETH', tokenB: 'RDN' }
   ],
-  accountIndex: 1,
+  accountIndex: BACKUP_BOT_ACCOUNT,
   rules: [{
     // Buy the 100% if price falls below 90%
     marketPriceRatio: {
@@ -68,7 +69,8 @@ const BUY_LIQUIDITY_BOTS = [{
     email: ''
   }],
   checkTimeInMilliseconds: 60 * 1000, // 60s
-  disableHighSellVolumeCheck: true
+  disableHighSellVolumeCheck: true,
+  minimunAmountInUsdForToken: 850 // $850
 }]
 
 const SELL_LIQUIDITY_BOTS = [{
