@@ -169,7 +169,7 @@ const EXCHANGE_PRICE_REPO_IMPL = 'impl' // mock. impl
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
   strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-  feeds: ['binance', 'huobi', 'kraken', 'bitfinex']
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid']
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
