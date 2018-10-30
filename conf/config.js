@@ -70,7 +70,7 @@ const BUY_LIQUIDITY_BOTS = [{
   }],
   checkTimeInMilliseconds: 60 * 1000, // 60s
   disableHighSellVolumeCheck: true,
-  minimunAmountInUsdForToken: 850 // $850
+  minimumAmountInUsdForToken: 850 // $850
 }]
 
 const SELL_LIQUIDITY_BOTS = [{

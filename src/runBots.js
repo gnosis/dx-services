@@ -201,15 +201,15 @@ class App {
       accountIndex,
       markets,
       name,
-      minimunAmountInUsdForToken,
-      minimunAmountForEther
+      minimumAmountInUsdForToken,
+      minimumAmountForEther
     }) {
       if (!accountMarkets.hasOwnProperty(accountIndex)) {
         accountMarkets[accountIndex] = {
           name: name,
           tokens: [],
-          minimunAmountInUsdForToken,
-          minimunAmountForEther
+          minimumAmountInUsdForToken,
+          minimumAmountForEther
         }
       } else {
         accountMarkets[accountIndex].name += ', ' + name
