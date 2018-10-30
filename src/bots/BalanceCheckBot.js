@@ -155,7 +155,7 @@ class BalanceCheckBot extends Bot {
   }
 
   _notifyLackOfEther (balanceOfEther, account, name) {
-    const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER / 1e18
+    const minimunAmount = MINIMUM_AMOUNT_FOR_ETHER * 1e-18
     const balance = balanceOfEther.div(1e18).valueOf()
 
     const message = 'The bot account has ETHER balance below ' + minimunAmount
