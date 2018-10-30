@@ -67,7 +67,8 @@ const BUY_LIQUIDITY_BOTS = [{
     type: 'email',
     email: ''
   }],
-  checkTimeInMilliseconds: 60 * 1000 // 60s
+  checkTimeInMilliseconds: 60 * 1000, // 60s
+  disableHighSellVolumeCheck: true
 }]
 
 const SELL_LIQUIDITY_BOTS = [{
