@@ -31,6 +31,13 @@ function createRoutes ({ botsService }) {
     }
   })
 
+  routes.push({
+    path: '/v1/bots',
+    get (req, res) {
+      return botsService.getBots()
+    }
+  })
+
   return routes
 }
 

@@ -44,14 +44,7 @@ class BotsService {
     const ethereumAbout = await this._ethereumRepo.getAbout()
 
     // Return bot info
-    const bots = await Promise.all(
-      this._bots.map(async bot => {
-        const botInfo = await bot.getInfo()
-        return Object.assign({
-          name: bot.name,
-          startTime: bot.startTime
-        }, botInfo)
-      }))
+    const bots = await this._getBotsInfo()
 
     return {
       version: this._version,
@@ -62,6 +55,23 @@ class BotsService {
       git: this._gitInfo,
       bots
     }
+  }
+
+  async getBots () {
+    // Return bot info
+    return this._getBotsInfo()
+  }
+
+  async _getBotsInfo () {
+    return Promise.all(
+      this._bots.map(async bot => {
+        const botInfo = await bot.getInfo()
+        return Object.assign({
+          name: bot.name,
+          startTime: bot.startTime
+        }, botInfo)
+      })
+    )
   }
 }
 
