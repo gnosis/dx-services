@@ -86,9 +86,13 @@ class BalanceCheckBot extends Bot {
       const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
 
       const balancesOfTokensWithAddress = accountAddresses.map((account, index) => {
+        const tokenByAccountInfo = this._tokensByAccount[accountKeys[index]]
+
         return {
           account,
-          name: this._tokensByAccount[accountKeys[index]].name,
+          name: tokenByAccountInfo.name,
+          minimunAmountInUsdForToken: tokenByAccountInfo.minimunAmountInUsdForToken ||
+            MINIMUM_AMOUNT_IN_USD_FOR_TOKENS,
           balancesInfo: balancesOfTokens[index]
         }
       })
@@ -106,11 +110,7 @@ class BalanceCheckBot extends Bot {
         }
       })
 
-      balancesOfTokensWithAddress.forEach(({ account, name, balancesInfo }) => {
-        const tokenByAccountInfo = this._tokensByAccount[account]
-        const minimunAmountInUsdForToken =
-          tokenByAccountInfo.minimunAmountInUsdForToken || MINIMUM_AMOUNT_IN_USD_FOR_TOKENS
-
+      balancesOfTokensWithAddress.forEach(({ account, name, minimunAmountInUsdForToken, balancesInfo }) => {
         // Check if there are tokens below the minimun amount
 
         const tokenBelowMinimun = balancesInfo.filter(balanceInfo => {
