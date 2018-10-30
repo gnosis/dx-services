@@ -13,7 +13,7 @@ const MINIMUM_AMOUNT_FOR_ETHER = (process.env.BALANCE_CHECK_THRESHOLD_ETHER || 0
 const checkTimeMinutes = process.env.BALANCE_BOT_CHECK_TIME_MINUTES || 15 // 15 min
 const slackThresholdMinutes = process.env.BALANCE_BOT_SLACK_THESHOLD_MINUTES || (4 * 60) // 4h
 const PERIODIC_CHECK_MILLISECONDS = checkTimeMinutes * 60 * 1000
-const MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS = slackThresholdMinutes * 60 * 1000
+const MINIMUM_TIME_BETWEEN_SLACK_NOTIFICATIONS = slackThresholdMinutes * 60 * 1000
 
 class BalanceCheckBot extends Bot {
   constructor ({
@@ -109,15 +109,15 @@ class BalanceCheckBot extends Bot {
       })
 
       balancesOfTokensWithAddress.forEach(({ account, name, balancesInfo }) => {
-        // Check if there are tokens below the minimun amount
+        // Check if there are tokens below the minimum amount
 
-        const tokenBelowMinimun = balancesInfo.filter(balanceInfo => {
+        const tokenBelowMinimum = balancesInfo.filter(balanceInfo => {
           return balanceInfo.amountInUSD.lessThan(this._minimumAmountInUsdForToken)
         })
 
-        if (tokenBelowMinimun.length > 0) {
+        if (tokenBelowMinimum.length > 0) {
           // Notify lack of tokens
-          this._notifyLackOfTokens(tokenBelowMinimun, account, name)
+          this._notifyLackOfTokens(tokenBelowMinimum, account, name)
         } else {
           logger.debug('Everything is fine for account: %s', account)
         }
@@ -140,7 +140,7 @@ class BalanceCheckBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
-      minimunAmountInUsd: this._minimumAmountInUsdForToken,
+      minimumAmountInUsd: this._minimumAmountInUsdForToken,
       minimumAmountInEth: this._minimumAmountForEther * 1e-18,
       tokensByAccount: this._tokensByAccount,
       botFundingSlackChannel: this._botFundingSlackChannel,
@@ -153,10 +153,10 @@ class BalanceCheckBot extends Bot {
   }
 
   _notifyLackOfEther (balanceOfEther, account, name) {
-    const minimunAmount = this._minimumAmountForEther / 1e18
+    const minimumAmount = this._minimumAmountForEther / 1e18
     const balance = balanceOfEther.div(1e18).valueOf()
 
-    const message = 'The bot account has ETHER balance below ' + minimunAmount
+    const message = 'The bot account has ETHER balance below ' + minimumAmount
 
     // Log message
     logger.warn({
@@ -200,10 +200,10 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  _notifyLackOfTokens (tokenBelowMinimun, account, name) {
-    // Notify which tokens are below the minimun value
+  _notifyLackOfTokens (tokenBelowMinimum, account, name) {
+    // Notify which tokens are below the minimum value
     this._lastWarnNotification = new Date()
-    const tokenBelowMinimunValue = tokenBelowMinimun.map(balanceInfo => {
+    const tokenBelowMinimumValue = tokenBelowMinimum.map(balanceInfo => {
       return Object.assign(balanceInfo, {
         amount: balanceInfo.amount.div(1e18).valueOf(),
         amountInUSD: balanceInfo.amountInUSD.valueOf()
@@ -211,8 +211,8 @@ class BalanceCheckBot extends Bot {
     })
 
     const message = `The bot account has tokens below the ${this._minimumAmountInUsdForToken} USD worth of value`
-    const tokenNames = tokenBelowMinimun.map(balanceInfo => balanceInfo.token).join(', ')
-    let fields = tokenBelowMinimunValue.map(({ token, amount, amountInUSD }) => ({
+    const tokenNames = tokenBelowMinimum.map(balanceInfo => balanceInfo.token).join(', ')
+    let fields = tokenBelowMinimumValue.map(({ token, amount, amountInUSD }) => ({
       title: token,
       value: numberUtil.roundDown(amount, 4) + ' ' + token + ' ($' + amountInUSD + ')',
       short: false
@@ -234,7 +234,7 @@ class BalanceCheckBot extends Bot {
       contextData: {
         extra: {
           account,
-          tokenBelowMinimun: tokenBelowMinimunValue
+          tokenBelowMinimum: tokenBelowMinimumValue
         }
       },
       notify: true
@@ -265,7 +265,7 @@ class BalanceCheckBot extends Bot {
       if (lastNotification) {
         nextNotification = new Date(
           lastNotification.getTime() +
-          MINIMUN_TIME_BETWEEN_SLACK_NOTIFICATIONS
+          MINIMUM_TIME_BETWEEN_SLACK_NOTIFICATIONS
         )
       } else {
         nextNotification = now
