@@ -2,7 +2,7 @@ const ENVIRONMENT = 'local'
 
 const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' },
-  { tokenA: 'WETH', tokenB: 'OMG' }
+  // { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
 const AUTO_CLAIM_AUCTIONS = 90
