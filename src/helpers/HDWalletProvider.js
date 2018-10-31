@@ -31,8 +31,9 @@ class HDWalletProvider extends TruffleHDWalletProvider {
           logger.info('Error getting the nonce', error)
           reject(error)
         } else {
-          logger.info('Got nonce %d for account %s', nonce, from)
-          resolve(nonce)
+          const nonceHex = nonce.toString(16)
+          logger.info('Got nonce %d (%s) for account %s', nonce, nonceHex, from)
+          resolve(nonceHex)
           /*
           console.log('[HDWalletProvider] Using nonce: ', nonce)
           options.params.nonce = nonce
