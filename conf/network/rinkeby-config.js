@@ -3,6 +3,7 @@ const NETWORKS_DEV = require('../../node_modules/@gnosis.pm/dx-contracts/network
 
 const env = process.env.NODE_ENV
 let DX_CONTRACT_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS
+let DAI_TOKEN_ADDRESS, GEN_TOKEN_ADDRESS, MKR_TOKEN_ADDRESS
 
 // In Rinkeby we use different instances of the contract for dev and staging
 if (env === 'pre' || env === 'pro') {
@@ -28,6 +29,10 @@ if (env === 'pre' || env === 'pro') {
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'
 
+  DAI_TOKEN_ADDRESS = '0x1638578de407719a486db086b36b53750db0199e'
+  GEN_TOKEN_ADDRESS = '0xa1f34744c80e7a9019a5cd2bf697f13df00f9773'
+  MKR_TOKEN_ADDRESS = '0xe315cb6fa401092a7ecc92f05c62d05a974012f4'
+
   // Old ones
   // RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
   // OMG_TOKEN_ADDRESS = '0xc57b5b272ccfd0f9e4aa8c321ec22180cbb56054'
@@ -47,5 +52,8 @@ module.exports = {
   // Tokens
   DX_CONTRACT_ADDRESS,
   RDN_TOKEN_ADDRESS,
-  OMG_TOKEN_ADDRESS
+  OMG_TOKEN_ADDRESS,
+  DAI_TOKEN_ADDRESS,
+  GEN_TOKEN_ADDRESS,
+  MKR_TOKEN_ADDRESS
 }

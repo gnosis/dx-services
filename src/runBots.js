@@ -171,8 +171,11 @@ class App {
       return _createBot(botConfig, 'BuyLiquidityBot', this._config.SLACK_CHANNEL_BOT_TRANSACTIONS)
     })
 
+    const highSellVolumeBotsConfig = this._config.BUY_LIQUIDITY_BOTS.filter(botConfig => {
+      return (!botConfig.disableHighSellVolumeCheck)
+    })
     const HighSellVolumeBot = require('./bots/HighSellVolumeBot')
-    const highSellVolumeBotPromises = this._config.BUY_LIQUIDITY_BOTS.map(async botConfig => {
+    const highSellVolumeBotPromises = highSellVolumeBotsConfig.map(async botConfig => {
       const botAddress = await getBotAddress(this._ethereumClient, botConfig.accountIndex)
       assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
       // We discard checkTimeInMilliseconds because that is for the buyBot
@@ -194,11 +197,19 @@ class App {
       this._config.BUY_LIQUIDITY_BOTS,
       this._config.SELL_LIQUIDITY_BOTS)
 
-    function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+    function _getAccountMarkets (accountMarkets, {
+      accountIndex,
+      markets,
+      name,
+      minimumAmountInUsdForToken,
+      minimumAmountForEther
+    }) {
       if (!accountMarkets.hasOwnProperty(accountIndex)) {
         accountMarkets[accountIndex] = {
           name: name,
-          tokens: []
+          tokens: [],
+          minimumAmountInUsdForToken,
+          minimumAmountForEther
         }
       } else {
         accountMarkets[accountIndex].name += ', ' + name
@@ -214,6 +225,8 @@ class App {
       })
       return accountMarkets
     }
+
+    // i.e { '0x12345': { name: '', tokens: [] }]
     const tokensByAccount = buyAndSellBotsConfig.reduce((accountMarkets, botConfig) => {
       return _getAccountMarkets(accountMarkets, botConfig)
     }, {})

@@ -118,12 +118,12 @@ class DepositBot extends Bot {
       // Function to check and handle token depositing
       const _depositTokens = (depositPromises, { token, amount }, accountAddress, threshold) => {
         const weiReserveAmount = numberUtil.toWei(threshold)
-        logger.info('Wei reserve amount for token %s: %O', token, weiReserveAmount)
+        logger.debug('Wei reserve amount for token %s: %O', token, weiReserveAmount)
         if (amount.greaterThan(weiReserveAmount)) {
           // We have tokens to deposit
           const amountToDeposit = amount.minus(weiReserveAmount)
           const tokenToDeposit = token === 'ETH' ? 'WETH' : token
-          logger.info('I have to deposit %d %s for account %s',
+          logger.debug('I have to deposit %d %s for account %s',
             numberUtil.fromWei(amountToDeposit), token, accountAddress)
 
           depositPromises.push(this._dxTradeService.deposit({

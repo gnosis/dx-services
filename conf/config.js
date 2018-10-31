@@ -32,6 +32,7 @@ const BUY_LIQUIDITY_RULES_DEFAULT = [
 ]
 
 const MAIN_BOT_ACCOUNT = 0
+const BACKUP_BOT_ACCOUNT = 1
 
 const BUY_LIQUIDITY_BOTS = [{
   name: 'Main buyer bot',
@@ -48,7 +49,7 @@ const BUY_LIQUIDITY_BOTS = [{
   markets: [
     { tokenA: 'WETH', tokenB: 'RDN' }
   ],
-  accountIndex: 1,
+  accountIndex: BACKUP_BOT_ACCOUNT,
   rules: [{
     // Buy the 100% if price falls below 90%
     marketPriceRatio: {
@@ -67,7 +68,9 @@ const BUY_LIQUIDITY_BOTS = [{
     type: 'email',
     email: ''
   }],
-  checkTimeInMilliseconds: 60 * 1000 // 60s
+  checkTimeInMilliseconds: 60 * 1000, // 60s
+  disableHighSellVolumeCheck: true,
+  minimumAmountInUsdForToken: 850 // $850
 }]
 
 const SELL_LIQUIDITY_BOTS = [{
@@ -81,22 +84,23 @@ const SELL_LIQUIDITY_BOTS = [{
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }]
 
-const DEPOSIT_BOT = {
-  name: 'Deposit bot',
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }],
-  // You can use this to have some time to manually withdraw funds
-  inactivityPeriods: [{
-    from: '11:30',
-    to: '12:00'
-  }, {
-    from: '15:30',
-    to: '16:00'
-  }],
-  checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
-}
+// TODO Enable by default in future versions
+// const DEPOSIT_BOT = {
+//   name: 'Deposit bot',
+//   notifications: [{
+//     type: 'slack',
+//     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+//   }],
+//   // You can use this to have some time to manually withdraw funds
+//   inactivityPeriods: [{
+//     from: '11:30',
+//     to: '12:00'
+//   }, {
+//     from: '15:30',
+//     to: '16:00'
+//   }],
+//   checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
+// }
 
 const AUTO_CLAIM_AUCTIONS = 90
 
@@ -165,7 +169,7 @@ const EXCHANGE_PRICE_REPO_IMPL = 'impl' // mock. impl
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
   strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-  feeds: ['binance', 'huobi', 'kraken', 'bitfinex']
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid']
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
@@ -195,7 +199,7 @@ module.exports = {
   MAIN_BOT_ACCOUNT,
   BUY_LIQUIDITY_BOTS,
   SELL_LIQUIDITY_BOTS,
-  DEPOSIT_BOT,
+  // DEPOSIT_BOT,
   BUY_LIQUIDITY_RULES_DEFAULT,
   MARKETS,
   AUTO_CLAIM_AUCTIONS,

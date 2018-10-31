@@ -986,8 +986,8 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     const isValidTokenPair = await this.isValidTokenPair({ tokenA, tokenB })
     assert(!isValidTokenPair, 'The pair was previouslly added')
 
-    // Ensure that we reach the minimun USD to add a token pair
-    await this._assertMinimunFundingForAddToken({
+    // Ensure that we reach the minimum USD to add a token pair
+    await this._assertMinimumFundingForAddToken({
       tokenA, actualAFunding, tokenB, actualBFunding
     })
 
@@ -1040,7 +1040,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
 (required ${amountBigNumber.div(1e18)} ${token})`)
   }
 
-  async _assertMinimunFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
+  async _assertMinimumFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
     // get the funded value in USD
     let fundedValueUSD
     if (tokenA === 'WETH') {
