@@ -7,6 +7,7 @@ const getBotAddress = require('../helpers/getBotAddress')
 
 const numberUtil = require('../../src/helpers/numberUtil')
 const dateUtil = require('../../src/helpers/dateUtil')
+const BOT_TYPE = 'DepositBot'
 
 const logger = new Logger(loggerNamespace)
 // const auctionLogger = new AuctionLogger(loggerNamespace)
@@ -29,7 +30,7 @@ class DepositBot extends Bot {
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
     inactivityPeriods = []
   }) {
-    super(name)
+    super(name, BOT_TYPE)
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
     this._ethereumClient = ethereumClient
@@ -48,6 +49,10 @@ class DepositBot extends Bot {
     this._lastError = null
 
     this._botInfo = 'DepositBot - v' + getVersion()
+  }
+
+  async init () {
+    logger.debug('Init Deposit Bot: ' + this.name)
   }
 
   async _doStart () {

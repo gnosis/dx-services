@@ -9,6 +9,8 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 const numberUtil = require('../helpers/numberUtil')
 const formatUtil = require('../helpers/formatUtil')
 
+const BOT_TYPE = 'HighSellVolumeBot'
+
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.HIGH_SELL_VOLUME_BOT_CHECK_TIME_MS || (5 * 60 * 1000) // 5 min
 
@@ -27,7 +29,7 @@ class HighSellVolumeBot extends Bot {
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
-    super(name)
+    super(name, BOT_TYPE)
 
     this._dxInfoService = dxInfoService
     this._marketService = marketService
@@ -40,6 +42,10 @@ class HighSellVolumeBot extends Bot {
 
     this._lastCheck = null
     this._lastError = null
+  }
+
+  async init () {
+    logger.debug('Init High Sell Volume Bot: ' + this.name)
   }
 
   async _doStart () {

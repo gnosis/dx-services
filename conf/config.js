@@ -4,106 +4,8 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'RDN' },
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
-const BUY_LIQUIDITY_RULES_DEFAULT = [
-  // Buy 1/2 if price falls below 99%
-
-  {
-    marketPriceRatio: {
-      numerator: 99,
-      denominator: 100
-    },
-    buyRatio: {
-      numerator: 1,
-      denominator: 2
-    }
-  },
-
-  // Buy the 100% if price falls below 96%
-  {
-    marketPriceRatio: {
-      numerator: 96,
-      denominator: 100
-    },
-    buyRatio: {
-      numerator: 1,
-      denominator: 1
-    }
-  }
-]
-
-const MAIN_BOT_ACCOUNT = 0
-const BACKUP_BOT_ACCOUNT = 1
-
-const BUY_LIQUIDITY_BOTS = [{
-  name: 'Main buyer bot',
-  markets: MARKETS,
-  accountIndex: MAIN_BOT_ACCOUNT,
-  rules: BUY_LIQUIDITY_RULES_DEFAULT,
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }],
-  checkTimeInMilliseconds: 60 * 1000 // 60s
-}, {
-  name: 'Backup buyer for RDN-WETH',
-  markets: [
-    { tokenA: 'WETH', tokenB: 'RDN' }
-  ],
-  accountIndex: BACKUP_BOT_ACCOUNT,
-  rules: [{
-    // Buy the 100% if price falls below 90%
-    marketPriceRatio: {
-      numerator: 90,
-      denominator: 100
-    },
-    buyRatio: {
-      numerator: 1,
-      denominator: 1
-    }
-  }],
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }, {
-    type: 'email',
-    email: ''
-  }],
-  checkTimeInMilliseconds: 60 * 1000, // 60s
-  disableHighSellVolumeCheck: true,
-  minimumAmountInUsdForToken: 850 // $850
-}]
-
-const SELL_LIQUIDITY_BOTS = [{
-  name: 'Main seller bot',
-  markets: MARKETS,
-  accountIndex: MAIN_BOT_ACCOUNT,
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }],
-  checkTimeInMilliseconds: 60 * 1000 // 60s
-}]
-
-// TODO Enable by default in future versions
-// const DEPOSIT_BOT = {
-//   name: 'Deposit bot',
-//   notifications: [{
-//     type: 'slack',
-//     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-//   }],
-//   // You can use this to have some time to manually withdraw funds
-//   inactivityPeriods: [{
-//     from: '11:30',
-//     to: '12:00'
-//   }, {
-//     from: '15:30',
-//     to: '16:00'
-//   }],
-//   checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
-// }
 
 const AUTO_CLAIM_AUCTIONS = 90
-
 const DEFAULT_GAS = 6700000
 
 const ETHEREUM_RPC_URL = 'http://127.0.0.1:8545'
@@ -192,13 +94,122 @@ const GAS_RETRY_INCREMENT = 1.2 // (previous_gas * GAS_RETRY_INCREMENT) === incr
 const OVER_FAST_PRICE_FACTOR = 1 // (fast_price * OVER_FAST_PRICE_FACTOR) === using maximum the fastest gas price
 const GAS_ESTIMATION_CORRECTION_FACTOR = 2 // Gas estimation correction for proxied contract
 
+const BUY_LIQUIDITY_RULES_DEFAULT = [
+  // Buy 1/2 if price falls below 99%
+
+  {
+    marketPriceRatio: {
+      numerator: 99,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 2
+    }
+  },
+
+  // Buy the 100% if price falls below 96%
+  {
+    marketPriceRatio: {
+      numerator: 96,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }
+]
+
+const MAIN_BOT_ACCOUNT = 0
+const BACKUP_BOT_ACCOUNT = 1
+
+const BUY_BOT_MAIN = {
+  name: 'Main buyer bot',
+  factory: 'src/bots/BuyLiquidityBot',
+  markets: MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  rules: BUY_LIQUIDITY_RULES_DEFAULT,
+  notifications: [{
+    type: 'slack',
+    channel: SLACK_CHANNEL_DX_BOTS_DEV
+  }],
+  checkTimeInMilliseconds: 60 * 1000 // 60s
+}
+
+const BUY_BOT_BACKUP = {
+  name: 'Backup buyer for RDN-WETH',
+  factory: 'src/bots/BuyLiquidityBot',
+  markets: [
+    { tokenA: 'WETH', tokenB: 'RDN' }
+  ],
+  accountIndex: BACKUP_BOT_ACCOUNT,
+  rules: [{
+    // Buy the 100% if price falls below 90%
+    marketPriceRatio: {
+      numerator: 90,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }],
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }, {
+    type: 'email',
+    email: ''
+  }],
+  checkTimeInMilliseconds: 60 * 1000, // 60s
+  disableHighSellVolumeCheck: true,
+  minimumAmountInUsdForToken: 850 // $850
+}
+
+const SELL_BOT_MAIN = {
+  name: 'Main seller bot',
+  factory: 'src/bots/SellLiquidityBot',
+  markets: MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications: [{
+    type: 'slack',
+    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+  }],
+  checkTimeInMilliseconds: 60 * 1000 // 60s
+}
+
+// TODO Enable by default in future versions
+// const DEPOSIT_BOT = {
+//   name: 'Deposit bot',
+//   notifications: [{
+//     type: 'slack',
+//     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
+//   }],
+//   // You can use this to have some time to manually withdraw funds
+//   inactivityPeriods: [{
+//     from: '11:30',
+//     to: '12:00'
+//   }, {
+//     from: '15:30',
+//     to: '16:00'
+//   }],
+//   checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
+// }
+
 module.exports = {
   ENVIRONMENT,
 
   // bot config
   MAIN_BOT_ACCOUNT,
-  BUY_LIQUIDITY_BOTS,
-  SELL_LIQUIDITY_BOTS,
+  BOTS: [
+    BUY_BOT_MAIN
+    /*
+    BUY_BOT_MAIN,
+    BUY_BOT_BACKUP,
+    SELL_BOT_MAIN
+    */
+  ],
   // DEPOSIT_BOT,
   BUY_LIQUIDITY_RULES_DEFAULT,
   MARKETS,

@@ -5,6 +5,8 @@ const logger = new Logger(loggerNamespace)
 const formatUtil = require('../helpers/formatUtil')
 const numberUtil = require('../helpers/numberUtil')
 
+const BOT_TYPE = 'BalanceCheckBot'
+
 const getBotAddress = require('../helpers/getBotAddress')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = process.env.BALANCE_CHECK_THRESHOLD_USD || 5000 // $5000
@@ -26,7 +28,7 @@ class BalanceCheckBot extends Bot {
     slackClient,
     botFundingSlackChannel
   }) {
-    super(name)
+    super(name, BOT_TYPE)
     this._liquidityService = liquidityService
     this._dxInfoService = dxInfoService
     this._ethereumClient = ethereumClient
@@ -40,6 +42,10 @@ class BalanceCheckBot extends Bot {
     this._lastError = null
     this._lastSlackEtherBalanceNotification = null
     this._lastSlackTokenBalanceNotification = null
+  }
+
+  async init () {
+    logger.debug('Init Balance Check Bot: ' + this.name)
   }
 
   async _doStart () {

@@ -2,6 +2,7 @@ const loggerNamespace = 'dx-service:runBots'
 const Logger = require('./helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
+const path = require('path')
 
 // Helpers
 const gracefullShutdown = require('./helpers/gracefullShutdown')
@@ -12,6 +13,7 @@ const getBotAddress = require('./helpers/getBotAddress')
 const BotsApiServer = require('./web/bots/BotsApiServer')
 
 let app
+let botFactories = {}
 
 // Run app
 instanceFactory({})
@@ -73,7 +75,7 @@ class App {
     this.isReadyPromise = this._createBots()
       .then(bots => {
         // Set bot list
-        logger.info('Created %d bots', bots.length)
+        logger.info('Initialized %d bots', bots.length)
         this._bots = bots
         this._botsService.setBots(bots)
 
@@ -136,6 +138,44 @@ class App {
   }
 
   _createBots () {
+    const bots = this._config.BOTS.map(botConfig => {
+      const BotFactory = this._getBotFactory(botConfig)
+
+      // TODO: This should be removed one the dependencies are pulled from init method
+      const extendedBotConfig = {
+        eventBus: this._eventBus,
+        liquidityService: this._liquidityService,
+        dxInfoService: this._dxInfoService,
+        ethereumClient: this._ethereumClient,
+        slackClient: this._slackClient,
+        ...botConfig
+      }
+
+      return new BotFactory(extendedBotConfig)
+    })
+
+    // Init all the bots
+    return Promise.all(bots.map(async bot => {
+      if (bot.init) {
+        await bot.init()
+      }
+      return bot
+    }))
+  }
+
+  _getBotFactory ({ name, factory }) {
+    assert(factory, '"factory" is required. Offending bot: ' + name)
+    let Factory = botFactories[factory]
+    if (!Factory) {
+      const factoryPath = path.join('..', factory)
+      Factory = require(factoryPath)
+      botFactories[factory] = Factory
+    }
+
+    return Factory
+  }
+
+  _createBotsOld () {
     let bots = []
     const botTypes = {
       SellLiquidityBot: require('./bots/SellLiquidityBot'),
@@ -151,9 +191,9 @@ class App {
         name,
         eventBus: this._eventBus,
         liquidityService: this._liquidityService,
+        slackClient: this._slackClient,
         botAddress,
         markets,
-        slackClient: this._slackClient,
         botTransactionsSlackChannel: slackChannel,
         buyLiquidityRules: rules,
         notifications,
@@ -238,8 +278,8 @@ class App {
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
       ethereumClient: this._ethereumClient,
-      tokensByAccount,
       slackClient: this._slackClient,
+      tokensByAccount,
       botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
     // TODO: UsageReportBot Report bot. this._config.SLACK_CHANNEL_AUCTIONS_REPORT

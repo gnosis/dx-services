@@ -11,6 +11,8 @@ const events = require('../helpers/events')
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
+const BOT_TYPE = 'SellLiquidityBot'
+
 class SellLiquidityBot extends Bot {
   constructor ({
     name,
@@ -23,7 +25,7 @@ class SellLiquidityBot extends Bot {
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
-    super(name)
+    super(name, BOT_TYPE)
     this._eventBus = eventBus
     this._liquidityService = liquidityService
     this._botAddress = botAddress
@@ -38,6 +40,10 @@ class SellLiquidityBot extends Bot {
     this._lastError = null
 
     this._botInfo = 'SellLiquidityBot - v' + getVersion()
+  }
+
+  async init () {
+    logger.debug('Init Sell Liquidity Bot: ' + this.name)
   }
 
   async _doStart () {

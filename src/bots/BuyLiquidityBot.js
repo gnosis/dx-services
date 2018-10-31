@@ -2,9 +2,12 @@ const loggerNamespace = 'dx-service:bots:BuyLiquidityBot'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
+const assert = require('assert')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
+const BOT_TYPE = 'BuyLiquidityBot'
+const getBotAddress = require('../helpers/getBotAddress')
 
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.BUY_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
@@ -15,28 +18,63 @@ class BuyLiquidityBot extends Bot {
     eventBus,
     liquidityService,
     botAddress,
+    accountIndex,
     markets,
     slackClient,
-    botTransactionsSlackChannel,
-    buyLiquidityRules,
+    rules,
     notifications,
+    ethereumClient,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
-    super(name)
+    super(name, BOT_TYPE)
+    assert(markets, 'markets is required')
+    assert(rules, 'buyLiquidityRules is required')
+    assert(notifications, 'notifications is required')
+    assert(ethereumClient, 'ethereumClient is required')
+    assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
+    
+    if (botAddress) {
+      // Config using bot address
+      assert(botAddress, 'botAddress is required')
+      this._botAddress = botAddress
+    } else {
+      // Config using bot account address
+      assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
+      assert(ethereumClient, '"ethereumClient" is required if you provide accountIndex instead of botAddress')      
+      this._accountIndex = accountIndex
+    }
 
-    this._eventBus = eventBus
-    this._liquidityService = liquidityService
-    this._botAddress = botAddress
+    // If notification has slack, validate
+    const slackNotificationConf = notifications.find(notificationType => notificationType.type === 'slack')
+    if (slackNotificationConf) {
+      assert(slackNotificationConf.channel, 'Slack notification config required the "channel"')
+    }
+
     this._markets = markets
-    this._slackClient = slackClient
-    this._botTransactionsSlackChannel = botTransactionsSlackChannel
-    this._buyLiquidityRules = buyLiquidityRules
+    this._rules = rules
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
-
+    
     this._lastCheck = null
     this._lastBuy = null
     this._lastError = null
+    
+    // TODO: Move to init
+    this._ethereumClient = ethereumClient
+    this._eventBus = eventBus
+    this._liquidityService = liquidityService
+    this._slackClient = slackClient
+  }
+
+  async init () {
+    logger.debug('Init Buy Bot: ' + this.name)
+    if (!this._botAddress && this._accountIndex !== undefined) {
+      this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+    } else {
+      throw new Error('Bot address or account index has to be provided')
+    }
+
+    // TODO: Do the other initialization
   }
 
   async _doStart () {
@@ -73,7 +111,7 @@ class BuyLiquidityBot extends Bot {
   async _ensureBuyLiquidity ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
-    const buyLiquidityRules = this._buyLiquidityRules
+    const buyLiquidityRules = this._rules
     try {
       liquidityWasEnsured = await this._liquidityService
         .ensureBuyLiquidity({ sellToken, buyToken, from, buyLiquidityRules })
@@ -133,7 +171,7 @@ class BuyLiquidityBot extends Bot {
       switch (type) {
         case 'slack':
           // Notify to slack
-          if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+          if (this._slackClient.isEnabled()) {
             this._notifyBuyedTokensSlack({
               channel,
               boughtTokensString,
@@ -214,7 +252,6 @@ class BuyLiquidityBot extends Bot {
       lastBuy: this._lastBuy,
       lastError: this._lastError,
       notifications: this._notifications,
-      defaultSlackChannel: this._botTransactionsSlackChannel,
       checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets
     }
