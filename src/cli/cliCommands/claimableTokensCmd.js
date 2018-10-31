@@ -3,7 +3,7 @@ const cliUtils = require('../helpers/cliUtils')
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
     'claimable-tokens <token-pairs> [count] [--acount account]',
-    'deposit <amount> <token> [--acount account]',
+    'Get all pending claimable tokens for a list of token pairs',
     yargs => {
       cliUtils.addPositionalByName('token-pairs', yargs)
       cliUtils.addPositionalByName('count', yargs)
