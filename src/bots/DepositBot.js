@@ -123,7 +123,7 @@ class DepositBot extends Bot {
           // We have tokens to deposit
           const amountToDeposit = amount.minus(weiReserveAmount)
           const tokenToDeposit = token === 'ETH' ? 'WETH' : token
-          logger.debug('I have to deposit %d %s for account %s',
+          logger.info('I have to deposit %d %s for account %s',
             numberUtil.fromWei(amountToDeposit), token, accountAddress)
 
           depositPromises.push(this._dxTradeService.deposit({
