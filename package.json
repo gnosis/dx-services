@@ -23,6 +23,7 @@
     "bots-dev": "DEBUG=*-dx-service:* nodemon src/runBots.js",
     "bots-trace": "DEBUG=* node src/runBots.js",
     "bots-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9091 NETWORK=rinkeby node src/runBots.js",
+    "bots-rinkeby-dev": "DEBUG=ERROR-*,WARN-*,INFO-*,DEBUG-* PUBLIC_API_PORT=9091 NETWORK=rinkeby node src/runBots.js",
     "bots-kovan": "DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9091 NETWORK=kovan node src/runBots.js",
     "bots-mainnet": "MARKETS=RDN-WETH RDN_TOKEN_ADDRESS=0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6 OMG_TOKEN_ADDRESS=0xd26114cd6EE289AccF82350c8d8487fedB8A0C07 DEBUG=ERROR-*,WARN-*,INFO-*, PUBLIC_API_PORT=9092 NETWORK=mainnet node src/runBots.js",
     "test": "NODE_ENV=test jest",
