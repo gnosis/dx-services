@@ -15,7 +15,7 @@ const NONCE_INCREMENT_CHECK_TIME = 3000
 
 let accountsLocks = {}
 
-async function sendTxWithUniqueNonce (transactionParams) {
+function sendTxWithUniqueNonce (transactionParams) {
   const { from } = transactionParams
   if (accountsLocks[from]) {
     logger.debug("The account %s is locked. I'll wait for later", from)
@@ -23,6 +23,7 @@ async function sendTxWithUniqueNonce (transactionParams) {
   } else {
     logger.debug("I'll do it now")
     _sendTransaction(transactionParams)
+      .catch(_discardError)
   }
 }
 
@@ -40,6 +41,7 @@ async function _sendTransaction ({
         // Handle the pending transaction: FIFO
         const transactionParams = pendingTransaction.shift()
         _sendTransaction(transactionParams)
+          .catch(_discardError)
       } else {
         // No pending transaction, we release the lock
         logger.info('Lock released for %s', from)
@@ -65,14 +67,15 @@ async function _sendTransaction ({
 function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromise) {
   let intervalId
 
-  // In case of an error, release lock and relaunch exception
-  // txPromise.catch(error => {
-  //   if (intervalId) {
-  //     clearInterval(intervalId)
-  //   }
-  //   releaseLock()
-  //   throw error
-  // })
+  // In case of an error, release lock
+  txPromise.catch((/* error */) => {
+    if (intervalId) {
+      clearInterval(intervalId)
+    }
+    releaseLock()
+    // No need to relaunch the error, is handlerd in the callback
+    // throw error
+  })
 
   try {
     if (isLocal) {
@@ -80,7 +83,7 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
     } else {
       intervalId = setInterval(() => {
         getNonceFn(from).then(newNonce => {
-          logger.info(`Checking nonce update from: ${from}, ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
+          logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
           // check if the transaction has been incremented
           if (newNonce === nonce + 1) {
             releaseLock()
@@ -94,6 +97,11 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
     logger.error('Error waiting for nonce increment: %s', error)
     console.error(error)
   }
+}
+
+function _discardError () {
+  // No need to handle, the transaction error, because its already handled in 
+  // the callback from the TX
 }
 
 module.exports = sendTxWithUniqueNonce
