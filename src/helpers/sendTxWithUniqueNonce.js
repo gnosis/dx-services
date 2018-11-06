@@ -53,25 +53,31 @@ async function _sendTransaction ({
 
   // Trigger the transaction
   const txPromise = sendTransaction(nonce)
-  txPromise.catch(error => {
-    // Release lock and relaunch exception
-    releaseLock()
-    throw error
-  })
 
   // Wait until the transaction is in the mempool of at list a node
   // so we can release the lock
-  _waitForNonceToIncrement(nonce, from, getNonceFn, releaseLock)
+  _waitForNonceToIncrement(nonce, from, getNonceFn, releaseLock, txPromise)
 
   return txPromise
 }
 
-function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock) {
+function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromise) {
+  let intervalId
+
+  // In case of an error, release lock and relaunch exception
+  txPromise.catch(error => {
+    if (intervalId) {
+      clearInterval(intervalId)
+    }
+    releaseLock()
+    throw error
+  })
+
   try {
     if (isLocal) {
       setTimeout(releaseLock, 0)
     } else {
-      const intervalId = setInterval(() => {
+      intervalId = setInterval(() => {
         getNonceFn(from).then(newNonce => {
           logger.info(`Checking nonce update from: ${from}, ${nonce} - current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
           // check if the transaction has been incremented
