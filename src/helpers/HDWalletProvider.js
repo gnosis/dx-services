@@ -104,7 +104,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
               }
             }
             resolve(result)
-            callback(null, error)
+            callback(null, result)
           })
         })
       }
