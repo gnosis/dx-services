@@ -13,11 +13,12 @@ const TIME_TO_RELEASE_LOCK = isLocal ? 0 : (100 || process.env.SEND_TX_RELEASE_L
 
 const NONCE_INCREMENT_CHECK_TIME = 3000
 
-let lock = false
+let accountsLocks = {}
 
 async function sendTxWithUniqueNonce (transactionParams) {
-  if (lock) {
-    logger.debug("I'll wait for later")
+  const { from } = transactionParams
+  if (accountsLocks[from]) {
+    logger.debug("The account %s is locked. I'll wait for later", from)
     pendingTransaction.push(transactionParams)
   } else {
     logger.debug("I'll do it now")
@@ -30,9 +31,9 @@ async function _sendTransaction ({
   from,
   sendTransaction
 }) {
-  lock = true
+  accountsLocks[from] = true
   const releaseLock = () => {
-    logger.info('Releasing lock...')
+    logger.info('Releasing lock for %s...', from)
     setTimeout(() => {
       // Check if we have pending transactions
       if (pendingTransaction.length > 0) {
@@ -41,15 +42,15 @@ async function _sendTransaction ({
         _sendTransaction(transactionParams)
       } else {
         // No pending transaction, we release the lock
-        logger.info('Lock released')
-        lock = false
+        logger.info('Lock released for %s', from)
+        accountsLocks[from] = false
       }
     }, TIME_TO_RELEASE_LOCK)
   }
 
   // Get the current nonce
   const nonce = await getNonceFn(from)
-  logger.info(`Nonce: ${nonce}`)
+  logger.info(`Nonce for %s: %s`, from, nonce)
 
   // Trigger the transaction
   const txPromise = sendTransaction(nonce)

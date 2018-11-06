@@ -21,6 +21,8 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._web3 = new Web3(this)
     this._blockForNonceCalculation = blockForNonceCalculation
+    this._mainAddress = this.addresses[0]
+    // logger.debug('Main address: %s', this._mainAddress)
   }
 
   getNonce (from) {
@@ -49,9 +51,8 @@ class HDWalletProvider extends TruffleHDWalletProvider {
       } else {
         from = params.from
       }
-      // console.log('[HDWalletProvider] Send transaction params: ', options)
       sendTxWithUniqueNonce({
-        from,
+        from: from || this._mainAddress,
         getNonceFn: () => this.getNonce(from),
         sendTransaction: nonce => {
           const nonceHex = '0x' + nonce.toString(16)
