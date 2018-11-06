@@ -66,13 +66,13 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
   let intervalId
 
   // In case of an error, release lock and relaunch exception
-  txPromise.catch(error => {
-    if (intervalId) {
-      clearInterval(intervalId)
-    }
-    releaseLock()
-    throw error
-  })
+  // txPromise.catch(error => {
+  //   if (intervalId) {
+  //     clearInterval(intervalId)
+  //   }
+  //   releaseLock()
+  //   throw error
+  // })
 
   try {
     if (isLocal) {
