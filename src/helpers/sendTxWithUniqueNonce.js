@@ -11,7 +11,10 @@ const pendingTransaction = []
 // node (i.e. important in case of using a pool of nodes)
 const TIME_TO_RELEASE_LOCK = isLocal ? 0 : (100 || process.env.SEND_TX_RELEASE_LOCK_MS)
 
+// Check nonce config
 const NONCE_INCREMENT_CHECK_TIME = 3000
+const LOG_EVERY_N_CHECKS = 10 // Log only every 10 checks: 10 * 3000 = 30s
+const NONCE_INCREMENT_MAX_NUM_CHECKS = 20 // wait max 20 * 3000 = 1 min
 
 let accountsLocks = {}
 
@@ -81,11 +84,25 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
     if (isLocal) {
       setTimeout(releaseLock, 0)
     } else {
+      let count = 0
       intervalId = setInterval(() => {
+        count++
         getNonceFn(from).then(newNonce => {
-          logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
-          // check if the transaction has been incremented
-          if (newNonce === nonce + 1) {
+          if (count % LOG_EVERY_N_CHECKS === LOG_EVERY_N_CHECKS - 1) {
+            // Log only every 10 checks (i.e. If check time is 3s, we log every 30s)
+            logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
+          }
+          const maxCheckReached = count > NONCE_INCREMENT_MAX_NUM_CHECKS
+          if (
+            // We surplus the max num of check
+            maxCheckReached ||
+            // check if the transaction has been incremented
+            newNonce === nonce + 1
+          ) {
+            if (maxCheckReached) {
+              const waitTimeInSeconds = NONCE_INCREMENT_CHECK_TIME * NONCE_INCREMENT_MAX_NUM_CHECKS / 1000
+              logger.error('Releasing the lock before the NONCE was incremented. There must be a problem with the node. Waited %ds', waitTimeInSeconds)
+            }
             releaseLock()
             // The transaction is in the mempool
             clearInterval(intervalId)
