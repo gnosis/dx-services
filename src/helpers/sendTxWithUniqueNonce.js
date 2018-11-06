@@ -53,6 +53,11 @@ async function _sendTransaction ({
 
   // Trigger the transaction
   const txPromise = sendTransaction(nonce)
+  txPromise.catch(error => {
+    // Release lock and relaunch exception
+    releaseLock()
+    throw error
+  })
 
   // Wait until the transaction is in the mempool of at list a node
   // so we can release the lock
