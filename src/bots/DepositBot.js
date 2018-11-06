@@ -70,6 +70,7 @@ class DepositBot extends Bot {
       // Get ETH balance
       return this._dxInfoService.getBalanceOfEther({ account })
     })
+
     const balanceOfTokensPromises = accountAddresses.map((account, index) => {
       // Get balance of ERC20 tokens
       return this._dxInfoService.getAccountBalancesForTokensNotDeposited({
@@ -89,8 +90,7 @@ class DepositBot extends Bot {
 
   async _depositFunds () {
     this._lastCheck = new Date()
-    let botHasDepositedFunds
-
+    // Check if we are in an inactive period
     const isWaitingTime = this._inactivityPeriods.some(({ from, to }) => {
       return dateUtil.isNowBetweenPeriod(from, to, 'HH:mm')
     })
@@ -98,9 +98,12 @@ class DepositBot extends Bot {
     if (isWaitingTime) {
       // We stop deposit funds execution
       logger.debug('We are at an inactive time lapse, claim your funds now')
-      return false
+    } else {
+      return this._doDepositFunds()
     }
+  }
 
+  async _doDepositFunds () {
     try {
       logger.debug('Tokens by account: %O', this._tokensByAccount)
       const accountKeys = Object.keys(this._tokensByAccount)
@@ -115,74 +118,83 @@ class DepositBot extends Bot {
       const [ balancesOfEther, balancesOfTokens ] = await this._getTokenBalances(
         accountKeys, accountAddresses)
 
-      // Function to check and handle token depositing
-      const _depositTokens = (depositPromises, { token, amount }, accountAddress, threshold) => {
-        const weiReserveAmount = numberUtil.toWei(threshold)
-        logger.debug('Wei reserve amount for token %s: %O', token, weiReserveAmount)
-        if (amount.greaterThan(weiReserveAmount)) {
-          // We have tokens to deposit
-          const amountToDeposit = amount.minus(weiReserveAmount)
-          const tokenToDeposit = token === 'ETH' ? 'WETH' : token
-          logger.info('I have to deposit %d %s for account %s',
-            numberUtil.fromWei(amountToDeposit), token, accountAddress)
-
-          depositPromises.push(this._dxTradeService.deposit({
-            token: tokenToDeposit,
-            amount: amountToDeposit,
-            accountAddress
-          }).then(result => {
-            // Notify deposited token
-            this._notifyDepositedTokens(amount, token, accountAddress)
-          }).catch(error => {
-            this._handleError(token, accountAddress, error)
-          }))
-        } else {
-          logger.debug('No %s tokens to deposit for account: %s', token, accountAddress)
-        }
-        return depositPromises
-      }
-
-      // If any account has Ether over the RESERVE_AMOUNT we deposit it
-      const depositEtherPromises = balancesOfEther.reduce((depositPromises, balance, index) => {
-        const accountAddress = accountAddresses[index]
-        const etherBalance = { token: 'ETH', amount: balance }
-        return _depositTokens(
-          depositPromises, etherBalance, accountAddress, ETHER_RESERVE_AMOUNT)
+      // Deposit ETH
+      //  If any account has Ether over the RESERVE_AMOUNT, we deposit it
+      const depositEtherPromises = balancesOfEther.map((balance, index) => {
+        return this._depositTokensIfBalance({
+          token: 'ETH',
+          amount: balance,
+          accountAddress: accountAddresses[index],
+          threshold: ETHER_RESERVE_AMOUNT
+        })
       }, [])
 
-      const _depositTokensByAccount = (accountAddress, accountBalances) => {
-        // For each token we check if there are some balance not deposited in the DutchX
-        return accountBalances.reduce((depositPromises, balance) => {
-          return _depositTokens(depositPromises, balance, accountAddress, 0)
-        }, [])
-      }
+      // Deposit TOKENS
+      //  If any account, has a token balance, de deposit
+      const depositTokensPromises = balancesOfTokens.map((accountBalances, index) => {
+        const accountAddress = accountAddresses[index]
+        const depositTokenForAccountPromises = accountBalances.map(({ amount, token }) => {
+          return this._depositTokensIfBalance({
+            token,
+            amount,
+            accountAddress,
+            threshold: 0
+          })
+        })
 
-      // If any account has not deposited ERC20 tokens we deposit them
-      const depositTokensPromises = balancesOfTokens.reduce(
-        (depositPromises, accountBalances, index) => {
-          // We check deposit for all tokens of an account
-          const accountAddress = accountAddresses[index]
-          const depositTokensByAccountPromises =
-            _depositTokensByAccount(accountAddress, accountBalances)
+        return Promise.all(depositTokenForAccountPromises)
+      })
 
-          return depositPromises.concat(depositTokensByAccountPromises)
-        }, [])
-
-      await Promise.all(depositEtherPromises.concat(depositTokensPromises))
-
-      botHasDepositedFunds = depositEtherPromises.length > 0 ||
-        depositTokensPromises.length > 0
+      const depositedAmounts = await Promise.all(depositEtherPromises.concat(depositTokensPromises))
+      return depositedAmounts.some(amount => amount !== 0)
     } catch (error) {
       this.lastError = new Date()
-      botHasDepositedFunds = false
       logger.error({
         msg: 'There was an error trying to automaticaly deposit %s',
         params: [ error ],
         error
       })
     }
+  }
 
-    return botHasDepositedFunds
+  // Function to check and handle token depositing
+  async _depositTokensIfBalance ({
+    token,
+    amount,
+    accountAddress,
+    threshold
+  }) {
+    const weiReserveAmount = numberUtil.toWei(threshold)
+    logger.debug('Wei reserve amount for token %s: %O', token, weiReserveAmount)
+    if (amount.greaterThan(weiReserveAmount)) {
+      // We have tokens to deposit
+      const amountToDeposit = amount.minus(weiReserveAmount)
+      const tokenToDeposit = token === 'ETH' ? 'WETH' : token
+      logger.info('I have to deposit %d %s for account %s',
+        numberUtil.fromWei(amountToDeposit),
+        token,
+        accountAddress
+      )
+
+      return this._dxTradeService
+        .deposit({
+          token: tokenToDeposit,
+          amount: amountToDeposit,
+          accountAddress
+        })
+        .then(result => {
+          // Notify deposited token
+          this._notifyDepositedTokens(amount, token, accountAddress)
+          return amount
+        })
+        .catch(error => {
+          this._handleError(token, accountAddress, error)
+          return 0
+        })
+    } else {
+      logger.debug('No %s tokens to deposit for account: %s', token, accountAddress)
+      return 0
+    }
   }
 
   _notifyDepositedTokens (amount, token, account) {
