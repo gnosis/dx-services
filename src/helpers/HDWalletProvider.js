@@ -8,6 +8,12 @@ const Web3 = require('web3')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
+// Disable the nonce lock:
+//    - LOCAL: Disabled by default (true)
+//    - DEV/PRE/PRO: Enabled by default (false)
+//    - Modificable by env var DISABLE_NONCE_LOCK
+const NONCE_LOCK_DISABLED = process.env.DISABLE_NONCE_LOCK === 'true' || isLocal
+
 class HDWalletProvider extends TruffleHDWalletProvider {
   constructor ({
     mnemonic,
@@ -21,6 +27,8 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._web3 = new Web3(this)
     this._blockForNonceCalculation = blockForNonceCalculation
+    this._mainAddress = this.addresses[0]
+    // logger.debug('Main address: %s', this._mainAddress)
   }
 
   getNonce (from) {
@@ -28,57 +36,79 @@ class HDWalletProvider extends TruffleHDWalletProvider {
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           // console.error('[HDWalletProvider] Error getting the nonce')
-          logger.info('Error getting the nonce', error)
+          logger.debug('Error getting the nonce', error)
           reject(error)
         } else {
-          logger.info('Got nonce %d for account %s', nonce, from)
+          // logger.debug('Got nonce %d (%s) for account %s', nonce, nonceHex, from)
           resolve(nonce)
-          /*
-          console.log('[HDWalletProvider] Using nonce: ', nonce)
-          options.params.nonce = nonce
-          // console.log('[HDWalletProvider] Params: ', params)
-          return super.sendAsync(options, callback)
-          */
         }
       })
     })
   }
 
   sendAsync (args) {
-    let { method, params } = args
-    // console.log('[HDWalletProvider] Intercepting sendAsync: ', arguments)
-    // console.log('[HDWalletProvider] Intercepting sendAsync - Method: %s', method)
-    // if (method === 'eth_sendTransaction') {
-    //   console.log(args)
-    // }
-    if (method === 'eth_sendTransaction' && !isLocal) {
-      const [, callback] = arguments
-      let from
-      if (Array.isArray(params)) {
-        from = params[0].from
+    let method = args.method
+    if (!method) {
+      if (Array.isArray(args) && args.length > 0) {
+        method = args[0].method
       } else {
-        from = params.nonce
+        console.error('Unknown method for: %s', arguments)
       }
-      // console.log('[HDWalletProvider] Send transaction params: ', options)
-      sendTxWithUniqueNonce({
-        from,
-        getNonceFn: () => this.getNonce(from),
-        sendTransaction: nonce => {
-          logger.debug('Using nonce: %d', nonce)
-          if (Array.isArray(params)) {
-            params[0].nonce = nonce
-          } else {
-            params.nonce = nonce
-          }
-          logger.info('Send transaction with params %O', params)
-          // console.log('[HDWalletProvider] Params: %O', params)
-          const sendParams = Object.assign({}, args, { params })
-          return super.sendAsync(sendParams, callback)
-        }
-      })
+    }
+
+    if (method === 'eth_sendTransaction') {
+      if (!NONCE_LOCK_DISABLED) {
+        this._sendTxWithUniqueNonce(...arguments)
+      } else {
+        logger.debug('Send transaction: %o', arguments)
+        return super.sendAsync(...arguments)
+      }
     } else {
+      logger.debug('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)
     }
+  }
+
+  _sendTxWithUniqueNonce (args) {
+    let { params } = args
+    const [ , callback ] = arguments
+    let from
+    if (Array.isArray(params)) {
+      from = params[0].from
+    } else {
+      from = params.from
+    }
+
+    sendTxWithUniqueNonce({
+      from: from || this._mainAddress,
+      getNonceFn: () => this.getNonce(from),
+      sendTransaction: nonce => {
+        const nonceHex = '0x' + nonce.toString(16)
+        logger.info('Got nonce %d (%s) for account %s', nonce, nonceHex, from)
+        if (Array.isArray(params)) {
+          params[0].nonce = nonceHex
+        } else {
+          params.nonce = nonceHex
+        }
+        logger.info('Send transaction with params %O', params)
+        // console.log('[HDWalletProvider] Params: %O', params)
+        const sendParams = Object.assign({}, args, { params })
+        logger.debug('Send transaction with unique nonce: %o', sendParams)
+
+        return new Promise((resolve, reject) => {
+          super.sendAsync(sendParams, (error, result) => {
+            if (error) {
+              reject(error)
+              if (callback) {
+                callback(error, null)
+              }
+            }
+            resolve(result)
+            callback(null, result)
+          })
+        })
+      }
+    })
   }
 
   _sendAsyncWithNonce () {

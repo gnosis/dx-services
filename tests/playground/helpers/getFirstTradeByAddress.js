@@ -71,5 +71,5 @@ async function run ({
     debug('No trades were found between blocks %d and %d', startBlock, latest)
   }
 
-  ethereumClient.stop()
+  await ethereumClient.stop()
 }

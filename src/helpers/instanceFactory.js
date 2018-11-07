@@ -24,7 +24,7 @@ async function createInstances ({
   const eventBus = new EventBus()
 
   // Ethereum client
-  const ethereumClient = _getEhereumClient(config)
+  const ethereumClient = await _getEhereumClient(config)
 
   // Contracts
   const contracts = await _loadContracts(config, ethereumClient)
@@ -134,9 +134,10 @@ async function createInstances ({
   return instances
 }
 
-function _getEhereumClient (config) {
+async function _getEhereumClient (config) {
   const EthereumClient = require('./EthereumClient')
   const ethereumClient = new EthereumClient(config)
+  await ethereumClient.start()
 
   /*
   // TODO: Simplify local development by running the EthereumTestRpcNode

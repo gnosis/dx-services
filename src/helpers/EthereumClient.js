@@ -90,8 +90,27 @@ class EthereumClient {
     // .catch(error => _handleGetGasPriceError(error))
   }
 
-  stop () {
+  async start () {
+    return this._ping()
+  }
+
+  async stop () {
     this._web3.currentProvider.engine.stop()
+  }
+
+  async _ping () {
+    logger.info('Ethereum node URL: "%s". Checking Node connectivity...', this._url)
+    return this
+      .doCall({
+        propName: 'version.getNode'
+      })
+      .then(result => {
+        logger.info('Using Node %s', result)
+      })
+      .catch(error => {
+        console.error('Error doing PING to test the Ethereum connectivity')
+        throw error
+      })
   }
 
   async _doGetPricesFromSafe () {
