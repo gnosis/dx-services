@@ -71,6 +71,28 @@ test('It should trigger ensure liquidity from eventBus trigger', () => {
   expect(SERVICE_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(1)
 })
 
+test('It should not ensure liquidity from eventBus trigger from not followed markets', () => {
+  // we mock ensureSellLiquidity function
+  sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
+  const SERVICE_ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity
+
+  // we wrap expected eventBus triggered function with mock
+  sellLiquidityBot._ensureSellLiquidity = jest.fn(sellLiquidityBot._ensureSellLiquidity)
+  const BOT_ENSURE_SELL_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity
+
+  // GIVEN uncalled liquidity functions
+  expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
+  expect(SERVICE_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
+
+  // WHEN we trigger 'auction:cleared' event
+  sellLiquidityBot._eventBus.trigger('auction:cleared', {
+    buyToken: 'DAI', sellToken: 'WETH' })
+
+  // THEN liquidity ensuring functions have been called
+  expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
+  expect(SERVICE_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
+})
+
 test('It should not ensure liquidity if already ensuring liquidity.', () => {
   expect.assertions(1)
   // we mock ensureSellLiquidity function
