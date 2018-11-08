@@ -47,17 +47,24 @@ class SellLiquidityBot extends Bot {
     this._eventBus.listenTo(events.EVENT_AUCTION_CLEARED, ({ eventName, data }) => {
       const { sellToken, buyToken } = data
 
-      // Do ensure liquidity on the market
-      auctionLogger.info({
-        sellToken,
-        buyToken,
-        msg: "Auction ended. Let's ensure SELL liquidity"
+      const isConfiguredMarket = this._markets.some(({ tokenA, tokenB }) => {
+        return (tokenA === sellToken && tokenB === buyToken) ||
+          (tokenA === buyToken && tokenB === sellToken)
       })
-      this._ensureSellLiquidity({
-        sellToken,
-        buyToken,
-        from: this._botAddress
-      })
+
+      if (isConfiguredMarket) {
+        // Do ensure liquidity on the market
+        auctionLogger.info({
+          sellToken,
+          buyToken,
+          msg: "Auction ended. Let's ensure SELL liquidity"
+        })
+        this._ensureSellLiquidity({
+          sellToken,
+          buyToken,
+          from: this._botAddress
+        })
+      }
     })
 
     // Backup strategy: From time to time, we ensure the liquidity
