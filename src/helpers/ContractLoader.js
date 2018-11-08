@@ -9,14 +9,28 @@ const assert = require('assert')
 class ContractLoader {
   constructor ({
     ethereumClient,
-    config
+    contractDefinitions,
+    dxContractAddress,
+    gnoToken,
+    erc20TokenAddresses,
+    contractsBaseDir
   }) {
+    assert(ethereumClient, '"ethereumClient" is required')
+    assert(contractDefinitions, '"contractDefinitions" is required')
+    assert(erc20TokenAddresses, '"erc20TokenAddresses" is required')
+    assert(contractsBaseDir, '"contractsBaseDir" is required')
+
+    if (!isLocal) {
+      assert(dxContractAddress, '"dxContractAddress" is required for environemt ' + environment)
+      assert(gnoToken, '"gnoToken" is required for environemt ' + environment)
+    }
+
     this._ethereumClient = ethereumClient
-    this._contractDefinitions = config.CONTRACT_DEFINITIONS
-    this._dxContractAddress = config.DX_CONTRACT_ADDRESS
-    this._gnoTokenAddress = config.GNO_TOKEN_ADDRESS
-    this._erc20TokenAddresses = config.ERC20_TOKEN_ADDRESSES
-    this._devContractsBaseDir = config.CONTRACTS_BASE_DIR
+    this._contractDefinitions = contractDefinitions
+    this._dxContractAddress = dxContractAddress
+    this._gnoTokenAddress = gnoToken
+    this._erc20TokenAddresses = erc20TokenAddresses
+    this._devContractsBaseDir = contractsBaseDir
   }
   async loadContracts () {
     const [ dx, erc20TokenContracts ] = await Promise.all([

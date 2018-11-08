@@ -11,7 +11,10 @@ module.exports = {
   GAS_ESTIMATION_CORRECTION_FACTOR: process.env.GAS_ESTIMATION_CORRECTION_FACTOR || 2, // Gas estimation correction for proxied contract
 
   // AuctionRepo conf
-  AUCTION_REPO_IMPL: 'impl', // mock, impl
+  // AUCTION_REPO_IMPL: 'impl', // mock, impl
+  AUCTION_REPO: {
+    factory: 'src/repositories/AuctionRepo/AuctionRepoimpl' // mock, impl
+  },
 
   // EthereumRepo conf
   ETHEREUM_REPO_IMPL: 'impl', // mock. impl

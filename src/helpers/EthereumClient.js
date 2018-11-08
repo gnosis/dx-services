@@ -5,10 +5,9 @@ const dateUtil = require('../helpers/dateUtil')
 const formatUtil = require('../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
 const Cache = require('../helpers/Cache')
+const assert = require('assert')
 
-const Web3 = require('web3')
 const truffleContract = require('truffle-contract')
-const HDWalletProvider = require('./HDWalletProvider')
 const gracefullShutdown = require('./gracefullShutdown')
 const got = require('got')
 
@@ -26,37 +25,37 @@ const environment = process.env.NODE_ENV
 // TODO: Check eventWatcher in DX/test/utils.js
 
 class EthereumClient {
-  constructor (config) {
-    this._network = config.NETWORK || null
-    this._url = config.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545'
-    logger.debug('Using %s RPC api to connect to Ethereum', this._url)
-    const mnemonic = config.MNEMONIC
-    if (mnemonic) {
-      this._provider = new HDWalletProvider({
-        mnemonic,
-        url: this._url,
-        addressIndex: 0,
-        numAddresses: 5
-      })
-      this._provider.engine.on('error', _printNodeError)
-    } else {
-      // this._provider = new Web3.providers.HttpProvider(this._url)
-      throw new Error('The MNEMONIC is required')
+  constructor ({
+    web3,
+    network,
+    cacheConf,
+    urlPriceFeedGasStation,
+    urlPriceFeedSafe
+  }) {
+    assert(web3, 'The "web3" is missing for the ethereum client')
+    assert(network, 'The "network" is missing for the ethereum client')
+
+    this._web3 = web3
+    this._network = network
+    this._gasPriceFeedConfig = urlPriceFeedGasStation
+    this._urlPriceFeedSafe = urlPriceFeedSafe
+
+    // TODO: EthereumClient: Do a validation using the network
+
+    let callCacheTime
+    if (cacheConf) {
+      const { long, medium, short } = cacheConf
+      assert(long, 'The long timeout value is required if the cache is enabled')
+      assert(medium, 'The medium timeout value is required if the cache is enabled')
+      assert(short, 'The short timeout value is required if the cache is enabled')
+
+      console.log('this._cacheConf: ', this._cacheConf)
+
+      this._cache = new Cache('EthereumClient')
+      this._cacheConf = cacheConf
+      callCacheTime = cacheConf.short
     }
-
-    this._web3 = new Web3(this._provider)
-    this._contractCache = {}
-
-    this._cache = new Cache('EthereumClient')
-    this._cacheEnabled = config.CACHE_ENABLED
-    this._cacheTimeouts = {
-      short: config.CACHE_TIME_SHORT,
-      medium: config.CACHE_TIME_MEDIUM,
-      large: config.CACHE_TIME_LONG
-    }
-
-    this._urlPriceFeedGasStation = config.URL_GAS_PRICE_FEED_GAS_STATION
-    this._urlPriceFeedSafe = config.URL_GAS_PRICE_FEED_SAFE
+    this._callCacheTime = callCacheTime
 
     gracefullShutdown.onShutdown(() => this.stop())
   }
@@ -180,11 +179,7 @@ class EthereumClient {
       _promisify(this._web3.eth.getBlock, [ blockNumber.toString() ])
 
     const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString() ] })
-    const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
-    const CACHE_TIMEOUT_MEDIUM = this._cacheTimeouts.medium
-    const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
-
-    if (this._cacheEnabled) {
+    if (this._cache) {
       return this._cache.get({
         key: cacheKey,
         fetchFn,
@@ -199,18 +194,18 @@ class EthereumClient {
             // Return different cache time depending on how old is the block
             if (blockDate < monthAgo) {
               // Cache long period
-              return CACHE_TIMEOUT_LONG
+              return this._cacheConf.long
             } else if (blockDate < weekAgo) {
               // Cache Medium period
-              return CACHE_TIMEOUT_MEDIUM
+              return this._cacheConf.medium
             } else {
               // Cache Short period
-              return CACHE_TIMEOUT_SHORT
+              return this._cacheConf.short
             }
           } else {
             // If the block return null or we ask for the latest block
             // we cache a short period
-            return CACHE_TIMEOUT_SHORT
+            return this._cacheConf.short
           }
         }
       })
@@ -239,7 +234,7 @@ class EthereumClient {
     return this.doCall({ propName: 'eth.getBalance', params: [ account ] })
   }
 
-  async doCall ({ propName, params, cacheTime = this._cacheTimeouts.short }) {
+  async doCall ({ propName, params, cacheTime = this.callCacheTime }) {
     const propPath = propName.split('.')
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
@@ -503,7 +498,7 @@ class EthereumClient {
   loadContract (contractDefinitionPath) {
     const contractJson = require(ROOT_DIR + contractDefinitionPath)
     const contract = truffleContract(contractJson)
-    contract.setProvider(this._provider)
+    contract.setProvider(this._web3.currentProvider)
 
     return contract
   }
@@ -546,34 +541,6 @@ function _handleGetGasPriceError (error) {
     average: DAFAULT_GAS_PRICE_AVERAGE,
     fast: DAFAULT_GAS_PRICE_FAST
   }
-}
-
-// We handle this error separatelly, because node throw this error from time to
-// time, and it disapears after some seconds
-const NODE_ERROR_EMPTY_RESPONSE = 'Error: Invalid JSON RPC response: ""'
-const SILENT_TIME_FOR_NODE_ERRORS = 120000 // 120s
-let reduceWarnLevelForNodeErrors = false
-function _printNodeError (error) {
-  const errorMessage = error.message
-  let debugLevel
-  if (errorMessage === NODE_ERROR_EMPTY_RESPONSE) {
-    if (reduceWarnLevelForNodeErrors) {
-      debugLevel = 'warn'
-    } else {
-      debugLevel = 'error'
-      reduceWarnLevelForNodeErrors = true
-      setTimeout(() => {
-        reduceWarnLevelForNodeErrors = false
-      }, SILENT_TIME_FOR_NODE_ERRORS)
-    }
-  } else {
-    debugLevel = 'error'
-  }
-  logger[debugLevel]({
-    msg: 'Error in Ethereum node %s: %s',
-    params: [ this._url, error.message ]
-    // error // We hide the stack trace, is not usefull in this case (dispached by web3 internals)
-  })
 }
 
 module.exports = EthereumClient

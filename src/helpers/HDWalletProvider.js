@@ -1,9 +1,10 @@
 const Logger = require('./Logger')
 const logger = new Logger('dx-service:helpers:HDWalletProvider')
 
+const assert = require('assert')
+const Web3 = require('web3')
 const TruffleHDWalletProvider = require('truffle-hdwallet-provider')
 const sendTxWithUniqueNonce = require('./sendTxWithUniqueNonce')
-const Web3 = require('web3')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -22,7 +23,10 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     numAddresses = 5,
     shareNonce = true,
     blockForNonceCalculation = 'pending'
-  }) { // latest
+  }) {
+    assert(mnemonic, '"mnemonic" is mandatory')
+    assert(url, '"url" is mandatory')
+
     // console.log('[HDWalletProvider] New provider for: %s', url)
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._web3 = new Web3(this)

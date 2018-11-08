@@ -8,6 +8,8 @@ const isLocal = environment === 'local'
 
 const EventBus = require('./EventBus')
 const SlackClient = require('./SlackClient')
+const loadContracts = require('../loadContracts')
+const getEthereumClient = require('../getEthereumClient')
 
 async function createInstances ({
   test = false,
@@ -24,14 +26,14 @@ async function createInstances ({
   const eventBus = new EventBus()
 
   // Ethereum client
-  const ethereumClient = await _getEhereumClient(config)
+  const ethereumClient = await getEthereumClient()
 
   // Contracts
-  const contracts = await _loadContracts(config, ethereumClient)
+  const contracts = await loadContracts()
 
   // Repos
+  const auctionRepo = require('../repositories/AuctionRepo')
   const priceRepo = _getPriceRepo(config)
-  const auctionRepo = _getAuctionRepo(config, ethereumClient, contracts)
   const ethereumRepo = _getEthereumRepo(config, ethereumClient)
 
   // Slack client
@@ -134,28 +136,6 @@ async function createInstances ({
   return instances
 }
 
-async function _getEhereumClient (config) {
-  const EthereumClient = require('./EthereumClient')
-  const ethereumClient = new EthereumClient(config)
-  await ethereumClient.start()
-
-  /*
-  // TODO: Simplify local development by running the EthereumTestRpcNode
-  if (isLocal) {
-    const EthereumTestRpcNode = require('../../tests/helpers/EthereumTestRpcNode')
-    const ethereumTestRpcNode = new EthereumTestRpcNode({
-      web3: ethereumClient.getWeb3(),
-      mnemonic: config.ETHEREUM_RPC_URL,
-      port: 8646,
-      totalAccounts: 5
-    })
-    ethereumTestRpcNode.start()
-  }
-  */
-
-  return ethereumClient
-}
-
 function _getAuctionEventWatcher (config, eventBus, contracts) {
   const AuctionEventWatcher = require('../bots/AuctionEventWatcher')
   return new AuctionEventWatcher({
@@ -163,17 +143,6 @@ function _getAuctionEventWatcher (config, eventBus, contracts) {
     eventBus: eventBus,
     contracts
   })
-}
-
-async function _loadContracts (config, ethereumClient) {
-  const ContractLoader = require('./ContractLoader')
-
-  const contractLoader = new ContractLoader({
-    config,
-    ethereumClient
-  })
-
-  return contractLoader.loadContracts()
 }
 
 function _getEthereumRepo (config, ethereumClient) {

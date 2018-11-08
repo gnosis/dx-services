@@ -25,15 +25,24 @@ class AuctionRepoImpl {
   constructor ({
     ethereumClient,
     contracts,
-    config
+    // Cache
+    cache,
+    // Gas
+    defaultGas = 6700000,
+    gasPriceDefault = 'fast', // safeLow, average, fast
+    // Retry
+    transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
+    gasRetryIncrement = 1.2,
+    overFastPriceFactor = 1,
+    gasEstimationCorrectionFactor = 2,
   }) {
     this._ethereumClient = ethereumClient
-    this._defaultGas = config.DEFAULT_GAS
-    this._transactionRetryTime = config.TRANSACTION_RETRY_TIME
-    this._gasRetryIncrement = config.GAS_RETRY_INCREMENT
-    this._overFastPriceFactor = config.OVER_FAST_PRICE_FACTOR
-    this._gasEstimationCorrectionFactor = config.GAS_ESTIMATION_CORRECTION_FACTOR
-    this._gasPriceDefault = config.DEFAULT_GAS_PRICE_USED || 'fast' // safeLow, average, fast
+    this._defaultGas = defaultGas
+    this._transactionRetryTime = transactionRetryTime
+    this._gasRetryIncrement = gasRetryIncrement
+    this._overFastPriceFactor = overFastPriceFactor
+    this._gasEstimationCorrectionFactor = gasEstimationCorrectionFactor
+    this._gasPriceDefault = gasPriceDefault
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
@@ -45,6 +54,7 @@ class AuctionRepoImpl {
       MGN: contracts.mgn,
       OWL: contracts.owl
     }, contracts.erc20TokenContracts)
+
     logger.debug({
       msg: `DX contract in address %s`,
       params: [ this._dx.address ]
