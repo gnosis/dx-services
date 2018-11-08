@@ -17,6 +17,10 @@ class Logger {
     this._doLog('INFO', this._getSettings(arguments))
   }
 
+  trace (options) {
+    this._doLog('TRACE', this._getSettings(arguments))
+  }
+
   debug (options) {
     this._doLog('DEBUG', this._getSettings(arguments))
   }
