@@ -1,9 +1,19 @@
-const { DX_BOTS_CHANNEL, DX_BOTS_DEV_CHANNEL } = require('./slackChannels')
+// Just some defaults. Overrided on custom config or by env varible (see index.js)
+const { MARKETS } = require('./developConstants')
+const BOT_MARKETS = MARKETS
 
-const BOT_MARKETS = [
-  { tokenA: 'WETH', tokenB: 'RDN' }
-  // { tokenA: 'WETH', tokenB: 'OMG' }
-]
+const MAIN_BOT_ACCOUNT = 0
+const BACKUP_BOT_ACCOUNT = 1
+
+// If using slack, we add the notification channel
+let slackChannel = _getBotsNotificationChannel()
+const notifications = []
+if (slackChannel) {
+  notifications.push({
+    type: 'slack',
+    channel: slackChannel
+  })
+}
 
 const BUY_LIQUIDITY_RULES_DEFAULT = [
   // Buy 1/2 if price falls below 99%
@@ -31,19 +41,13 @@ const BUY_LIQUIDITY_RULES_DEFAULT = [
   }
 ]
 
-const MAIN_BOT_ACCOUNT = 0
-const BACKUP_BOT_ACCOUNT = 1
-
 const BUY_BOT_MAIN = {
   name: 'Main buyer bot',
   factory: 'src/bots/BuyLiquidityBot',
   markets: BOT_MARKETS,
   accountIndex: MAIN_BOT_ACCOUNT,
   rules: BUY_LIQUIDITY_RULES_DEFAULT,
-  notifications: [{
-    type: 'slack',
-    channel: DX_BOTS_DEV_CHANNEL
-  }],
+  notifications,
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
@@ -65,13 +69,7 @@ const BUY_BOT_BACKUP = {
       denominator: 1
     }
   }],
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }, {
-    type: 'email',
-    email: ''
-  }],
+  notifications,
   checkTimeInMilliseconds: 60 * 1000, // 60s
   disableHighSellVolumeCheck: true,
   minimumAmountInUsdForToken: 850 // $850
@@ -82,10 +80,7 @@ const SELL_BOT_MAIN = {
   factory: 'src/bots/SellLiquidityBot',
   markets: BOT_MARKETS,
   accountIndex: MAIN_BOT_ACCOUNT,
-  notifications: [{
-    type: 'slack',
-    channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-  }],
+  notifications,
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
@@ -123,4 +118,15 @@ module.exports = {
   // MAIN_BOT_ACCOUNT,
   BUY_LIQUIDITY_RULES_DEFAULT,
   AUTO_CLAIM_AUCTIONS
+}
+
+function _getBotsNotificationChannel () {
+  const environment = process.env.NODE_ENV
+  const { DX_BOTS_DEV_CHANNEL } = require('./slackChannels')
+  switch (environment) {
+    case 'dev':
+      return DX_BOTS_DEV_CHANNEL
+    default:
+      return null
+  }
 }

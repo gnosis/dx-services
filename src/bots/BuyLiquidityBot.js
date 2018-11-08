@@ -167,6 +167,7 @@ class BuyLiquidityBot extends Bot {
       notify: true
     })
 
+    // TODO: Improve notifications. Decouple this into a strategy pattern
     this._notifications.forEach(({ type, channel }) => {
       switch (type) {
         case 'slack':
@@ -183,6 +184,7 @@ class BuyLiquidityBot extends Bot {
           }
           break
         case 'email':
+          throw new Error('Not implemented yet')
         default:
           logger.error({
             msg: 'Error notification type is unknown: ' + type
@@ -251,6 +253,7 @@ class BuyLiquidityBot extends Bot {
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
       lastError: this._lastError,
+      rules: this._rules,
       notifications: this._notifications,
       checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets

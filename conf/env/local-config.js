@@ -1,8 +1,7 @@
-const ENVIRONMENT = 'local'
-
-const MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+const { MNEMONIC, MARKETS } = require('../developConstants')
 
 module.exports = {
-  ENVIRONMENT,
-  MNEMONIC
+  ENVIRONMENT: 'local',
+  MNEMONIC,
+  MARKETS
 }

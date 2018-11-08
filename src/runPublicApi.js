@@ -52,7 +52,6 @@ class App {
     // Events
     eventBus,
     ethereumClient,
-    auctionEventWatcher,
     slackClient
   }) {
     this._config = config
