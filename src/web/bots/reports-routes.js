@@ -44,7 +44,7 @@ function createRoutes ({ reportService }, ethereumClient, config) {
       )
 
       // Generate report and send it to slack
-      // FIXME Only using the MAIN_BOT_ACCOUNT to generate the report
+      // FIXME: Try to get rid of MAIN_BOT_ACCOUNT
       const botAddress = await getBotAddress(ethereumClient, config.MAIN_BOT_ACCOUNT)
       const requestReceipt = reportService.sendAuctionsReportToSlack({
         fromDate,

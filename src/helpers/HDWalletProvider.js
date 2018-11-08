@@ -60,11 +60,11 @@ class HDWalletProvider extends TruffleHDWalletProvider {
       if (!NONCE_LOCK_DISABLED) {
         this._sendTxWithUniqueNonce(...arguments)
       } else {
-        logger.debug('Send transaction: %o', arguments)
+        logger.trace('Send transaction: %o', arguments)
         return super.sendAsync(...arguments)
       }
     } else {
-      logger.debug('Do async call "%s": %o', method, args)
+      logger.trace('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)
     }
   }
