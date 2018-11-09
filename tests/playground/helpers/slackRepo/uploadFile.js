@@ -1,4 +1,4 @@
-const SlackClient = require('../../../../src/helpers/SlackClient')
+const getSlackRepo = require('../../../../src/repositories/SlackRepo')
 
 // https://api.slack.com/docs/messages/builder
 const fs = require('fs')
@@ -29,10 +29,9 @@ const message = {
 }
 
 message.channel = 'GA5J9F13J'
-const slackClient = new SlackClient()
 
 // const file = fs.createReadStream(`./test-file.csv`)
-// slackClient
+// slackRepo
 //   .uploadFile({
 //     fileName: 'Last-auctions-report.csv',
 //     file
@@ -40,33 +39,33 @@ const slackClient = new SlackClient()
 //   .then(({ file }) => {
 //     console.log('File uploaded: ', file.id)
 
-//     return slackClient.shareFile({ fileId: file.id })
+//     return slackRepo.shareFile({ fileId: file.id })
 //   })
 //   .then(({ file }) => {
 //     console.log('File download Url: ', file.url_download)
 //   })
 //   .catch(console.error)
 
-const file = fs.createReadStream(`./test-file.csv`)
-slackClient
-  .uploadFile({
+async function run () {
+  const slackRepo = await getSlackRepo()
+
+  const file = fs.createReadStream(`./test-file.csv`)
+  const { file: uploadedFile } = await slackRepo.uploadFile({
     fileName: 'Last-auctions-report.csv',
     file,
     channels: 'GA5J9F13J'
   })
-  .then(({ file }) => {
-    console.log('File uploaded: ', file.id)
-    console.log('Url private: ', file.url_private)
+  console.log('File uploaded: ', uploadedFile.id)
+  console.log('Url private: ', uploadedFile.url_private)
 
-    message.attachments[0].fields.push({
-      "title": "File:",
-      "value": file.url_private,
-      "short": false
-    })
+  message.attachments[0].fields.push({
+    "title": "File:",
+    "value": uploadedFile.url_private,
+    "short": false
+  })
 
-    return slackClient.postMessage(message)
-  })
-  .then(({ ts }) => {
-    console.log('Message sent: ', ts)
-  })
-  .catch(console.error)
+  const { ts } = slackRepo.postMessage(message)
+  console.log('Message sent: ', ts)
+}
+
+run().catch(console.error)

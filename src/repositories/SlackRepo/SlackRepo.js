@@ -3,7 +3,7 @@ const { WebClient } = require('@slack/client')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
-class SlackClient {
+class SlackRepo {
   constructor () {
     // An access token (from your Slack app or custom integration - xoxp, xoxb, or xoxa)
     const token = process.env.SLACK_TOKEN
@@ -90,4 +90,4 @@ class SlackClient {
   }
 }
 
-module.exports = SlackClient
+module.exports = SlackRepo

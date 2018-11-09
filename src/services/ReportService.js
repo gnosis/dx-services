@@ -24,19 +24,19 @@ class ReportService {
     auctionRepo,
     ethereumRepo,
     // markets,
-    slackClient,
+    slackRepo,
     config
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     // assert(markets, '"markets" is required')
-    assert(slackClient, '"slackClient" is required')
+    assert(slackRepo, '"slackRepo" is required')
     assert(config, '"config" is required')
 
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     // this._markets = markets
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
     this._auctionsReportSlackChannel = config.SLACK_CHANNEL_AUCTIONS_REPORT
     this._markets = config.MARKETS
   }
@@ -477,7 +477,7 @@ class ReportService {
 
     // Upload file to slack
     logger.debug('[requestId=%d] Uploading file "%s" to Slack', id, fileName)
-    const { file: fileSlack } = await this._slackClient.uploadFile({
+    const { file: fileSlack } = await this._slackRepo.uploadFile({
       fileName,
       file: fileContent,
       channels: channel
@@ -494,7 +494,7 @@ class ReportService {
     })
 
     // Send message with the file attached
-    return this._slackClient
+    return this._slackRepo
       .postMessage(message)
       .then(({ ts }) => {
         logger.debug('File sent to Slack: ', ts)

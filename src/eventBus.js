@@ -1,3 +1,3 @@
-const EventBus = require('./EventBus')
+const EventBus = require('./helpers/EventBus')
 
 module.exports = new EventBus()

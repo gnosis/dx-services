@@ -23,7 +23,7 @@ class BalanceCheckBot extends Bot {
     dxInfoService,
     ethereumClient,
     tokensByAccount,
-    slackClient,
+    slackRepo,
     botFundingSlackChannel,
     minimumAmountInUsdForToken = MINIMUM_AMOUNT_IN_USD_FOR_TOKENS,
     minimumAmountForEther = MINIMUM_AMOUNT_FOR_ETHER
@@ -32,7 +32,7 @@ class BalanceCheckBot extends Bot {
     this._liquidityService = liquidityService
     this._dxInfoService = dxInfoService
     this._ethereumClient = ethereumClient
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
     this._botFundingSlackChannel = botFundingSlackChannel
     this._minimumAmountInUsdForToken = minimumAmountInUsdForToken
     this._minimumAmountForEther = minimumAmountForEther
@@ -257,7 +257,7 @@ class BalanceCheckBot extends Bot {
   }
 
   async _notifyToSlack ({ name, lastNotificationVariableName, message }) {
-    if (this._botFundingSlackChannel && this._slackClient.isEnabled()) {
+    if (this._botFundingSlackChannel && this._slackRepo.isEnabled()) {
       const now = new Date()
       const lastNotification = this[lastNotificationVariableName]
 
@@ -274,7 +274,7 @@ class BalanceCheckBot extends Bot {
         logger.info('Notifying "%s" to slack', name)
         message.channel = this._botFundingSlackChannel
 
-        this._slackClient
+        this._slackRepo
           .postMessage(message)
           .then(() => {
             this[lastNotificationVariableName] = now

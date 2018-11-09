@@ -20,7 +20,7 @@ class BuyLiquidityBot extends Bot {
     botAddress,
     accountIndex,
     markets,
-    slackClient,
+    slackRepo,
     rules,
     notifications,
     ethereumClient,
@@ -63,7 +63,7 @@ class BuyLiquidityBot extends Bot {
     this._ethereumClient = ethereumClient
     this._eventBus = eventBus
     this._liquidityService = liquidityService
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
   }
 
   async init () {
@@ -172,7 +172,7 @@ class BuyLiquidityBot extends Bot {
       switch (type) {
         case 'slack':
           // Notify to slack
-          if (this._slackClient.isEnabled()) {
+          if (this._slackRepo.isEnabled()) {
             this._notifyBuyedTokensSlack({
               channel,
               boughtTokensString,
@@ -194,7 +194,7 @@ class BuyLiquidityBot extends Bot {
   }
 
   _notifyBuyedTokensSlack ({ channel, boughtTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
-    this._slackClient
+    this._slackRepo
       .postMessage({
         channel: channel || this._botTransactionsSlackChannel,
         attachments: [

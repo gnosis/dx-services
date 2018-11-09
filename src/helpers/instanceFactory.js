@@ -6,13 +6,14 @@ const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 */
 
-const EventBus = require('./EventBus')
-const SlackClient = require('./SlackClient')
+const eventBus = require('../eventBus')
+
 const loadContracts = require('../loadContracts')
 const getEthereumClient = require('../getEthereumClient')
 const getAuctionRepo = require('../repositories/AuctionRepo')
 const getPriceRepo = require('../repositories/PriceRepo')
 const getEthereumRepo = require('../repositories/EthereumRepo')
+const getSlackRepo = require('../repositories/SlackRepo')
 
 async function createInstances ({
   test = false,
@@ -24,9 +25,6 @@ async function createInstances ({
 
   // We init the error handler
   messageNotifier.init({ sentryDsn: config.SENTRY_DSN })
-
-  // Create the eventBus
-  const eventBus = new EventBus()
 
   // Ethereum client
   const ethereumClient = await getEthereumClient()
@@ -40,7 +38,7 @@ async function createInstances ({
   const ethereumRepo = await getEthereumRepo()
 
   // Slack client
-  const slackClient = new SlackClient()
+  const slackRepo = await getSlackRepo()
 
   // Service: Liquidity service
   const liquidityService = _getLiquidityService({
@@ -97,7 +95,7 @@ async function createInstances ({
       config: config,
       auctionRepo,
       ethereumRepo,
-      slackClient
+      slackRepo
     })
   } else {
     reportService = null
@@ -114,7 +112,7 @@ async function createInstances ({
     contracts,
     auctionEventWatcher,
     ethereumClient,
-    slackClient,
+    slackRepo,
 
     // services
     liquidityService,
@@ -252,7 +250,7 @@ function _getAuctionService ({ config, auctionRepo, ethereumRepo }) {
   })
 }
 
-function _getReportService ({ config, auctionRepo, ethereumRepo, slackClient }) {
+function _getReportService ({ config, auctionRepo, ethereumRepo, slackRepo }) {
   const ReportService = require('../services/ReportService')
   return new ReportService({
     config,
@@ -260,7 +258,7 @@ function _getReportService ({ config, auctionRepo, ethereumRepo, slackClient }) 
     // Repos
     auctionRepo,
     ethereumRepo,
-    slackClient
+    slackRepo
   })
 }
 

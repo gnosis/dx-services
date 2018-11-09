@@ -1,4 +1,4 @@
-const SlackClient = require('../../../../src/helpers/SlackClient')
+const getSlackRepo = require('../../../../src/repositories/SlackRepo')
 
 // https://api.slack.com/docs/messages/builder
 /* eslint quotes: 0 */
@@ -43,11 +43,13 @@ const message = {
   ]
 }
 
-const slackClient = new SlackClient()
-message.channel = 'GA5J9F13J'
-slackClient.postMessage(message)
-  .then(res => {
-    // `res` contains information about the posted message
-    console.log('Message sent: ', res.ts)
-  })
-  .catch(console.error)
+async function run () {
+  const slackRepo = await getSlackRepo()
+
+  message.channel = 'GA5J9F13J'
+  const res = await slackRepo.postMessage(message)
+  // `res` contains information about the posted message
+  console.log('Message sent: ', res.ts)
+}
+
+run().catch(console.error)

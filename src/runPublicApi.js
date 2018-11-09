@@ -52,12 +52,12 @@ class App {
     // Events
     eventBus,
     ethereumClient,
-    slackClient
+    slackRepo
   }) {
     this._config = config
     this._eventBus = eventBus
     this._ethereumClient = ethereumClient
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
 
     // Services
     this._dxInfoService = dxInfoService
@@ -113,8 +113,8 @@ class App {
     // Display some basic info
     logger.info(message)
 
-    if (this._slackClient.isEnabled()) {
-      await this._slackClient.postMessage({
+    if (this._slackRepo.isEnabled()) {
+      await this._slackRepo.postMessage({
         channel: this._config.SLACK_CHANNEL_OPERATIONS,
         text: message
       }).catch(error => {
@@ -133,8 +133,8 @@ class App {
     // Display some basic info
     logger.info(message)
 
-    if (this._slackClient.isEnabled()) {
-      await this._slackClient.postMessage({
+    if (this._slackRepo.isEnabled()) {
+      await this._slackRepo.postMessage({
         channel: this._config.SLACK_CHANNEL_OPERATIONS,
         text: message
       }).catch(error => {

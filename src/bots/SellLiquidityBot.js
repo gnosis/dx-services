@@ -20,7 +20,7 @@ class SellLiquidityBot extends Bot {
     liquidityService,
     botAddress,
     markets,
-    slackClient,
+    slackRepo,
     botTransactionsSlackChannel,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
@@ -30,7 +30,7 @@ class SellLiquidityBot extends Bot {
     this._liquidityService = liquidityService
     this._botAddress = botAddress
     this._markets = markets
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
@@ -163,7 +163,7 @@ class SellLiquidityBot extends Bot {
       switch (type) {
         case 'slack':
           // Notify to slack
-          if (this._slackClient.isEnabled()) {
+          if (this._slackRepo.isEnabled()) {
             this._notifySoldTokensSlack({
               channel,
               soldTokensString,
@@ -184,7 +184,7 @@ class SellLiquidityBot extends Bot {
   }
 
   _notifySoldTokensSlack ({ channel, soldTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
-    this._slackClient
+    this._slackRepo
       .postMessage({
         channel: channel || this._botTransactionsSlackChannel,
         attachments: [

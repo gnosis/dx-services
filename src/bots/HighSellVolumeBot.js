@@ -24,7 +24,7 @@ class HighSellVolumeBot extends Bot {
     marketService,
     botAddress,
     markets,
-    slackClient,
+    slackRepo,
     botTransactionsSlackChannel,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
@@ -35,7 +35,7 @@ class HighSellVolumeBot extends Bot {
     this._marketService = marketService
     this._botAddress = botAddress
     this._markets = markets
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
@@ -157,7 +157,7 @@ class HighSellVolumeBot extends Bot {
       switch (type) {
         case 'slack':
           // Notify to slack
-          if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+          if (this._botTransactionsSlackChannel && this._slackRepo.isEnabled()) {
             this._notifyLowBalanceSlack({
               channel,
               sellToken,
@@ -178,7 +178,7 @@ class HighSellVolumeBot extends Bot {
   }
 
   _notifyLowBalanceSlack ({ channel, sellToken, buyToken, from, balance, estimatedBuyVolume }) {
-    this._slackClient
+    this._slackRepo
       .postMessage({
         channel: channel || this._botTransactionsSlackChannel,
         attachments: [

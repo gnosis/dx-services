@@ -52,13 +52,13 @@ class App {
     eventBus,
     ethereumClient,
     auctionEventWatcher,
-    slackClient
+    slackRepo
   }) {
     this._config = config
     this._eventBus = eventBus
     this._auctionEventWatcher = auctionEventWatcher
     this._ethereumClient = ethereumClient
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
 
     // Services
     this._liquidityService = liquidityService
@@ -147,7 +147,7 @@ class App {
         liquidityService: this._liquidityService,
         dxInfoService: this._dxInfoService,
         ethereumClient: this._ethereumClient,
-        slackClient: this._slackClient,
+        slackRepo: this._slackRepo,
         ...botConfig
       }
 
@@ -191,7 +191,7 @@ class App {
         name,
         eventBus: this._eventBus,
         liquidityService: this._liquidityService,
-        slackClient: this._slackClient,
+        slackRepo: this._slackRepo,
         botAddress,
         markets,
         botTransactionsSlackChannel: slackChannel,
@@ -226,7 +226,7 @@ class App {
         dxInfoService: this._dxInfoService,
         marketService: this._marketService,
         botAddress,
-        slackClient: this._slackClient,
+        slackRepo: this._slackRepo,
         botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING,
         ...aditionalBotConfig
       })
@@ -278,7 +278,7 @@ class App {
       liquidityService: this._liquidityService,
       dxInfoService: this._dxInfoService,
       ethereumClient: this._ethereumClient,
-      slackClient: this._slackClient,
+      slackRepo: this._slackRepo,
       tokensByAccount,
       botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
     })
@@ -292,7 +292,7 @@ class App {
         dxInfoService: this._dxInfoService,
         ethereumClient: this._ethereumClient,
         tokensByAccount,
-        slackClient: this._slackClient,
+        slackRepo: this._slackRepo,
         botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_TRANSACTIONS,
         ...aditionalBotConfig
       })
@@ -317,8 +317,8 @@ class App {
     // Display some basic info
     logger.info(message)
 
-    if (this._slackClient.isEnabled()) {
-      await this._slackClient.postMessage({
+    if (this._slackRepo.isEnabled()) {
+      await this._slackRepo.postMessage({
         channel: this._config.SLACK_CHANNEL_OPERATIONS,
         text: message
       }).catch(error => {
@@ -337,8 +337,8 @@ class App {
     // Display some basic info
     logger.info(message)
 
-    if (this._slackClient.isEnabled()) {
-      await this._slackClient.postMessage({
+    if (this._slackRepo.isEnabled()) {
+      await this._slackRepo.postMessage({
         channel: this._config.SLACK_CHANNEL_OPERATIONS,
         text: message
       }).catch(error => {

@@ -23,7 +23,7 @@ class DepositBot extends Bot {
     dxInfoService,
     dxTradeService,
     ethereumClient,
-    slackClient,
+    slackRepo,
     botTransactionsSlackChannel,
     tokensByAccount,
     notifications,
@@ -34,7 +34,7 @@ class DepositBot extends Bot {
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
     this._ethereumClient = ethereumClient
-    this._slackClient = slackClient
+    this._slackRepo = slackRepo
     this._botTransactionsSlackChannel = botTransactionsSlackChannel
 
     this._tokensByAccount = tokensByAccount
@@ -221,7 +221,7 @@ class DepositBot extends Bot {
     })
 
     // Notify to slack
-    if (this._botTransactionsSlackChannel && this._slackClient.isEnabled()) {
+    if (this._botTransactionsSlackChannel && this._slackRepo.isEnabled()) {
       this._notifyDepositedTokensSlack({
         channel: '',
         account,
@@ -231,7 +231,7 @@ class DepositBot extends Bot {
   }
 
   _notifyDepositedTokensSlack ({ channel, account, depositedTokensString }) {
-    this._slackClient
+    this._slackRepo
       .postMessage({
         channel: channel || this._botTransactionsSlackChannel,
         attachments: [

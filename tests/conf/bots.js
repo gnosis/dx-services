@@ -186,7 +186,7 @@ const BALANCE_CHECK_BOT = {
   dxInfoService: this._dxInfoService,
   ethereumClient: this._ethereumClient,
   tokensByAccount,
-  slackClient: this._slackClient,
+  slackRepo: this._slackRepo,
   botFundingSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING
 }
 
@@ -197,7 +197,7 @@ const HIGH_SELL_VOLUME_BOT = {
   dxInfoService: this._dxInfoService,
   marketService: this._marketService,
   botAddress: 'TODO:',
-  slackClient: this._slackClient,
+  slackRepo: this._slackRepo,
   botTransactionsSlackChannel: this._config.SLACK_CHANNEL_BOT_FUNDING,
   // ...aditionalBotConfig TODO:
 }
