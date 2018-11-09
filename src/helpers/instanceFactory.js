@@ -146,32 +146,6 @@ function _getAuctionEventWatcher (config, eventBus, contracts) {
   })
 }
 
-function _getAuctionRepo (config, ethereumClient, contracts) {
-  let auctionRepoPromise
-  switch (config.AUCTION_REPO) {
-    case 'mock':
-      const AuctionRepoMock = require('../repositories/AuctionRepo/AuctionRepoMock')
-      auctionRepoPromise = Promise.resolve(new AuctionRepoMock({
-        config
-      }))
-      break
-
-    case 'impl':
-      const AuctionRepoImpl = require('../repositories/AuctionRepo/AuctionRepoImpl')
-      const auctionRepoImpl = new AuctionRepoImpl({
-        config,
-        contracts,
-        ethereumClient
-      })
-
-      return auctionRepoImpl
-    default:
-      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO)
-  }
-
-  return auctionRepoPromise
-}
-
 function _getLiquidityService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
   const LiquidityService = require('../services/LiquidityService')
   return new LiquidityService({
