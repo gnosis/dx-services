@@ -118,7 +118,9 @@ function getTokenAddresses (tokens, config) {
     const paramName = getTokenAddresParamName(token)
     const address = config[paramName]
     if (address) {
-      tokenAddresses[token] = address
+      // FIXME token addresses to lowercase to avoid issues when checking from addresses
+      // from the DutchX contract. We should use toChecksum in web3js 1.0
+      tokenAddresses[token] = address.toLowerCase()
     } else if (config.ENVIRONMENT === 'local') {
       tokenAddresses[token] = null
     } else {

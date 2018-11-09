@@ -7,7 +7,7 @@
 </p>
 
 # DutchX Services
-DutchX Services is a project that contains services and other goodies to 
+DutchX Services is a project that contains services and other goodies to
 facilitate the interaction with the DutchX smart contracts.
 
 # Documentation
@@ -20,13 +20,13 @@ Setup a working environment:
 # Install dependencies
 yarn install
 
-# In one tab, run a local ganache
+# In one tab, run a local Ganache
 yarn rpc
 
 # Run the setup script, which will:
 #   - migrate all contracts into your local node
 #   - create some test data, basically:
-#       - I'll fund the the second account of generated with the mnemonic, so 
+#       - I'll fund the the second account of generated with the mnemonic, so
 #         it has some funds for trading
 #       - It'll add a RDN-WETH token pair into the DX
 #       - It'll make sure RDN-WETH is running. It'll automatically advance time,
@@ -89,11 +89,11 @@ yarn cli2 --time 5.5
 # DEBUG-dx-service:tests:helpers:testSetup Time after increase 5.5 hours:  Wed, 29 Aug 2018 18:03:38 GMT +23ms
 ```
 
-If you check the state of the auction now, you'll see how the price droped. 
+If you check the state of the auction now, you'll see how the price dropped.
 Also you'll see that we are 30min away from the last closing price.
 
 There's a lot of operations you can do with the `CLI`, for some examples you
-can check 
+can check
 [dx-cli](https://github.com/gnosis/dx-cli#basic-usage) project
 . For a complete list, just type:
 
@@ -109,7 +109,7 @@ So for example, we can check our balance of the tokens, and our balance within
 the DutchX:
 ```bash
 # Balance for our default account
-#  - 2nd one generated from the mnemonic in local (we use the 1st one for the 
+#  - 2nd one generated from the mnemonic in local (we use the 1st one for the
 #    auctioneer of the DutchX contracts)
 #  - 1st ine generated from the mnemonic in any other environment
 yarn cli balances
@@ -130,7 +130,7 @@ yarn cli buy 2500 WETH-RDN
 The state now should show:
 * That we bought most of the sell volume
 * Now the outstanding volume is smaller. Note that in this case, the outstanding
-volume is how much RDN do we need to clear the auction at the current 
+volume is how much RDN do we need to clear the auction at the current
 price.
 
 ```
@@ -184,7 +184,7 @@ Enjoy the CLI! These are some other examples to start with:
 
 ## Run the tests
 ```bash
-# Launch a ganach-cli in one tab
+# Launch a ganache-cli in one tab
 yarn rpc
 
 # Migrate the contracts
@@ -219,15 +219,15 @@ yarn api-rinkeby
 ```
 
 # Run it with docker
-One easy way to run the `bots`, the `api`, the `cli` or any other script or 
-utility of this proyect is using the docker image we provide:
+One easy way to run the `bots`, the `api`, the `cli` or any other script or
+utility of this project is using the docker image we provide:
 * You can read how to run it from `dx-services`: [docs/docker.md](docs/docker.md)
 * A better approach would be to use the **Docker Image published on Docker Hub**
   * **Dockerhub**:
     [https://hub.docker.com/r/gnosispm/dx-services/](https://hub.docker.com/r/gnosispm/dx-services/)
-  * **Example on how to run the CLI**: 
+  * **Example on how to run the CLI**:
     [https://github.com/gnosis/dx-cli](https://github.com/gnosis/dx-cli)
-  * **Example on how to run the Bots**: 
+  * **Example on how to run the Bots**:
     [https://github.com/gnosis/dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
 # Scope and main parts of dx-services
@@ -238,8 +238,8 @@ It contains five main elements:
       the DutchX smart contracts, price feeds, gas price feeds, etc.
       They provide also a more intuitive error handling, that gives detailed
       information about the reasons a smart contract revert a operation.
-    * `services`: Provides some common bussiness logic operations to make
-      DutchX interactation easier.
+    * `services`: Provides some common business logic operations to make
+      DutchX interaction easier.
 
 * **REST Api**:
   * Exposes the DutchX data in a REST API.
@@ -253,13 +253,13 @@ It contains five main elements:
   * Allows to perform operations to retrieve the DutchX state from any Ethereum
     network
   * Also, allow to fund accounts, deposit tokens into the DutchX, participate
-    in an auction as a seller or a buyer and mutch more.
+    in an auction as a seller or a buyer and much more.
   * For an example on how to use the CLI, check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
 
 * **Liquidity Bots**
   * Allows to launch bots watching certain token pairs with the goal of ensuring
     minimal market liquidity.
-  * The bots will automatically participate in the auctions usign the provided
+  * The bots will automatically participate in the auctions using the provided
     configuration.
   * For documentation about the bots, and example on how to run your own bots,
     check [dx-examples-liquidity-bots](https://github.com/gnosis/dx-examples-liquidity-bots)
@@ -267,7 +267,7 @@ It contains five main elements:
 * **Scheduled tasks**:
   * Allow to execute certain tasks at certain times.
   * **Used for Reporting**: Allows to send reports periodically with the
-    informarmition of the lasts auctions and the actions the bots has been taking.
+    information of the lasts auctions and the actions the bots has been taking.
   * **Used for Autoclaiming**: Allows the bots to claim their funds of past
     auctions so they can reuse them in the upcoming ones.
 
