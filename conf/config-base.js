@@ -30,4 +30,6 @@ function _getCacheConf () {
       long: process.env.CACHE_TIMEOUT_LONG || 120
     }
   }
+
+  return CACHE
 }

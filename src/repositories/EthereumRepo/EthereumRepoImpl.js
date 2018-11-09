@@ -1,30 +1,32 @@
 const loggerNamespace = 'dx-service:repositories:EthereumRepoImpl'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
-const Cache = require('../../helpers/Cache')
-
+const Cacheable = require('../../helpers/Cacheable')
+const assert = require('assert')
 // const AuctionLogger = require('../../helpers/AuctionLogger')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 
 // See: https://github.com/ethereum/eips/issues/20
-const ERC20_ABI = require('./ERC20Abi')
-const AlternativeERC20_ABI = require('./AlternativeERC20Abi')
-
+const erc20Abi = require('./abi/erc20Abi')
+const erc20AlternativeAbi = require('./abi/erc20AlternativeAbi')
 const tokenContractsCache = {}
 
-class EthereumRepoImpl {
-  constructor ({ ethereumClient, config }) {
-    this._ethereumClient = ethereumClient
-    this._web3 = ethereumClient.getWeb3()
-    this._erc20Contract = this._web3.eth.contract(ERC20_ABI)
+class EthereumRepoImpl extends Cacheable {
+  constructor ({
+    ethereumClient,
+    web3,
+    cacheConf
+  }) {
+    super({
+      cacheConf,
+      cacheName: 'EthereumRepo'
+    })
+    assert(ethereumClient, '"ethereumClient" is required')
+    assert(web3, '"web3" is required')
 
-    this._cache = new Cache('EthereumRepo')
-    this._cacheEnabled = config.CACHE_ENABLED
-    this._cacheTimeouts = {
-      short: config.CACHE_TIMEOUT_SHORT,
-      average: config.CACHE_TIMEOUT_AVERAGE,
-      long: config.CACHE_TIMEOUT_LONG
-    }
+    this._ethereumClient = ethereumClient
+    this._web3 = web3
+    this._erc20Contract = this._web3.eth.contract(erc20Abi)
   }
 
   async isConnected () {
@@ -158,23 +160,20 @@ class EthereumRepoImpl {
 
   async tokenGetInfo ({ tokenAddress }) {
     const fetchFn = () => this._tokenGetInfo({ tokenAddress })
-
     const cacheKey = 'tokenInfo:' + tokenAddress
-    const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
-    const CACHE_TIMEOUT_MEDIUM = this._cacheTimeouts.medium
-    const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
 
-    if (this._cacheEnabled) {
+    if (this._cache) {
+      const that = this
       return this._cache.get({
         key: cacheKey,
         fetchFn,
         time (tokenInfo) {
           if (tokenInfo === undefined) {
-            return CACHE_TIMEOUT_SHORT
+            return that._cacheTimeShort
           } else if (tokenInfo === null) {
-            return CACHE_TIMEOUT_MEDIUM
+            return that._cacheTimeAverage
           } else {
-            return CACHE_TIMEOUT_LONG
+            return that._cacheTimeLong
           }
         }
       })
@@ -252,7 +251,7 @@ class EthereumRepoImpl {
   }
 
   _getAltAbiTokenContract (address) {
-    return this._web3.eth.contract(AlternativeERC20_ABI).at(address)
+    return this._web3.eth.contract(erc20AlternativeAbi).at(address)
   }
 }
 

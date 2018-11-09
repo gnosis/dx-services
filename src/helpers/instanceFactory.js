@@ -10,6 +10,9 @@ const EventBus = require('./EventBus')
 const SlackClient = require('./SlackClient')
 const loadContracts = require('../loadContracts')
 const getEthereumClient = require('../getEthereumClient')
+const getAuctionRepo = require('../repositories/AuctionRepo')
+const getPriceRepo = require('../repositories/PriceRepo')
+const getEthereumRepo = require('../repositories/EthereumRepo')
 
 async function createInstances ({
   test = false,
@@ -32,9 +35,9 @@ async function createInstances ({
   const contracts = await loadContracts()
 
   // Repos
-  const auctionRepo = require('../repositories/AuctionRepo')
-  const priceRepo = _getPriceRepo(config)
-  const ethereumRepo = _getEthereumRepo(config, ethereumClient)
+  const auctionRepo = await getAuctionRepo()
+  const priceRepo = await getPriceRepo()
+  const ethereumRepo = await getEthereumRepo()
 
   // Slack client
   const slackClient = new SlackClient()
@@ -145,29 +148,9 @@ function _getAuctionEventWatcher (config, eventBus, contracts) {
   })
 }
 
-function _getEthereumRepo (config, ethereumClient) {
-  switch (config.ETHEREUM_REPO_IMPL) {
-    case 'mock':
-      const EthereumRepoMock = require('../repositories/EthereumRepo/EthereumRepoMock')
-      return new EthereumRepoMock({
-        config
-      })
-
-    case 'impl':
-      const EthereumRepoImpl = require('../repositories/EthereumRepo/EthereumRepoImpl')
-      return new EthereumRepoImpl({
-        config,
-        ethereumClient
-      })
-
-    default:
-      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO_IMPL)
-  }
-}
-
 function _getAuctionRepo (config, ethereumClient, contracts) {
   let auctionRepoPromise
-  switch (config.AUCTION_REPO_IMPL) {
+  switch (config.AUCTION_REPO) {
     case 'mock':
       const AuctionRepoMock = require('../repositories/AuctionRepo/AuctionRepoMock')
       auctionRepoPromise = Promise.resolve(new AuctionRepoMock({
@@ -185,34 +168,10 @@ function _getAuctionRepo (config, ethereumClient, contracts) {
 
       return auctionRepoImpl
     default:
-      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO_IMPL)
+      throw new Error('Unkown implementation for AuctionRepo: ' + config.AUCTION_REPO)
   }
 
   return auctionRepoPromise
-}
-
-function _getPriceRepo (config) {
-  let priceRepo
-  switch (config.EXCHANGE_PRICE_REPO_IMPL) {
-    case 'mock':
-      const PriceRepoMock = require('../repositories/PriceRepo/PriceRepoMock')
-      priceRepo = new PriceRepoMock({
-        config
-      })
-      break
-
-    case 'impl':
-      const PriceRepoImpl = require('../repositories/PriceRepo/PriceRepoImpl')
-      priceRepo = new PriceRepoImpl({
-        config
-      })
-      break
-
-    default:
-      throw new Error('Unkown implementation for PriceRepo: ' + config.EXCHANGE_PRICE_REPO_IMPL)
-  }
-
-  return priceRepo
 }
 
 function _getLiquidityService ({ config, auctionRepo, priceRepo, ethereumRepo }) {

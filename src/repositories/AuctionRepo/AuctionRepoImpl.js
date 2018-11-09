@@ -5,8 +5,8 @@ const AuctionLogger = require('../../helpers/AuctionLogger')
 const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
 const dxFilters = require('../../helpers/dxFilters')
 const auctionLogger = new AuctionLogger(loggerNamespace)
-const Cache = require('../../helpers/Cache')
-const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
+const Cacheable = require('../../helpers/Cacheable')
+// const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
 
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
 
@@ -21,12 +21,12 @@ const numberUtil = require('../../helpers/numberUtil.js')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
-class AuctionRepoImpl {
+class AuctionRepoImpl extends Cacheable {
   constructor ({
     ethereumClient,
     contracts,
     // Cache
-    cache,
+    cacheConf,
     // Gas
     defaultGas = 6700000,
     gasPriceDefault = 'fast', // safeLow, average, fast
@@ -34,8 +34,15 @@ class AuctionRepoImpl {
     transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
     gasRetryIncrement = 1.2,
     overFastPriceFactor = 1,
-    gasEstimationCorrectionFactor = 2,
+    gasEstimationCorrectionFactor = 2
   }) {
+    super({
+      cacheConf,
+      cacheName: 'AuctionRepo'
+    })
+    assert(ethereumClient, '"ethereumClient" is required')
+    assert(contracts, '"contracts" is required')
+    
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
     this._transactionRetryTime = transactionRetryTime
@@ -72,14 +79,6 @@ class AuctionRepoImpl {
         params: [ token, contract.address ]
       })
     })
-
-    this._cache = new Cache('AuctionRepo')
-    this._cacheEnabled = config.CACHE_ENABLED
-    this._cacheTimeouts = {
-      short: config.CACHE_TIMEOUT_SHORT,
-      average: config.CACHE_TIMEOUT_AVERAGE,
-      long: config.CACHE_TIMEOUT_LONG
-    }
   }
 
   async getAbout () {
@@ -277,7 +276,7 @@ class AuctionRepoImpl {
         operation: 'getAuctionIndex',
         sellToken,
         buyToken,
-        cacheTime: this._cacheTimeouts.average
+        cacheTime: this._cacheTimeAverage
       })
       .then(parseInt)
   }
@@ -289,7 +288,7 @@ class AuctionRepoImpl {
       operation: 'getAuctionStart',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeouts.average
+      cacheTime: this._cacheTimeAverage
     })
 
     // The SC has 0 when the contract is initialized
@@ -336,7 +335,7 @@ class AuctionRepoImpl {
       operation: 'approvedTokens',
       token: token,
       checkToken: false,
-      cacheTime: this._cacheTimeouts.average
+      cacheTime: this._cacheTimeAverage
     })
   }
 
@@ -370,7 +369,7 @@ class AuctionRepoImpl {
       operation: 'sellVolumesCurrent',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeouts.average
+      cacheTime: this._cacheTimeAverage
     })
   }
 
@@ -381,7 +380,7 @@ class AuctionRepoImpl {
       operation: 'sellVolumesNext',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeouts.short
+      cacheTime: this._cacheTimeShort
     })
   }
 
@@ -392,7 +391,7 @@ class AuctionRepoImpl {
       operation: 'buyVolumes',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeouts.short
+      cacheTime: this._cacheTimeShort
     })
   }
 
@@ -405,7 +404,7 @@ class AuctionRepoImpl {
       token,
       args: [ address ],
       checkToken: false,
-      cacheTime: this._cacheTimeouts.short
+      cacheTime: this._cacheTimeShort
     })
   }
 
@@ -447,7 +446,7 @@ class AuctionRepoImpl {
       sellToken,
       buyToken,
       auctionIndex,
-      cacheTime: this._cacheTimeouts.average
+      cacheTime: this._cacheTimeAverage
     })
   }
 
@@ -461,7 +460,7 @@ class AuctionRepoImpl {
       buyToken,
       auctionIndex,
       args: [ address ],
-      cacheTime: this._cacheTimeouts.average
+      cacheTime: this._cacheTimeAverage
     })
   }
 
@@ -652,7 +651,7 @@ class AuctionRepoImpl {
       buyToken,
       auctionIndex,
       args: [ address ],
-      cacheTime: this._cacheTimeouts.short
+      cacheTime: this._cacheTimeShort
     })
   }
 
@@ -1235,7 +1234,7 @@ volume: ${state}`)
       ._doCall({
         operation: 'getFeeRatio',
         params: [ address ],
-        cacheTime: this._cacheTimeouts.average
+        cacheTime: this._cacheTimeAverage
       })
   }
 
@@ -1249,7 +1248,7 @@ volume: ${state}`)
         sellToken,
         buyToken,
         auctionIndex,
-        cacheTime: this._cacheTimeouts.short
+        cacheTime: this._cacheTimeShort
       })
       .then(toFraction)
 
@@ -1761,18 +1760,17 @@ volume: ${state}`)
 
     const params = [sellToken, buyToken, auctionIndex]
     const cacheKey = this._getCacheKey({ operation: 'closingPrices', params })
-    const CACHE_TIMEOUT_SHORT = this._cacheTimeouts.short
-    const CACHE_TIMEOUT_LONG = this._cacheTimeouts.long
 
-    if (this._cacheEnabled) {
+    if (this._cache) {
+      const that = this
       return this._cache.get({
         key: cacheKey,
         fetchFn,
         time (closingPrice) {
           if (closingPrice === null) {
-            return CACHE_TIMEOUT_SHORT
+            return that._cacheTimeShort
           } else {
-            return CACHE_TIMEOUT_LONG
+            return that._cacheTimeLong
           }
         }
       })
@@ -2042,13 +2040,13 @@ volume: ${state}`)
   async _doCall ({
     operation,
     params,
-    cacheTime = this._cacheTimeouts.short
+    cacheTime = this._cacheTimeShort
   }) {
     // NOTE: cacheTime can be set null/0 on porpouse, so it's handled from the
     //  caller method
 
     logger.debug('Transaction: ' + operation, params)
-    if (this._cacheEnabled && cacheTime !== null) {
+    if (this._cache && cacheTime !== null) {
       const cacheKey = this._getCacheKey({ operation, params })
       return this._cache.get({
         key: cacheKey,

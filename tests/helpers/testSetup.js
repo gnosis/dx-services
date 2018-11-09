@@ -21,7 +21,7 @@ const INITIAL_AMOUNTS = {
 }
 
 const config = {
-  AUCTION_REPO_IMPL: 'impl'
+  AUCTION_REPO: 'impl'
 }
 
 // const balanceProps = ['token', 'balance']

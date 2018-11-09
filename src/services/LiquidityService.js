@@ -21,6 +21,11 @@ class LiquidityService {
     // config
     config
   }) {
+    assert(auctionRepo, '"auctionRepo" is required')
+    assert(ethereumRepo, '"ethereumRepo" is required')
+    assert(priceRepo, '"priceRepo" is required')
+    assert(config, '"config" is required')
+
     this._auctionRepo = auctionRepo
     this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo

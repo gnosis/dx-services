@@ -1,9 +1,14 @@
 // const loggerNamespace = 'dx-service:services:ExternalFeedsService'
 // const Logger = require('../helpers/Logger')
 // const logger = new Logger(loggerNamespace)
+const assert = require('assert')
 
 class MarketService {
-  constructor ({ priceRepo }) {
+  constructor ({
+    priceRepo
+  }) {
+    assert(priceRepo, '"priceRepo" is required')
+
     this._priceRepo = priceRepo
   }
 

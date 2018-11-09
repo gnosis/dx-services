@@ -20,10 +20,22 @@ let requestId = 1
 // const ENVIRONMENT = process.env.NODE_ENV
 
 class ReportService {
-  constructor ({ auctionRepo, ethereumRepo, markets, slackClient, config }) {
+  constructor ({
+    auctionRepo,
+    ethereumRepo,
+    // markets,
+    slackClient,
+    config
+  }) {
+    assert(auctionRepo, '"auctionRepo" is required')
+    assert(ethereumRepo, '"ethereumRepo" is required')
+    // assert(markets, '"markets" is required')
+    assert(slackClient, '"slackClient" is required')
+    assert(config, '"config" is required')
+
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    this._markets = markets
+    // this._markets = markets
     this._slackClient = slackClient
     this._auctionsReportSlackChannel = config.SLACK_CHANNEL_AUCTIONS_REPORT
     this._markets = config.MARKETS

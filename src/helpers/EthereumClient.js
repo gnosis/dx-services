@@ -4,7 +4,7 @@ const numberUtil = require('../helpers/numberUtil')
 const dateUtil = require('../helpers/dateUtil')
 const formatUtil = require('../helpers/formatUtil')
 const logger = new Logger(loggerNamespace)
-const Cache = require('../helpers/Cache')
+const Cacheable = require('../helpers/Cacheable')
 const assert = require('assert')
 
 const truffleContract = require('truffle-contract')
@@ -24,7 +24,7 @@ const environment = process.env.NODE_ENV
 
 // TODO: Check eventWatcher in DX/test/utils.js
 
-class EthereumClient {
+class EthereumClient extends Cacheable {
   constructor ({
     web3,
     network,
@@ -32,6 +32,10 @@ class EthereumClient {
     urlPriceFeedGasStation,
     urlPriceFeedSafe
   }) {
+    super({
+      cacheConf,
+      cacheName: 'EthereumClient'
+    })
     assert(web3, 'The "web3" is missing for the ethereum client')
     assert(network, 'The "network" is missing for the ethereum client')
 
@@ -40,24 +44,16 @@ class EthereumClient {
     this._gasPriceFeedConfig = urlPriceFeedGasStation
     this._urlPriceFeedSafe = urlPriceFeedSafe
 
-    // TODO: EthereumClient: Do a validation using the network
-
-    let callCacheTime
-    if (cacheConf) {
-      const { long, medium, short } = cacheConf
-      assert(long, 'The long timeout value is required if the cache is enabled')
-      assert(medium, 'The medium timeout value is required if the cache is enabled')
-      assert(short, 'The short timeout value is required if the cache is enabled')
-
-      console.log('this._cacheConf: ', this._cacheConf)
-
-      this._cache = new Cache('EthereumClient')
-      this._cacheConf = cacheConf
-      callCacheTime = cacheConf.short
-    }
-    this._callCacheTime = callCacheTime
-
+    // on shutdow stop client
     gracefullShutdown.onShutdown(() => this.stop())
+  }
+
+  async start () {
+    return this._ping()
+  }
+
+  async stop () {
+    this._web3.currentProvider.engine.stop()
   }
 
   getUrl () {
@@ -75,26 +71,6 @@ class EthereumClient {
     }
 
     return pricesPromise
-    // In case of an error, we get it
-    // .catch(error => {
-    //   // Notify error
-    //   logger.error({
-    //     msg: 'Error getting the price from the feed. Retrying with web3',
-    //     params: [ this._urlPriceFeedGasStation ],
-    //     error
-    //   })
-    //   return this._doGetPricesFromWeb3()
-    // })
-    // In case of error, return the default (and notify error)
-    // .catch(error => _handleGetGasPriceError(error))
-  }
-
-  async start () {
-    return this._ping()
-  }
-
-  async stop () {
-    this._web3.currentProvider.engine.stop()
   }
 
   async _ping () {
@@ -180,6 +156,7 @@ class EthereumClient {
 
     const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString() ] })
     if (this._cache) {
+      const that = this
       return this._cache.get({
         key: cacheKey,
         fetchFn,
@@ -194,18 +171,18 @@ class EthereumClient {
             // Return different cache time depending on how old is the block
             if (blockDate < monthAgo) {
               // Cache long period
-              return this._cacheConf.long
+              return that._cacheTimeLong
             } else if (blockDate < weekAgo) {
               // Cache Medium period
-              return this._cacheConf.medium
+              return that._cacheTimeAverage
             } else {
               // Cache Short period
-              return this._cacheConf.short
+              return that._cacheTimeShort
             }
           } else {
             // If the block return null or we ask for the latest block
             // we cache a short period
-            return this._cacheConf.short
+            return that._cacheTimeShort
           }
         }
       })
@@ -239,7 +216,7 @@ class EthereumClient {
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
 
-    if (this._cacheEnabled && cacheTime !== null) {
+    if (this._cache && cacheTime !== null) {
       const cacheKey = this._getCacheKey({ propName, params })
       return this._cache.get({
         key: cacheKey,

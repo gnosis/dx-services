@@ -11,34 +11,58 @@ module.exports = {
   GAS_ESTIMATION_CORRECTION_FACTOR: process.env.GAS_ESTIMATION_CORRECTION_FACTOR || 2, // Gas estimation correction for proxied contract
 
   // AuctionRepo conf
-  // AUCTION_REPO_IMPL: 'impl', // mock, impl
   AUCTION_REPO: {
     factory: 'src/repositories/AuctionRepo/AuctionRepoimpl' // mock, impl
   },
 
   // EthereumRepo conf
-  ETHEREUM_REPO_IMPL: 'impl', // mock. impl
-
-  // ExchangePriceRepo conf
-  EXCHANGE_PRICE_REPO_IMPL: 'impl', // mock. impl
-  EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT: {
-    strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-    feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid']
+  ETHEREUM_REPO: {
+    factory: 'src/repositories/EthereumRepo/EthereumRepoImpl' // mock, impl
   },
-  EXCHANGE_PRICE_FEED_STRATEGIES: {
-    'WETH-OMG': {
-      strategy: 'sequence',
-      feeds: ['binance', 'huobi', 'bitfinex']
+
+  // PriceRepo conf
+  PRICE_REPO: {
+    factory: 'src/repositories/PriceRepo/PriceRepoImpl', // mock, impl
+    priceFeedStrategiesDefault: {
+      strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
+      feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid']
     },
-    'WETH-RDN': {
-      strategy: 'sequence',
-      feeds: ['huobi', 'binance', 'bitfinex']
+    priceFeedStrategies: {
+      'WETH-OMG': {
+        strategy: 'sequence',
+        feeds: ['binance', 'huobi', 'bitfinex']
+      },
+      'WETH-RDN': {
+        strategy: 'sequence',
+        feeds: ['huobi', 'binance', 'bitfinex']
+      }
+    },
+    priceFeeds: {
+      binance: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoBinance'
+      },
+      huobi: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoHuobi'
+      },
+      kraken: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoKraken',
+        url: 'https://api.kraken.com',
+        version: '0'
+      },
+      bitfinex: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoBitfinex'
+      },
+      hitbtc: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoHitbtc'
+      },
+      liquid: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoLiquid'
+      }
+    },
+    strategies: {
+      sequence: {
+        factory: 'src/repositories/PriceRepo/strategies/sequence'
+      }
     }
-  },
-
-  // Kraken custom config
-  KRAKEN: {
-    url: 'https://api.kraken.com',
-    version: '0'
   }
 }

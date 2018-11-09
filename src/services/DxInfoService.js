@@ -4,6 +4,7 @@ const loggerNamespace = 'dx-service:services:DxInfoService'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const ENVIRONMENT = process.env.NODE_ENV
+const assert = require('assert')
 
 // TODO: Implement real pagination
 //  While there's not too many tokens, we defer the pagination implementation
@@ -27,7 +28,15 @@ const getAuctionsBalances = require('./helpers/getAuctionsBalances')
 const getClaimableTokens = require('./helpers/getClaimableTokens')
 
 class DxInfoService {
-  constructor ({ auctionRepo, ethereumRepo, config }) {
+  constructor ({
+    auctionRepo,
+    ethereumRepo,
+    config
+  }) {
+    assert(auctionRepo, '"auctionRepo" is required')
+    assert(ethereumRepo, '"ethereumRepo" is required')
+    assert(config, '"config" is required')
+ 
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = config.MARKETS

@@ -57,7 +57,8 @@ const config = {
   ...envConf,
   ...networkConfig,
   ...customConfig,
-  MARKETS: markets.map(orderMarketTokens)
+  MARKETS: markets.map(orderMarketTokens),
+  getFactory
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
@@ -126,6 +127,26 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
     }
     return tokenAddresses
   }, {})
+}
+
+function getFactory (factoryPropName) {
+  const assert = require('assert')
+  const path = require('path')
+
+  const factoryConfAux = config[factoryPropName]
+  assert(factoryConfAux, `"${factoryPropName}" was not defined in the conf`)
+
+  const { factory, ...factoryConf } = factoryConfAux
+  assert(factory, '"factory" is required in ETHEREUM_REPO config')
+
+  const factoryPath = path.join('../', factory)
+  // console.log('factoryPath: ', factoryPath)
+  const Factory = require(factoryPath)
+
+  return {
+    Factory,
+    factoryConf
+  }
 }
 
 module.exports = config

@@ -7,7 +7,17 @@ const getClaimableTokens = require('./helpers/getClaimableTokens')
 const numberUtil = require('../../src/helpers/numberUtil')
 
 class DxTradeService {
-  constructor ({ auctionRepo, ethereumRepo, markets, config }) {
+  constructor ({
+    auctionRepo,
+    ethereumRepo,
+    // markets,
+    config
+  }) {
+    assert(auctionRepo, '"assert" is required')
+    assert(ethereumRepo, '"ethereumRepo" is required')
+    // assert(markets, '"markets" is required')
+    assert(config, '"config" is required')
+
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = config.MARKETS

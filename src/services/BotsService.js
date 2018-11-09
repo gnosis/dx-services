@@ -1,9 +1,18 @@
 const getVersion = require('../helpers/getVersion')
 const getGitInfo = require('../helpers/getGitInfo')
 const ENVIRONMENT = process.env.NODE_ENV
+const assert = require('assert')
 
 class BotsService {
-  constructor ({ auctionRepo, ethereumRepo, config }) {
+  constructor ({
+    auctionRepo,
+    ethereumRepo,
+    config
+  }) {
+    assert(auctionRepo, '"auctionRepo" is required')
+    assert(ethereumRepo, '"ethereumRepo" is required')
+    assert(config, '"config" is required')
+
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = config.MARKETS

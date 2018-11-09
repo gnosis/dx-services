@@ -1,9 +1,18 @@
-const loggerNamespace = 'dx-service:services:DxManagementService'
-const Logger = require('../helpers/Logger')
-const logger = new Logger(loggerNamespace)
+// const loggerNamespace = 'dx-service:services:DxManagementService'
+// const Logger = require('../helpers/Logger')
+// const logger = new Logger(loggerNamespace)
+const assert = require('assert')
 
 class DxManagementService {
-  constructor ({ auctionRepo, ethereumRepo, config }) {
+  constructor ({
+    auctionRepo,
+    ethereumRepo,
+    config
+  }) {
+    assert(auctionRepo, '"auctionRepo" is required')
+    assert(ethereumRepo, '"ethereumRepo" is required')
+    assert(config, '"config" is required')
+
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
   }

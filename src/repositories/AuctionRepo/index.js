@@ -1,3 +1,5 @@
+const conf = require('../../../conf')
+
 let auctionRepo
 
 module.exports = async () => {
@@ -8,22 +10,18 @@ module.exports = async () => {
 }
 
 async function _createAuctionRepo () {
-  const assert = require('assert')
-  const path = require('path')
-  const conf = require('../../../conf')
+  // Get factory
+  const {
+    Factory: AuctionRepo,
+    factoryConf: auctionRepoConf
+  } = conf.getFactory('AUCTION_REPO')
+
+  // Get contracts
   const loadContracts = require('../../loadContracts')
-  const getEthereumClient = require('../../getEthereumClient')
-  const auctionRepoConf = conf.AUCTION_REPO
-  assert(auctionRepoConf, '"AUCTION_REPO" was not defined in the conf')
-  
-  const { factory } = auctionRepoConf
-  assert(factory, '"factory" is required in AUCTION_REPO config')
-  
-  const auctionRepoPath = path.join('../../..', factory)
-  console.log(auctionRepoPath)
-  const AuctionRepo = require(auctionRepoPath)
-  
   const contracts = await loadContracts()
+
+  // Get ethereum client
+  const getEthereumClient = require('../../getEthereumClient')
   const ethereumClient = await getEthereumClient()
 
   const {
@@ -41,7 +39,7 @@ async function _createAuctionRepo () {
     contracts,
 
     // Cache
-    cache: CACHE,
+    cacheConf: CACHE,
 
     // Gas price
     defaultGas: DEFAULT_GAS,
