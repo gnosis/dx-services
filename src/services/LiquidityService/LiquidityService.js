@@ -1,11 +1,11 @@
 const loggerNamespace = 'dx-service:services:LiquidityService'
-const AuctionLogger = require('../helpers/AuctionLogger')
+const AuctionLogger = require('../../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
-const getGitInfo = require('../helpers/getGitInfo')
-const getVersion = require('../helpers/getVersion')
-const numberUtil = require('../helpers/numberUtil.js')
-const formatUtil = require('../helpers/formatUtil.js')
+const getGitInfo = require('../../helpers/getGitInfo')
+const getVersion = require('../../helpers/getVersion')
+const numberUtil = require('../../helpers/numberUtil.js')
+const formatUtil = require('../../helpers/formatUtil.js')
 const assert = require('assert')
 
 const MAXIMUM_DX_FEE = 0.005 // 0.5%
@@ -19,19 +19,19 @@ class LiquidityService {
     priceRepo,
 
     // config
-    config
+    buyLiquidityRulesDefault
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(priceRepo, '"priceRepo" is required')
-    assert(config, '"config" is required')
+    assert(buyLiquidityRulesDefault, '"buyLiquidityRulesDefault" is required')
 
     this._auctionRepo = auctionRepo
     this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo
 
     // Config
-    this._buyLiquidityRules = config.BUY_LIQUIDITY_RULES_DEFAULT
+    this._buyLiquidityRules = buyLiquidityRulesDefault
       // Transform fractions to bigdecimals
       .map(threshold => ({
         marketPriceRatio: numberUtil

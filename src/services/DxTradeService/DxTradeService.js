@@ -1,26 +1,25 @@
 const loggerNamespace = 'dx-service:services:DxTradeService'
-const Logger = require('../helpers/Logger')
+const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
-const getClaimableTokens = require('./helpers/getClaimableTokens')
+const getClaimableTokens = require('../helpers/getClaimableTokens')
 
-const numberUtil = require('../../src/helpers/numberUtil')
+const numberUtil = require('../../../src/helpers/numberUtil')
 
 class DxTradeService {
   constructor ({
     auctionRepo,
     ethereumRepo,
-    // markets,
-    config
+    markets
   }) {
     assert(auctionRepo, '"assert" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     // assert(markets, '"markets" is required')
-    assert(config, '"config" is required')
+    assert(markets, '"markets" is required')
 
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    this._markets = config.MARKETS
+    this._markets = markets
   }
 
   async buy ({ sellToken, buyToken, auctionIndex, from, amount }) {

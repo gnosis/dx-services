@@ -1,21 +1,18 @@
-const loggerNamespace = 'dx-service:services:ReportService'
-const Logger = require('../helpers/Logger')
+const loggerNamespace = 'dx-service:services:AuctionsService'
+const Logger = require('../../helpers/Logger')
 const assert = require('assert')
 
 // const getBotAddress = require('../helpers/getBotAddress')
 // this._botAddressPromise = getBotAddress(ethereumRepo._ethereumClient)
 
 const logger = new Logger(loggerNamespace)
-const formatUtil = require('../helpers/formatUtil')
-const dxFilters = require('../helpers/dxFilters')
-const AuctionsReportRS = require('./helpers/AuctionsReportRS')
-const getTokenOrder = require('../helpers/getTokenOrder')
+const formatUtil = require('../../helpers/formatUtil')
+const dxFilters = require('../../helpers/dxFilters')
+const getTokenOrder = require('../../helpers/getTokenOrder')
 // const AUCTION_START_DATE_MARGIN_HOURS = '18' // 24h (max) - 6 (estimation)
-const numberUtil = require('../helpers/numberUtil')
+const numberUtil = require('../../helpers/numberUtil')
 
-let requestId = 1
-
-// const AuctionLogger = require('../helpers/AuctionLogger')
+// const AuctionLogger = require('../../helpers/AuctionLogger')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 // const ENVIRONMENT = process.env.NODE_ENV
 
@@ -23,25 +20,19 @@ class ReportService {
   constructor ({
     auctionRepo,
     ethereumRepo,
-    // markets,
-    slackRepo,
-    config
+    markets
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     // assert(markets, '"markets" is required')
-    assert(slackRepo, '"slackRepo" is required')
-    assert(config, '"config" is required')
-
+    assert(markets, '"markets" is required')
+    
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    // this._markets = markets
-    this._slackRepo = slackRepo
-    this._auctionsReportSlackChannel = config.SLACK_CHANNEL_AUCTIONS_REPORT
-    this._markets = config.MARKETS
+    this._markets = markets
   }
 
-  async getAuctionsReportInfo ({ fromDate, toDate, account }) {
+  async getAuctionsReportInfo ({ fromDate, toDate, sellToken, buyToken, account }) {
     _assertDatesOverlap(fromDate, toDate)
 
     return new Promise((resolve, reject) => {
@@ -49,6 +40,8 @@ class ReportService {
       this._generateAuctionInfoByDates({
         fromDate,
         toDate,
+        sellToken,
+        buyToken,
         account,
         addAuctionInfo (auctionInfo) {
           // // FIXME we filter this info to show it in the publicApi
@@ -82,74 +75,10 @@ class ReportService {
     })
   }
 
-  async getAuctionsReportFile ({ fromDate, toDate, account }) {
-    _assertDatesOverlap(fromDate, toDate)
-
-    logger.debug('Generate auction report from "%s" to "%s"',
-      formatUtil.formatDateTime(fromDate),
-      formatUtil.formatDateTime(toDate)
-    )
-
-    const isBot = account !== undefined
-    const auctionsReportRS = new AuctionsReportRS({ delimiter: '\t', isBot })
-    this._generateAuctionInfoByDates({
-      fromDate,
-      toDate,
-      account,
-      addAuctionInfo (auctionInfo) {
-        // logger.debug('Add auction into report: ', auctionInfo)
-        auctionsReportRS.addAuction(auctionInfo)
-      },
-      end (error) {
-        logger.debug('Finished report: ', error ? 'Error' : 'Success')
-        if (error) {
-          auctionsReportRS.end(error)
-        } else {
-          auctionsReportRS.end()
-        }
-      }
-    })
-
-    return {
-      name: 'auctions-reports.csv',
-      mimeType: 'text/csv',
-      content: auctionsReportRS
-    }
-  }
-
-  sendAuctionsReportToSlack ({ fromDate, toDate, account, senderInfo }) {
-    _assertDatesOverlap(fromDate, toDate)
-    const id = requestId++
-
-    // Generate report file and send it to slack (fire and forget)
-    logger.debug('[requestId=%d] Generating report between "%s" and "%s" requested by "%s"...',
-      id, formatUtil.formatDateTime(fromDate), formatUtil.formatDateTime(toDate),
-      senderInfo
-    )
-    this._doSendAuctionsReportToSlack({ id, senderInfo, account, fromDate, toDate })
-      .then(() => {
-        logger.debug('The auctions report was sent to slack')
-      })
-      .catch(error => {
-        logger.error({
-          msg: '[requestId=%d] Error generating and sending the auctions report to slack: %s',
-          params: [ id, error.toString() ],
-          error
-        })
-      })
-
-    // Return the request id and message
-    logger.debug('[requestId=%d] Returning a receipt', id)
-    return {
-      message: 'The report request has been submited',
-      id
-    }
-  }
-
-  _generateAuctionInfoByDates ({ fromDate, toDate, account, addAuctionInfo, end }) {
+  _generateAuctionInfoByDates ({ fromDate, toDate, sellToken, buyToken, account, addAuctionInfo, end }) {
     this
       // Get events info
-      ._getAuctionsEventInfo({ fromDate, toDate, account, addAuctionInfo })
+      ._getAuctionsEventInfo({ fromDate, toDate, sellToken, buyToken, account, addAuctionInfo })
       .then(() => {
         logger.debug('All info was generated')
         end()
@@ -157,7 +86,7 @@ class ReportService {
       .catch(end)
   }
 
-  async _getAuctionsEventInfo ({ fromDate, toDate, account, addAuctionInfo }) {
+  async _getAuctionsEventInfo ({ fromDate, toDate, sellToken, buyToken, account, addAuctionInfo }) {
     const [ fromBlock, toBlock ] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
       this._ethereumRepo.getLastBlockBeforeDate(toDate)
@@ -170,10 +99,35 @@ class ReportService {
         fromBlock, toBlock
       })
 
-    // Remove the unknown markets
-    auctions = auctions.filter(({ sellTokenSymbol, buyTokenSymbol }) => {
-      return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
-    })
+    // console.log(auctions)
+    let markets
+    const getMarketsFromFilteredAuctions = (tokenPairs, { sellToken, buyToken }) => {
+      const [tokenA, tokenB] = getTokenOrder(sellToken, buyToken)
+      const _equalsTokenPair = tokenPair => {
+        return tokenPair.tokenA === tokenA && tokenPair.tokenB === tokenB
+      }
+      if (!tokenPairs.find(_equalsTokenPair)) {
+        tokenPairs.push({ tokenA, tokenB })
+      }
+      return tokenPairs
+    }
+    if (!sellToken || !buyToken) {
+      // Remove the unknown markets
+      auctions = auctions.filter(({ sellTokenSymbol, buyTokenSymbol }) => {
+        return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
+      })
+      markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
+    } else {
+      // Remove unnecesary auctions
+      auctions = auctions.filter(({ sellToken: auctionSellToken, sellTokenSymbol, buyToken: auctionBuyToken, buyTokenSymbol }) => {
+        const [tokenA, tokenB] = getTokenOrder(sellToken, buyToken)
+        const [auctionTokenA, auctionTokenB] = getTokenOrder(auctionSellToken, auctionBuyToken)
+        const [tokenASymbol, tokenBSymbol] = getTokenOrder(sellTokenSymbol, buyTokenSymbol)
+        return (auctionTokenA === tokenA || tokenASymbol === tokenA) &&
+          (auctionTokenB === tokenB || tokenBSymbol === tokenB)
+      })
+      markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
+    }
 
     // Get the start of the first of the auctions
     const startOfFirstAuction = auctions
@@ -227,21 +181,20 @@ class ReportService {
 
     // Get info for every token pair
     if (auctions.length > 0) {
-      const generateInfoPromises = this
-        ._markets
+      const generateInfoPromises = markets
         .map(({ tokenA, tokenB }) => {
           let tokenPairFilter = dxFilters.createTokenPairFilter({
             sellToken: tokenA,
             buyToken: tokenB,
-            sellTokenParam: 'sellTokenSymbol',
-            buyTokenParam: 'buyTokenSymbol'
+            sellTokenParam: 'sellToken',
+            buyTokenParam: 'buyToken'
           })
 
           let tokenPairFilterOpp = dxFilters.createTokenPairFilter({
             sellToken: tokenB,
             buyToken: tokenA,
-            sellTokenParam: 'sellTokenSymbol',
-            buyTokenParam: 'buyTokenSymbol'
+            sellTokenParam: 'sellToken',
+            buyTokenParam: 'buyToken'
           })
 
           const params = {
@@ -410,6 +363,8 @@ class ReportService {
       auctionIndex: auctionIndex.toNumber(),
       sellToken: sellTokenSymbol,
       buyToken: buyTokenSymbol,
+      sellTokenAddress: sellToken,
+      buyTokenAddress: buyToken,
       auctionStart, // Not reliable yet
       auctionEnd,
 
@@ -427,78 +382,6 @@ class ReportService {
       ensuredSellVolumePercentage,
       ensuredBuyVolumePercentage
     })
-  }
-
-  async _doSendAuctionsReportToSlack ({ id, senderInfo, account, fromDate, toDate }) {
-    // Generate report file
-    const file = await this.getAuctionsReportFile({
-      fromDate,
-      toDate,
-      account
-    })
-    logger.debug('[requestId=%d] Report file "%s" was generated. Sending it to slack...',
-      id, file.name)
-
-    const message = {
-      channel: this._auctionsReportSlackChannel,
-      text: "Check out what the bot's been doing lately",
-      attachments: [
-        {
-          title: 'New report avaliable',
-          color: 'good',
-          text: "There's a new report for the last auctions of DutchX",
-          fields: [
-            {
-              title: 'From:',
-              value: formatUtil.formatDate(fromDate),
-              short: false
-            }, {
-              title: 'To:',
-              value: formatUtil.formatDate(toDate),
-              short: false
-            }
-          ],
-          footer: senderInfo
-        }
-      ]
-    }
-
-    // Send file to Slack
-    return this._sendFileToSlack({
-      channel: this._auctionsReportSlackChannel,
-      message,
-      id,
-      file
-    })
-  }
-
-  async _sendFileToSlack ({ channel, message, id, file }) {
-    const { name: fileName, content: fileContent } = file
-
-    // Upload file to slack
-    logger.debug('[requestId=%d] Uploading file "%s" to Slack', id, fileName)
-    const { file: fileSlack } = await this._slackRepo.uploadFile({
-      fileName,
-      file: fileContent,
-      channels: channel
-    })
-
-    const url = fileSlack.url_private
-    logger.debug('[requestId=%d] File uploaded. fileId=%s, url=%s',
-      id, fileSlack.id, url)
-
-    message.attachments[0].fields.push({
-      title: 'File',
-      value: url,
-      short: false
-    })
-
-    // Send message with the file attached
-    return this._slackRepo
-      .postMessage(message)
-      .then(({ ts }) => {
-        logger.debug('File sent to Slack: ', ts)
-      })
   }
 
   _isKnownMarket (tokenA, tokenB) {

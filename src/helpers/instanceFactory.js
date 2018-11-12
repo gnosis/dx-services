@@ -7,13 +7,24 @@ const isLocal = environment === 'local'
 */
 
 const eventBus = require('../eventBus')
-
 const loadContracts = require('../loadContracts')
 const getEthereumClient = require('../getEthereumClient')
+
+// Repos
 const getAuctionRepo = require('../repositories/AuctionRepo')
 const getPriceRepo = require('../repositories/PriceRepo')
 const getEthereumRepo = require('../repositories/EthereumRepo')
 const getSlackRepo = require('../repositories/SlackRepo')
+
+// Services
+const getAuctionService = require('../services/AuctionService')
+const getBotsService = require('../services/BotsService')
+const getDxInfoService = require('../services/DxInfoService')
+const getDxManagementService = require('../services/DxManagementService')
+const getDxTradeService = require('../services/DxTradeService')
+const getLiquidityService = require('../services/LiquidityService')
+const getMarketService = require('../services/MarketService')
+const getReportService = require('../services/ReportService')
 
 async function createInstances ({
   test = false,
@@ -40,63 +51,18 @@ async function createInstances ({
   // Slack client
   const slackRepo = await getSlackRepo()
 
-  // Service: Liquidity service
-  const liquidityService = _getLiquidityService({
-    config: config,
-    priceRepo,
-    auctionRepo,
-    ethereumRepo
-  })
-
-  // Service: DX info service
-  const dxInfoService = _getDxInfoService({
-    config: config,
-    priceRepo,
-    auctionRepo,
-    ethereumRepo
-  })
-
-  // Service: DX trade service
-  const dxManagementService = _getDxManagementService({
-    config: config,
-    auctionRepo,
-    ethereumRepo
-  })
-
-  // Service: DX trade service
-  const dxTradeService = _getDxTradeService({
-    config: config,
-    auctionRepo,
-    ethereumRepo
-  })
-
-  // Service: Bots service
-  const botsService = _getBotsService({
-    config: config,
-    auctionRepo,
-    ethereumRepo
-  })
-
-  // Service: Market service
-  const marketService = _getMarketService({
-    config: config,
-    priceRepo
-  })
-
-  const auctionService = _getAuctionService({
-    config: config,
-    auctionRepo,
-    ethereumRepo
-  })
+  // Services
+  const liquidityService = await getLiquidityService()
+  const dxInfoService = await getDxInfoService()
+  const dxManagementService = await getDxManagementService()
+  const dxTradeService = await getDxTradeService()
+  const botsService = await getBotsService()
+  const marketService = await getMarketService()
+  const auctionService = await getAuctionService()
 
   let reportService
   if (createReportService) {
-    reportService = _getReportService({
-      config: config,
-      auctionRepo,
-      ethereumRepo,
-      slackRepo
-    })
+    reportService = await getReportService()
   } else {
     reportService = null
   }
@@ -143,96 +109,6 @@ function _getAuctionEventWatcher (config, eventBus, contracts) {
     config,
     eventBus: eventBus,
     contracts
-  })
-}
-
-function _getLiquidityService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
-  const LiquidityService = require('../services/LiquidityService')
-  return new LiquidityService({
-    config,
-
-    // Repos
-    auctionRepo,
-    priceRepo,
-    ethereumRepo
-  })
-}
-
-function _getDxInfoService ({ config, auctionRepo, priceRepo, ethereumRepo }) {
-  const DxInfoService = require('../services/DxInfoService')
-  return new DxInfoService({
-    config,
-
-    // Repos
-    auctionRepo,
-    priceRepo,
-    ethereumRepo
-  })
-}
-
-function _getDxManagementService ({ config, auctionRepo, ethereumRepo }) {
-  const DxManagementService = require('../services/DxManagementService')
-  return new DxManagementService({
-    config,
-
-    // Repos
-    auctionRepo,
-    ethereumRepo
-  })
-}
-
-function _getDxTradeService ({ config, auctionRepo, ethereumRepo }) {
-  const DxTradeService = require('../services/DxTradeService')
-  return new DxTradeService({
-    config,
-
-    // Repos
-    auctionRepo,
-    ethereumRepo
-  })
-}
-
-function _getBotsService ({ config, auctionRepo, ethereumRepo }) {
-  const BotsService = require('../services/BotsService')
-  return new BotsService({
-    config,
-
-    // Repos
-    auctionRepo,
-    ethereumRepo
-  })
-}
-
-function _getMarketService ({ config, priceRepo }) {
-  const MarketService = require('../services/MarketService')
-  return new MarketService({
-    config,
-
-    // Repos
-    priceRepo
-  })
-}
-
-function _getAuctionService ({ config, auctionRepo, ethereumRepo }) {
-  const AuctionService = require('../services/AuctionService')
-  return new AuctionService({
-    config,
-
-    // Repos
-    auctionRepo,
-    ethereumRepo
-  })
-}
-
-function _getReportService ({ config, auctionRepo, ethereumRepo, slackRepo }) {
-  const ReportService = require('../services/ReportService')
-  return new ReportService({
-    config,
-
-    // Repos
-    auctionRepo,
-    ethereumRepo,
-    slackRepo
   })
 }
 

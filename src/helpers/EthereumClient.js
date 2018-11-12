@@ -74,7 +74,7 @@ class EthereumClient extends Cacheable {
   }
 
   async _ping () {
-    logger.info('Ethereum node URL: "%s". Checking Node connectivity...', this._url)
+    logger.info('Checking Node connectivity...')
     return this
       .doCall({
         propName: 'version.getNode'

@@ -1,7 +1,7 @@
 const loggerNamespace = 'dx-service:services:DxInfoService'
-// const Logger = require('../helpers/Logger')
+// const Logger = require('../../helpers/Logger')
 // const logger = new Logger(loggerNamespace)
-const AuctionLogger = require('../helpers/AuctionLogger')
+const AuctionLogger = require('../../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const ENVIRONMENT = process.env.NODE_ENV
 const assert = require('assert')
@@ -20,26 +20,26 @@ const MOCK_PAGINATION = {
   nextUri: null
 }
 
-const numberUtil = require('../helpers/numberUtil.js')
+const numberUtil = require('../../helpers/numberUtil.js')
 
-const getGitInfo = require('../helpers/getGitInfo')
-const getVersion = require('../helpers/getVersion')
-const getAuctionsBalances = require('./helpers/getAuctionsBalances')
-const getClaimableTokens = require('./helpers/getClaimableTokens')
+const getGitInfo = require('../../helpers/getGitInfo')
+const getVersion = require('../../helpers/getVersion')
+const getAuctionsBalances = require('../helpers/getAuctionsBalances')
+const getClaimableTokens = require('../helpers/getClaimableTokens')
 
 class DxInfoService {
   constructor ({
     auctionRepo,
     ethereumRepo,
-    config
+    markets
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
-    assert(config, '"config" is required')
+    assert(markets, '"markets" is required')
  
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
-    this._markets = config.MARKETS
+    this._markets = markets
 
     // About info
     this._gitInfo = getGitInfo()
