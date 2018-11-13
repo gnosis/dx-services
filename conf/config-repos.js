@@ -12,7 +12,7 @@ module.exports = {
 
   // AuctionRepo conf
   AUCTION_REPO: {
-    factory: 'src/repositories/AuctionRepo/AuctionRepoimpl' // mock, impl
+    factory: 'src/repositories/AuctionRepo/AuctionRepoImpl' // mock, impl
   },
 
   // EthereumRepo conf
