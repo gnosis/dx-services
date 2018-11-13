@@ -32,7 +32,7 @@ class BuyLiquidityBot extends Bot {
     assert(notifications, 'notifications is required')
     assert(ethereumClient, 'ethereumClient is required')
     assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
-    
+
     if (botAddress) {
       // Config using bot address
       assert(botAddress, 'botAddress is required')
@@ -40,7 +40,7 @@ class BuyLiquidityBot extends Bot {
     } else {
       // Config using bot account address
       assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
-      assert(ethereumClient, '"ethereumClient" is required if you provide accountIndex instead of botAddress')      
+      assert(ethereumClient, '"ethereumClient" is required if you provide accountIndex instead of botAddress')
       this._accountIndex = accountIndex
     }
 
@@ -54,11 +54,11 @@ class BuyLiquidityBot extends Bot {
     this._rules = rules
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
-    
+
     this._lastCheck = null
     this._lastBuy = null
     this._lastError = null
-    
+
     // TODO: Move to init
     this._ethereumClient = ethereumClient
     this._eventBus = eventBus

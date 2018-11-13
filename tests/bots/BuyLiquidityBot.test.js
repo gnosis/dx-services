@@ -11,17 +11,45 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
+const BUY_LIQUIDITY_RULES = [
+  // Buy 1/2 if price falls below 99%
+  {
+    marketPriceRatio: {
+      numerator: 99,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 2
+    }
+  },
+
+  // Buy the 100% if price falls below 96%
+  {
+    marketPriceRatio: {
+      numerator: 96,
+      denominator: 100
+    },
+    buyRatio: {
+      numerator: 1,
+      denominator: 1
+    }
+  }
+]
+
 let buyLiquidityBot
 
 beforeEach(async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService, ethereumClient } = await setupPromise
 
   buyLiquidityBot = new BuyLiquidityBot({
     name: 'BuyLiquidityBot',
     eventBus: new EventBus(),
     liquidityService,
+    ethereumClient,
     botAddress: '0x123',
     markets: MARKETS,
+    rules: BUY_LIQUIDITY_RULES,
     notifications: []
   })
 
