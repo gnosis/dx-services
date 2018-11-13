@@ -16,7 +16,7 @@ const numberUtil = require('../../helpers/numberUtil')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 // const ENVIRONMENT = process.env.NODE_ENV
 
-class ReportService {
+class AuctionService {
   constructor ({
     auctionRepo,
     ethereumRepo,
@@ -26,7 +26,7 @@ class ReportService {
     assert(ethereumRepo, '"ethereumRepo" is required')
     // assert(markets, '"markets" is required')
     assert(markets, '"markets" is required')
-    
+
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = markets
@@ -402,4 +402,4 @@ function _assertDatesOverlap (fromDate, toDate) {
   assert(fromDate < toDate, "The 'toDate' must be greater than the 'fromDate'")
 }
 
-module.exports = ReportService
+module.exports = AuctionService
