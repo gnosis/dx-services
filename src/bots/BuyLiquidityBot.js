@@ -6,8 +6,13 @@ const assert = require('assert')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
+
 const BOT_TYPE = 'BuyLiquidityBot'
 const getBotAddress = require('../helpers/getBotAddress')
+const getEthereumClient = require('../getEthereumClient')
+const getEventBus = require('../getEventBus')
+const getLiquidityService = require('../services/LiquidityService')
+const getSlackRepo = require('../repositories/SlackRepo')
 
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.BUY_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
@@ -15,22 +20,17 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
 class BuyLiquidityBot extends Bot {
   constructor ({
     name,
-    eventBus,
-    liquidityService,
     botAddress,
     accountIndex,
     markets,
-    slackRepo,
     rules,
     notifications,
-    ethereumClient,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name, BOT_TYPE)
     assert(markets, 'markets is required')
     assert(rules, 'buyLiquidityRules is required')
     assert(notifications, 'notifications is required')
-    assert(ethereumClient, 'ethereumClient is required')
     assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
 
     if (botAddress) {
@@ -40,7 +40,10 @@ class BuyLiquidityBot extends Bot {
     } else {
       // Config using bot account address
       assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
+<<<<<<< HEAD
       assert(ethereumClient, '"ethereumClient" is required if you provide accountIndex instead of botAddress')
+=======
+>>>>>>> Create WatchEventsBots, remove dependencies from buy bot constructor
       this._accountIndex = accountIndex
     }
 
@@ -58,23 +61,30 @@ class BuyLiquidityBot extends Bot {
     this._lastCheck = null
     this._lastBuy = null
     this._lastError = null
+<<<<<<< HEAD
 
     // TODO: Move to init
     this._ethereumClient = ethereumClient
     this._eventBus = eventBus
     this._liquidityService = liquidityService
     this._slackRepo = slackRepo
+=======
+>>>>>>> Create WatchEventsBots, remove dependencies from buy bot constructor
   }
 
   async init () {
     logger.debug('Init Buy Bot: ' + this.name)
+    this._ethereumClient = await getEthereumClient()
+    this._eventBus = await getEventBus()
+    this._liquidityService = await getLiquidityService()
+    this._slackRepo = await getSlackRepo()
+
+    // Get bot address
     if (!this._botAddress && this._accountIndex !== undefined) {
       this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
     } else {
       throw new Error('Bot address or account index has to be provided')
     }
-
-    // TODO: Do the other initialization
   }
 
   async _doStart () {

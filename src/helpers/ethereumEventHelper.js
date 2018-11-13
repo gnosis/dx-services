@@ -71,14 +71,22 @@ function watch ({
   let stopWatching
   if (events === null) {
     // Subscribe to all events
-    assert.equal(filters, null, 'When filtering all the events, the parameter "filter" is allowed')
+    assert(filters === null, 'When filtering all the events, the parameter "filter" is allowed')
     const eventObject = contract.allEvents(aditionalFilters)
     _watchAndNotify(eventObject, callback)
 
     // Allow to stop watching
-    stopWatching = () => {
+    stopWatching = async () => {
       debug('Stop listening all events')
-      eventObject.stopWatching()
+      return new Promise((resolve, reject) => {
+        eventObject.stopWatching((error, result) => {
+          if (error) {
+            reject(error)
+          } else {
+            resolve(result)
+          }
+        })
+      })
     }
   } else {
     // Watch for a list of events
@@ -91,10 +99,21 @@ function watch ({
     })
 
     // Allow to stop watching
-    stopWatching = () => {
+    stopWatching = async () => {
       // Stop listening all events
       debug('Stop listening all events')
-      stopWatchingFunctions.forEach(stopWatchingAux => stopWatchingAux())
+      
+      return Promise.all(
+        stopWatchingFunctions.map(stopWatchingAux => new Promise((resolve, reject) => {
+          stopWatchingAux((error, result) => {
+            if (error) {
+              reject(error)
+            } else {
+              resolve(result)
+            }
+          })
+        }))
+      )
     }
   }
 

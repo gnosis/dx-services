@@ -51,12 +51,10 @@ class App {
     // Events
     eventBus,
     ethereumClient,
-    auctionEventWatcher,
     slackRepo
   }) {
     this._config = config
     this._eventBus = eventBus
-    this._auctionEventWatcher = auctionEventWatcher
     this._ethereumClient = ethereumClient
     this._slackRepo = slackRepo
 
@@ -106,10 +104,6 @@ class App {
 
     // Run Bots Api server
     await this._botsApiServer.start()
-
-    // Watch auction events
-    await this._auctionEventWatcher.start()
-    logger.info({ msg: 'App ready!' })
   }
 
   async stop () {
@@ -175,6 +169,7 @@ class App {
     return Factory
   }
 
+  // TODO: After refactor remove
   _createBotsOld () {
     let bots = []
     const botTypes = {

@@ -84,6 +84,14 @@ const SELL_BOT_MAIN = {
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
+// Watch events and notify the event bus
+//   - Other bots, like the sell bot depends on it
+const WATCH_EVENTS_BOTS = {
+  name: 'Watch events bot',
+  markets: MARKETS,
+  factory: 'src/bots/WatchEventsBot'
+}
+
 // TODO Enable by default in future versions
 // const DEPOSIT_BOT = {
 //   name: 'Deposit bot',
@@ -106,7 +114,8 @@ const AUTO_CLAIM_AUCTIONS = 90
 
 module.exports = {
   BOTS: [
-    BUY_BOT_MAIN
+    BUY_BOT_MAIN,
+    WATCH_EVENTS_BOTS
     /*
     BUY_BOT_MAIN,
     BUY_BOT_BACKUP,

@@ -1,45 +1,53 @@
-const loggerNamespace = 'dx-service:bots:AuctionEventWatcher'
+const loggerNamespace = 'dx-service:bots:WatchEventsBot'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const AuctionLogger = require('../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
+
+const BOT_TYPE = 'WatchEventsBot'
+const assert = require('assert')
+
+const Bot = require('./Bot')
 const ethereumEventHelper = require('../helpers/ethereumEventHelper')
 const events = require('../helpers/events')
 const formatUtil = require('../helpers/formatUtil')
+const loadContracts = require('../loadContracts')
+const getEventBus = require('../getEventBus')
+
+let instanceAlreadyCreated = false
 
 const RETRY_WATCH_EVENTS_MILLISECONDS = 4 * 1000
-/*
-const EVENTS_TO_LISTEN = [
-  'AuctionCleared',
-  'NewDeposit',
-  'NewWithdrawal',
-  'NewSellOrder',
-  'NewBuyOrder',
-  'NewSellerFundsClaim',
-  'NewBuyerFundsClaim',
-  'NewTokenPair',
-  'AuctionCleared',
-  'Log',
-  'LogOustandingVolume',
-  'LogNumber',
-  'ClaimBuyerFunds'
-]
-*/
+/**
+ * Bot responsible of watching the auction events and notifying the eventBus.
+ *
+ * This bot centralize the event watching, so it's easier and more efficient for
+ * other bots to subscribe to the relevant events just by using the event bus.
+ */
+class WatchEventsBot extends Bot {
+  constructor ({
+    name,
+    markets
+  }) {
+    super(name, BOT_TYPE)
+    assert(!instanceAlreadyCreated, 'There can be only one instance of WatchEventsBot')
+    instanceAlreadyCreated = true
 
-class AuctionEventWatcher {
-  constructor ({ config, eventBus, contracts }) {
-    this._eventBus = eventBus
-    this._markets = config.MARKETS
-    this._contracts = contracts
-
+    this._markets = markets
     this._knownMarkets = this._markets.map(formatUtil.formatMarketDescriptor)
     this._watchingFilter = null
-    this._tokenContracts = Object.assign({}, contracts.erc20TokenContracts, {
+  }
+
+  async init () {
+    const contracts = await loadContracts()
+    this._eventBus = getEventBus()
+    this._contracts = contracts
+    this._tokenContracts = {
+      ...contracts.erc20TokenContracts,
       WETH: contracts.eth,
       MGN: contracts.mgn,
       OWL: contracts.owl,
       GNO: contracts.gno
-    })
+    }
 
     const tokenNames = Object.keys(this._tokenContracts)
     this._tokenNamesByAddress = tokenNames.reduce((tokenNamesByAddress, tokenName) => {
@@ -53,9 +61,9 @@ class AuctionEventWatcher {
     this._doWatch()
   }
 
-  async stop () {
+  async _doStop () {
     logger.info({ msg: 'Stopping the auction watch...' })
-    this._watchingFilter.stopWatching()
+    await this._watchingFilter.stopWatching()
     this._watchingFilter = null
     logger.info({ msg: 'Stopped watching for events' })
   }
@@ -94,6 +102,7 @@ class AuctionEventWatcher {
         if (this._watchingFilter) {
           try {
             this._watchingFilter.stopWatching()
+              .catch(console.error)
           } catch (errorStoppingWatch) {
             logger.error({
               msg: `Error when trying stop watching events (handling an \
@@ -177,4 +186,4 @@ error watching the blockchain): ` + errorStoppingWatch.toString(),
   }
 }
 
-module.exports = AuctionEventWatcher
+module.exports = WatchEventsBot

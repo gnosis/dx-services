@@ -6,7 +6,7 @@ const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 */
 
-const eventBus = require('../eventBus')
+const getEventBus = require('../getEventBus')
 const loadContracts = require('../loadContracts')
 const getEthereumClient = require('../getEthereumClient')
 
@@ -33,6 +33,8 @@ async function createInstances ({
 } = {}) {
   const config = Object.assign({}, originalConfig, configOverride)
   debug('Initializing app for %s environment...', config.ENVIRONMENT)
+
+  const eventBus = await getEventBus()
 
   // We init the error handler
   messageNotifier.init({ sentryDsn: config.SENTRY_DSN })
@@ -67,16 +69,10 @@ async function createInstances ({
     reportService = null
   }
 
-  // Event Watcher
-  const auctionEventWatcher = _getAuctionEventWatcher(
-    config, eventBus, contracts
-  )
-
   let instances = {
     config: config,
     eventBus,
     contracts,
-    auctionEventWatcher,
     ethereumClient,
     slackRepo,
 
@@ -101,15 +97,6 @@ async function createInstances ({
     })
   }
   return instances
-}
-
-function _getAuctionEventWatcher (config, eventBus, contracts) {
-  const AuctionEventWatcher = require('../bots/AuctionEventWatcher')
-  return new AuctionEventWatcher({
-    config,
-    eventBus: eventBus,
-    contracts
-  })
 }
 
 module.exports = createInstances

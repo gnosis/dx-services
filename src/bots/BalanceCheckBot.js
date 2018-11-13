@@ -7,7 +7,11 @@ const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'BalanceCheckBot'
 
+const getEthereumClient = require('../getEthereumClient')
 const getBotAddress = require('../helpers/getBotAddress')
+const getLiquidityService = require('../services/LiquidityService')
+const getDxInfoService = require('../services/DxInfoService')
+const getSlackRepo = require('../repositories/SlackRepo')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = process.env.BALANCE_CHECK_THRESHOLD_USD || 5000 // $5000
 const MINIMUM_AMOUNT_FOR_ETHER = (process.env.BALANCE_CHECK_THRESHOLD_ETHER || 0.4) * 1e18 // 0.4 WETH
@@ -20,19 +24,10 @@ const MINIMUM_TIME_BETWEEN_SLACK_NOTIFICATIONS = slackThresholdMinutes * 60 * 10
 class BalanceCheckBot extends Bot {
   constructor ({
     name,
-    eventBus,
-    liquidityService,
-    dxInfoService,
-    ethereumClient,
     tokensByAccount,
-    slackRepo,
     botFundingSlackChannel
   }) {
     super(name, BOT_TYPE)
-    this._liquidityService = liquidityService
-    this._dxInfoService = dxInfoService
-    this._ethereumClient = ethereumClient
-    this._slackRepo = slackRepo
     this._botFundingSlackChannel = botFundingSlackChannel
 
     this._tokensByAccount = tokensByAccount
@@ -46,6 +41,10 @@ class BalanceCheckBot extends Bot {
 
   async init () {
     logger.debug('Init Balance Check Bot: ' + this.name)
+    this._liquidityService = await getLiquidityService()
+    this._dxInfoService = await getDxInfoService()
+    this._ethereumClient = await getEthereumClient()
+    this._slackRepo = await getSlackRepo()
   }
 
   async _doStart () {

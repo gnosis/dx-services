@@ -5,8 +5,8 @@ const getVersion = require('../helpers/getVersion')
 
 const getBotAddress = require('../helpers/getBotAddress')
 
-const numberUtil = require('../../src/helpers/numberUtil')
-const dateUtil = require('../../src/helpers/dateUtil')
+const numberUtil = require('../helpers/numberUtil')
+const dateUtil = require('../helpers/dateUtil')
 const BOT_TYPE = 'DepositBot'
 
 const logger = new Logger(loggerNamespace)
