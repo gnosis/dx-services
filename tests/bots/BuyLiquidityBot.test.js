@@ -54,7 +54,7 @@ beforeEach(async () => {
   })
 
   jest.useFakeTimers()
-
+  buyLiquidityBot.init()
   buyLiquidityBot.start()
 })
 

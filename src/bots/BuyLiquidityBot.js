@@ -78,10 +78,12 @@ class BuyLiquidityBot extends Bot {
     this._slackRepo = slackRepo
 
     // Get bot address
-    if (!this._botAddress && this._accountIndex !== undefined) {
-      this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
-    } else {
-      throw new Error('Bot address or account index has to be provided')
+    if (!this._botAddress) {
+      if (this._accountIndex !== undefined) {
+        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+      } else {
+        throw new Error('Bot address or account index has to be provided')
+      }
     }
   }
 
