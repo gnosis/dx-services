@@ -38,8 +38,11 @@ class WatchEventsBot extends Bot {
   }
 
   async init () {
-    const contracts = await loadContracts()
-    this._eventBus = getEventBus()
+    const [ contracts, eventBus ] = await Promise.all([
+      loadContracts(),
+      getEventBus()
+    ])
+    this._eventBus = eventBus
     this._contracts = contracts
     this._tokenContracts = {
       ...contracts.erc20TokenContracts,

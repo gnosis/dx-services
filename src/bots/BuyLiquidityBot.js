@@ -40,10 +40,6 @@ class BuyLiquidityBot extends Bot {
     } else {
       // Config using bot account address
       assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
-<<<<<<< HEAD
-      assert(ethereumClient, '"ethereumClient" is required if you provide accountIndex instead of botAddress')
-=======
->>>>>>> Create WatchEventsBots, remove dependencies from buy bot constructor
       this._accountIndex = accountIndex
     }
 
@@ -61,15 +57,6 @@ class BuyLiquidityBot extends Bot {
     this._lastCheck = null
     this._lastBuy = null
     this._lastError = null
-<<<<<<< HEAD
-
-    // TODO: Move to init
-    this._ethereumClient = ethereumClient
-    this._eventBus = eventBus
-    this._liquidityService = liquidityService
-    this._slackRepo = slackRepo
-=======
->>>>>>> Create WatchEventsBots, remove dependencies from buy bot constructor
   }
 
   async init () {
