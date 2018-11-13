@@ -74,10 +74,21 @@ class BuyLiquidityBot extends Bot {
 
   async init () {
     logger.debug('Init Buy Bot: ' + this.name)
-    this._ethereumClient = await getEthereumClient()
-    this._eventBus = await getEventBus()
-    this._liquidityService = await getLiquidityService()
-    this._slackRepo = await getSlackRepo()
+    const [
+      ethereumClient,
+      eventBus,
+      liquidityService,
+      slackRepo
+    ] = await Promise.all([
+      getEthereumClient(),
+      getEventBus(),
+      getLiquidityService(),
+      getSlackRepo()
+    ])
+    this._ethereumClient = ethereumClient
+    this._eventBus = eventBus
+    this._liquidityService = liquidityService
+    this._slackRepo = slackRepo
 
     // Get bot address
     if (!this._botAddress && this._accountIndex !== undefined) {
