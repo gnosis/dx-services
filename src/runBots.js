@@ -132,21 +132,13 @@ class App {
   }
 
   _createBots () {
-    const bots = this._config.BOTS.map(botConfig => {
-      const BotFactory = this._getBotFactory(botConfig)
-
-      // TODO: This should be removed one the dependencies are pulled from init method
-      const extendedBotConfig = {
-        eventBus: this._eventBus,
-        liquidityService: this._liquidityService,
-        dxInfoService: this._dxInfoService,
-        ethereumClient: this._ethereumClient,
-        slackRepo: this._slackRepo,
-        ...botConfig
-      }
-
-      return new BotFactory(extendedBotConfig)
-    })
+    // Create bots from factory
+    const bots = this._config
+      .BOTS
+      .map(botConfig => {
+        const BotFactory = this._getBotFactory(botConfig)
+        return new BotFactory(botConfig)
+      })
 
     // Init all the bots
     return Promise.all(bots.map(async bot => {
