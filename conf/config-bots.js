@@ -84,6 +84,14 @@ const SELL_BOT_MAIN = {
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
+const HIGH_SELL_VOLUME_BOT = {
+  name: 'High sell volume bot',
+  factory: 'src/bots/HighSellVolumeBot',
+  markets: BOT_MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications
+}
+
 // Watch events and notify the event bus
 //   - Other bots, like the sell bot depends on it
 const WATCH_EVENTS_BOTS = {
@@ -115,6 +123,7 @@ module.exports = {
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     // DEPOSIT_BOT,
+    HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS
     /*
     BUY_BOT_BACKUP

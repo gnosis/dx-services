@@ -2,6 +2,7 @@ const loggerNamespace = 'dx-service:bots:HighSellVolumeBot'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
+const assert = require('assert')
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
@@ -10,6 +11,12 @@ const numberUtil = require('../helpers/numberUtil')
 const formatUtil = require('../helpers/formatUtil')
 
 const BOT_TYPE = 'HighSellVolumeBot'
+const getBotAddress = require('../helpers/getBotAddress')
+const getEthereumClient = require('../getEthereumClient')
+const getEventBus = require('../getEventBus')
+const getDxInfoService = require('../services/DxInfoService')
+const getMarketService = require('../services/MarketService')
+const getSlackRepo = require('../repositories/SlackRepo')
 
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.HIGH_SELL_VOLUME_BOT_CHECK_TIME_MS || (5 * 60 * 1000) // 5 min
@@ -20,23 +27,34 @@ const BALANCE_MARGIN_FACTOR =
 class HighSellVolumeBot extends Bot {
   constructor ({
     name,
-    dxInfoService,
-    marketService,
     botAddress,
+    accountIndex,
     markets,
-    slackRepo,
-    botTransactionsSlackChannel,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name, BOT_TYPE)
+    assert(markets, 'markets is required')
+    assert(notifications, 'notifications is required')
+    assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
 
-    this._dxInfoService = dxInfoService
-    this._marketService = marketService
-    this._botAddress = botAddress
+    if (botAddress) {
+      // Config using bot address
+      assert(botAddress, 'botAddress is required')
+      this._botAddress = botAddress
+    } else {
+      // Config using bot account address
+      assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
+      this._accountIndex = accountIndex
+    }
+
+    // If notification has slack, validate
+    const slackNotificationConf = notifications.find(notificationType => notificationType.type === 'slack')
+    if (slackNotificationConf) {
+      assert(slackNotificationConf.channel, 'Slack notification config required the "channel"')
+    }
+
     this._markets = markets
-    this._slackRepo = slackRepo
-    this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
@@ -46,6 +64,34 @@ class HighSellVolumeBot extends Bot {
 
   async init () {
     logger.debug('Init High Sell Volume Bot: ' + this.name)
+
+    const [
+      ethereumClient,
+      eventBus,
+      dxInfoService,
+      marketService,
+      slackRepo
+    ] = await Promise.all([
+      getEthereumClient(),
+      getEventBus(),
+      getDxInfoService(),
+      getMarketService(),
+      getSlackRepo()
+    ])
+    this._ethereumClient = ethereumClient
+    this._eventBus = eventBus
+    this._dxInfoService = dxInfoService
+    this._marketService = marketService
+    this._slackRepo = slackRepo
+
+    // Get bot address
+    if (!this._botAddress) {
+      if (this._accountIndex !== undefined) {
+        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+      } else {
+        throw new Error('Bot address or account index has to be provided')
+      }
+    }
   }
 
   async _doStart () {
@@ -157,7 +203,7 @@ class HighSellVolumeBot extends Bot {
       switch (type) {
         case 'slack':
           // Notify to slack
-          if (this._botTransactionsSlackChannel && this._slackRepo.isEnabled()) {
+          if (this._slackRepo.isEnabled()) {
             this._notifyLowBalanceSlack({
               channel,
               sellToken,
@@ -180,7 +226,7 @@ class HighSellVolumeBot extends Bot {
   _notifyLowBalanceSlack ({ channel, sellToken, buyToken, from, balance, estimatedBuyVolume }) {
     this._slackRepo
       .postMessage({
-        channel: channel || this._botTransactionsSlackChannel,
+        channel,
         attachments: [
           {
             color: 'danger',
@@ -237,7 +283,6 @@ class HighSellVolumeBot extends Bot {
       lastCheck: this._lastCheck,
       lastError: this._lastError,
       notifications: this._notifications,
-      defaultSlackChannel: this._botTransactionsSlackChannel,
       checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets
     }

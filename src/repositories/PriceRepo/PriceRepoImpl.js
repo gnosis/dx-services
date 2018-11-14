@@ -1,15 +1,18 @@
 const formatUtil = require('../../helpers/formatUtil')
 const assert = require('assert')
 
+const strategiesImpl = {}
+
 class PriceRepoImpl {
   constructor ({
     priceFeedStrategiesDefault,
     priceFeedStrategies,
-    priceFeeds
+    priceFeeds,
+    strategies
   }) {
     assert(priceFeedStrategiesDefault, '"priceFeedStrategiesDefault" is required')
     assert(priceFeedStrategies, '"priceFeedStrategies" is required')
-    assert(priceFeeds, '"priceFeeds" is required')    
+    assert(priceFeeds, '"priceFeeds" is required')
     Object.keys(priceFeeds)
       .forEach(priceFeedName => {
         const priceFeed = priceFeeds[priceFeedName]
@@ -19,7 +22,7 @@ class PriceRepoImpl {
     this._priceFeedStrategiesDefault = priceFeedStrategiesDefault
     this._priceFeedStrategies = _normalizeMarketName(priceFeedStrategies)
     this._priceFeeds = priceFeeds
-    this._strategies = {}
+    this._strategies = strategies
   }
 
   async getPrice ({ tokenA, tokenB }) {
@@ -42,10 +45,10 @@ class PriceRepoImpl {
   }
 
   _getStrategy (strategyName) {
-    let strategy = this._strategies[strategyName]
+    let strategy = strategiesImpl[strategyName]
     if (!strategy) {
-      strategy = require(this._priceFeeds[strategyName].factory)
-      this._strategies[strategyName] = strategy
+      strategy = require('./strategies/' + strategyName)
+      strategiesImpl[strategyName] = strategy
     }
     return strategy
   }
