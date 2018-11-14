@@ -95,10 +95,8 @@ const WATCH_EVENTS_BOTS = {
 // TODO Enable by default in future versions
 // const DEPOSIT_BOT = {
 //   name: 'Deposit bot',
-//   notifications: [{
-//     type: 'slack',
-//     channel: '' // If none provided uses SLACK_CHANNEL_BOT_TRANSACTIONS
-//   }],
+//   factory: 'src/bots/DepositBot',
+//   notifications,
 //   // You can use this to have some time to manually withdraw funds
 //   inactivityPeriods: [{
 //     from: '11:30',
@@ -116,6 +114,7 @@ module.exports = {
   BOTS: [
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
+    // DEPOSIT_BOT,
     WATCH_EVENTS_BOTS
     /*
     BUY_BOT_BACKUP

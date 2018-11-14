@@ -26,20 +26,18 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
-  const { dxInfoService, dxTradeService, ethereumClient } = await setupPromise
+  await setupPromise
 
   depositBot = new DepositBot({
     name: 'DepositBot',
-    dxInfoService,
-    dxTradeService,
-    ethereumClient,
     tokensByAccount: TOKENS_BY_ACCOUNT,
     notifications: []
   })
 
   depositBot._depositFunds = jest.fn(depositBot._depositFunds)
     .mockReturnValueOnce(true)
-  depositBot.start()
+  await depositBot.init()
+  await depositBot.start()
 })
 
 afterEach(() => {

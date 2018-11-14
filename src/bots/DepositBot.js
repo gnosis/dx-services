@@ -2,12 +2,17 @@ const loggerNamespace = 'dx-service:bots:DepositBot'
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const getVersion = require('../helpers/getVersion')
-
-const getBotAddress = require('../helpers/getBotAddress')
+const assert = require('assert')
 
 const numberUtil = require('../helpers/numberUtil')
 const dateUtil = require('../helpers/dateUtil')
+
 const BOT_TYPE = 'DepositBot'
+const getBotAddress = require('../helpers/getBotAddress')
+const getEthereumClient = require('../getEthereumClient')
+const getDxInfoService = require('../services/DxInfoService')
+const getDxTradeService = require('../services/DxTradeService')
+const getSlackRepo = require('../repositories/SlackRepo')
 
 const logger = new Logger(loggerNamespace)
 // const auctionLogger = new AuctionLogger(loggerNamespace)
@@ -20,28 +25,20 @@ const DEPOSIT_PERIODIC_CHECK_MILLISECONDS =
 class DepositBot extends Bot {
   constructor ({
     name,
-    dxInfoService,
-    dxTradeService,
-    ethereumClient,
-    slackRepo,
-    botTransactionsSlackChannel,
     tokensByAccount,
     notifications,
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
     inactivityPeriods = []
   }) {
     super(name, BOT_TYPE)
-    this._dxInfoService = dxInfoService
-    this._dxTradeService = dxTradeService
-    this._ethereumClient = ethereumClient
-    this._slackRepo = slackRepo
-    this._botTransactionsSlackChannel = botTransactionsSlackChannel
+    assert(notifications, 'notifications is required')
+    assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
+    assert(inactivityPeriods, 'inactivityPeriods are required')
 
     this._tokensByAccount = tokensByAccount
 
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
-
     this._inactivityPeriods = inactivityPeriods
 
     this._lastCheck = null
@@ -52,7 +49,22 @@ class DepositBot extends Bot {
   }
 
   async init () {
-    logger.debug('Init Deposit Bot: ' + this.name)
+    logger.debug('Init Sell Bot: ' + this.name)
+    const [
+      ethereumClient,
+      dxInfoService,
+      dxTradeService,
+      slackRepo
+    ] = await Promise.all([
+      getEthereumClient(),
+      getDxInfoService(),
+      getDxTradeService(),
+      getSlackRepo()
+    ])
+    this._ethereumClient = ethereumClient
+    this._dxInfoService = dxInfoService
+    this._dxTradeService = dxTradeService
+    this._slackRepo = slackRepo
   }
 
   async _doStart () {
@@ -220,20 +232,31 @@ class DepositBot extends Bot {
       notify: true
     })
 
-    // Notify to slack
-    if (this._botTransactionsSlackChannel && this._slackRepo.isEnabled()) {
-      this._notifyDepositedTokensSlack({
-        channel: '',
-        account,
-        depositedTokensString
-      })
-    }
+    this._notifications.forEach(({ type, channel }) => {
+      switch (type) {
+        case 'slack':
+          // Notify to slack
+          if (this._slackRepo.isEnabled()) {
+            this._notifyDepositedTokensSlack({
+              channel,
+              account,
+              depositedTokensString
+            })
+          }
+          break
+        case 'email':
+        default:
+          logger.error({
+            msg: 'Error notification type is unknown: ' + type
+          })
+      }
+    })
   }
 
   _notifyDepositedTokensSlack ({ channel, account, depositedTokensString }) {
     this._slackRepo
       .postMessage({
-        channel: channel || this._botTransactionsSlackChannel,
+        channel,
         attachments: [
           {
             color: 'good',
@@ -281,7 +304,6 @@ class DepositBot extends Bot {
       lastDeposit: this._lastDeposit,
       lastError: this._lastError,
       notifications: this._notifications,
-      defaultSlackChannel: this._botTransactionsSlackChannel,
       checkTimeInMilliseconds: this._checkTimeInMilliseconds
     }
   }
