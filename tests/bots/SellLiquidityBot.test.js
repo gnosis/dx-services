@@ -1,5 +1,4 @@
 const SellLiquidityBot = require('../../src/bots/SellLiquidityBot')
-const EventBus = require('../../src/helpers/EventBus')
 
 const testSetup = require('../helpers/testSetup')
 const setupPromise = testSetup()
@@ -13,13 +12,11 @@ const MARKETS = [
 
 let sellLiquidityBot
 
-beforeEach(async () => {
-  const { liquidityService } = await setupPromise
+beforeAll(async () => {
+  await setupPromise
 
   sellLiquidityBot = new SellLiquidityBot({
     name: 'SellLiquidityBot',
-    eventBus: new EventBus(),
-    liquidityService,
     botAddress: '0x123',
     markets: MARKETS,
     notifications: []
@@ -27,10 +24,11 @@ beforeEach(async () => {
 
   jest.useFakeTimers()
 
-  sellLiquidityBot.start()
+  await sellLiquidityBot.init()
+  await sellLiquidityBot.start()
 })
 
-afterEach(() => {
+afterAll(() => {
   sellLiquidityBot.stop()
 })
 
@@ -50,6 +48,7 @@ test('It should do a routine check.', async () => {
 })
 
 test('It should trigger ensure liquidity from eventBus trigger', () => {
+  expect.assertions(4)
   // we mock ensureSellLiquidity function
   sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
   const SERVICE_ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity
@@ -72,6 +71,7 @@ test('It should trigger ensure liquidity from eventBus trigger', () => {
 })
 
 test('It should not ensure liquidity from eventBus trigger from not followed markets', () => {
+  expect.assertions(4)
   // we mock ensureSellLiquidity function
   sellLiquidityBot._liquidityService.ensureSellLiquidity = jest.fn(_ensureLiquidity)
   const SERVICE_ENSURE_SELL_LIQUIDITY = sellLiquidityBot._liquidityService.ensureSellLiquidity

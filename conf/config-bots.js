@@ -115,11 +115,10 @@ const AUTO_CLAIM_AUCTIONS = 90
 module.exports = {
   BOTS: [
     BUY_BOT_MAIN,
+    SELL_BOT_MAIN,
     WATCH_EVENTS_BOTS
     /*
-    BUY_BOT_MAIN,
-    BUY_BOT_BACKUP,
-    SELL_BOT_MAIN
+    BUY_BOT_BACKUP
     */
   ],
 

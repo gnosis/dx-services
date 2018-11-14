@@ -206,7 +206,7 @@ class BuyLiquidityBot extends Bot {
   _notifyBuyedTokensSlack ({ channel, boughtTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
     this._slackRepo
       .postMessage({
-        channel: channel || this._botTransactionsSlackChannel,
+        channel,
         attachments: [
           {
             color: 'good',

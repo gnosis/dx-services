@@ -1,5 +1,4 @@
 const BuyLiquidityBot = require('../../src/bots/BuyLiquidityBot')
-const EventBus = require('../../src/helpers/EventBus')
 
 const testSetup = require('../helpers/testSetup')
 const setupPromise = testSetup()
@@ -39,14 +38,11 @@ const BUY_LIQUIDITY_RULES = [
 
 let buyLiquidityBot
 
-beforeEach(async () => {
-  const { liquidityService, ethereumClient } = await setupPromise
+beforeAll(async () => {
+  await setupPromise
 
   buyLiquidityBot = new BuyLiquidityBot({
     name: 'BuyLiquidityBot',
-    eventBus: new EventBus(),
-    liquidityService,
-    ethereumClient,
     botAddress: '0x123',
     markets: MARKETS,
     rules: BUY_LIQUIDITY_RULES,
@@ -54,11 +50,12 @@ beforeEach(async () => {
   })
 
   jest.useFakeTimers()
-  buyLiquidityBot.init()
-  buyLiquidityBot.start()
+
+  await buyLiquidityBot.init()
+  await buyLiquidityBot.start()
 })
 
-afterEach(() => {
+afterAll(() => {
   buyLiquidityBot.stop()
 })
 

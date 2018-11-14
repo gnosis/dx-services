@@ -2,6 +2,8 @@ const loggerNamespace = 'dx-service:bots:SellLiquidityBot'
 const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
+const assert = require('assert')
+
 const getVersion = require('../helpers/getVersion')
 
 const logger = new Logger(loggerNamespace)
@@ -12,26 +14,44 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
 const BOT_TYPE = 'SellLiquidityBot'
+const getBotAddress = require('../helpers/getBotAddress')
+const getEthereumClient = require('../getEthereumClient')
+const getEventBus = require('../getEventBus')
+const getLiquidityService = require('../services/LiquidityService')
+const getSlackRepo = require('../repositories/SlackRepo')
 
 class SellLiquidityBot extends Bot {
   constructor ({
     name,
-    eventBus,
-    liquidityService,
     botAddress,
+    accountIndex,
     markets,
-    slackRepo,
     botTransactionsSlackChannel,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name, BOT_TYPE)
-    this._eventBus = eventBus
-    this._liquidityService = liquidityService
-    this._botAddress = botAddress
+    assert(markets, 'markets is required')
+    assert(notifications, 'notifications is required')
+    assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
+
+    if (botAddress) {
+      // Config using bot address
+      assert(botAddress, 'botAddress is required')
+      this._botAddress = botAddress
+    } else {
+      // Config using bot account address
+      assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
+      this._accountIndex = accountIndex
+    }
+
+    // If notification has slack, validate
+    const slackNotificationConf = notifications.find(notificationType => notificationType.type === 'slack')
+    if (slackNotificationConf) {
+      assert(slackNotificationConf.channel, 'Slack notification config required the "channel"')
+    }
+
     this._markets = markets
-    this._slackRepo = slackRepo
-    this._botTransactionsSlackChannel = botTransactionsSlackChannel
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
@@ -43,7 +63,31 @@ class SellLiquidityBot extends Bot {
   }
 
   async init () {
-    logger.debug('Init Sell Liquidity Bot: ' + this.name)
+    logger.debug('Init Sell Bot: ' + this.name)
+    const [
+      ethereumClient,
+      eventBus,
+      liquidityService,
+      slackRepo
+    ] = await Promise.all([
+      getEthereumClient(),
+      getEventBus(),
+      getLiquidityService(),
+      getSlackRepo()
+    ])
+    this._ethereumClient = ethereumClient
+    this._eventBus = eventBus
+    this._liquidityService = liquidityService
+    this._slackRepo = slackRepo
+
+    // Get bot address
+    if (!this._botAddress) {
+      if (this._accountIndex !== undefined) {
+        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+      } else {
+        throw new Error('Bot address or account index has to be provided')
+      }
+    }
   }
 
   async _doStart () {
@@ -95,7 +139,7 @@ class SellLiquidityBot extends Bot {
             auctionLogger.warn({
               sellToken,
               buyToken,
-              msg: "The sell liquidity was enssured by the routine check. Make sure there's no problem getting events"
+              msg: "The sell liquidity was ensured by the routine check. Make sure there's no problem getting events"
             })
           }
         })
@@ -193,7 +237,7 @@ class SellLiquidityBot extends Bot {
   _notifySoldTokensSlack ({ channel, soldTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
     this._slackRepo
       .postMessage({
-        channel: channel || this._botTransactionsSlackChannel,
+        channel,
         attachments: [
           {
             color: 'good',
@@ -251,7 +295,6 @@ class SellLiquidityBot extends Bot {
       lastSell: this._lastSell,
       lastError: this._lastError,
       notifications: this._notifications,
-      defaultSlackChannel: this._botTransactionsSlackChannel,
       checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets
     }
