@@ -1,6 +1,7 @@
 // Just some defaults. Overrided on custom config or by env varible (see index.js)
-const { MARKETS } = require('./developConstants')
+const { MARKETS, TOKENS } = require('./developConstants')
 const BOT_MARKETS = MARKETS
+const BOT_TOKENS = TOKENS
 
 const MAIN_BOT_ACCOUNT = 0
 const BACKUP_BOT_ACCOUNT = 1
@@ -84,6 +85,16 @@ const SELL_BOT_MAIN = {
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
+const BALANCE_CHECK_BOT = {
+  name: 'Balance check bot',
+  factory: 'src/bots/BalanceCheckBot',
+  tokens: BOT_TOKENS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications,
+  minimumAmountForEther: 0.4,
+  minimumAmountInUsdForToken: 5000
+}
+
 const HIGH_SELL_VOLUME_BOT = {
   name: 'High sell volume bot',
   factory: 'src/bots/HighSellVolumeBot',
@@ -122,6 +133,7 @@ module.exports = {
   BOTS: [
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
+    BALANCE_CHECK_BOT,
     // DEPOSIT_BOT,
     HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS

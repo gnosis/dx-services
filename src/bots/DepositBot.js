@@ -49,7 +49,7 @@ class DepositBot extends Bot {
   }
 
   async init () {
-    logger.debug('Init Sell Bot: ' + this.name)
+    logger.debug('Init Deposit Bot: ' + this.name)
     const [
       ethereumClient,
       dxInfoService,

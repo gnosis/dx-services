@@ -1,5 +1,6 @@
 const formatUtil = require('../../helpers/formatUtil')
 const assert = require('assert')
+const path = require('path')
 
 const strategiesImpl = {}
 
@@ -47,7 +48,12 @@ class PriceRepoImpl {
   _getStrategy (strategyName) {
     let strategy = strategiesImpl[strategyName]
     if (!strategy) {
-      strategy = require('./strategies/' + strategyName)
+      const strategyConf = this._strategies[strategyName]
+      assert(strategyConf, `unknown strategy: "${strategyName}"`)
+
+      const factory = strategyConf.factory
+      const factoryRoute = path.join('../../../', factory)
+      strategy = require(factoryRoute)
       strategiesImpl[strategyName] = strategy
     }
     return strategy

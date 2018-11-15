@@ -4,5 +4,6 @@ module.exports = {
   MARKETS: [
     { tokenA: 'WETH', tokenB: 'RDN' },
     { tokenA: 'WETH', tokenB: 'OMG' }
-  ]
+  ],
+  TOKENS: ['RDN', 'OMG', 'WETH']
 }
