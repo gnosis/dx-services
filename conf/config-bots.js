@@ -112,20 +112,22 @@ const WATCH_EVENTS_BOTS = {
 }
 
 // TODO Enable by default in future versions
-// const DEPOSIT_BOT = {
-//   name: 'Deposit bot',
-//   factory: 'src/bots/DepositBot',
-//   notifications,
-//   // You can use this to have some time to manually withdraw funds
-//   inactivityPeriods: [{
-//     from: '11:30',
-//     to: '12:00'
-//   }, {
-//     from: '15:30',
-//     to: '16:00'
-//   }],
-//   checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
-// }
+const DEPOSIT_BOT = {
+  name: 'Deposit bot',
+  factory: 'src/bots/DepositBot',
+  tokens: BOT_TOKENS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications,
+  // You can use this to have some time to manually withdraw funds
+  inactivityPeriods: [{
+    from: '11:30',
+    to: '12:00'
+  }, {
+    from: '15:30',
+    to: '16:00'
+  }],
+  checkTimeInMilliseconds: 5 * 60 * 1000 // 5min
+}
 
 const AUTO_CLAIM_AUCTIONS = 90
 
@@ -134,7 +136,7 @@ module.exports = {
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
-    // DEPOSIT_BOT,
+    DEPOSIT_BOT,
     HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS
     /*

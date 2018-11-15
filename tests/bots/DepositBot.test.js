@@ -5,11 +5,7 @@ const setupPromise = testSetup()
 
 const BigNumber = require('bignumber.js')
 
-const TOKENS_BY_ACCOUNT = {
-  '0': {
-    tokens: [ 'WETH', 'RDN' ]
-  }
-}
+const TOKENS = [ 'WETH', 'RDN' ]
 
 let depositBot
 beforeAll(async () => {
@@ -30,7 +26,8 @@ beforeEach(async () => {
 
   depositBot = new DepositBot({
     name: 'DepositBot',
-    tokensByAccount: TOKENS_BY_ACCOUNT,
+    tokens: TOKENS,
+    botAddress: '0x123',
     notifications: []
   })
 
@@ -74,7 +71,7 @@ test('It should not do a deposit if nothing to deposit.', async () => {
     depositBot._dxInfoService.getAccountBalancesForTokensNotDeposited
   GET_TOKEN_BALANCES_FN.mockImplementationOnce(_getAccountBalancesWithNoTokensToDeposit)
 
-  // we mock ensureSellLiquidity function
+  // we mock deposit function
   const DEPOSIT_FN = depositBot._dxTradeService.deposit
   DEPOSIT_FN.mockImplementationOnce(_deposit)
 
@@ -95,11 +92,15 @@ test('It should not do a deposit if nothing to deposit.', async () => {
   expect(DEPOSIT_FN).toHaveBeenCalledTimes(0)
 })
 
-test('It should deposit ether and tokens.', async () => {
+test('It should deposit Ether and tokens.', async () => {
   expect.assertions(3)
-  // we mock ensureSellLiquidity function
+  // we mock deposit function
   const DEPOSIT_FN = depositBot._dxTradeService.deposit
   DEPOSIT_FN.mockImplementationOnce(_deposit)
+
+  // we mock getBalanceOfEther function
+  const GET_ETHER_BALANCE_FN = depositBot._dxInfoService.getBalanceOfEther
+  GET_ETHER_BALANCE_FN.mockImplementationOnce(_getEtherBalanceWithEthToDeposit)
 
   // we mock getAccountBalancesForTokensNotDeposited function
   const GET_TOKEN_BALANCES_FN =
@@ -142,6 +143,16 @@ test('It should handle errors if something goes wrong while checking balances.',
 
 test('It should handle errors if something goes wrong while depositing.', async () => {
   expect.assertions(2)
+
+  // we mock getBalanceOfEther function
+  const GET_ETHER_BALANCE_FN = depositBot._dxInfoService.getBalanceOfEther
+  GET_ETHER_BALANCE_FN.mockImplementationOnce(_getEtherBalanceWithNoEthToDeposit)
+
+  // we mock getAccountBalancesForTokensNotDeposited function
+  const GET_TOKEN_BALANCES_FN =
+    depositBot._dxInfoService.getAccountBalancesForTokensNotDeposited
+  GET_TOKEN_BALANCES_FN.mockImplementationOnce(_getAccountBalancesForTokensNotDeposited)
+
   // we mock deposit function to throw an error
   const DEPOSIT_FN = depositBot._dxTradeService.deposit
   DEPOSIT_FN.mockImplementationOnce(_promiseReject)
@@ -167,9 +178,15 @@ function _getAccountBalancesForTokensNotDeposited ({ tokens, account }) {
 }
 
 function _getEtherBalanceWithNoEthToDeposit ({ account }) {
-  return Promise.resolve([
+  return Promise.resolve(
     new BigNumber('0')
-  ])
+  )
+}
+
+function _getEtherBalanceWithEthToDeposit ({ account }) {
+  return Promise.resolve(
+    new BigNumber('50000000000000000000')
+  )
 }
 
 function _getAccountBalancesWithNoTokensToDeposit ({ tokens, account }) {

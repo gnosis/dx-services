@@ -25,18 +25,36 @@ const DEPOSIT_PERIODIC_CHECK_MILLISECONDS =
 class DepositBot extends Bot {
   constructor ({
     name,
-    tokensByAccount,
+    botAddress,
+    accountIndex,
+    tokens,
     notifications,
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
     inactivityPeriods = []
   }) {
     super(name, BOT_TYPE)
+    assert(tokens, 'tokens is required')
     assert(notifications, 'notifications is required')
     assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
     assert(inactivityPeriods, 'inactivityPeriods are required')
 
-    this._tokensByAccount = tokensByAccount
+    if (botAddress) {
+      // Config using bot address
+      assert(botAddress, 'botAddress is required')
+      this._botAddress = botAddress
+    } else {
+      // Config using bot account address
+      assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
+      this._accountIndex = accountIndex
+    }
 
+    // If notification has slack, validate
+    const slackNotificationConf = notifications.find(notificationType => notificationType.type === 'slack')
+    if (slackNotificationConf) {
+      assert(slackNotificationConf.channel, 'Slack notification config required the "channel"')
+    }
+
+    this._tokens = tokens
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
     this._inactivityPeriods = inactivityPeriods
@@ -65,6 +83,15 @@ class DepositBot extends Bot {
     this._dxInfoService = dxInfoService
     this._dxTradeService = dxTradeService
     this._slackRepo = slackRepo
+
+    // Get bot address
+    if (!this._botAddress) {
+      if (this._accountIndex !== undefined) {
+        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+      } else {
+        throw new Error('Bot address or account index has to be provided')
+      }
+    }
   }
 
   async _doStart () {
@@ -81,28 +108,28 @@ class DepositBot extends Bot {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
-  async _getTokenBalances (accountKeys, accountAddresses) {
+  async _getTokenBalances (account) {
     // Prepare balances promises
-    const balanceOfEtherPromises = accountAddresses.map(account => {
-      // Get ETH balance
-      return this._dxInfoService.getBalanceOfEther({ account })
-    })
+    // Get ETH balance
+    const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
+      account })
 
-    const balanceOfTokensPromises = accountAddresses.map((account, index) => {
-      // Get balance of ERC20 tokens
-      return this._dxInfoService.getAccountBalancesForTokensNotDeposited({
-        tokens: this._tokensByAccount[accountKeys[index]].tokens,
-        account
-      })
+    // Get balance of ERC20 tokens
+    const balanceOfTokensPromise = this._dxInfoService.getAccountBalancesForTokensNotDeposited({
+      tokens: this._tokens,
+      address: account
     })
 
     // Execute balances promises
-    const balancesOfEther = await Promise.all(balanceOfEtherPromises)
-    logger.debug('Balances of ether: %O', balancesOfEther)
-    const balancesOfTokens = await Promise.all(balanceOfTokensPromises)
-    logger.debug('Balances of tokens: %O', balancesOfTokens)
+    const [ balanceOfEther, balanceOfTokens ] = await Promise.all([
+      balanceOfEtherPromise,
+      balanceOfTokensPromise
+    ])
 
-    return [ balancesOfEther, balancesOfTokens ]
+    logger.debug('Balances of ether: %O', balanceOfEther)
+    logger.debug('Balances of tokens: %O', balanceOfTokens)
+
+    return [ balanceOfEther, balanceOfTokens ]
   }
 
   async _depositFunds () {
@@ -122,47 +149,32 @@ class DepositBot extends Bot {
 
   async _doDepositFunds () {
     try {
-      logger.debug('Tokens by account: %O', this._tokensByAccount)
-      const accountKeys = Object.keys(this._tokensByAccount)
+      const account = this._botAddress
 
-      // Get account addresses
-      const accountAddressesPromises = accountKeys.map(accountKey => {
-        return getBotAddress(this._ethereumClient, accountKey)
-      })
-      const accountAddresses = await Promise.all(accountAddressesPromises)
-      logger.debug('Account addresses: %O', accountAddresses)
-
-      const [ balancesOfEther, balancesOfTokens ] = await this._getTokenBalances(
-        accountKeys, accountAddresses)
+      const [ balanceOfEther, balanceOfTokens ] = await this._getTokenBalances(
+        account)
 
       // Deposit ETH
-      //  If any account has Ether over the RESERVE_AMOUNT, we deposit it
-      const depositEtherPromises = balancesOfEther.map((balance, index) => {
-        return this._depositTokensIfBalance({
-          token: 'ETH',
-          amount: balance,
-          accountAddress: accountAddresses[index],
-          threshold: ETHER_RESERVE_AMOUNT
-        })
-      }, [])
-
-      // Deposit TOKENS
-      //  If any account, has a token balance, de deposit
-      const depositTokensPromises = balancesOfTokens.map((accountBalances, index) => {
-        const accountAddress = accountAddresses[index]
-        const depositTokenForAccountPromises = accountBalances.map(({ amount, token }) => {
-          return this._depositTokensIfBalance({
-            token,
-            amount,
-            accountAddress,
-            threshold: 0
-          })
-        })
-
-        return Promise.all(depositTokenForAccountPromises)
+      //  If there is Ether over the RESERVE_AMOUNT, we do a deposit
+      const depositEtherPromise = this._depositTokensIfBalance({
+        token: 'ETH',
+        amount: balanceOfEther,
+        accountAddress: account,
+        threshold: ETHER_RESERVE_AMOUNT
       })
 
-      const depositedAmounts = await Promise.all(depositEtherPromises.concat(depositTokensPromises))
+      // Deposit TOKENS
+      //  If there is any ERC20 token not deposited, we do a deposit
+      const depositTokensPromises = balanceOfTokens.map(({ amount, token }) => {
+        return this._depositTokensIfBalance({
+          token,
+          amount,
+          accountAddress: account,
+          threshold: 0
+        })
+      })
+
+      const depositedAmounts = await Promise.all(depositTokensPromises.concat(depositEtherPromise))
       return depositedAmounts.some(amount => amount !== 0)
     } catch (error) {
       this.lastError = new Date()
