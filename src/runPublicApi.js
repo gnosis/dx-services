@@ -64,20 +64,13 @@ class App {
     this._dxTradeService = dxTradeService
     this._auctionService = auctionService
 
-    // API
-    this._cacheTimeouts = {
-      short: this._config.CACHE_TIMEOUT_SHORT,
-      average: this._config.CACHE_TIMEOUT_AVERAGE,
-      long: this._config.CACHE_TIMEOUT_LONG
-    }
-
     this._publicApiServer = new PublicApiServer({
       port: this._config.PUBLIC_API_PORT,
       host: this._config.PUBLIC_API_HOST,
       dxInfoService: this._dxInfoService,
       dxTradeService: this._dxTradeService,
       auctionService: this._auctionService,
-      cacheTimeouts: this._cacheTimeouts
+      cacheTimeouts: this._config.CACHE
     })
   }
 

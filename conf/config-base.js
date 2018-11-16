@@ -10,13 +10,7 @@ module.exports = {
   MNEMONIC: process.env.MNEMONIC || null,
 
   // Cache
-  CACHE: _getCacheConf(),
-
-  // TODO: Remove the following ones. Depreated
-  CACHE_ENABLED: process.env.CACHE_ENABLED === 'true',
-  CACHE_TIMEOUT_SHORT: process.env.CACHE_TIMEOUT_SHORT || 1,
-  CACHE_TIMEOUT_AVERAGE: process.env.CACHE_TIMEOUT_AVERAGE || 15,
-  CACHE_TIMEOUT_LONG: process.env.CACHE_TIMEOUT_LONG || 120
+  CACHE: _getCacheConf()
 }
 
 function _getCacheConf () {
