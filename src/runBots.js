@@ -72,6 +72,10 @@ class App {
     // Initialize bots and API
     this.isReadyPromise = this._createBots()
       .then(bots => {
+        const watchEventsBotExists = bots.some(bot => {
+          return bot.type === 'WatchEventsBot'
+        })
+        assert(watchEventsBotExists, 'WATCH_EVENTS_BOT is mandatory')
         // Set bot list
         logger.info('Initialized %d bots', bots.length)
         this._bots = bots

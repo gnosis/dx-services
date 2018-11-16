@@ -136,7 +136,7 @@ module.exports = {
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
-    DEPOSIT_BOT,
+    // DEPOSIT_BOT,
     HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS
     /*
