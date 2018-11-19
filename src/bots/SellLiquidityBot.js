@@ -4,8 +4,6 @@ const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const assert = require('assert')
 
-const getVersion = require('../helpers/getVersion')
-
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
@@ -58,8 +56,6 @@ class SellLiquidityBot extends Bot {
     this._lastCheck = null
     this._lastSell = null
     this._lastError = null
-
-    this._botInfo = 'SellLiquidityBot - v' + getVersion()
   }
 
   async init () {

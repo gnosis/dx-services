@@ -1,7 +1,7 @@
 const loggerNamespace = 'dx-service:bots:DepositBot'
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
-const getVersion = require('../helpers/getVersion')
+const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
 const numberUtil = require('../helpers/numberUtil')
@@ -13,9 +13,6 @@ const getEthereumClient = require('../getEthereumClient')
 const getDxInfoService = require('../services/DxInfoService')
 const getDxTradeService = require('../services/DxTradeService')
 const getSlackRepo = require('../repositories/SlackRepo')
-
-const logger = new Logger(loggerNamespace)
-// const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const ETHER_RESERVE_AMOUNT =
   process.env.ETHER_RESERVE_AMOUNT || 1.5
@@ -62,8 +59,6 @@ class DepositBot extends Bot {
     this._lastCheck = null
     this._lastDeposit = null
     this._lastError = null
-
-    this._botInfo = 'DepositBot - v' + getVersion()
   }
 
   async init () {

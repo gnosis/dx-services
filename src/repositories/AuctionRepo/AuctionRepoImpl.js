@@ -42,7 +42,7 @@ class AuctionRepoImpl extends Cacheable {
     })
     assert(ethereumClient, '"ethereumClient" is required')
     assert(contracts, '"contracts" is required')
-    
+
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
     this._transactionRetryTime = transactionRetryTime
@@ -809,12 +809,12 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
     if (auctionStart !== null && auctionStart <= now) {
       // The auction is running
-      assert.equal(auctionIndex, lastAuctionIndex + 1,
+      assert.strict.equal(auctionIndex, lastAuctionIndex + 1,
         'The auction index should be set to the next auction (the auction is running)'
       )
     } else {
       // We are waiting (to start or for funding
-      assert.equal(auctionIndex, lastAuctionIndex,
+      assert.strict.equal(auctionIndex, lastAuctionIndex,
         'The auction index should be set to the current auction (we are in a waiting period)'
       )
     }
@@ -877,7 +877,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     assert(auctionStart <= now, "The auction hasn't started yet")
 
     const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
-    assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+    assert.strict.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
 
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
     assert(sellVolume > 0, "There's not selling volume")
@@ -965,7 +965,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     assert(initialClosingPrice, 'The initialClosingPrice is required')
     assert(initialClosingPrice.numerator >= 0, 'The initialClosingPrice numerator is incorrect')
     assert(initialClosingPrice.denominator >= 0, 'The initialClosingPrice denominator is incorrect')
-    assert.notEqual(tokenA, tokenB)
+    assert.strict.notEqual(tokenA, tokenB)
     assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
     assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
 

@@ -117,7 +117,7 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
 }
 
 function _discardError () {
-  // No need to handle, the transaction error, because its already handled in 
+  // No need to handle, the transaction error, because its already handled in
   // the callback from the TX
 }
 
