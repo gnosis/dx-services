@@ -68,6 +68,9 @@ class WatchEventsBot extends Bot {
     logger.info({ msg: 'Stopping the auction watch...' })
     await this._watchingFilter.stopWatching()
     this._watchingFilter = null
+    if (this._eventBus) {
+      this._eventBus.clearAllListeners()
+    }
     logger.info({ msg: 'Stopped watching for events' })
   }
 
@@ -185,6 +188,16 @@ error watching the blockchain): ` + errorStoppingWatch.toString(),
         msg: 'One auction cleared, but it was for an unknown pair: %s-%s',
         params: [ sellToken, buyToken ]
       })
+    }
+  }
+
+  async getInfo () {
+    return {
+      markets: this._markets,
+      knownMarkets: this._knownMarkets,
+      watchingFilter: this._watchingFilter,
+      notifications: this._notifications,
+      checkTimeInMilliseconds: this._checkTimeInMilliseconds
     }
   }
 }

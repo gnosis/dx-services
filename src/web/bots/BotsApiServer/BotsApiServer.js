@@ -1,6 +1,6 @@
 // const info = require('debug')('INFO-dx-service:BotsApiServer')
-const Server = require('../helpers/Server')
-const createRouter = require('../helpers/createRouter')
+const Server = require('../../helpers/Server')
+const createRouter = require('../../helpers/createRouter')
 
 const express = require('express')
 const path = require('path')
@@ -22,12 +22,12 @@ class BotsApiServer extends Server {
 
     // Static content
     const mainPages = express.Router()
-    mainPages.use(contextPath, express.static(path.join(__dirname, './static')))
+    mainPages.use(contextPath, express.static(path.join(__dirname, '../static')))
     app.use('', mainPages)
 
     // Get routes
-    const mainRoutes = require('./main-routes')(services)
-    const reportsRoutes = require('./reports-routes')(services, this._ethereumClient, this._config)
+    const mainRoutes = require('../main-routes')(services)
+    const reportsRoutes = require('../reports-routes')(services, this._ethereumClient, this._config)
 
     // Main routes
     app.use('/api', createRouter(mainRoutes))
