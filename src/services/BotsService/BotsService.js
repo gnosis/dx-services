@@ -16,6 +16,7 @@ class BotsService {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = markets
+    this._bots = []
 
     // About info
     this._gitInfo = getGitInfo()
@@ -24,6 +25,10 @@ class BotsService {
 
   setBots (bots) {
     this._bots = bots
+  }
+
+  registerBot (bot) {
+    this._bots.push(bot)
   }
 
   async getVersion () {
@@ -41,7 +46,6 @@ class BotsService {
     // Return bot info
     const bots = await Promise.all(
       this._bots.map(async bot => {
-        console.log(bot)
         const botInfo = await bot.getInfo()
         return Object.assign({
           name: bot.name,

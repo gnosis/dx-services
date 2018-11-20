@@ -2,6 +2,8 @@ const getVersion = require('../helpers/getVersion')
 const assert = require('assert')
 const environment = process.env.NODE_ENV
 
+const getBotsService = require('../services/BotsService')
+
 class Bot {
   constructor (name, type) {
     assert(name, 'The "name" of the bot is required')
@@ -20,6 +22,7 @@ class Bot {
 
   async init () {
     this.initialized = true
+    this._botsService = await getBotsService()
     return this._doInit()
   }
 
@@ -30,6 +33,7 @@ class Bot {
     if (!this.initialized) {
       await this.init()
     }
+    this._botsService.registerBot(this)
     return this._doStart()
   }
 

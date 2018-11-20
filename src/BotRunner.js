@@ -5,7 +5,6 @@ const assert = require('assert')
 const path = require('path')
 
 const getDxInfoService = require('./services/DxInfoService')
-const getBotsService = require('./services/BotsService')
 const getSlackRepo = require('./repositories/SlackRepo')
 
 // Bot Api
@@ -20,15 +19,13 @@ class BotRunner {
   }
 
   async init () {
-    const [ dxInfoService, botsService, slackRepo ] =
+    const [ dxInfoService, slackRepo ] =
     await Promise.all([
       getDxInfoService(),
-      getBotsService(),
       getSlackRepo()
     ])
 
     this._dxInfoService = dxInfoService
-    this._botsService = botsService
     this._slackRepo = slackRepo
 
     // Initialize Bots and API
@@ -38,9 +35,7 @@ class BotRunner {
       return bot.type === 'WatchEventsBot'
     })
     assert(watchEventsBotExists, 'WATCH_EVENTS_BOT is mandatory')
-    // Set bot list
     logger.info('Initialized %d bots', this._bots.length)
-    this._botsService.setBots(this._bots)
 
     // Initialize the bots API Server
     this._botsApiServer = await getBotsApiServer()
