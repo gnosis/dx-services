@@ -2,8 +2,8 @@ const express = require('express')
 const path = require('path')
 
 // const info = require('debug')('INFO-dx-service:PublicApiServer')
-const Server = require('../helpers/Server')
-const createRouter = require('../helpers/createRouter')
+const Server = require('../../helpers/Server')
+const createRouter = require('../../helpers/createRouter')
 
 class PublicApiServer extends Server {
   constructor ({ port = 8080, host, dxInfoService, dxTradeService, auctionService, cacheTimeouts }) {
@@ -29,20 +29,20 @@ class PublicApiServer extends Server {
     })
 
     // Get routes
-    const mainRoutes = require('./main-routes')(services, this._cacheTimeouts)
-    const testRoutes = require('./test-routes')(services)
-    const marketsRoutes = require('./markets-routes')(services, this._cacheTimeouts)
-    const auctionsRoutes = require('./auctions-routes')(services, this._cacheTimeouts)
-    const accountsRoutes = require('./accounts-routes')(services, this._cacheTimeouts)
-    const uiRoutes = require('./ui-routes')(services, this._cacheTimeouts)
+    const mainRoutes = require('../main-routes')(services, this._cacheTimeouts)
+    const testRoutes = require('../test-routes')(services)
+    const marketsRoutes = require('../markets-routes')(services, this._cacheTimeouts)
+    const auctionsRoutes = require('../auctions-routes')(services, this._cacheTimeouts)
+    const accountsRoutes = require('../accounts-routes')(services, this._cacheTimeouts)
+    const uiRoutes = require('../ui-routes')(services, this._cacheTimeouts)
 
     // Static content
     const landingPage = express.Router()
-    landingPage.use(contextPath, express.static(path.join(__dirname, './static/landing')))
+    landingPage.use(contextPath, express.static(path.join(__dirname, '../static/landing')))
     app.use('/', landingPage)
 
     const mainPages = express.Router()
-    mainPages.use(contextPath, express.static(path.join(__dirname, './static')))
+    mainPages.use(contextPath, express.static(path.join(__dirname, '../static')))
     app.use('/api', mainPages)
 
     // Main routes
@@ -57,7 +57,7 @@ class PublicApiServer extends Server {
     app.use('/api/v1/accounts', createRouter(accountsRoutes))
     // UI routes
     app.use('/api/v1/ui', createRouter(uiRoutes))
-    app.use(contextPath + '/api', express.static(path.join(__dirname, './static')))
+    app.use(contextPath + '/api', express.static(path.join(__dirname, '../static')))
   }
   async _getServiceName () {
     const version = await this._dxInfoService.getVersion()

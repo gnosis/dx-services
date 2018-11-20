@@ -44,6 +44,7 @@ class BotRunner {
 
     // Initialize the bots API Server
     this._botsApiServer = await getBotsApiServer()
+    this.initialized = true
   }
 
   async start () {
