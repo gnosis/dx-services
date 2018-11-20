@@ -10,12 +10,12 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const gracefullShutdown = require('../helpers/gracefullShutdown')
 
-// TODO: Use instance factory instead
+// TODO: Remove instanceFactory (pull only instances needed in each command)
 // TODO: If MARKETS is undefined or NULL --> load all
 const yargs = require('yargs')
-const testSetup = require('../../tests/helpers/testSetup')
+const instanceFactory = require('../helpers/instanceFactory')
 
-testSetup()
+instanceFactory()
   .then(run)
   .then(() => gracefullShutdown.shutDown())
   .catch(error => {
