@@ -41,6 +41,7 @@ class BotsService {
     // Return bot info
     const bots = await Promise.all(
       this._bots.map(async bot => {
+        console.log(bot)
         const botInfo = await bot.getInfo()
         return Object.assign({
           name: bot.name,

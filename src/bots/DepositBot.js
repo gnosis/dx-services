@@ -61,7 +61,7 @@ class DepositBot extends Bot {
     this._lastError = null
   }
 
-  async init () {
+  async _doInit () {
     logger.debug('Init Deposit Bot: ' + this.name)
     const [
       ethereumClient,

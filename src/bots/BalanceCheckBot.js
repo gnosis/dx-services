@@ -65,7 +65,7 @@ class BalanceCheckBot extends Bot {
     this._lastSlackTokenBalanceNotification = null
   }
 
-  async init () {
+  async _doInit () {
     logger.debug('Init Balance Check Bot: ' + this.name)
     const [
       ethereumClient,

@@ -37,7 +37,7 @@ class WatchEventsBot extends Bot {
     this._watchingFilter = null
   }
 
-  async init () {
+  async _doInit () {
     const [ contracts, eventBus ] = await Promise.all([
       loadContracts(),
       getEventBus()

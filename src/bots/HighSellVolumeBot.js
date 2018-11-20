@@ -62,7 +62,7 @@ class HighSellVolumeBot extends Bot {
     this._lastError = null
   }
 
-  async init () {
+  async _doInit () {
     logger.debug('Init High Sell Volume Bot: ' + this.name)
 
     const [

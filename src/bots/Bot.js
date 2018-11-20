@@ -9,6 +9,7 @@ class Bot {
     this.name = name
     this.type = type
     this.startTime = null
+    this.initialized = false
 
     this._botInfo = name + ' - v' + getVersion()
     if (environment !== 'pro') {
@@ -17,9 +18,17 @@ class Bot {
     }
   }
 
+  async init () {
+    this.initialized = true
+    return this._doInit()
+  }
+
   async start () {
     if (!this.startTime) {
       this.startTime = new Date()
+    }
+    if (!this.initialized) {
+      await this.init()
     }
     return this._doStart()
   }
