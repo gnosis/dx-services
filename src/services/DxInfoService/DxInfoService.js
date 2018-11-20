@@ -31,14 +31,16 @@ class DxInfoService {
   constructor ({
     auctionRepo,
     ethereumRepo,
+    slackRepo,
     markets
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(markets, '"markets" is required')
- 
+
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
+    this._slackRepo = slackRepo
     this._markets = markets
 
     // About info
@@ -896,6 +898,26 @@ class DxInfoService {
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
     return this._auctionRepo.getExtraTokens({ sellToken, buyToken, auctionIndex })
+  }
+
+  async notifySlack (message, logger) {
+  //   const message = `Starting Bots and Bots API Server v${version} in \
+  // "${environment}" environment`
+
+    // Display some basic info
+    logger.info(message)
+
+    if (this._slackRepo.isEnabled()) {
+      await this._slackRepo.postMessage({
+        channel: this._config.SLACK_CHANNEL_OPERATIONS,
+        text: message
+      }).catch(error => {
+        logger.error({
+          msg: 'Error notifying operation to Slack: ' + error.toString(),
+          error
+        })
+      })
+    }
   }
 }
 

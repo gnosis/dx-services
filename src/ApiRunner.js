@@ -3,7 +3,6 @@ const Logger = require('./helpers/Logger')
 const logger = new Logger(loggerNamespace)
 
 const getDxInfoService = require('./services/DxInfoService')
-const getSlackRepo = require('./repositories/SlackRepo')
 
 // Public Api
 const getPublicApiServer = require('./web/publicApi/PublicApiServer')
@@ -17,15 +16,13 @@ class ApiRunner {
   }
 
   async init () {
-    const [ dxInfoService, slackRepo, publicApiServer ] =
+    const [ dxInfoService, publicApiServer ] =
     await Promise.all([
       getDxInfoService(),
-      getSlackRepo(),
       getPublicApiServer()
     ])
 
     this._dxInfoService = dxInfoService
-    this._slackRepo = slackRepo
     this._publicApiServer = publicApiServer
     this.initialized = true
   }
@@ -59,40 +56,14 @@ class ApiRunner {
     const message = `Starting Public API Server v${version} in \
 "${this._config.ENVIRONMENT}" environment`
 
-    // Display some basic info
-    logger.info(message)
-
-    if (this._slackRepo.isEnabled()) {
-      await this._slackRepo.postMessage({
-        channel: this._config.SLACK_CHANNEL_OPERATIONS,
-        text: message
-      }).catch(error => {
-        logger.error({
-          msg: 'Error notifing API start to Slack: ' + error.toString(),
-          error
-        })
-      })
-    }
+    this._dxInfoService.notifySlack(message, logger)
   }
 
   async _notifyStop (version) {
     const message = `Stopping Public API Server v${version} in \
 "${this._config.ENVIRONMENT}" environment`
 
-    // Display some basic info
-    logger.info(message)
-
-    if (this._slackRepo.isEnabled()) {
-      await this._slackRepo.postMessage({
-        channel: this._config.SLACK_CHANNEL_OPERATIONS,
-        text: message
-      }).catch(error => {
-        logger.error({
-          msg: 'Error notifing API stop to Slack: ' + error.toString(),
-          error
-        })
-      })
-    }
+    this._dxInfoService.notifySlack(message, logger)
   }
 }
 

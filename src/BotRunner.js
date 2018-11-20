@@ -5,7 +5,6 @@ const assert = require('assert')
 const path = require('path')
 
 const getDxInfoService = require('./services/DxInfoService')
-const getSlackRepo = require('./repositories/SlackRepo')
 
 // Bot Api
 const getBotsApiServer = require('./web/bots/BotsApiServer')
@@ -19,14 +18,9 @@ class BotRunner {
   }
 
   async init () {
-    const [ dxInfoService, slackRepo ] =
-    await Promise.all([
-      getDxInfoService(),
-      getSlackRepo()
-    ])
+    const dxInfoService = await getDxInfoService()
 
     this._dxInfoService = dxInfoService
-    this._slackRepo = slackRepo
 
     // Initialize Bots and API
     this._bots = await this._createBots()
@@ -117,40 +111,14 @@ class BotRunner {
     const message = `Starting Bots and Bots API Server v${version} in \
 "${this._config.ENVIRONMENT}" environment`
 
-    // Display some basic info
-    logger.info(message)
-
-    if (this._slackRepo.isEnabled()) {
-      await this._slackRepo.postMessage({
-        channel: this._config.SLACK_CHANNEL_OPERATIONS,
-        text: message
-      }).catch(error => {
-        logger.error({
-          msg: 'Error notifing API start to Slack: ' + error.toString(),
-          error
-        })
-      })
-    }
+    this._dxInfoService.notifySlack(message, logger)
   }
 
   async _notifyStop (version) {
     const message = `Stopping Bots and Bots API Server v${version} in \
 "${this._config.ENVIRONMENT}" environment`
 
-    // Display some basic info
-    logger.info(message)
-
-    if (this._slackRepo.isEnabled()) {
-      await this._slackRepo.postMessage({
-        channel: this._config.SLACK_CHANNEL_OPERATIONS,
-        text: message
-      }).catch(error => {
-        logger.error({
-          msg: 'Error notifing API stop to Slack: ' + error.toString(),
-          error
-        })
-      })
-    }
+    this._dxInfoService.notifySlack(message, logger)
   }
 }
 
