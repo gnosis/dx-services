@@ -1788,7 +1788,12 @@ volume: ${state}`)
 
     const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
-    if (price) {
+    const checkZeroPrice = ({ numerator, denominator }) => {
+      // Check if numerator === 0 so price is 0
+      return numerator.dividedBy(denominator).toNumber()
+    }
+
+    if (price && checkZeroPrice(price)) {
       /*
       auctionLogger.debug(sellToken, buyToken, 'Auction index: %d, Price: %d/%d %s/%s',
         auctionIndex, price.numerator, price.denominator,
