@@ -1788,7 +1788,16 @@ volume: ${state}`)
 
     const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
-    if (price) {
+
+    const [ auctionStart, now ] = await Promise.all([
+      this.getAuctionStart({ sellToken, buyToken }),
+      this._getTime()
+    ])
+    const hasAuctionStarted = () => {
+      return auctionStart && auctionStart < now
+    }
+
+    if (price && hasAuctionStarted()) {
       /*
       auctionLogger.debug(sellToken, buyToken, 'Auction index: %d, Price: %d/%d %s/%s',
         auctionIndex, price.numerator, price.denominator,
@@ -1817,11 +1826,8 @@ volume: ${state}`)
     //      is considered, autoclosed since the start
     let isClosed
     if (sellVolume.isZero()) {
-      const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
-      const now = await this._getTime()
-
       // closed if sellVolume=0 and the auction has started and hasn't been cleared
-      isClosed = auctionStart && auctionStart < now
+      isClosed = hasAuctionStarted()
     } else {
       /*
       debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
