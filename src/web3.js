@@ -5,6 +5,7 @@ const assert = require('assert')
 const conf = require('../conf')
 const Web3 = require('web3')
 
+const gracefullShutdown = require('./helpers/gracefullShutdown')
 const HDWalletProvider = require('./helpers/HDWalletProvider')
 
 // We handle this error separatelly, because node throw this error from time to
@@ -29,6 +30,7 @@ this._provider = new HDWalletProvider({
   numAddresses: 5
 })
 this._provider.engine.on('error', _printNodeError)
+gracefullShutdown.onShutdown(() => this._provider.engine.stop())
 
 let reduceWarnLevelForNodeErrors = false
 function _printNodeError (error) {

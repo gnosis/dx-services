@@ -5,33 +5,20 @@ const logger = new Logger(loggerNamespace)
 
 const got = require('got')
 
+const { BOTS_API_PORT } = require('../../conf/')
+
 // Helpers
 const gracefullShutdown = require('../helpers/gracefullShutdown')
-const instanceFactory = require('../helpers/instanceFactory')
 
 // Env
 const environment = process.env.NODE_ENV
 
 logger.info('Generate daily report for %s', environment)
 
-// Run app
-instanceFactory()
-  .then(generateDailyReport)
-  .then(() => gracefullShutdown.shutDown())
-  .catch(error => {
-    // Handle boot errors
-    handleError(error)
-
-    // Shutdown app
-    return gracefullShutdown.shutDown()
-  })
-
-async function generateDailyReport ({
-  config
-}) {
+async function generateDailyReport () {
   logger.info('Generate daily report...')
   const version = getVersion()
-  const url = `http://localhost:${config.BOTS_API_PORT}/api/v1/reports/auctions-report/requests`
+  const url = `http://localhost:${BOTS_API_PORT}/api/v1/reports/auctions-report/requests`
   logger.info(`GET ${url}`)
 
   const response = await got(url, {
@@ -53,3 +40,15 @@ function handleError (error) {
     error
   })
 }
+
+// Run app
+generateDailyReport()
+  .then(() => gracefullShutdown.shutDown())
+  .catch(error => {
+    console.log(error)
+    // Handle boot errors
+    handleError(error)
+
+    // Shutdown app
+    return gracefullShutdown.shutDown()
+  })
