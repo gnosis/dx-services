@@ -1,7 +1,11 @@
 const cliUtils = require('../helpers/cliUtils')
 const formatUtil = require('../../helpers/formatUtil')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxInfoService = require('../../services/DxInfoService')
+const loadContracts = require('../../loadContracts')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'balances',
     'Get the balances for all known tokens for a given account. If no account selected mnemonic account is used (i.e. )',
@@ -14,15 +18,19 @@ function registerCommand ({ cli, instances, logger }) {
       })
     }, async function (argv) {
       let { account, verbose } = argv
-
-      const {
-        botAccount,
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
+        accountFromConfig,
         dxInfoService,
         contracts
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getDxInfoService(),
+        loadContracts()
+      ])
 
       if (!account) {
-        account = botAccount
+        account = accountFromConfig
       }
 
       logger.info(`\n**********  Balance for ${account}  **********\n`)
