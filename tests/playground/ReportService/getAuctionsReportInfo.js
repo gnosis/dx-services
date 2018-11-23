@@ -1,6 +1,6 @@
 const testSetup = require('../../helpers/testSetup')
 const getDateRangeFromParams = require('../../../src/helpers/getDateRangeFromParams')
-const getBotAddress = require('../../../src/helpers/getBotAddress')
+const getAddress = require('../../../src/helpers/getAddress')
 
 testSetup()
   .then(run)
@@ -17,7 +17,7 @@ async function run ({
   const { fromDate, toDate } = getDateRangeFromParams({
     fromDateStr, toDateStr, period
   })
-  const botAddress = await getBotAddress(ethereumClient)
+  const botAddress = await getAddress(0)
 
   return reportService
     .getAuctionsReportInfo({

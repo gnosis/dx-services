@@ -2,8 +2,8 @@ const loggerNamespace = 'dx-service:services:AuctionsService'
 const Logger = require('../../helpers/Logger')
 const assert = require('assert')
 
-// const getBotAddress = require('../helpers/getBotAddress')
-// this._botAddressPromise = getBotAddress(ethereumRepo._ethereumClient)
+// const getAddress = require('../helpers/getAddress')
+// this._botAddressPromise = getAddress(0)
 
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../../helpers/formatUtil')

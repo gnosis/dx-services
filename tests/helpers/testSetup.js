@@ -1,7 +1,7 @@
 // TODO: Move amd refactor logic into DxTradeService.
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
 const instanceFactory = require('../../src/helpers/instanceFactory')
-const getBotAddress = require('../../src/helpers/getBotAddress')
+const getAddress = require('../../src/helpers/getAddress')
 const BigNumber = require('bignumber.js')
 
 const numberUtil = require('../../src/helpers/numberUtil')
@@ -41,7 +41,7 @@ async function getHelpers ({ ethereumClient, dxInfoService, auctionRepo, ethereu
   const accounts = await ethereumClient.getAccounts()
   const web3 = ethereumClient.getWeb3()
   const [ owner, user1, user2 ] = accounts
-  const botAccount = await getBotAddress(ethereumClient, 0)
+  const botAccount = await getAddress(0)
 
   const supportedTokens = config.MARKETS.reduce((acc, market) => {
     if (!acc.includes(market.tokenA)) acc.push(market.tokenA)

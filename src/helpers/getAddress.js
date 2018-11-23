@@ -1,4 +1,7 @@
-function getBotAddress (ethereumClient, accountIndex) {
+const getEthereumClient = require('../getEthereumClient')
+
+async function getAddress (accountIndex) {
+  const ethereumClient = await getEthereumClient()
   const environment = process.env.NODE_ENV
   return ethereumClient
     .getAccounts()
@@ -28,4 +31,4 @@ function getBotAddress (ethereumClient, accountIndex) {
     })
 }
 
-module.exports = getBotAddress
+module.exports = getAddress

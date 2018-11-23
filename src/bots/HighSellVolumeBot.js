@@ -11,7 +11,7 @@ const numberUtil = require('../helpers/numberUtil')
 const formatUtil = require('../helpers/formatUtil')
 
 const BOT_TYPE = 'HighSellVolumeBot'
-const getBotAddress = require('../helpers/getBotAddress')
+const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../getEthereumClient')
 const getEventBus = require('../getEventBus')
 const getDxInfoService = require('../services/DxInfoService')
@@ -87,7 +87,7 @@ class HighSellVolumeBot extends Bot {
     // Get bot address
     if (!this._botAddress) {
       if (this._accountIndex !== undefined) {
-        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+        this._botAddress = await getAddress(this._accountIndex)
       } else {
         throw new Error('Bot address or account index has to be provided')
       }

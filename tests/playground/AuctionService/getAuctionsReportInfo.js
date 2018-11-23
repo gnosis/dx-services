@@ -19,7 +19,6 @@ async function run ({
   const { fromDate, toDate } = getDateRangeFromParams({
     fromDateStr, toDateStr, period
   })
-  // const botAddress = await getBotAddress(ethereumClient)
 
   return auctionService
     .getAuctionsReportInfo({

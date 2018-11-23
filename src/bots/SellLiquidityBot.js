@@ -12,7 +12,7 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
 const BOT_TYPE = 'SellLiquidityBot'
-const getBotAddress = require('../helpers/getBotAddress')
+const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../getEthereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
@@ -79,7 +79,7 @@ class SellLiquidityBot extends Bot {
     // Get bot address
     if (!this._botAddress) {
       if (this._accountIndex !== undefined) {
-        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+        this._botAddress = await getAddress(this._accountIndex)
       } else {
         throw new Error('Bot address or account index has to be provided')
       }

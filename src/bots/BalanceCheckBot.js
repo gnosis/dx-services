@@ -10,7 +10,7 @@ const numberUtil = require('../helpers/numberUtil')
 const BOT_TYPE = 'BalanceCheckBot'
 
 const getEthereumClient = require('../getEthereumClient')
-const getBotAddress = require('../helpers/getBotAddress')
+const getAddress = require('../helpers/getAddress')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -86,7 +86,7 @@ class BalanceCheckBot extends Bot {
     // Get bot address
     if (!this._botAddress) {
       if (this._accountIndex !== undefined) {
-        this._botAddress = await getBotAddress(this._ethereumClient, this._accountIndex)
+        this._botAddress = await getAddress(this._accountIndex)
       } else {
         throw new Error('Bot address or account index has to be provided')
       }

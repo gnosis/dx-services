@@ -7,7 +7,7 @@ const formatUtil = require('../../helpers/formatUtil')
 
 const dateUtil = require('../../helpers/dateUtil')
 
-const getBotAddress = require('../../helpers/getBotAddress')
+const getAddress = require('../../helpers/getAddress')
 
 const DEFAULT_SENDER_INFO = 'Bots API v ' + version
 const AUCTIONS_REPORT_MAX_NUM_DAYS = 15
@@ -45,7 +45,7 @@ function createRoutes ({ reportService }, ethereumClient, config) {
 
       // Generate report and send it to slack
       // FIXME: Try to get rid of MAIN_BOT_ACCOUNT
-      const botAddress = await getBotAddress(ethereumClient, config.MAIN_BOT_ACCOUNT)
+      const botAddress = await getAddress(config.MAIN_BOT_ACCOUNT)
       const requestReceipt = reportService.sendAuctionsReportToSlack({
         fromDate,
         toDate,
