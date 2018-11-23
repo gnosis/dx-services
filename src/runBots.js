@@ -18,7 +18,12 @@ function handleError (error) {
 }
 
 async function start ({ config }) {
-  const botRunner = new BotRunner({ config })
+  const { BOTS, ENVIRONMENT } = config
+  const botRunner = new BotRunner({
+    bots: BOTS,
+    environment: ENVIRONMENT,
+    runApiServer: true
+  })
 
   // Let the app stop gracefully
   gracefullShutdown.onShutdown(() => {

@@ -12,9 +12,17 @@ const getBotsApiServer = require('./web/bots/BotsApiServer')
 let botFactories = {}
 
 class BotRunner {
-  constructor ({ config }) {
+  constructor ({
+    bots,
+    environment,
+    runApiServer = false,
+    initBots = true
+  }) {
     this.initialized = false
-    this._config = config
+    this._botsConfig = bots
+    this._environment = environment
+    this._runApiServer = runApiServer
+    this._initBots = initBots
   }
 
   async init () {
@@ -32,7 +40,9 @@ class BotRunner {
     logger.info('Initialized %d bots', this._bots.length)
 
     // Initialize the bots API Server
-    this._botsApiServer = await getBotsApiServer()
+    if (this._runApiServer) {
+      this._botsApiServer = await getBotsApiServer()
+    }
     this.initialized = true
   }
 
@@ -53,7 +63,9 @@ class BotRunner {
     logger.info({ msg: 'All bots are ready' })
 
     // Run Bots Api server
-    await this._botsApiServer.start()
+    if (this._runApiServer) {
+      await this._botsApiServer.start()
+    }
   }
 
   async stop () {
@@ -77,22 +89,25 @@ class BotRunner {
     logger.info({ msg: 'App is ready to shut down' })
   }
 
-  _createBots () {
+  async _createBots () {
     // Create bots from factory
-    const bots = this._config
-      .BOTS
+    let bots = this._botsConfig
       .map(botConfig => {
         const BotFactory = this._getBotFactory(botConfig)
         return new BotFactory(botConfig)
       })
 
     // Init all the bots
-    return Promise.all(bots.map(async bot => {
-      if (bot.init) {
-        await bot.init()
-      }
-      return bot
-    }))
+    if (this._initBots) {
+      bots = await Promise.all(bots.map(async bot => {
+        if (bot.init) {
+          await bot.init()
+        }
+        return bot
+      }))
+    }
+
+    return bots
   }
 
   _getBotFactory ({ name, factory }) {
@@ -109,14 +124,14 @@ class BotRunner {
 
   async _notifyStart (version) {
     const message = `Starting Bots and Bots API Server v${version} in \
-"${this._config.ENVIRONMENT}" environment`
+"${this._environment}" environment`
 
     this._dxInfoService.notifySlack(message, logger)
   }
 
   async _notifyStop (version) {
     const message = `Stopping Bots and Bots API Server v${version} in \
-"${this._config.ENVIRONMENT}" environment`
+"${this._environment}" environment`
 
     this._dxInfoService.notifySlack(message, logger)
   }
