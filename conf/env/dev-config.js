@@ -1,4 +1,4 @@
-const { DX_BOTS_DEV_CHANNEL } = require('./slackChannels')
+const { DX_BOTS_DEV_CHANNEL } = require('../slackChannels')
 const { MARKETS } = require('../developConstants')
 
 module.exports = {
