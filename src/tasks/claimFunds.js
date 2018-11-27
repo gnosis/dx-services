@@ -3,50 +3,55 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
+const config = require('../../conf/')
+const getDxTradeService = require('../services/DxTradeService')
+const BotRunner = require('../BotRunner')
+
 // Helpers
 const gracefullShutdown = require('../helpers/gracefullShutdown')
-const instanceFactory = require('../helpers/instanceFactory')
-const getBotAddress = require('../helpers/getBotAddress')
 
 // Env
 logger.info('Claiming funds')
 
-// Run app
-instanceFactory()
-  .then(claimFunds)
-  .then(() => gracefullShutdown.shutDown())
-  .catch(error => {
-    // Handle boot errors
-    handleError(error)
+async function claimFunds () {
+  const { BOTS, ENVIRONMENT } = config
 
-    // Shutdown app
-    return gracefullShutdown.shutDown()
+  const botRunner = new BotRunner({
+    bots: BOTS,
+    environment: ENVIRONMENT,
+    runApiServer: false,
+    initBots: false
   })
 
-async function claimFunds ({
-  config, dxTradeService, ethereumClient
-}) {
-  const buyAndSellBotsConfig = [].concat(
-    config.BUY_LIQUIDITY_BOTS,
-    config.SELL_LIQUIDITY_BOTS
-  )
+  // Create instances of all configured bots
+  await botRunner.init()
+  const allBots = botRunner._bots
+
+  // Filter bots by BOT_TYPE
+  let bots = allBots.filter(({ type }) => {
+    return type === 'BuyLiquidityBot' || type === 'SellLiquidityBot'
+  })
+
+  // Init bots accounts
+  bots = await Promise.all(bots.map(async bot => {
+    await bot.setAddress()
+    return bot
+  }))
 
   // List markets grouped by account
-  const marketsByAccount = buyAndSellBotsConfig.reduce((accountMarkets, botConfig) => {
-    return _getAccountMarkets(accountMarkets, botConfig)
+  const marketsByAccount = bots.reduce((accountMarkets, bot) => {
+    return _getAccountMarkets(accountMarkets, bot)
   }, {})
 
-  const accountKeys = Object.keys(marketsByAccount)
+  const accounts = Object.keys(marketsByAccount)
 
-  const claimingPromises = accountKeys.map(accountKey => {
+  const claimingPromises = accounts.map(botAddress => {
     return _doClaim({
       // data
-      accountIndex: accountKey,
-      markets: marketsByAccount[accountKey].markets,
-      name: marketsByAccount[accountKey].name,
-      // service and config
-      ethereumClient,
-      dxTradeService,
+      botAddress,
+      markets: marketsByAccount[botAddress].markets,
+      name: marketsByAccount[botAddress].name,
+      // config
       config
     })
   })
@@ -54,11 +59,10 @@ async function claimFunds ({
   return Promise.all(claimingPromises)
 }
 
-const _doClaim = async ({ accountIndex, markets, name, ethereumClient, dxTradeService, config }) => {
-  // Execute the claim
-  const botAddress = await getBotAddress(ethereumClient, accountIndex)
-  assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+const _doClaim = async ({ botAddress, markets, name, config }) => {
+  const dxTradeService = await getDxTradeService()
 
+  // Execute the claim
   logger.info('Claiming for address %s affected bots: %s', botAddress, name)
 
   const claimResult = await dxTradeService.claimAll({
@@ -73,32 +77,42 @@ const _doClaim = async ({ accountIndex, markets, name, ethereumClient, dxTradeSe
 }
 
 // List markets grouped by account
-function _getAccountMarkets (accountMarkets, { accountIndex, markets, name }) {
+function _getAccountMarkets (accountMarkets, bot) {
+  const name = bot.name
+  const markets = bot._markets
+  const botAddress = bot.getAddress()
+  assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+
   // First time we see this account
-  if (!accountMarkets.hasOwnProperty(accountIndex)) {
-    accountMarkets[accountIndex] = {
+  if (!accountMarkets.hasOwnProperty(botAddress)) {
+    accountMarkets[botAddress] = {
       name: name,
       markets: []
     }
   } else {
-    accountMarkets[accountIndex].name += ', ' + name
+    accountMarkets[botAddress].name += ', ' + name
   }
 
-  function _compareTokenPair (tokenPair, {sellToken, buyToken}) {
+  function _isEqualTokenPair (tokenPair, { sellToken, buyToken }) {
     return tokenPair.sellToken === sellToken && tokenPair.buyToken === buyToken
   }
 
   markets.forEach(({ tokenA, tokenB }) => {
     // Check if market already used with this account in another bot
-    if (accountMarkets[accountIndex].markets.findIndex(market =>
-      _compareTokenPair(market, { sellToken: tokenA, buyToken: tokenB })) === -1) {
-      accountMarkets[accountIndex].markets.push({ sellToken: tokenA, buyToken: tokenB })
+    if (!accountMarkets[botAddress].markets.some(market =>
+      _isEqualTokenPair(market, { sellToken: tokenA, buyToken: tokenB }))
+    ) {
+      accountMarkets[botAddress].markets.push({
+        sellToken: tokenA, buyToken: tokenB })
     }
-    if (accountMarkets[accountIndex].markets.findIndex(market =>
-      _compareTokenPair(market, { sellToken: tokenB, buyToken: tokenA })) === -1) {
-      accountMarkets[accountIndex].markets.push({ sellToken: tokenB, buyToken: tokenA })
+    if (!accountMarkets[botAddress].markets.some(market =>
+      _isEqualTokenPair(market, { sellToken: tokenB, buyToken: tokenA }))
+    ) {
+      accountMarkets[botAddress].markets.push({
+        sellToken: tokenB, buyToken: tokenA })
     }
   })
+
   return accountMarkets
 }
 
@@ -109,3 +123,14 @@ function handleError (error) {
     error
   })
 }
+
+// Run app
+claimFunds()
+  .then(() => gracefullShutdown.shutDown())
+  .catch(error => {
+    // Handle boot errors
+    handleError(error)
+
+    // Shutdown app
+    return gracefullShutdown.shutDown()
+  })

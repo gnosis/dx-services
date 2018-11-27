@@ -76,14 +76,8 @@ class SellLiquidityBot extends Bot {
     this._liquidityService = liquidityService
     this._slackRepo = slackRepo
 
-    // Get bot address
-    if (!this._botAddress) {
-      if (this._accountIndex !== undefined) {
-        this._botAddress = await getAddress(this._accountIndex)
-      } else {
-        throw new Error('Bot address or account index has to be provided')
-      }
-    }
+    // Set bot address
+    await this.setAddress()
   }
 
   async _doStart () {

@@ -3,6 +3,7 @@ const assert = require('assert')
 const environment = process.env.NODE_ENV
 
 const getBotsService = require('../services/BotsService')
+const getAddress = require('../helpers/getAddress')
 
 class Bot {
   constructor (name, type) {
@@ -44,6 +45,20 @@ class Bot {
   async restart () {
     return this.stop()
       .then(() => this.start())
+  }
+
+  async setAddress () {
+    if (!this._botAddress) {
+      if (this._accountIndex !== undefined) {
+        this._botAddress = await getAddress(this._accountIndex)
+      } else {
+        throw new Error('Bot address or account index has to be provided')
+      }
+    }
+  }
+
+  getAddress () {
+    return this._botAddress
   }
 }
 

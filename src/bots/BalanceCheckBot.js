@@ -84,13 +84,7 @@ class BalanceCheckBot extends Bot {
     this._slackRepo = slackRepo
 
     // Get bot address
-    if (!this._botAddress) {
-      if (this._accountIndex !== undefined) {
-        this._botAddress = await getAddress(this._accountIndex)
-      } else {
-        throw new Error('Bot address or account index has to be provided')
-      }
-    }
+    await this.setAddress()
   }
 
   async _doStart () {
