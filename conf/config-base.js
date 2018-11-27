@@ -1,13 +1,13 @@
 module.exports = {
-  ENVIRONMENT: process.env.ENVIRONMENT || 'local',
+  ENVIRONMENT: 'local',
   MARKETS: [],
 
   // Gas
-  DEFAULT_GAS: process.env.DEFAULT_GAS || 6700000,
+  DEFAULT_GAS: 6700000,
 
   // Ethereum config
-  ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545',
-  MNEMONIC: process.env.MNEMONIC || null,
+  ETHEREUM_RPC_URL: 'http://127.0.0.1:8545',
+  MNEMONIC: null,
 
   // Cache
   CACHE: _getCacheConf()

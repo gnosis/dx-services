@@ -52,15 +52,18 @@ const tokens = getConfiguredTokenList(markets)
 // debug('envVars: %o', envVars)
 
 // Merge all configs
-const config = {
+let config = {
   ...defaultConf,
   ...envConf,
   ...networkConfig,
   ...customConfig,
+  ...require('./config-env-vars'),
   MARKETS: markets.map(orderMarketTokens),
   getFactory
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
+
+console.log(config)
 
 debug('tokens', tokens)
 debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
@@ -116,7 +119,7 @@ function getTokenAddresParamName (token) {
 function getTokenAddresses (tokens, config) {
   return tokens.reduce((tokenAddresses, token) => {
     const paramName = getTokenAddresParamName(token)
-    const address = config[paramName]
+    const address = process.env[paramName] || config[paramName]
     if (address) {
       // FIXME token addresses to lowercase to avoid issues when checking from addresses
       // from the DutchX contract. We should use toChecksum in web3js 1.0

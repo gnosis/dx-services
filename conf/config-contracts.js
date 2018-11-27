@@ -7,10 +7,10 @@ const CONTRACTS_DX_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
 
 module.exports = {
   // Contracts
-  DX_CONTRACT_ADDRESS: process.env.DX_CONTRACT_ADDRESS || null,
+  DX_CONTRACT_ADDRESS: null,
 
   // TODO: Do we need this?
-  GNO_TOKEN_ADDRESS: process.env.GNO_TOKEN_ADDRESS || null,
+  GNO_TOKEN_ADDRESS: null,
 
   // TODO: Remove this tokens from conf
   RDN_TOKEN_ADDRESS: null,
