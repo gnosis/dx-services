@@ -1,6 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'auction-balances <token-pairs> [count]',
     'Get the balances for the a list of token pair (i.e. claimable-tokens ETH-RDN,ETH-OMG)',
@@ -11,19 +14,23 @@ function registerCommand ({ cli, instances, logger }) {
       const { tokenPairs: tokenPairString, count } = argv
       const tokenPairs = cliUtils.toTokenPairs(tokenPairString)
 
-      const {
-        botAccount,
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
+        address,
         dxInfoService
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getDxInfoService()
+      ])
 
       logger.info('Showing last %d auctions claimable balances for %s:',
-        count, botAccount)
+        count, address)
       tokenPairs.forEach(async tokenPair => {
         const { sellToken, buyToken } = tokenPair
         const auctionsBalances = await dxInfoService.getAuctionsBalances({
           tokenA: sellToken,
           tokenB: buyToken,
-          address: botAccount,
+          address,
           count
         })
         auctionsBalances.forEach(({

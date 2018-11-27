@@ -1,6 +1,10 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxInfoService = require('../../services/DxInfoService')
+const getDxTradeService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'buy <amount> <token-pair>',
     'Buy in a auction for a token pair',
@@ -10,11 +14,16 @@ function registerCommand ({ cli, instances, logger }) {
     }, async function (argv) {
       const { amount, tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
-      const {
-        botAccount,
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
+        from,
         dxInfoService,
         dxTradeService
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getDxInfoService(),
+        getDxTradeService()
+      ])
 
       // Get auction index
       const auctionIndex = await dxInfoService.getAuctionIndex({
@@ -25,14 +34,14 @@ function registerCommand ({ cli, instances, logger }) {
         amount,
         buyToken,
         'auction ' + auctionIndex,
-        botAccount
+        from
       )
       const buyResult = await dxTradeService.buy({
         sellToken,
         buyToken,
         auctionIndex,
         amount: amount * 1e18,
-        from: botAccount
+        from
       })
       logger.info('The buy was succesful. Transaction: %s', buyResult.tx)
     })

@@ -2,7 +2,9 @@ const cliUtils = require('../helpers/cliUtils')
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 const formatUtil = require('../../helpers/formatUtil')
 
-function registerCommand ({ cli, instances, logger }) {
+const getReportService = require('../../services/ReportService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'auctions',
     'Get all the auctions cleared in a time period. It requires either the params "from-date" and "to-date" or the "period" param',
@@ -27,9 +29,7 @@ function registerCommand ({ cli, instances, logger }) {
       // TODO: This command, is use for early testing, but it will be shaped into
       // a command that would allow to filter by dates, addresse, token, ..
       // Right now it filters by the bot address and use the defined time period
-      const {
-        reportService
-      } = instances
+      const reportService = await getReportService()
 
       const { fromDate, toDate } = getDateRangeFromParams({
         period, fromDateStr, toDateStr

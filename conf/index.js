@@ -63,8 +63,6 @@ let config = {
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
-console.log(config)
-
 debug('tokens', tokens)
 debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
 // debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)

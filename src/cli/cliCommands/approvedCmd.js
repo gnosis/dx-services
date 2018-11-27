@@ -1,6 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'approved <token>',
     'Check if a given token is approved',
@@ -8,9 +10,7 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('token', yargs)
     }, async function (argv) {
       const { token } = argv
-      const {
-        dxInfoService
-      } = instances
+      const dxInfoService = await getDxInfoService()
 
       // Get auction index
       const approved = await dxInfoService.isApprovedToken({ token })
