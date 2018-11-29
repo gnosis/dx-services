@@ -1,6 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command('closing-prices <token-pair>', 'Get the closing prices for a given pair (i.e. WETH-RDN)', yargs => {
     cliUtils.addPositionalByName('token-pair', yargs)
     yargs.option('from', {
@@ -26,9 +28,7 @@ function registerCommand ({ cli, instances, logger }) {
     } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')
 
-    const {
-      dxInfoService
-    } = instances
+    const dxInfoService = await getDxInfoService()
 
     // Get data
     const countDefault = countParam || 5

@@ -1,6 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxTradeService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command('claim-tokens <token-pairs> [count]', 'Claim tokens for N auctions of a token pair (i.e. claim-tokens WETH-RDN)', yargs => {
     cliUtils.addPositionalByName('token-pairs', yargs)
     cliUtils.addPositionalByName('count', yargs)
@@ -8,10 +11,14 @@ function registerCommand ({ cli, instances, logger }) {
     const { tokenPairs: tokenPairString, count } = argv
     const tokenPairs = cliUtils.toTokenPairs(tokenPairString)
 
-    const {
+    const DEFAULT_ACCOUNT_INDEX = 0
+    const [
       botAccount,
       dxTradeService
-    } = instances
+    ] = await Promise.all([
+      getAddress(DEFAULT_ACCOUNT_INDEX),
+      getDxTradeService()
+    ])
 
     logger.info('Claiming last %d auctions for %s:',
       count, botAccount)

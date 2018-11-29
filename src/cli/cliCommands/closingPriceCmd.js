@@ -1,7 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 const formatUtil = require('../../helpers/formatUtil')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'closing-price <token-pair> <auctionIndex>',
     'Get the closing price for a given auction',
@@ -12,9 +14,7 @@ function registerCommand ({ cli, instances, logger }) {
       const { tokenPair, auctionIndex } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
 
-      const {
-        dxInfoService
-      } = instances
+      const dxInfoService = await getDxInfoService()
 
       // Get auction index
       const closingPrice = await dxInfoService.getClosingPrice({

@@ -1,6 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'claimable-tokens <token-pairs> [count] [--acount account]',
     'Get all pending claimable tokens for a list of token pairs',
@@ -13,10 +16,14 @@ function registerCommand ({ cli, instances, logger }) {
       const { tokenPairs: tokenPairString, account, count } = argv
       const tokenPairs = cliUtils.toTokenPairs(tokenPairString)
 
-      const {
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
         botAccount,
         dxInfoService
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getDxInfoService()
+      ])
 
       const accountAddress = account || botAccount
 

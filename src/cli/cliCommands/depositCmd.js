@@ -1,6 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxTradeService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'deposit <amount> <token> [--account account]',
     'Deposit funds in order to be used on the DX',
@@ -10,10 +13,15 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('account', yargs)
     }, async function (argv) {
       const { account, amount, token } = argv
-      const {
+
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
         botAccount,
         dxTradeService
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getDxTradeService()
+      ])
 
       const accountAddress = account || botAccount
 

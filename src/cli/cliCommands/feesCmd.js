@@ -2,7 +2,9 @@ const cliUtils = require('../helpers/cliUtils')
 const formatUtil = require('../../helpers/formatUtil')
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'fees [--account account] [--from-date fromDate --to-date toDate] [--period period]',
     'Get the fees applied on the trades',
@@ -23,9 +25,7 @@ function registerCommand ({ cli, instances, logger }) {
         period, fromDateStr, toDateStr
       })
 
-      const {
-        dxInfoService
-      } = instances
+      const dxInfoService = await getDxInfoService()
 
       logger.info('Find %s between %s and %s',
         account ? 'all the fees for ' + account : 'all fees',

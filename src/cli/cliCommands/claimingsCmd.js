@@ -2,6 +2,8 @@ const cliUtils = require('../helpers/cliUtils')
 const formatUtil = require('../../helpers/formatUtil')
 const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 
+const getDxInfoService = require('../../services/DxInfoService')
+
 const HEADERS = `\
 Claim date\t\
 Buyer/Seller\t\
@@ -15,7 +17,7 @@ MGN issued\t\
 Transaction hash
 `
 
-function registerCommand ({ cli, instances, logger }) {
+function registerCommand ({ cli, logger }) {
   cli.command(
     'claimings [--account account] [--from-date fromDate --to-date toDate] [--period period]',
     'Get the claimed amounts',
@@ -42,9 +44,11 @@ function registerCommand ({ cli, instances, logger }) {
         period, fromDateStr, toDateStr
       })
 
-      const {
+      const [
         dxInfoService
-      } = instances
+      ] = await Promise.all([
+        getDxInfoService()
+      ])
 
       logger.info('Find %s between %s and %s',
         account ? 'all the clamings for ' + account : 'all clamings',
