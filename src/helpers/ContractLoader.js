@@ -86,8 +86,8 @@ class ContractLoader {
   }
 
   async _loadTokenContracts () {
-    const standardTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.StandardToken)
+    const GnosisStandardTokenContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.GnosisStandardToken)
 
     logger.debug('this._erc20TokenAddresses: %o', this._erc20TokenAddresses)
 
@@ -95,7 +95,7 @@ class ContractLoader {
       Object
         .keys(this._erc20TokenAddresses)
         .map(token => {
-          return this._loadERC20tokenContract(token, standardTokenContract)
+          return this._loadERC20tokenContract(token, GnosisStandardTokenContract)
         })
     )
 

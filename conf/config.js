@@ -128,7 +128,7 @@ const CONTRACTS_OWL_DIR = 'node_modules/@gnosis.pm/owl-token/build/contracts'
 const CONTRACTS_DX_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
 
 const CONTRACT_DEFINITIONS = {
-  StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
+  GnosisStandardToken: CONTRACTS_UTILS_DIR + '/GnosisStandardToken',
   EtherToken: CONTRACTS_UTILS_DIR + '/EtherToken',
   TokenGNO: CONTRACTS_GNO_DIR + '/TokenGNO',
   TokenOWL: CONTRACTS_OWL_DIR + '/TokenOWL',
