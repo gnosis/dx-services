@@ -62,7 +62,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "^1.0.7",
+    "@gnosis.pm/dx-contracts": "^2.0.0-SNAPSHOT.5",
     "@slack/client": "^4.8.0",
     "commander": "^2.19.0",
     "cors": "^2.8.5",
