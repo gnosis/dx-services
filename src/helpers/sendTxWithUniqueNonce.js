@@ -9,12 +9,14 @@ const pendingTransaction = []
 // This time, is just to allow the transaction
 // to distribute to other nodes. Its triggered after we know it's at list in one
 // node (i.e. important in case of using a pool of nodes)
-const TIME_TO_RELEASE_LOCK = isLocal ? 0 : (100 || process.env.SEND_TX_RELEASE_LOCK_MS)
+const TIME_TO_RELEASE_LOCK = isLocal ? 0 : (1500 || process.env.SEND_TX_RELEASE_LOCK_MS)
 
 // Check nonce config
-const NONCE_INCREMENT_CHECK_TIME = 3000
-const LOG_EVERY_N_CHECKS = 10 // Log only every 10 checks: 10 * 3000 = 30s
-const NONCE_INCREMENT_MAX_NUM_CHECKS = 20 // wait max 20 * 3000 = 1 min
+const NONCE_INCREMENT_CHECK_TIME = 3000 || process.env.NONCE_INCREMENT_CHECK_TIME
+// Log only every 10 checks: 10 * 3000 = 30s
+const LOG_EVERY_N_CHECKS = 10 || process.env.LOG_EVERY_N_CHECKS
+// wait max 20 * 3000 = 1 min
+const NONCE_INCREMENT_MAX_NUM_CHECKS = 60 || process.env.NONCE_INCREMENT_MAX_NUM_CHECKS
 
 let accountsLocks = {}
 
