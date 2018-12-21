@@ -16,7 +16,8 @@ module.exports = async () => {
       auctionRepo,
       ethereumRepo,
       slackRepo,
-      markets: conf.MARKETS
+      markets: conf.MARKETS,
+      operationsSlackChannel: conf.SLACK_CHANNEL_OPERATIONS
     })
   }
 

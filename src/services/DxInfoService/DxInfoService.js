@@ -32,7 +32,8 @@ class DxInfoService {
     auctionRepo,
     ethereumRepo,
     slackRepo,
-    markets
+    markets,
+    operationsSlackChannel
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
@@ -42,6 +43,7 @@ class DxInfoService {
     this._ethereumRepo = ethereumRepo
     this._slackRepo = slackRepo
     this._markets = markets
+    this._operationsSlackChannel = operationsSlackChannel
 
     // About info
     this._gitInfo = getGitInfo()
@@ -909,7 +911,7 @@ class DxInfoService {
 
     if (this._slackRepo.isEnabled()) {
       await this._slackRepo.postMessage({
-        channel: this._config.SLACK_CHANNEL_OPERATIONS,
+        channel: this._operationsSlackChannel,
         text: message
       }).catch(error => {
         logger.error({
