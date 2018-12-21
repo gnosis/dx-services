@@ -13,8 +13,8 @@ module.exports = async () => {
       getAuctionService()
     ])
     publicApiServer = new PublicApiServer({
-      port: conf.BOTS_API_PORT,
-      host: conf.BOTS_API_HOST,
+      port: conf.PUBLIC_API_PORT,
+      host: conf.PUBLIC_API_HOST,
       dxInfoService,
       dxTradeService,
       auctionService,
