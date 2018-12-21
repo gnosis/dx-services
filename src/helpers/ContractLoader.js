@@ -21,8 +21,8 @@ class ContractLoader {
     assert(contractsBaseDir, '"contractsBaseDir" is required')
 
     if (!isLocal) {
-      assert(dxContractAddress, '"dxContractAddress" is required for environemt ' + environment)
-      assert(gnoToken, '"gnoToken" is required for environemt ' + environment)
+      assert(dxContractAddress, '"dxContractAddress" is required for environment ' + environment)
+      assert(gnoToken, '"gnoToken" is required for environment ' + environment)
     }
 
     this._ethereumClient = ethereumClient

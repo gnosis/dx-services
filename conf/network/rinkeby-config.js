@@ -1,8 +1,9 @@
 const NETWORKS = require('../../node_modules/@gnosis.pm/dx-contracts/networks.json')
 const NETWORKS_DEV = require('../../node_modules/@gnosis.pm/dx-contracts/networks-dev.json')
+const GNO_NETWORKS = require('../../node_modules/@gnosis.pm/gno-token/networks.json')
 
 const env = process.env.NODE_ENV
-let DX_CONTRACT_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS
+let DX_CONTRACT_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS, GNO_TOKEN_ADDRESS
 let DAI_TOKEN_ADDRESS, GEN_TOKEN_ADDRESS, MKR_TOKEN_ADDRESS
 
 // In Rinkeby we use different instances of the contract for dev and staging
@@ -19,6 +20,7 @@ if (env === 'pre' || env === 'pro') {
   DX_CONTRACT_ADDRESS = NETWORKS_DEV['DutchExchangeProxy']['4'].address
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'
+  GNO_TOKEN_ADDRESS = GNO_NETWORKS['TokenGNO']['4'].address
 
   // Old ones
   // RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
@@ -51,6 +53,7 @@ module.exports = {
 
   // Tokens
   DX_CONTRACT_ADDRESS,
+  GNO_TOKEN_ADDRESS,
   RDN_TOKEN_ADDRESS,
   OMG_TOKEN_ADDRESS,
   DAI_TOKEN_ADDRESS,
