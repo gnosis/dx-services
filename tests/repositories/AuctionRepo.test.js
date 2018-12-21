@@ -194,6 +194,36 @@ describe('Market interacting tests', async () => {
       .toBeTruthy()
   })
 
+  test('It should get correct closing state for a not started auction', async () => {
+    const { user1, auctionRepo, ethereumClient } = await setupPromise
+
+    // GIVEN a new token pair
+    await _addRdnEthTokenPair({ ethFunding: 10 })
+    // Fund and close 1 auction
+    await _fundAndCloseAuction({ from: user1, ethereumClient })
+
+    // GIVEN an auction where state is WAITING_FOR_FUNDING
+    await _buySell('postSellOrder', {
+      from: user1,
+      sellToken: 'RDN',
+      buyToken: 'WETH',
+      amount: parseFloat('0.01')
+    })
+    const auctionState = await auctionRepo.getState({
+      sellToken: 'RDN', buyToken: 'WETH' })
+    expect(auctionState).toBe('WAITING_FOR_FUNDING')
+
+    // WHEN we ask for the auction state
+    const { auction, auctionOpp } = await auctionRepo.getStateInfo({
+      sellToken: 'RDN', buyToken: 'WETH' })
+
+    // THEN both auction sides are not yet marked as TheoreticalClosed
+    expect(auction.isTheoreticalClosed)
+      .toBeFalsy()
+    expect(auctionOpp.isTheoreticalClosed)
+      .toBeFalsy()
+  })
+
   test('It should return indices of auctions with claimable tokens for sellers', async () => {
     const { user1, auctionRepo } = await setupPromise
 
@@ -260,7 +290,6 @@ describe('Market interacting tests', async () => {
     // Fund and close 2 auctions where we participate
     // TODO claim from more than 1 auction
     await _fundAndCloseAuction({ from: user1, ethereumClient })
-    // await _fundAndCloseAuction({ from: user1, ethereumClient })
 
     const _getClaimableAuctions = () => auctionRepo.getIndicesWithClaimableTokensForSellers({
       sellToken: 'RDN', buyToken: 'WETH', address: user1, lastNAuctions: 2 })
@@ -358,7 +387,7 @@ describe('Market interacting tests', async () => {
       .toBeTruthy()
   })
 
-  test('It should allow return seller balance for an auction', async () => {
+  test('It should allow return buyer balance for an auction', async () => {
     const { user1, ethereumClient, auctionRepo } = await setupPromise
 
     // GIVEN a new token pair before user buying anything
@@ -424,7 +453,7 @@ describe('Market interacting tests', async () => {
       isTheoreticalClosed: true
     }
     let updatedAuctionOpp = Object.assign({}, INITIAL_MARKET_STATE.auctionOpp,
-      {sellVolume: {}})
+      { sellVolume: {} })
     let updatedMarket = Object.assign({}, INITIAL_MARKET_STATE,
       { auction: updatedAuction, auctionOpp: updatedAuctionOpp })
     let rdnEthstateInfo = await _getStateInfo({})
