@@ -2,10 +2,19 @@ const loggerNamespace = 'dx-service:dxPublicApi'
 const Logger = require('./helpers/Logger')
 const logger = new Logger(loggerNamespace)
 
+// FIXME: Fix event filtering when you don't provide a mnemonic
+//  * The event filtering depends on having a mnemonic
+//  * The API shouldn't need one, cause it only reads data (no transaction)
+//  * We temporarily add an arbitrary mnemonic, just for the API (no funding
+//   should ever go to this addresses)
+process.env.MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+
 // Helpers
 const gracefullShutdown = require('./helpers/gracefullShutdown')
 
 const ApiRunner = require('./ApiRunner')
+
+const config = require('../conf/')
 
 function handleError (error) {
   process.exitCode = 1
@@ -15,8 +24,12 @@ function handleError (error) {
   })
 }
 
-async function start ({ config }) {
-  const apiRunner = new ApiRunner({ config })
+async function start () {
+  const { ENVIRONMENT } = config
+
+  const apiRunner = new ApiRunner({
+    environment: ENVIRONMENT
+  })
 
   // Let the app stop gracefully
   gracefullShutdown.onShutdown(() => {
@@ -27,16 +40,7 @@ async function start ({ config }) {
   return apiRunner.start()
 }
 
-start({
-  config: {
-    // FIXME: Fix event filtering when you don't provide a mnemonic
-    //  * The event filtering depends on having a mnemonic
-    //  * The API shouldn't need one, cause it only reads data (no transaction)
-    //  * We temporarily add an arbitrary mnemonic, just for the API (no funding
-    //   should ever go to this addresses)
-    MNEMONIC: 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
-  }
-}).catch(error => {
+start().catch(error => {
   // Handle boot errors
   handleError(error)
 

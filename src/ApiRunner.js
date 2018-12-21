@@ -9,10 +9,10 @@ const getPublicApiServer = require('./web/publicApi/PublicApiServer')
 
 class ApiRunner {
   constructor ({
-    config
+    environment
   }) {
     this.initialized = false
-    this._config = config
+    this._environment = environment
   }
 
   async init () {
@@ -54,14 +54,14 @@ class ApiRunner {
 
   async _notifyStart (version) {
     const message = `Starting Public API Server v${version} in \
-"${this._config.ENVIRONMENT}" environment`
+"${this._environment}" environment`
 
     this._dxInfoService.notifySlack(message, logger)
   }
 
   async _notifyStop (version) {
     const message = `Stopping Public API Server v${version} in \
-"${this._config.ENVIRONMENT}" environment`
+"${this._environment}" environment`
 
     this._dxInfoService.notifySlack(message, logger)
   }
