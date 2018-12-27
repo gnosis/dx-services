@@ -536,7 +536,7 @@ keeps happening`
         }
       } else {
         // We meet the liquidity
-        auctionLogger.info({
+        auctionLogger.debug({
           sellToken,
           buyToken,
           msg: 'The auction has %d % of the buy volume bought. So we are good',

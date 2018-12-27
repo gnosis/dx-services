@@ -1,4 +1,5 @@
-const debug = require('debug')('DEBUG-dx-service:conf')
+const debug = require('debug')('dx-service:conf')
+debug.log = console.debug.bind(console)
 
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')

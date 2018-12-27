@@ -1,4 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
+debug.log = console.debug.bind(console)
+
 const BigNumber = require('bignumber.js')
 
 const auctionsMockData = require('../../../tests/data/auctions')

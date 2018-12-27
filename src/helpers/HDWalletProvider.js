@@ -88,13 +88,13 @@ class HDWalletProvider extends TruffleHDWalletProvider {
       getNonceFn: () => this.getNonce(from),
       sendTransaction: nonce => {
         const nonceHex = '0x' + nonce.toString(16)
-        logger.info('Got nonce %d (%s) for account %s', nonce, nonceHex, from)
+        logger.debug('Got nonce %d (%s) for account %s', nonce, nonceHex, from)
         if (Array.isArray(params)) {
           params[0].nonce = nonceHex
         } else {
           params.nonce = nonceHex
         }
-        logger.info('Send transaction with params %O', params)
+        // logger.info('Send transaction with params %O', params)
         // console.log('[HDWalletProvider] Params: %O', params)
         const sendParams = Object.assign({}, args, { params })
         logger.debug('Send transaction with unique nonce: %o', sendParams)

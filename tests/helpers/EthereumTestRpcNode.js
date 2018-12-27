@@ -1,4 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:EthereumTestRpcNode')
+debug.log = console.debug.bind(console)
+
 var ganache = require('ganache-cli')
 
 class EthereumTestRpcNode {
