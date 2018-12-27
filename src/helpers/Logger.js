@@ -108,6 +108,10 @@ class Logger {
     let logger = this.loggers[loggerName]
     if (!logger) {
       logger = Debug(loggerName)
+      if (prefix !== 'ERROR') {
+        logger.log = console.info.bind(console)
+      }
+
       this.loggers[loggerName] = logger
     }
 
