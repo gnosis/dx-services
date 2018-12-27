@@ -1,4 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:helpers:instanceFactory')
+debug.log = console.debug.bind(console)
+
 const originalConfig = require('../../conf/')
 const messageNotifier = require('./messageNotifier')
 /*

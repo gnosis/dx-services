@@ -1,4 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoHuobi')
+debug.log = console.debug.bind(console)
+
 const httpRequest = require('../../../helpers/httpRequest')
 const Cache = require('../../../helpers/Cache')
 const CACHE_SYMBOLS_KEY = 'PriceRepoHuobi:'

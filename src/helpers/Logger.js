@@ -1,4 +1,5 @@
 const Debug = require('debug')
+
 const messageNotifier = require('./messageNotifier')
 const version = require('./getVersion')()
 // var util = require('util')
@@ -108,8 +109,21 @@ class Logger {
     let logger = this.loggers[loggerName]
     if (!logger) {
       logger = Debug(loggerName)
-      if (prefix !== 'ERROR') {
-        logger.log = console.info.bind(console)
+
+      // Use STDOUT for non error messages
+      let consoleFn
+      if (prefix === 'DEBUG') {
+        consoleFn = 'debug'
+      } else if (prefix === 'INFO') {
+        consoleFn = 'info'
+      } else if (prefix === 'WARN') {
+        consoleFn = 'warn'
+      }
+
+      if (consoleFn) {
+        // Set the console logger function (to use STDOUT)
+        // Note that by default is console.error
+        logger.log = console[consoleFn].bind(console)
       }
 
       this.loggers[loggerName] = logger

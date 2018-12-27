@@ -1,5 +1,7 @@
 // TODO: Move amd refactor logic into DxTradeService.
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
+debug.log = console.debug.bind(console)
+
 const instanceFactory = require('../../src/helpers/instanceFactory')
 const getBotAddress = require('../../src/helpers/getBotAddress')
 const BigNumber = require('bignumber.js')

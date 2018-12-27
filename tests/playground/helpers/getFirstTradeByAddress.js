@@ -1,4 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:watchEthereumEvents')
+debug.log = console.debug.bind(console)
+
 const testSetup = require('../../helpers/testSetup')
 const ethereumEventHelper = require('../../../src/helpers/ethereumEventHelper')
 const BATCH_SIZE = 100000

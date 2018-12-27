@@ -1,4 +1,5 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoMock')
+debug.log = console.debug.bind(console)
 
 const pricesInUSD = require('../../../tests/data/auctions').pricesInUSD
 

@@ -1,4 +1,6 @@
 const debug = require('debug')('DEBUG-dx-service:repositories:PriceRepoKraken')
+debug.log = console.debug.bind(console)
+
 const httpRequest = require('../../../helpers/httpRequest')
 const LAST_OPERATION_PROP_NAME = 'c'
 
