@@ -1,4 +1,5 @@
 const debug = require('debug')('dx-service:conf')
+debug.log = console.debug.bind(console)
 
 const getTokenOrder = require('../src/helpers/getTokenOrder')
 

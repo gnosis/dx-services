@@ -1,9 +1,10 @@
 const debug = require('debug')('tests:repositories:AuctionRepo')
+debug.log = console.debug.bind(console)
 
 const testSetup = require('../helpers/testSetup')
 const BigNumber = require('bignumber.js')
 const numberUtil = require('../../src/helpers/numberUtil.js')
-const clone = require('lodash.clonedeep')
+// const clone = require('lodash.clonedeep')
 
 const setupPromise = testSetup()
 

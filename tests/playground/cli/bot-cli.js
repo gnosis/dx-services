@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 const debug = require('debug')('DEBUG-dx-service:tests:helpers:testSetup')
+debug.log = console.debug.bind(console)
+
 const commander = require('commander')
 
 const getVersion = require('../../../src/helpers/getVersion')
