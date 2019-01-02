@@ -5,6 +5,7 @@ const assert = require('assert')
 const path = require('path')
 
 const getDxInfoService = require('./services/DxInfoService')
+const getBotsService = require('./services/BotsService')
 
 // Bot Api
 const getBotsApiServer = require('./web/bots/BotsApiServer')
@@ -12,12 +13,7 @@ const getBotsApiServer = require('./web/bots/BotsApiServer')
 let botFactories = {}
 
 class BotRunner {
-  constructor ({
-    bots,
-    environment,
-    runApiServer = false,
-    initBots = true
-  }) {
+  constructor ({ bots, environment, runApiServer = false, initBots = true }) {
     this.initialized = false
     this._botsConfig = bots
     this._environment = environment
@@ -26,13 +22,18 @@ class BotRunner {
   }
 
   async init () {
-    const dxInfoService = await getDxInfoService()
+    const [dxInfoService, botsService] = await Promise.all([
+      getDxInfoService(),
+      getBotsService()
+    ])
 
     this._dxInfoService = dxInfoService
 
     // Initialize Bots and API
     this._bots = await this._createBots()
+    botsService.setBots(this._bots)
 
+    // Check if the WatchEventBot is defined (is required for some bots)
     const watchEventsBotExists = this._bots.some(bot => {
       return bot.type === 'WatchEventsBot'
     })
@@ -57,9 +58,7 @@ class BotRunner {
     await this._notifyStart(version)
 
     // Run all the bots
-    await Promise.all(
-      this._bots.map(bot => bot.start())
-    )
+    await Promise.all(this._bots.map(bot => bot.start()))
     logger.info({ msg: 'All bots are ready' })
 
     // Run Bots Api server
@@ -81,9 +80,7 @@ class BotRunner {
     // Stop the bots
     if (this._bots) {
       logger.info({ msg: 'Stopping the bots' })
-      await Promise.all(
-        this._bots.map(async bot => bot.stop())
-      )
+      await Promise.all(this._bots.map(async bot => bot.stop()))
     }
 
     logger.info({ msg: 'App is ready to shut down' })
@@ -91,20 +88,21 @@ class BotRunner {
 
   async _createBots () {
     // Create bots from factory
-    let bots = this._botsConfig
-      .map(botConfig => {
-        const BotFactory = this._getBotFactory(botConfig)
-        return new BotFactory(botConfig)
-      })
+    let bots = this._botsConfig.map(botConfig => {
+      const BotFactory = this._getBotFactory(botConfig)
+      return new BotFactory(botConfig)
+    })
 
     // Init all the bots
     if (this._initBots) {
-      bots = await Promise.all(bots.map(async bot => {
-        if (bot.init) {
-          await bot.init()
-        }
-        return bot
-      }))
+      bots = await Promise.all(
+        bots.map(async bot => {
+          if (bot.init) {
+            await bot.init()
+          }
+          return bot
+        })
+      )
     }
 
     return bots
