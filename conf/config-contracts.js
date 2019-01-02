@@ -22,7 +22,7 @@ module.exports = {
 
   // Contracts paths
   CONTRACT_DEFINITIONS: {
-    GnosisStandardToken: CONTRACTS_UTILS_DIR + '/GnosisGnosisStandardToken',
+    GnosisStandardToken: CONTRACTS_UTILS_DIR + '/GnosisStandardToken',
     EtherToken: CONTRACTS_UTILS_DIR + '/EtherToken',
     TokenGNO: CONTRACTS_GNO_DIR + '/TokenGNO',
     TokenOWL: CONTRACTS_OWL_DIR + '/TokenOWL',
