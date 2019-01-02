@@ -1,6 +1,6 @@
 {
   "name": "@gnosis.pm/dx-services",
-  "version": "0.7.15",
+  "version": "1.0.0-RC1",
   "description": "",
   "main": "src/runPublicApi.js",
   "directories": {
