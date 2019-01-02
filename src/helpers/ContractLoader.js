@@ -21,7 +21,10 @@ class ContractLoader {
     assert(contractsBaseDir, '"contractsBaseDir" is required')
 
     if (!isLocal) {
-      assert(dxContractAddress, '"dxContractAddress" is required for environment ' + environment)
+      assert(
+        dxContractAddress,
+        '"dxContractAddress" is required for environment ' + environment
+      )
       assert(gnoToken, '"gnoToken" is required for environment ' + environment)
     }
 
@@ -33,7 +36,7 @@ class ContractLoader {
     this._devContractsBaseDir = contractsBaseDir
   }
   async loadContracts () {
-    const [ dx, erc20TokenContracts ] = await Promise.all([
+    const [dx, erc20TokenContracts] = await Promise.all([
       this._loadDx(),
       this._loadTokenContracts()
     ])
@@ -44,8 +47,9 @@ class ContractLoader {
   }
 
   async _loadDx () {
-    const dxContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.DutchExchange)
+    const dxContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.DutchExchange
+    )
 
     let dxContractAddress
     if (this._dxContractAddress) {
@@ -54,10 +58,15 @@ class ContractLoader {
       this._dxMaster = null
     } else {
       // We load the DX address from the contract
-      const proxyContract = this._ethereumClient
-        .loadContract(this._contractDefinitions.DutchExchangeProxy)
+      const proxyContract = this._ethereumClient.loadContract(
+        this._contractDefinitions.DutchExchangeProxy
+      )
 
-      dxContractAddress = await this._getDeployedAddress('DX Proxy', proxyContract, false)
+      dxContractAddress = await this._getDeployedAddress(
+        'DX Proxy',
+        proxyContract,
+        false
+      )
       this._dxMaster = await this._getDeployedAddress('DX', dxContract, false)
     }
     const dxContractInstance = dxContract.at(dxContractAddress)
@@ -73,12 +82,15 @@ class ContractLoader {
     if (!address) {
       if (isLocal) {
         // TODO: Maybe deploy here for testing using tokenContract
-        const contract = await this._ethereumClient
-          .loadContract(`${this._devContractsBaseDir}/Token${token}`)
+        const contract = await this._ethereumClient.loadContract(
+          `${this._devContractsBaseDir}/Token${token}`
+        )
 
         address = await this._getDeployedAddress('Token ' + token, contract)
       } else {
-        throw new Error(`The Token address for ${token} is mandatory for the environment ${environment}`)
+        throw new Error(
+          `The Token address for ${token} is mandatory for the environment ${environment}`
+        )
       }
     }
     return {
@@ -88,29 +100,33 @@ class ContractLoader {
   }
 
   async _loadGnoContract () {
-    const gnoTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.TokenGNO)
+    const gnoTokenContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.TokenGNO
+    )
 
     let address = this._gnoTokenAddress
     if (!address) {
-      address = await this._getDeployedAddress('Token GNO', gnoTokenContract, false)
+      address = await this._getDeployedAddress(
+        'Token GNO',
+        gnoTokenContract,
+        false
+      )
     }
 
     return gnoTokenContract.at(address)
   }
 
   async _loadTokenContracts () {
-    const standardTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.StandardToken)
+    const standardTokenContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.GnosisStandardToken
+    )
 
     logger.debug('this._erc20TokenAddresses: %o', this._erc20TokenAddresses)
 
     const tokenContractList = await Promise.all(
-      Object
-        .keys(this._erc20TokenAddresses)
-        .map(token => {
-          return this._loadERC20tokenContract(token, standardTokenContract)
-        })
+      Object.keys(this._erc20TokenAddresses).map(token => {
+        return this._loadERC20tokenContract(token, standardTokenContract)
+      })
     )
 
     return tokenContractList.reduce((tokenContractsAux, contractInfo) => {
@@ -120,25 +136,29 @@ class ContractLoader {
   }
 
   async _loadDxContracts (dx) {
-    const etherTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.EtherToken)
+    const etherTokenContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.EtherToken
+    )
 
-    const mgnTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.TokenFRT)
+    const mgnTokenContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.TokenFRT
+    )
 
     /* TODO: Get GNO from OWL address? ? */
-    const owlTokenContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.TokenOWL)
+    const owlTokenContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.TokenOWL
+    )
 
     /*
     const gnoTokenContract = this._ethereumClient
       .loadContract(this._contractDefinitions.TokenGNO)
     */
 
-    const priceOracleContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.PriceOracleInterface)
+    const priceOracleContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.PriceOracleInterface
+    )
 
-    const [ priceOracle, eth, mgn, owl, gno ] = await Promise.all([
+    const [priceOracle, eth, mgn, owl, gno] = await Promise.all([
       // load addresses from DX
       dx.ethUSDOracle.call(),
       dx.ethToken.call(),
@@ -146,14 +166,14 @@ class ContractLoader {
       dx.owlToken.call() // TODO: Is this the PROXY??
     ])
       // load instances of the contract
-      .then(([ priceOracleAddress, ethAddress, mgnAddress, owlAddress ]) => (
+      .then(([priceOracleAddress, ethAddress, mgnAddress, owlAddress]) =>
         Promise.all([
           priceOracleContract.at(priceOracleAddress),
           etherTokenContract.at(ethAddress),
           mgnTokenContract.at(mgnAddress),
           owlTokenContract.at(owlAddress),
           this._loadGnoContract()
-        ]))
+        ])
       )
     return {
       priceOracle,
@@ -166,8 +186,11 @@ class ContractLoader {
 
   async _getDeployedAddress (contractName, contract, enforceLocalOnly = true) {
     if (enforceLocalOnly) {
-      assert(isLocal, `Getting the deployed address from the truffle contract \
-is only avaliable in LOCAL. Environment = ${environment}`)
+      assert(
+        isLocal,
+        `Getting the deployed address from the truffle contract \
+is only avaliable in LOCAL. Environment = ${environment}`
+      )
     }
 
     return contract
@@ -176,7 +199,7 @@ is only avaliable in LOCAL. Environment = ${environment}`)
       .catch(error => {
         logger.error({
           msg: 'Error loading the contract address from "%s": %s',
-          params: [ contractName, error.toString() ],
+          params: [contractName, error.toString()],
           error
         })
 
