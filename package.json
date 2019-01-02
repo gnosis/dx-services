@@ -54,7 +54,8 @@
     "tasks-generateDailyReport": "DEBUG=ERROR-*,WARN-*,INFO-* node src/tasks/generateDailyReport.js",
     "doc": "esdoc",
     "lint": "eslint .",
-    "swagger": "yaml2json src/web/publicApi/static/docs/dx-public-api.yml > src/web/publicApi/static/docs/dx-public-api.json ; yaml2json src/web/bots/static/docs/api/dx-bots-api.yml > src/web/bots/static/docs/api/dx-bots-api.json"
+    "swagger": "yaml2json src/web/publicApi/static/docs/dx-public-api.yml > src/web/publicApi/static/docs/dx-public-api.json ; yaml2json src/web/bots/static/docs/api/dx-bots-api.yml > src/web/bots/static/docs/api/dx-bots-api.json",
+    "format": "prettier-standard 'src/**/*.js'"
   },
   "repository": {
     "type": "git",
@@ -95,6 +96,7 @@
     "jest": "^23.6.0",
     "lodash.clonedeep": "^4.5.0",
     "nodemon": "^1.18.9",
+    "prettier-standard": "^8.0.1",
     "truffle": "^4.1.14"
   }
 }
