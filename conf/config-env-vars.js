@@ -11,6 +11,7 @@ const ENV_VAR_LIST = [
   'DEFAULT_GAS',
   'ETHEREUM_RPC_URL',
   'MNEMONIC',
+  'PK',
 
   // CONTRACTS
   'DX_CONTRACT_ADDRESS',
@@ -24,9 +25,10 @@ const ENV_VAR_LIST = [
   'GAS_ESTIMATION_CORRECTION_FACTOR'
 ]
 
-function returnEnvVars (envVarList) {
+function returnEnvVars(envVarList) {
   return envVarList.reduce((envVars, envVar) => {
     const value = process.env[envVar]
+    // console.log('Load envVar: ', envVar, value, typeof value)
     if (value !== undefined) {
       envVars[envVar] = value
     }

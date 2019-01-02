@@ -15,16 +15,26 @@ const SILENT_TIME_FOR_NODE_ERRORS = 120000 // 120s
 
 const {
   MNEMONIC,
+  PK,
   ETHEREUM_RPC_URL
 } = conf
 
-assert(MNEMONIC, 'The "MNEMONIC" is mandatory')
+assert(MNEMONIC || PK, 'The "PK" or MNEMONIC" is mandatory')
 assert(ETHEREUM_RPC_URL, 'The "ETHEREUM_RPC_URL" is mandatory')
 
 // Setup provider and Web3
 logger.debug('Using %s RPC api to connect to Ethereum', this._url)
+
+let privateKeys, mnemonic
+if (PK) {
+  privateKeys = [PK]
+} else {
+  mnemonic = MNEMONIC
+}
+
 this._provider = new HDWalletProvider({
-  mnemonic: MNEMONIC,
+  privateKeys,
+  mnemonic,
   url: ETHEREUM_RPC_URL,
   addressIndex: 0,
   numAddresses: 5
@@ -33,7 +43,7 @@ this._provider.engine.on('error', _printNodeError)
 gracefullShutdown.onShutdown(() => this._provider.engine.stop())
 
 let reduceWarnLevelForNodeErrors = false
-function _printNodeError (error) {
+function _printNodeError(error) {
   const errorMessage = error.message
   let debugLevel
   if (errorMessage === NODE_ERROR_EMPTY_RESPONSE) {
@@ -51,7 +61,7 @@ function _printNodeError (error) {
   }
   logger[debugLevel]({
     msg: 'Error in Ethereum node %s: %s',
-    params: [ this._url, error.message ]
+    params: [this._url, error.message]
     // error // We hide the stack trace, is not usefull in this case (dispached by web3 internals)
   })
 }

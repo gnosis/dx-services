@@ -16,26 +16,28 @@ const isLocal = environment === 'local'
 const NONCE_LOCK_DISABLED = process.env.DISABLE_NONCE_LOCK === 'true' || isLocal
 
 class HDWalletProvider extends TruffleHDWalletProvider {
-  constructor ({
+  constructor({
     mnemonic,
+    privateKeys,
     url,
     addressIndex = 0,
     numAddresses = 5,
     shareNonce = true,
     blockForNonceCalculation = 'pending'
   }) {
-    assert(mnemonic, '"mnemonic" is mandatory')
+    const accountCredentials = privateKeys || mnemonic
+    assert(accountCredentials, '"privateKey" or "mnemonic" are mandatory')
     assert(url, '"url" is mandatory')
 
     // console.log('[HDWalletProvider] New provider for: %s', url)
-    super(mnemonic, url, addressIndex, numAddresses, shareNonce)
+    super(accountCredentials, url, addressIndex, numAddresses, shareNonce)
     this._web3 = new Web3(this)
     this._blockForNonceCalculation = blockForNonceCalculation
     this._mainAddress = this.addresses[0]
     // logger.debug('Main address: %s', this._mainAddress)
   }
 
-  getNonce (from) {
+  getNonce(from) {
     return new Promise((resolve, reject) => {
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
@@ -50,7 +52,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     })
   }
 
-  sendAsync (args) {
+  sendAsync(args) {
     let method = args.method
     if (!method) {
       if (Array.isArray(args) && args.length > 0) {
@@ -73,9 +75,9 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     }
   }
 
-  _sendTxWithUniqueNonce (args) {
+  _sendTxWithUniqueNonce(args) {
     let { params } = args
-    const [ , callback ] = arguments
+    const [, callback] = arguments
     let from
     if (Array.isArray(params)) {
       from = params[0].from
@@ -115,11 +117,11 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     })
   }
 
-  _sendAsyncWithNonce () {
+  _sendAsyncWithNonce() {
     return super.sendAsync()
   }
 
-  send () {
+  send() {
     // console.log('[HDWalletProvider] Intercepting send: ', arguments)
     return super.send(...arguments)
   }
