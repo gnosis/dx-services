@@ -5,6 +5,7 @@ const assert = require('assert')
 const Web3 = require('web3')
 const TruffleHDWalletProvider = require('truffle-hdwallet-provider')
 const sendTxWithUniqueNonce = require('./sendTxWithUniqueNonce')
+// const NonceTrackerSubprovider = require('./NonceTrackerSubprovider')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -16,7 +17,7 @@ const isLocal = environment === 'local'
 const NONCE_LOCK_DISABLED = process.env.DISABLE_NONCE_LOCK === 'true' || isLocal
 
 class HDWalletProvider extends TruffleHDWalletProvider {
-  constructor({
+  constructor ({
     mnemonic,
     privateKeys,
     url,
@@ -26,10 +27,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     blockForNonceCalculation = 'pending'
   }) {
     const accountCredentials = privateKeys || mnemonic
-    let numAddresses
-    if (privateKeys) {
-      numAddresses = privateKeys.length
-    }
+    let numAddresses = privateKeys ? privateKeys.length : numAddressesAux
 
     assert(accountCredentials, '"privateKey" or "mnemonic" are mandatory')
     assert(url, '"url" is mandatory')
@@ -39,10 +37,39 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     this._web3 = new Web3(this)
     this._blockForNonceCalculation = blockForNonceCalculation
     this._mainAddress = this.addresses[0]
-    // logger.debug('Main address: %s', this._mainAddress)
+
+    // /*
+    //   Small hack to solve: https://github.com/MetaMask/provider-engine/issues/300
+    //   while the PR is not merged
+    //     0: HookedSubprovider
+    //     1: NonceSubProvider
+    //     2: FiltersSubprovider
+    //     3: if (provided is string)  ProviderSubprovider --> HttpProvider
+    //       else ProviderSubprovider --> provider
+    // */
+    // if (this.engine._providers.length !== 4) {
+    //   throw new Error('Unexpected providers setup. Review the HDWalletProvider setup')
+    // }
+    // // const [, nonceSubProvider] = this.engine._providers
+
+    // // // Proxy nonce subprovider to handle reverts
+    // // const nonceSubProviderHandleRequest = nonceSubProvider.handleRequest.bind(nonceSubProvider)
+
+    // // nonceSubProvider.handleRequest = function (payload, next, end) {
+    // //   const self = nonceSubProvider
+
+    // //   if (payload.method === 'evm_revert') {
+    // //     // Clear cache on a testrpc revert
+    // //     self.nonceCache = {}
+    // //     next()
+    // //   } else {
+    // //     return nonceSubProviderHandleRequest(payload, next, end)
+    // //   }
+    // // }
+    // this.engine._providers[1] = new NonceTrackerSubprovider()
   }
 
-  getNonce(from) {
+  getNonce (from) {
     return new Promise((resolve, reject) => {
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
@@ -57,7 +84,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     })
   }
 
-  sendAsync(args) {
+  sendAsync (args) {
     let method = args.method
     if (!method) {
       if (Array.isArray(args) && args.length > 0) {
@@ -80,7 +107,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     }
   }
 
-  _sendTxWithUniqueNonce(args) {
+  _sendTxWithUniqueNonce (args) {
     let { params } = args
     const [, callback] = arguments
     let from
@@ -122,11 +149,11 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     })
   }
 
-  _sendAsyncWithNonce() {
+  _sendAsyncWithNonce () {
     return super.sendAsync()
   }
 
-  send() {
+  send () {
     // console.log('[HDWalletProvider] Intercepting send: ', arguments)
     return super.send(...arguments)
   }
