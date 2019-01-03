@@ -64,11 +64,11 @@ class AuctionRepoImpl extends Cacheable {
 
     logger.debug({
       msg: `DX contract in address %s`,
-      params: [ this._dx.address ]
+      params: [this._dx.address]
     })
     logger.debug({
       msg: `Price Oracle in address %s`,
-      params: [ this._priceOracle.address ]
+      params: [this._priceOracle.address]
     })
 
     this.ready = Promise.resolve()
@@ -76,7 +76,7 @@ class AuctionRepoImpl extends Cacheable {
       const contract = this._tokens[token]
       logger.debug({
         msg: `Token %s in address %s`,
-        params: [ token, contract.address ]
+        params: [token, contract.address]
       })
     })
   }
@@ -123,7 +123,7 @@ class AuctionRepoImpl extends Cacheable {
       auctionStart = await this.getAuctionStart({ sellToken, buyToken })
 
       // Check the state on each side of the auction
-      let [ auctionState, auctionOppState ] = await Promise.all([
+      let [auctionState, auctionOppState] = await Promise.all([
         this.getAuctionState({ sellToken, buyToken, auctionIndex }),
         this.getAuctionState({ sellToken: buyToken, buyToken: sellToken, auctionIndex })
       ])
@@ -308,8 +308,8 @@ class AuctionRepoImpl extends Cacheable {
     const tokenAddress = await this._getTokenAddress(token, false)
 
     const params = [
-      [ tokenAddress ],
-      [ isApproved ? 1 : 0 ]
+      [tokenAddress],
+      [isApproved ? 1 : 0]
     ]
 
     return this._doTransaction({
@@ -402,7 +402,7 @@ class AuctionRepoImpl extends Cacheable {
     return this._callForToken({
       operation: 'balances',
       token,
-      args: [ address ],
+      args: [address],
       checkToken: false,
       cacheTime: this._cacheTimeShort
     })
@@ -459,7 +459,7 @@ class AuctionRepoImpl extends Cacheable {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ],
+      args: [address],
       cacheTime: this._cacheTimeAverage
     })
   }
@@ -477,7 +477,7 @@ class AuctionRepoImpl extends Cacheable {
       operation: 'getIndicesWithClaimableTokensForSellers',
       sellToken,
       buyToken,
-      args: [ address, lastNAuctions ]
+      args: [address, lastNAuctions]
     })
   }
 
@@ -494,7 +494,7 @@ class AuctionRepoImpl extends Cacheable {
       operation: 'getIndicesWithClaimableTokensForBuyers',
       sellToken,
       buyToken,
-      args: [ address, lastNAuctions ]
+      args: [address, lastNAuctions]
     })
   }
 
@@ -504,7 +504,7 @@ class AuctionRepoImpl extends Cacheable {
       return Promise.all([
         this._getTokenAddress(sellToken),
         this._getTokenAddress(buyToken)
-      ]).then(([ sellTokenAddress, buyTokenAddress ]) => ({
+      ]).then(([sellTokenAddress, buyTokenAddress]) => ({
         sellToken,
         buyToken,
         sellTokenAddress,
@@ -540,7 +540,7 @@ class AuctionRepoImpl extends Cacheable {
     return this._doTransaction({
       operation: 'claimTokensFromSeveralAuctionsAsSeller',
       from: address,
-      params: [ auctionSellTokens, auctionBuyTokens, auctionIndices, address ]
+      params: [auctionSellTokens, auctionBuyTokens, auctionIndices, address]
     })
   }
 
@@ -550,7 +550,7 @@ class AuctionRepoImpl extends Cacheable {
       return Promise.all([
         this._getTokenAddress(sellToken),
         this._getTokenAddress(buyToken)
-      ]).then(([ sellTokenAddress, buyTokenAddress ]) => ({
+      ]).then(([sellTokenAddress, buyTokenAddress]) => ({
         sellToken,
         buyToken,
         sellTokenAddress,
@@ -584,7 +584,7 @@ class AuctionRepoImpl extends Cacheable {
     return this._doTransaction({
       operation: 'claimTokensFromSeveralAuctionsAsBuyer',
       from: address,
-      params: [ auctionSellTokens, auctionBuyTokens, auctionIndices, address ]
+      params: [auctionSellTokens, auctionBuyTokens, auctionIndices, address]
     })
   }
 
@@ -594,7 +594,7 @@ class AuctionRepoImpl extends Cacheable {
       return Promise.all([
         this._getTokenAddress(sellToken),
         this._getTokenAddress(buyToken)
-      ]).then(([ sellTokenAddress, buyTokenAddress ]) => ({
+      ]).then(([sellTokenAddress, buyTokenAddress]) => ({
         sellToken,
         buyToken,
         sellTokenAddress,
@@ -631,7 +631,7 @@ class AuctionRepoImpl extends Cacheable {
 
     const sellersBalances = await this._doCall({
       operation: 'getSellerBalancesOfCurrentAuctions',
-      params: [ auctionSellTokens, auctionBuyTokens, address ]
+      params: [auctionSellTokens, auctionBuyTokens, address]
     })
 
     return sellersBalances.map((balance, index) => ({
@@ -650,7 +650,7 @@ class AuctionRepoImpl extends Cacheable {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ],
+      args: [address],
       cacheTime: this._cacheTimeShort
     })
   }
@@ -664,7 +664,7 @@ class AuctionRepoImpl extends Cacheable {
       sellToken,
       buyToken,
       auctionIndex,
-      args: [ address ]
+      args: [address]
     })
   }
 
@@ -711,7 +711,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract
       .approve(this._dx.address, amount, { from }) /*,  gas: 200000 */
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async getAllowance ({ token, accountAddress }) {
@@ -758,10 +758,10 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         operation: 'deposit',
         from,
         token,
-        args: [ amount ], // new BigNumber(amount)
+        args: [amount], // new BigNumber(amount)
         checkToken: false
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async withdraw ({ token, amount, from }) {
@@ -774,9 +774,9 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         operation: 'withdraw',
         from,
         token,
-        args: [ amount ]
+        args: [amount]
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async postSellOrder ({
@@ -844,10 +844,10 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         sellToken,
         buyToken,
         auctionIndex,
-        args: [ amount ],
+        args: [amount],
         gasPrice
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async postBuyOrder ({ sellToken, buyToken, auctionIndex, from, amount }) {
@@ -892,9 +892,9 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         sellToken,
         buyToken,
         auctionIndex,
-        args: [ amount ]
+        args: [amount]
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async claimSellerFunds ({
@@ -910,9 +910,9 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         from,
         sellToken,
         buyToken,
-        args: [ from, auctionIndex ]
+        args: [from, auctionIndex]
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async claimBuyerFunds ({ sellToken, buyToken, from, auctionIndex }) {
@@ -925,9 +925,9 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         from,
         sellToken,
         buyToken,
-        args: [ from, auctionIndex ]
+        args: [from, auctionIndex]
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async getUnclaimedBuyerFunds ({ sellToken, buyToken, address, auctionIndex }) {
@@ -956,7 +956,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       sellToken: tokenA,
       buyToken: tokenB,
       msg: 'Add new token pair: %s (%d), %s (%d). Price: %o. From %s ',
-      params: [ tokenA, tokenAFunding, tokenB, tokenBFunding, initialClosingPrice, from ]
+      params: [tokenA, tokenAFunding, tokenB, tokenBFunding, initialClosingPrice, from]
     })
     assertPair(tokenA, tokenB)
     assert(tokenAFunding >= 0, 'The funding for token A is incorrect')
@@ -983,13 +983,13 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       sellToken: tokenA,
       buyToken: tokenB,
       msg: 'Actual A Funding: %s',
-      params: [ actualAFunding ]
+      params: [actualAFunding]
     })
     auctionLogger.debug({
       sellToken: tokenA,
       buyToken: tokenB,
       msg: 'Actual B Funding: %s',
-      params: [ actualBFunding ]
+      params: [actualBFunding]
     })
 
     const isValidTokenPair = await this.isValidTokenPair({ tokenA, tokenB })
@@ -1018,7 +1018,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
         from,
         params
       })
-      // .then(toTransactionNumber)
+    // .then(toTransactionNumber)
   }
 
   async _assertBalanceERC20Token ({ token, address, amount }) {
@@ -1078,7 +1078,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       sellToken: tokenA,
       buyToken: tokenB,
       msg: 'Price in USD for the initial funding',
-      params: [ fundedValueUSD ]
+      params: [fundedValueUSD]
     })
     const THRESHOLD_NEW_TOKEN_PAIR = await this.getThresholdNewTokenPair()
     assert(fundedValueUSD.toNumber() > THRESHOLD_NEW_TOKEN_PAIR, `Not enough funding. \
@@ -1101,12 +1101,12 @@ auction or the next one. auctionIndex=${auctionIndex}, \
 currentAuctionIndex=${currentAuctionIndex}`)
     }
 
-    const [ sellVolumeA, sellVolumeB ] = await Promise.all([
+    const [sellVolumeA, sellVolumeB] = await Promise.all([
       this[getSellVolumeFn]({ sellToken: tokenA, buyToken: tokenB }),
       this[getSellVolumeFn]({ sellToken: tokenB, buyToken: tokenA })
     ])
 
-    const [ fundingA, fundingB ] = await Promise.all([
+    const [fundingA, fundingB] = await Promise.all([
       this.getPriceInUSD({
         token: tokenA,
         amount: sellVolumeA
@@ -1128,7 +1128,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     const ethUsdPrice = await this.getPriceEthUsd()
     logger.debug({
       msg: 'Eth/Usd Price for %s: %d',
-      params: [ token, ethUsdPrice ]
+      params: [token, ethUsdPrice]
     })
     let amountInETH
     if (token === 'WETH') {
@@ -1233,7 +1233,7 @@ volume: ${state}`)
     return this
       ._doCall({
         operation: 'getFeeRatio',
-        params: [ address ],
+        params: [address],
         cacheTime: this._cacheTimeAverage
       })
   }
@@ -1384,7 +1384,7 @@ volume: ${state}`)
         },
         fromBlock,
         toBlock,
-        events: [ 'Fee' ]
+        events: ['Fee']
       })
       .then(events => this._toEventsData({
         events,
@@ -1417,7 +1417,7 @@ volume: ${state}`)
   async getAuctions ({ fromBlock, toBlock }) {
     // Get cleared auctions to select the auctions
 
-    const [ auctions, auctionStartEvents ] = await Promise.all([
+    const [auctions, auctionStartEvents] = await Promise.all([
       // Get cleared auctions
       this.getClearedAuctions({
         fromBlock,
@@ -1473,11 +1473,11 @@ volume: ${state}`)
           sellToken,
           buyToken,
           msg: "There's no auction start event for auction %d. Maybe run too long?",
-          params: [ auctionIndex ]
+          params: [auctionIndex]
         })
       }
 
-      const [ closingPrice, previousClosingPrice ] = await Promise.all([
+      const [closingPrice, previousClosingPrice] = await Promise.all([
         // Get closing price
         this.getClosingPrices({ sellToken, buyToken, auctionIndex }),
 
@@ -1511,7 +1511,7 @@ volume: ${state}`)
     let orders = await ethereumEventHelper
       .filter({
         contract: this._dx,
-        events: [ event ],
+        events: [event],
         fromBlock,
         toBlock,
         filters: {
@@ -1543,7 +1543,7 @@ volume: ${state}`)
     let tokens = await ethereumEventHelper
       .filter({
         contract: this._dx,
-        events: [ event ],
+        events: [event],
         fromBlock,
         toBlock,
         filters: {
@@ -1642,7 +1642,7 @@ volume: ${state}`)
         },
         fromBlock,
         toBlock,
-        events: [ eventName ]
+        events: [eventName]
       })
       .then(orderEvents => this._toEventsData({
         events: orderEvents,
@@ -1710,7 +1710,7 @@ volume: ${state}`)
 
   async _addTokensToEventsData (eventsData) {
     const eventsDataWithSymbols = eventsData.map(async eventData => {
-      const [ sellTokenSymbol, buyTokenSymbol ] = await Promise.all([
+      const [sellTokenSymbol, buyTokenSymbol] = await Promise.all([
         this._getTokenSymbolByAddress(eventData.sellToken),
         this._getTokenSymbolByAddress(eventData.buyToken)
       ])
@@ -1797,7 +1797,7 @@ volume: ${state}`)
     const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
 
-    const [ auctionStart, now ] = await Promise.all([
+    const [auctionStart, now] = await Promise.all([
       this.getAuctionStart({ sellToken, buyToken }),
       this._getTime()
     ])
@@ -1958,7 +1958,7 @@ volume: ${state}`)
       */
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
-    const params = [ sellTokenAddress, buyTokenAddress, ...args ]
+    const params = [sellTokenAddress, buyTokenAddress, ...args]
 
     // return this._dx[operation].call(...params)
     return this._doCall({ operation, params, cacheTime })
@@ -1980,7 +1980,7 @@ volume: ${state}`)
     */
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
-    const params = [ sellTokenAddress, buyTokenAddress, auctionIndex, ...args ]
+    const params = [sellTokenAddress, buyTokenAddress, auctionIndex, ...args]
 
     // return this._dx[operation].call(...params)
     return this._doCall({ operation, params, cacheTime })
@@ -2008,7 +2008,7 @@ volume: ${state}`)
       sellToken,
       buyToken,
       msg: 'Execute transaction "%s" (from %s)',
-      params: [ operation, from ]
+      params: [operation, from]
     })
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
@@ -2051,7 +2051,7 @@ volume: ${state}`)
     // NOTE: cacheTime can be set null/0 on porpouse, so it's handled from the
     //  caller method
 
-    logger.debug('Transaction: ' + operation, params)
+    logger.trace('Call: ' + operation, params)
     if (this._cache && cacheTime !== null) {
       const cacheKey = this._getCacheKey({ operation, params })
       return this._cache.get({
@@ -2067,13 +2067,13 @@ volume: ${state}`)
   }
 
   _fetchFromBlockchain ({ operation, params }) {
-    logger.debug('Fetching from blockchain: ' + operation, params)
+    logger.trace('Fetching from blockchain: ' + operation, params)
     return this._dx[operation]
       .call(...params)
       .catch(e => {
         logger.error({
           msg: 'ERROR: Call %s with params: [%s]',
-          params: [ operation, params.join(', ') ],
+          params: [operation, params.join(', ')],
           e
         })
         throw e
@@ -2098,7 +2098,7 @@ volume: ${state}`)
       sellToken,
       buyToken,
       msg: 'Execute transaction %s (address %s) for auction %d',
-      params: [ operation, from, auctionIndex ]
+      params: [operation, from, auctionIndex]
     })
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
@@ -2123,7 +2123,7 @@ volume: ${state}`)
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
 
-    const [ gasPrices, estimatedGas ] = await Promise.all([
+    const [gasPrices, estimatedGas] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
 
@@ -2136,11 +2136,11 @@ volume: ${state}`)
 
     logger.debug({
       msg: '_doTransaction. Estimated gas for "%s": %d',
-      params: [ operation, estimatedGas ]
+      params: [operation, estimatedGas]
     })
     logger.debug({
       msg: 'Initial gas price is set to %d by %s',
-      params: [ initialGasPrice, this._gasPriceDefault ]
+      params: [initialGasPrice, this._gasPriceDefault]
     })
     const gas = Math.ceil(estimatedGas * this._gasEstimationCorrectionFactor)
     const maxGasWillingToPay = fastGasPrice * this._overFastPriceFactor
@@ -2232,7 +2232,7 @@ volume: ${state}`)
       }).catch(error => {
         logger.error({
           msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-          params: [ operation, from, params, gas, gasPrice, error ],
+          params: [operation, from, params, gas, gasPrice, error],
           error
         })
 
@@ -2273,7 +2273,7 @@ volume: ${state}`)
 
         logger.error({
           msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-          params: [ operation, from, params, gas, gasPrice, error ],
+          params: [operation, from, params, gas, gasPrice, error],
           error
         })
 
@@ -2292,7 +2292,7 @@ volume: ${state}`)
       if (newGasPrice < newMaxGasWillingToPay) {
         logger.info({
           msg: 'Transaction with nonce %d is taking too long (%d min), retrying "%s" from "%s" with higher gas. Previous gas: %d, new gas price: %d. Params: [%s]',
-          params: [ nonce, (this._transactionRetryTime / 60000), operation, from, gasPrice, newGasPrice, params ]
+          params: [nonce, (this._transactionRetryTime / 60000), operation, from, gasPrice, newGasPrice, params]
         })
 
         this._doTransactionWithRetry({
@@ -2309,7 +2309,7 @@ volume: ${state}`)
       } else {
         logger.info({
           msg: 'Transaction with nonce %d took too long. Max gas price reached, current gas price: %d, max gas willing to pay: %d, waiting transaction for "%s" from "%s". Params: [%s]',
-          params: [ nonce, gasPrice, newMaxGasWillingToPay, operation, from, params ]
+          params: [nonce, gasPrice, newMaxGasWillingToPay, operation, from, params]
         })
 
         transactionPromise
@@ -2331,7 +2331,7 @@ volume: ${state}`)
   }
 }
 
-function toFraction ([ numerator, denominator ]) {
+function toFraction ([numerator, denominator]) {
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {
     return null
