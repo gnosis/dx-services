@@ -1,6 +1,3 @@
-const debug = require('debug')('dx-service:conf')
-debug.log = console.debug.bind(console)
-
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')
 
@@ -45,7 +42,6 @@ const markets =
   getEnvMarkets() ||
   envConf.MARKETS ||
   defaultConf.MARKETS
-debug('markets: %o', markets)
 
 // Get tokens
 const tokens = getConfiguredTokenList(markets)
@@ -64,17 +60,23 @@ let config = {
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
+// Debug config
+process.env.DEBUG = config.DEBUG
+const debug = require('debug')('dx-service:conf')
+debug.log = console.debug.bind(console)
+
+// debug('markets: %o', markets)
 debug('tokens', tokens)
 debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
 // debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)
 
 // Normalize token order for markets (alphabet order)
-function orderMarketTokens({ tokenA, tokenB }) {
+function orderMarketTokens ({ tokenA, tokenB }) {
   const [sortedTokenA, sortedTokenB] = getTokenOrder(tokenA, tokenB)
   return { tokenA: sortedTokenA, tokenB: sortedTokenB }
 }
 
-function getEnvMarkets() {
+function getEnvMarkets () {
   const envMarkets = process.env.MARKETS
   if (envMarkets) {
     const marketsArray = envMarkets.split(',')
@@ -90,14 +92,14 @@ function getEnvMarkets() {
   }
 }
 
-function getConfiguredTokenList(markets) {
+function getConfiguredTokenList (markets) {
   const result = []
 
-  function isSpecialToken(token) {
+  function isSpecialToken (token) {
     return SPECIAL_TOKENS.indexOf(token) !== -1
   }
 
-  function addToken(token) {
+  function addToken (token) {
     if (!result.includes(token) && !isSpecialToken(token)) {
       result.push(token)
     }
@@ -111,11 +113,11 @@ function getConfiguredTokenList(markets) {
   return result
 }
 
-function getTokenAddresParamName(token) {
+function getTokenAddresParamName (token) {
   return `${token}_TOKEN_ADDRESS`
 }
 
-function getTokenAddresses(tokens, config) {
+function getTokenAddresses (tokens, config) {
   return tokens.reduce((tokenAddresses, token) => {
     const paramName = getTokenAddresParamName(token)
     const address = process.env[paramName] || config[paramName]
@@ -133,7 +135,7 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
   }, {})
 }
 
-function getFactory(factoryPropName) {
+function getFactory (factoryPropName) {
   const assert = require('assert')
   const path = require('path')
 

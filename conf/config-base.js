@@ -1,5 +1,6 @@
 module.exports = {
   ENVIRONMENT: 'local',
+  DEBUG: 'ERROR-*,WARN-*,INFO-*',
   MARKETS: [],
 
   // Gas
