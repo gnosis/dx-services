@@ -21,11 +21,16 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     privateKeys,
     url,
     addressIndex = 0,
-    numAddresses = 5,
+    numAddresses: numAddressesAux = 5,
     shareNonce = true,
     blockForNonceCalculation = 'pending'
   }) {
     const accountCredentials = privateKeys || mnemonic
+    let numAddresses
+    if (privateKeys) {
+      numAddresses = privateKeys.length
+    }
+
     assert(accountCredentials, '"privateKey" or "mnemonic" are mandatory')
     assert(url, '"url" is mandatory')
 
