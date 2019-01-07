@@ -80,7 +80,6 @@
     "truffle-contract": "^3.0.6",
     "truffle-hdwallet-provider": "^0.0.6",
     "web3-provider-engine": "^14.1.0",
-    "yamljs": "^0.3.0",
     "yargs": "^11.1.0"
   },
   "devDependencies": {
@@ -99,6 +98,7 @@
     "lodash.clonedeep": "^4.5.0",
     "nodemon": "^1.18.9",
     "prettier-standard": "^8.0.1",
-    "truffle": "^4.1.14"
+    "truffle": "^4.1.15",
+    "yamljs": "^0.3.0"
   }
 }
