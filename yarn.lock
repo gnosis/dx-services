@@ -90,10 +90,10 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
-"@gnosis.pm/dx-contracts@^2.0.0-RC4":
-  version "2.0.0-RC4"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-2.0.0-RC4.tgz#c983aa67d600d67033c09650d68523a7ab6d48d5"
-  integrity sha512-2oTAxrlcikhmO3UrMjUVOs4jVFqGjw4avJCriRHx/Y2FQVXgjYsVbLtjAzkzLeJuQXemxtEY3X/UDAc7n/vsLA==
+"@gnosis.pm/dx-contracts@^2.0.0-RC7":
+  version "2.0.0-RC7"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-2.0.0-RC7.tgz#bbe6e426dd2139f08a1ce3c89519537caeae705b"
+  integrity sha512-a88FpRGWYIFBnusouuG5IaNBFFD7RK45bH1D2CN2ruJJxhIVDeGdr5FbHp0xb46M5w8Dg/xPDVrPxc4PMrBZjw==
   dependencies:
     "@gnosis.pm/gno-token" "^1.2.0-RC6"
     "@gnosis.pm/owl-token" "^1.4.0-RC2"

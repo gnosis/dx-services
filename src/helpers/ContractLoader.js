@@ -162,7 +162,7 @@ class ContractLoader {
       // load addresses from DX
       dx.ethUSDOracle.call(),
       dx.ethToken.call(),
-      dx.frtToken.call(),
+      dx.frtToken.call(), // TODO: Is this the PROXY??
       dx.owlToken.call() // TODO: Is this the PROXY??
     ])
       // load instances of the contract

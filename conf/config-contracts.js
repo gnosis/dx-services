@@ -28,6 +28,7 @@ module.exports = {
     TokenOWL: CONTRACTS_OWL_DIR + '/TokenOWL',
     TokenOWLProxy: CONTRACTS_OWL_DIR + '/TokenOWLProxy',
     TokenFRT: CONTRACTS_DX_DIR + '/TokenFRT',
+    TokenFRTProxy: CONTRACTS_DX_DIR + '/TokenFRTProxy',
     PriceOracleInterface: CONTRACTS_DX_DIR + '/PriceOracleInterface',
     DutchExchangeProxy: CONTRACTS_DX_DIR + '/DutchExchangeProxy',
     DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange'

@@ -6,6 +6,7 @@ const CONTRACT_DEFINITIONS = {
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
   EtherToken: CONTRACTS_BASE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_BASE_DIR + '/TokenFRT',
+  TokenFRTProxy: CONTRACTS_BASE_DIR + '/TokenFRTProxy',
   TokenOWL: CONTRACTS_BASE_DIR + '/TokenOWL',
   TokenOWLProxy: CONTRACTS_BASE_DIR + '/TokenOWLProxy',
   TokenGNO: CONTRACTS_BASE_DIR + '/TokenGNO'
