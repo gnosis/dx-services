@@ -22,7 +22,7 @@ afterEach(async () => {
   return ethereumClient.revertSnapshot(currentSnapshotId)
 })
 
-test('It should allow to approve one token', async () => {
+test.skip('It should allow to approve one token', async () => {
   const { auctionRepo, owner } = await setupPromise
   const getIsApprovedRDN = () => auctionRepo.isApprovedToken({
     token: 'RDN'
@@ -42,7 +42,7 @@ test('It should allow to approve one token', async () => {
   expect(isRdnApproved).toBeTruthy()
 })
 
-test('It should fail when unknow token is required', async () => {
+test.skip('It should fail when unknow token is required', async () => {
   expect.assertions(1)
   const { auctionRepo } = await setupPromise
 
@@ -54,7 +54,7 @@ test('It should fail when unknow token is required', async () => {
   }
 })
 
-test('It should return the fee ratio', async () => {
+test.skip('It should return the fee ratio', async () => {
   const { user1, auctionRepo } = await setupPromise
   // GIVEN a base setupTest
 
@@ -65,7 +65,7 @@ test('It should return the fee ratio', async () => {
   expect(feeRatio).toEqual(MAXIMUM_DX_FEE)
 })
 
-describe('Market interacting tests', async () => {
+describe.skip('Market interacting tests', async () => {
   let beforeSetupState
 
   beforeAll(async () => {
