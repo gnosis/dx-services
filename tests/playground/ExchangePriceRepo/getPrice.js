@@ -4,7 +4,7 @@ const numberUtil = require('../../../src/helpers/numberUtil.js')
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
   strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid']
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid', 'idex']
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
@@ -18,7 +18,7 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   },
   'WETH-GEN': {
     strategy: 'sequence',
-    feeds: ['liquid']
+    feeds: ['idex', 'liquid']
   },
   'WETH-MKR': {
     strategy: 'sequence',
