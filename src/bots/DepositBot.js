@@ -105,7 +105,7 @@ class DepositBot extends Bot {
     // Get balance of ERC20 tokens
     const balanceOfTokensPromise = this._dxInfoService.getAccountBalancesForTokensNotDeposited({
       tokens: this._tokens,
-      address: account
+      account
     })
 
     // Execute balances promises
