@@ -129,7 +129,7 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   },
   'WETH-GEN': {
     strategy: 'sequence',
-    feeds: ['liquid', 'binance', 'bitfinex']
+    feeds: ['idex', 'liquid']
   },
   'WETH-MKR': {
     strategy: 'sequence',
