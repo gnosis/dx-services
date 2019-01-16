@@ -52,6 +52,9 @@ module.exports = {
       bitfinex: {
         factory: 'src/repositories/PriceRepo/feeds/PriceRepoBitfinex'
       },
+      idex: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoIdex'
+      },
       hitbtc: {
         factory: 'src/repositories/PriceRepo/feeds/PriceRepoHitbtc'
       },
