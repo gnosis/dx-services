@@ -1,6 +1,6 @@
 const cliUtils = require('../helpers/cliUtils')
 
-const getDxInfoService = require('../../services/DxTradeService')
+const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command('closing-prices <token-pair>', 'Get the closing prices for a given pair (i.e. WETH-RDN)', yargs => {
@@ -26,7 +26,7 @@ function registerCommand ({ cli, logger }) {
       from,
       auctionIndex
     } = argv
-    const [ sellToken, buyToken ] = tokenPairString.split('-')
+    const [sellToken, buyToken] = tokenPairString.split('-')
 
     const dxInfoService = await getDxInfoService()
 
