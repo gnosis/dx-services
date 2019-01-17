@@ -64,7 +64,9 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "^2.0.0-RC7",
+    "@gnosis.pm/dx-contracts": "2.0.0-RC12",
+    "@gnosis.pm/owl-token": "2.0.0-RC1",
+    "@gnosis.pm/util-contracts": "2.0.0-RC1",
     "@slack/client": "^4.8.0",
     "commander": "^2.19.0",
     "cors": "^2.8.5",

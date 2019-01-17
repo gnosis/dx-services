@@ -90,34 +90,39 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
-"@gnosis.pm/dx-contracts@^2.0.0-RC7":
-  version "2.0.0-RC7"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-2.0.0-RC7.tgz#bbe6e426dd2139f08a1ce3c89519537caeae705b"
-  integrity sha512-a88FpRGWYIFBnusouuG5IaNBFFD7RK45bH1D2CN2ruJJxhIVDeGdr5FbHp0xb46M5w8Dg/xPDVrPxc4PMrBZjw==
+"@gnosis.pm/dx-contracts@2.0.0-RC12":
+  version "2.0.0-RC12"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-contracts/-/dx-contracts-2.0.0-RC12.tgz#c6d004e29b1765385ae42bfdf2f5257e1622e2a4"
+  integrity sha512-0tKCPMdC9HOHH3U/MLSGAp53pQ5byi4ilIjS7GMvrpdjjn+crKenQQ+WGCDo1cfMiVcQA+3ggMzNdYPfv9elng==
   dependencies:
-    "@gnosis.pm/gno-token" "^1.2.0-RC6"
-    "@gnosis.pm/owl-token" "^1.4.0-RC2"
-    "@gnosis.pm/util-contracts" "^1.2.0-RC5"
+    "@gnosis.pm/gno-token" "^2.0.0-RC2"
+    "@gnosis.pm/owl-token" "^2.0.0-RC1"
+    "@gnosis.pm/util-contracts" "^2.0.0-RC1"
 
-"@gnosis.pm/gno-token@^1.2.0-RC4", "@gnosis.pm/gno-token@^1.2.0-RC6":
-  version "1.2.0-RC6"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/gno-token/-/gno-token-1.2.0-RC6.tgz#ca3120ba6465fcc2950a05f175b7aaa2e2b284c3"
-  integrity sha512-eaOPWjYLRegL5evuD7o7A49ISdRsxQfFDJwlB8nYR0GuzZj2Ui+Wjofyw1jCFnaeWQYg01D73pXspHkbs2aHvQ==
+"@gnosis.pm/gno-token@^2.0.0-RC1", "@gnosis.pm/gno-token@^2.0.0-RC2":
+  version "2.0.0-RC2"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/gno-token/-/gno-token-2.0.0-RC2.tgz#b248e0bfbc689b6da1cc372ec619436c2b5a42c3"
+  integrity sha512-8TvfCj1JYo6UX3a0KPYbxX2hOpUwSBvXT2/jceR40Y8I5L0vkjZv3zghcuGDWRUynpyscwFc0vjAy7k8KqhGmg==
   dependencies:
-    "@gnosis.pm/util-contracts" "1.2.0-RC6"
+    "@gnosis.pm/util-contracts" "2.0.0-RC1"
 
-"@gnosis.pm/owl-token@^1.4.0-RC2":
-  version "1.4.0-RC2"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-1.4.0-RC2.tgz#3c422f82052371365b013bddf14c34ccea429fc0"
-  integrity sha512-3kpfyUOknErGsvjBNK5beUiUGTuGTktKkf3t1ZDz01+0DukqSR/nsL3mRzl6rwIt9xXyu4ioPDRDPSEQA6ZhTg==
+"@gnosis.pm/owl-token@2.0.0-RC1", "@gnosis.pm/owl-token@^2.0.0-RC1":
+  version "2.0.0-RC1"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/owl-token/-/owl-token-2.0.0-RC1.tgz#1cae33e2cc2ca3777df93037a9f62cc9d235fea4"
+  integrity sha512-Oc/eETDak/8tAHLdOQKbDIlWgMOPl1trYqpKSxx6tvrIQ7Tic1TD7d/+Z/swsBpCvOmI2Voay9yyBnNAZ+DkGA==
   dependencies:
-    "@gnosis.pm/gno-token" "^1.2.0-RC4"
-    "@gnosis.pm/util-contracts" "^1.2.0-RC5"
+    "@gnosis.pm/gno-token" "^2.0.0-RC1"
+    "@gnosis.pm/util-contracts" "^2.0.0-RC1"
 
-"@gnosis.pm/util-contracts@1.2.0-RC6", "@gnosis.pm/util-contracts@^1.2.0-RC5":
-  version "1.2.0-RC6"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/util-contracts/-/util-contracts-1.2.0-RC6.tgz#18a9db8ecce4f5cfea5757c043a059767be014bd"
-  integrity sha512-M1jsr1Z8t/WBcNR7qLp/u7mtdlk8Qfv/ClAp/vv7QfIFxmygTtE+YyWPm91N5sJ0yR3CjkW5YSIiQNECUk6ROQ==
+"@gnosis.pm/util-contracts@2.0.0-RC1":
+  version "2.0.0-RC1"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/util-contracts/-/util-contracts-2.0.0-RC1.tgz#871a5e049f6fbe29522480a0f5d70f999ffdf148"
+  integrity sha512-yUsAo+W1jki9e8wP5r//BJ9t9I9QiDNcxd+wGFJ8jSdzDWqkR6r3ur0ER4MzO51eL9uU0wEdpePkJK2jViVsag==
+
+"@gnosis.pm/util-contracts@^2.0.0-RC1":
+  version "2.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/util-contracts/-/util-contracts-2.0.0-alpha.3.tgz#822b70c1b18114814a60244fc017054475d79b67"
+  integrity sha512-qsQW3wrlWUavyYCxetfMbp8XyhEl3+oSmNISfBGobMvljCtK3e9NSJ2qMSzFU25WOodFmT8cmfuyQIX38uZlAA==
 
 "@sheerun/eslint-config-standard@^10.2.1":
   version "10.2.1"
