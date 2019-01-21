@@ -191,27 +191,41 @@ class BalanceCheckBot extends Bot {
       notify: true
     })
 
-    // Notify to slack
-    this._notifyToSlack({
-      name: 'Ether Balance',
-      lastNotificationVariableName: '_lastSlackEtherBalanceNotification',
-      message: {
-        attachments: [{
-          color: 'danger',
-          title: message,
-          fields: [
-            {
-              title: 'Ether balance',
-              value: numberUtil.roundDown(balance, 4) + ' ETH',
-              short: false
-            }, {
-              title: 'Bot account',
-              value: account,
-              short: false
-            }
-          ],
-          footer: this.botInfo
-        }]
+    this._notifications.forEach(({ type, channel }) => {
+      switch (type) {
+        case 'slack':
+          if (this._slackRepo.isEnabled()) {
+            // Notify to slack
+            this._notifyToSlack({
+              channel,
+              name: 'Ether Balance',
+              lastNotificationVariableName: '_lastSlackEtherBalanceNotification',
+              message: {
+                attachments: [{
+                  color: 'danger',
+                  title: message,
+                  fields: [
+                    {
+                      title: 'Ether balance',
+                      value: numberUtil.roundDown(balance, 4) + ' ETH',
+                      short: false
+                    }, {
+                      title: 'Bot account',
+                      value: account,
+                      short: false
+                    }
+                  ],
+                  footer: this.botInfo
+                }]
+              }
+            })
+          }
+          break
+        case 'email':
+        default:
+          logger.error({
+            msg: 'Error notification type is unknown: ' + type
+          })
       }
     })
   }
