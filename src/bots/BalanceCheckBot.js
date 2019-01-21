@@ -55,7 +55,7 @@ class BalanceCheckBot extends Bot {
 
     this._tokens = tokens
     this._notifications = notifications
-    this._minimumAmountForEther = minimumAmountForEther
+    this._minimumAmountForEther = minimumAmountForEther * 1e18 // all balances are compared in WEI
     this._minimumAmountInUsdForToken = minimumAmountInUsdForToken
 
     this._lastCheck = null
@@ -162,9 +162,12 @@ class BalanceCheckBot extends Bot {
     return {
       botAddress: this._botAddress,
       tokens: this._tokens,
+      minimumAmountForEther: this._minimumAmountForEther,
+      minimumAmountInUsdForToken: this._minimumAmountInUsdForToken,
       lastCheck: this._lastCheck,
       lastWarnNotification: this._lastWarnNotification,
       lastError: this._lastError,
+      notifications: this._notifications,
       lastSlackEtherBalanceNotification: this._lastSlackEtherBalanceNotification,
       lastSlackTokenBalanceNotification: this._lastSlackTokenBalanceNotification
     }
