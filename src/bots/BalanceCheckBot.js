@@ -197,6 +197,7 @@ class BalanceCheckBot extends Bot {
           if (this._slackRepo.isEnabled()) {
             // Notify to slack
             this._notifyToSlack({
+              channel,
               name: 'Ether Balance',
               lastNotificationVariableName: '_lastSlackEtherBalanceNotification',
               message: {
