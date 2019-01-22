@@ -25,7 +25,7 @@ module.exports = {
     factory: 'src/repositories/PriceRepo/PriceRepoImpl', // mock, impl
     priceFeedStrategiesDefault: {
       strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-      feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid']
+      feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'idex', 'hitbtc', 'liquid']
     },
     priceFeedStrategies: {
       'WETH-OMG': {
@@ -51,6 +51,9 @@ module.exports = {
       },
       bitfinex: {
         factory: 'src/repositories/PriceRepo/feeds/PriceRepoBitfinex'
+      },
+      idex: {
+        factory: 'src/repositories/PriceRepo/feeds/PriceRepoIdex'
       },
       hitbtc: {
         factory: 'src/repositories/PriceRepo/feeds/PriceRepoHitbtc'

@@ -41,7 +41,7 @@ if (env === 'pre' || env === 'pro') {
 }
 
 const URL_GAS_PRICE_FEED_GAS_STATION = null
-const URL_GAS_PRICE_FEED_SAFE = 'https://safe-relay.dev.gnosisdev.com/api/v1/gas-station' // rinkeby
+const URL_GAS_PRICE_FEED_SAFE = 'https://safe-relay.staging.gnosisdev.com/api/v1/gas-station' // rinkeby
 
 module.exports = {
   NETWORK: 'rinkeby', // 4

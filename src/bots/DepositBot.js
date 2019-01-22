@@ -8,7 +8,6 @@ const numberUtil = require('../helpers/numberUtil')
 const dateUtil = require('../helpers/dateUtil')
 
 const BOT_TYPE = 'DepositBot'
-const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../getEthereumClient')
 const getDxInfoService = require('../services/DxInfoService')
 const getDxTradeService = require('../services/DxTradeService')
@@ -106,7 +105,7 @@ class DepositBot extends Bot {
     // Get balance of ERC20 tokens
     const balanceOfTokensPromise = this._dxInfoService.getAccountBalancesForTokensNotDeposited({
       tokens: this._tokens,
-      address: account
+      account
     })
 
     // Execute balances promises
@@ -301,6 +300,9 @@ class DepositBot extends Bot {
 
   async getInfo () {
     return {
+      botAddress: this._botAddress,
+      tokens: this._tokens,
+      inactivityPeriods: this._inactivityPeriods,
       lastCheck: this._lastCheck,
       lastDeposit: this._lastDeposit,
       lastError: this._lastError,

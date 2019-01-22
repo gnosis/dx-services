@@ -1,6 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getDxTradeService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'unwrap <amount>',
     'Unwrap WETH to get ETH in user account',
@@ -8,19 +11,24 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('amount', yargs)
     }, async function (argv) {
       const { amount } = argv
-      const {
-        botAccount,
+
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
+        address,
         dxTradeService
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getDxTradeService()
+      ])
 
       logger.info(`Unwrap %d WETH into %s`,
         amount,
-        botAccount
+        address
       )
 
       const withdrawEtherResult = await dxTradeService.withdrawEther({
         amount: amount * 1e18,
-        accountAddress: botAccount
+        accountAddress: address
       })
       logger.info('The unwrap was succesful. Transaction: %s', withdrawEtherResult.tx)
     })

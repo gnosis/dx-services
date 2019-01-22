@@ -20,13 +20,12 @@ class ContractLoader {
     assert(erc20TokenAddresses, '"erc20TokenAddresses" is required')
     assert(contractsBaseDir, '"contractsBaseDir" is required')
 
-    if (!isLocal) {
-      assert(
-        dxContractAddress,
-        '"dxContractAddress" is required for environment ' + environment
-      )
-      assert(gnoToken, '"gnoToken" is required for environment ' + environment)
-    }
+    // FIXME If not given this addresses are automatically resolved from dx-contracts package
+    // I don't know why this was added
+    // if (!isLocal) {
+    //   assert(dxContractAddress, '"dxContractAddress" is required for environment ' + environment)
+    //   assert(gnoToken, '"gnoToken" is required for environment ' + environment)
+    // }
 
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
