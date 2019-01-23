@@ -447,8 +447,8 @@ keeps happening`
     auctionState
   }) {
     const rules = (buyLiquidityRules || this._buyLiquidityRules).map(({ marketPriceRatio, buyRatio }) => ({
-      marketPriceRatio: marketPriceRatio.toNumber(),
-      buyRatio: buyRatio.toNumber()
+      marketPriceRatio: formatUtil.formatFraction(marketPriceRatio),
+      buyRatio: formatUtil.formatFraction(buyRatio)
     }))
     auctionLogger.debug({
       sellToken,
@@ -456,6 +456,7 @@ keeps happening`
       msg: 'Do ensure liquidity for auction %d. Rules: %o',
       params: [auctionIndex, rules]
     })
+
     let buyLiquidityOperation = null
 
     // Get the percentage that should be bought
@@ -464,13 +465,6 @@ keeps happening`
       currentMarketPrice,
       price
     })
-
-    // auctionLogger.debug({
-    //   sellToken,
-    //   buyToken,
-    //   msg: 'We need to ensure we have at least %d% bougth',
-    //   params: [percentageThatShouldBeBought * 100]
-    // })
 
     if (!percentageThatShouldBeBought.isZero()) {
       // Get the buy volume, and the expected buyVolume
