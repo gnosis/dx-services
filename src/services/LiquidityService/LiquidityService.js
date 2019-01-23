@@ -32,17 +32,6 @@ class LiquidityService {
 
     // Config
     this._buyLiquidityRules = buyLiquidityRulesDefault
-      // Transform fractions to bigdecimals
-      .map(threshold => ({
-        marketPriceRatio: numberUtil
-          .toBigNumberFraction(threshold.marketPriceRatio),
-        buyRatio: numberUtil
-          .toBigNumberFraction(threshold.buyRatio)
-      }))
-      // Sort the thresholds by buyRatio (in descendant order)
-      .sort((thresholdA, thresholdB) => {
-        return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
-      })
 
     // Avoids concurrent calls that might endup buy/selling two times
     this.concurrencyCheck = {}
@@ -585,21 +574,18 @@ keeps happening`
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
 
-    let rules = this._buyLiquidityRules
-    if (buyLiquidityRules) {
-      rules = buyLiquidityRules
-        // Transform fractions to bigdecimals
-        .map(threshold => ({
-          marketPriceRatio: numberUtil
-            .toBigNumberFraction(threshold.marketPriceRatio),
-          buyRatio: numberUtil
-            .toBigNumberFraction(threshold.buyRatio)
-        }))
-        // Sort the thresholds by buyRatio (in descendant order)
-        .sort((thresholdA, thresholdB) => {
-          return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
-        })
-    }
+    const rules = (buyLiquidityRules || this._buyLiquidityRules)
+      // Transform fractions to bigdecimals
+      .map(threshold => ({
+        marketPriceRatio: numberUtil
+          .toBigNumberFraction(threshold.marketPriceRatio),
+        buyRatio: numberUtil
+          .toBigNumberFraction(threshold.buyRatio)
+      }))
+      // Sort the thresholds by buyRatio (in descendant order)
+      .sort((thresholdA, thresholdB) => {
+        return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
+      })
 
     // Get the matching rule with the highest
     //  * note that the rules aresorted by buyRatio (in descendant order)
