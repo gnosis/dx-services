@@ -13,11 +13,15 @@ const HDWalletProvider = require('./helpers/HDWalletProvider')
 const NODE_ERROR_EMPTY_RESPONSE = 'Error: Invalid JSON RPC response: ""'
 const SILENT_TIME_FOR_NODE_ERRORS = 120000 // 120s
 
+let MNEMONIC
 const {
-  MNEMONIC,
+  MNEMONIC: CONF_MNEMONIC,
   PK,
   ETHEREUM_RPC_URL
 } = conf
+
+// FIXME make API MNEMONIC independent
+MNEMONIC = process.env.IS_API ? process.env.MNEMONIC : CONF_MNEMONIC
 
 assert(MNEMONIC || PK, 'The "PK" or MNEMONIC" is mandatory')
 assert(ETHEREUM_RPC_URL, 'The "ETHEREUM_RPC_URL" is mandatory')
@@ -43,7 +47,7 @@ this._provider.engine.on('error', _printNodeError)
 gracefullShutdown.onShutdown(() => this._provider.engine.stop())
 
 let reduceWarnLevelForNodeErrors = false
-function _printNodeError(error) {
+function _printNodeError (error) {
   const errorMessage = error.message
   let debugLevel
   if (errorMessage === NODE_ERROR_EMPTY_RESPONSE) {
