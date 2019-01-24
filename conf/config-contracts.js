@@ -31,6 +31,7 @@ module.exports = {
     TokenFRTProxy: CONTRACTS_DX_DIR + '/TokenFRTProxy',
     PriceOracleInterface: CONTRACTS_DX_DIR + '/PriceOracleInterface',
     DutchExchangeProxy: CONTRACTS_DX_DIR + '/DutchExchangeProxy',
-    DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange'
+    DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange',
+    DutchExchangeHelper: CONTRACTS_DX_DIR + '/DutchExchangeHelper'
   }
 }

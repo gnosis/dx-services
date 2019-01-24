@@ -11,6 +11,7 @@ class ContractLoader {
     ethereumClient,
     contractDefinitions,
     dxContractAddress,
+    dxHelperAddress,
     gnoToken,
     erc20TokenAddresses,
     contractsBaseDir
@@ -30,6 +31,7 @@ class ContractLoader {
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
     this._dxContractAddress = dxContractAddress
+    this._dxHelperAddress = dxHelperAddress
     this._gnoTokenAddress = gnoToken
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
@@ -40,9 +42,12 @@ class ContractLoader {
       this._loadTokenContracts()
     ])
 
-    const dxContracts = await this._loadDxContracts(dx)
+    const [ dxHelper, dxContracts ] = await Promise.all([
+      this._loadDxHelper(dx.address),
+      this._loadDxContracts(dx)
+    ])
 
-    return { dx, ...dxContracts, erc20TokenContracts }
+    return { dx, dxHelper, ...dxContracts, erc20TokenContracts }
   }
 
   async _loadDx () {
@@ -74,6 +79,32 @@ class ContractLoader {
     // this._dxMaster = dxContractInstance.masterCopy
 
     return dxContractInstance
+  }
+
+  async _loadDxHelper (dxContractAddress) {
+    const dxHelperContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.DutchExchangeHelper
+    )
+
+    let dxHelperAddress
+    if (this._dxHelperAddress) {
+      // If the DX address is provided
+      dxHelperAddress = this._dxHelperAddress
+    } else {
+      // We load the DX Helper address from the contract
+      dxHelperAddress = await this._getDeployedAddress(
+        'DX Helper',
+        dxHelperContract,
+        false
+      )
+    }
+    const dxHelperInstance = dxHelperContract.at(dxHelperAddress)
+
+    const dxHelperMasterAddress = await dxHelperInstance.dx.call()
+    assert(dxContractAddress === dxHelperMasterAddress,
+      'Error loading dxHelper: dxContractAddress and dxHelperMasterAddress must be the same')
+
+    return dxHelperInstance
   }
 
   async _loadERC20tokenContract (token, tokenContract) {

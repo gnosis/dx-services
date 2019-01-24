@@ -54,6 +54,7 @@ class AuctionRepoImpl extends Cacheable {
 
     // Contracts
     this._dx = contracts.dx
+    this._dxHelper = contracts.dxHelper
     this._priceOracle = contracts.priceOracle
     this._tokens = Object.assign({
       GNO: contracts.gno,
@@ -2068,7 +2069,8 @@ volume: ${state}`)
 
   _fetchFromBlockchain ({ operation, params }) {
     logger.trace('Fetching from blockchain: ' + operation, params)
-    return this._dx[operation]
+    // Check if operation is in dx or dxHelper
+    return (this._dx[operation] || this._dxHelper[operation])
       .call(...params)
       .catch(e => {
         logger.error({
