@@ -18,29 +18,27 @@ class PriceRepoIdex {
     if (price !== false) {
       return price
     } else {
-        throw Error(
-          'No matching markets in Idex: ' +
-            tokenA +
-            '-' +
-            tokenB
-        )
+      throw Error(
+        'No matching markets in Idex: ' +
+        tokenA + '-' + tokenB
+      )
     }
   }
 
   async _getPrice ({ tokenA, tokenB }) {
     debug('Get price for %s-%s', tokenA, tokenB)
     const url = this._baseUrl + '/returnTicker'
-    let isEthFirst = tokenA == 'ETH'
+    const isEthFirst = tokenA === 'ETH'
 
-    let market = 'ETH_' + (isEthFirst ? tokenB : tokenA)
-    
-    let response = (await this._doPost(url, {market: market}))[market]
+    const market = 'ETH_' + (isEthFirst ? tokenB : tokenA)
+
+    const response = (await this._doPost(url, { market: market }))[market]
 
     if (response === undefined) {
       return false
     }
 
-    let lastPrice = isEthFirst ? response['last'] : 1/response['last']
+    const lastPrice = isEthFirst ? response['last'] : 1 / response['last']
 
     debug('Idex Response to ' + market + ': ', lastPrice.toString())
     return lastPrice.toString()
