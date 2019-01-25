@@ -38,6 +38,23 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     this._blockForNonceCalculation = blockForNonceCalculation
     this._mainAddress = this.addresses[0]
 
+    // this.engine.stop()
+    // // const nonceSubProvider = this.engine._providers.find(provider => {
+    // //   return provider.hasOwnProperty('nonceCache')
+    // // })
+    //
+    // this.engine._providers = this.engine._providers.reduce((providers, provider) => {
+    //   if (!provider.hasOwnProperty('nonceCache')) {
+    //     providers.push(provider)
+    //   }
+    //   return providers
+    // }, [])
+    //
+    // // nonceSubProvider.handleRequest = (payload, next, end) => {
+    // //   next()
+    // // }
+    // this.engine.start()
+
     // /*
     //   Small hack to solve: https://github.com/MetaMask/provider-engine/issues/300
     //   while the PR is not merged
@@ -71,6 +88,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
 
   getNonce (from) {
     return new Promise((resolve, reject) => {
+      this._resetNonceCache()
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           // console.error('[HDWalletProvider] Error getting the nonce')
@@ -99,12 +117,24 @@ class HDWalletProvider extends TruffleHDWalletProvider {
         this._sendTxWithUniqueNonce(...arguments)
       } else {
         logger.trace('Send transaction: %o', arguments)
+        this._resetNonceCache()
         return super.sendAsync(...arguments)
       }
     } else {
       logger.trace('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)
     }
+  }
+
+  _resetNonceCache () {
+    const nonceProvider = this.engine._providers.find(provider => {
+      return provider.hasOwnProperty('nonceCache')
+    })
+    if (nonceProvider === undefined) {
+      throw new Error('Unexpected providers setup. Review the HDWalletProvider setup')
+    }
+    nonceProvider.nonceCache = {}
+    // console.log(nonceProvider)
   }
 
   _sendTxWithUniqueNonce (args) {
