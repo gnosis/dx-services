@@ -15,7 +15,7 @@ const BOT_CLI_SCRIPT = 'npm run cli --'
 
 const setupInstance = testSetup()
 setupInstance.init()
-  .then(run) 
+  .then(run)
   .then(() => gracefullShutdown.shutDown())
   .catch(error => {
     console.error(error)

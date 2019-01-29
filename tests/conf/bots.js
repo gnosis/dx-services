@@ -1,5 +1,5 @@
 /*
-* Example of conf to test to override 
+* Example of conf to test to override
 */
 
 // FIXME remove this when deployed by devops
@@ -67,7 +67,7 @@ const BUY_BOT_HOSTED_MARKETS = {
         denominator: 2
       }
     },
-  
+
     // Buy the 100% if price falls below 96%
     {
       marketPriceRatio: {
