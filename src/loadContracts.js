@@ -9,6 +9,7 @@ async function loadContracts () {
   if (!contracts) {
     const {
       CONTRACT_DEFINITIONS,
+      ARBITRAGE_CONTRACT_ADDRESS,
       DX_CONTRACT_ADDRESS,
       GNO_TOKEN_ADDRESS,
       ERC20_TOKEN_ADDRESSES,
@@ -17,6 +18,7 @@ async function loadContracts () {
     const contractLoader = new ContractLoader({
       ethereumClient,
       contractDefinitions: CONTRACT_DEFINITIONS,
+      arbitrageContractAddress: ARBITRAGE_CONTRACT_ADDRESS,
       dxContractAddress: DX_CONTRACT_ADDRESS,
       gnoToken: GNO_TOKEN_ADDRESS,
       erc20TokenAddresses: ERC20_TOKEN_ADDRESSES,

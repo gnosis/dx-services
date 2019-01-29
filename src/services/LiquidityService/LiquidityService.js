@@ -14,6 +14,7 @@ const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_
 class LiquidityService {
   constructor ({
     // repos
+    arbitrageRepo,
     auctionRepo,
     ethereumRepo,
     priceRepo,
@@ -21,11 +22,13 @@ class LiquidityService {
     // config
     buyLiquidityRulesDefault
   }) {
+    assert(arbitrageRepo, '"arbitrageRepo" is required')
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(priceRepo, '"priceRepo" is required')
     assert(buyLiquidityRulesDefault, '"buyLiquidityRulesDefault" is required')
 
+    this._arbitrageRepo = arbitrageRepo
     this._auctionRepo = auctionRepo
     this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo
@@ -79,6 +82,17 @@ class LiquidityService {
       waitToReleaseTheLock,
       liquidityCheckName: 'buy'
     })
+  }  
+  
+  async ensureArbitrageLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
+    return this._ensureLiquidityAux({
+      sellToken,
+      buyToken,
+      from,
+      buyLiquidityRules,
+      waitToReleaseTheLock,
+      liquidityCheckName: 'arbitrage'
+    })
   }
 
   async ensureSellLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
@@ -106,6 +120,11 @@ class LiquidityService {
       doEnsureLiquidityFnName = '_doEnsureBuyLiquidity'
       baseLockName = 'BUY-LIQUIDITY'
       messageCurrentCheck = 'Ensure that buy liquidity is met'
+      paramsCurrentCheck = undefined
+    } else if (liquidityCheckName === 'arbitrage') {
+      doEnsureLiquidityFnName = '_doEnsureArbitrageLiquidity'
+      baseLockName = 'ARBITRAGE-LIQUIDITY'
+      messageCurrentCheck = 'Ensure that market is arbitraged'
       paramsCurrentCheck = undefined
     } else {
       throw new Error('No known liquidity check named: ' + liquidityCheckName)
@@ -310,6 +329,48 @@ keeps happening`
     }
 
     return buyLiquidityResult
+  }
+
+  async _doEnsureArbitrageLiquidity ({ tokenA, tokenB, from, buyLiquidityRules }) {
+    const buyLiquidityResult = []
+    const auction = { sellToken: tokenA, buyToken: tokenB }
+
+    // trigger arbitrage by token and amount
+    // on dutch opportunity
+    // on uniswap opportunity
+
+    // const auctionIndex = await this._auctionRepo.getAuctionIndex(auction)
+    // // Make sure the token pair has been added to the DX
+    // assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
+
+    // const [ soldTokensA, soldTokensB ] = await Promise.all([
+    //   // tokenA-tokenB: Get soldTokens
+    //   this._getPricesAndEnsureLiquidity({
+    //     sellToken: tokenA,
+    //     buyToken: tokenB,
+    //     auctionIndex,
+    //     from,
+    //     buyLiquidityRules
+    //   }),
+
+    //   // tokenB-tokenA: Get soldTokens
+    //   this._getPricesAndEnsureLiquidity({
+    //     sellToken: tokenB,
+    //     buyToken: tokenA,
+    //     auctionIndex,
+    //     from,
+    //     buyLiquidityRules
+    //   })
+    // ])
+
+    // if (soldTokensA) {
+    //   buyLiquidityResult.push(soldTokensA)
+    // }
+    // if (soldTokensB) {
+    //   buyLiquidityResult.push(soldTokensB)
+    // }
+
+    // return buyLiquidityResult
   }
 
   async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from, buyLiquidityRules }) {

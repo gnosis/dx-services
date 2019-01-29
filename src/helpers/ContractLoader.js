@@ -11,6 +11,7 @@ class ContractLoader {
     ethereumClient,
     contractDefinitions,
     dxContractAddress,
+    arbitrageContractAddress,
     gnoToken,
     erc20TokenAddresses,
     contractsBaseDir
@@ -29,21 +30,31 @@ class ContractLoader {
 
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
+    this._arbitrageContractAddress = arbitrageContractAddress
     this._dxContractAddress = dxContractAddress
     this._gnoTokenAddress = gnoToken
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
   }
   async loadContracts () {
-    const [ dx, erc20TokenContracts ] = await Promise.all([
+    const [ dx, erc20TokenContracts, arbitrageContract ] = await Promise.all([
       this._loadDx(),
-      this._loadTokenContracts()
+      this._loadTokenContracts(),
+      this._loadArbitrage()
     ])
 
     const dxContracts = await this._loadDxContracts(dx)
 
-    return { dx, ...dxContracts, erc20TokenContracts }
+    return { dx, ...dxContracts, erc20TokenContracts, arbitrageContract }
   }
+
+  async _loadArbitrage () {
+    const arbitrageContract = this._ethereumClient
+      .loadContract(this._contractDefinitions.ArbitrageContract)
+    const arbitrageContractInstance = arbitrageContract.at(this._arbitrageContractAddress)
+    return arbitrageContractInstance
+  }
+
 
   async _loadDx () {
     const dxContract = this._ethereumClient

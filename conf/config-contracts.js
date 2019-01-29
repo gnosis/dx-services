@@ -4,6 +4,7 @@ const CONTRACTS_UTILS_DIR = 'node_modules/@gnosis.pm/util-contracts/build/contra
 const CONTRACTS_GNO_DIR = 'node_modules/@gnosis.pm/gno-token/build/contracts'
 const CONTRACTS_OWL_DIR = 'node_modules/@gnosis.pm/owl-token/build/contracts'
 const CONTRACTS_DX_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
+const CONTRACTS_ARBITRAGE_DIR = 'node_modules/okwme/arbitrage/build/contracts'
 
 module.exports = {
   // Contracts
@@ -21,6 +22,7 @@ module.exports = {
 
   // Contracts paths
   CONTRACT_DEFINITIONS: {
+    ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
     StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
     EtherToken: CONTRACTS_UTILS_DIR + '/EtherToken',
     TokenGNO: CONTRACTS_GNO_DIR + '/TokenGNO',
