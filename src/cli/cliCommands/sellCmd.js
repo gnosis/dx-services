@@ -1,4 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
+const getAddress = require('../../helpers/getAddress')
 
 function registerCommand ({ cli, instances, logger }) {
   cli.command(
@@ -12,10 +13,15 @@ function registerCommand ({ cli, instances, logger }) {
       const { amount, auctionIndex: auctionIndexParam, tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
       const {
-        botAccount,
         dxInfoService,
         dxTradeService
       } = instances
+
+      const [
+        botAccount
+      ] = await Promise.all([
+        getAddress(0),
+      ])
 
       // Get auction index
       let auctionIndex

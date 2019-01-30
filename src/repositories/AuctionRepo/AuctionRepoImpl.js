@@ -801,7 +801,8 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     })
 
     const isValidTokenPair = await this.isValidTokenPair({ tokenA: sellToken, tokenB: buyToken })
-    assert(isValidTokenPair, 'The token pair has not been approved')
+    // TODO review
+    //assert(isValidTokenPair, 'The token pair has not been approved')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
     const now = await this._getTime()
@@ -814,9 +815,9 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
       )
     } else {
       // We are waiting (to start or for funding
-      assert.equal(auctionIndex, lastAuctionIndex,
-        'The auction index should be set to the current auction (we are in a waiting period)'
-      )
+      // assert.equal(auctionIndex, lastAuctionIndex,
+      //   'The auction index should be set to the current auction (we are in a waiting period)'
+      // )
     }
 
     // const auctionHasCleared = this._auctionHasCleared({ sellToken, buyToken, auctionIndex })

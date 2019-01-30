@@ -114,6 +114,15 @@ class HDWalletProvider extends TruffleHDWalletProvider {
 
     //console.log(arguments)
 
+    // if (method === 'eth_call') {
+    //   console.log(JSON.stringify(arguments, null, 4));
+    // }
+
+    if (method === 'eth_estimateGas') {
+      //arguments['1'] = console.log
+      return arguments['1']({ jsonrpc: '2.0', result: '0x493e0' })
+    }
+
     if (method === 'eth_sendTransaction') {
       const moduleData = this._safeModule.contract.executeWhitelisted.getData(params[0].to, params[0].value, params[0].data)
       newParams = {
@@ -126,7 +135,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
 
       arguments['0'].params[0] = newParams
 
-      console.log(JSON.stringify(arguments, null, 4));
+      console.log(JSON.stringify(arguments, null, 4))
       console.log(params)
 
       if (!NONCE_LOCK_DISABLED) {
