@@ -23,6 +23,8 @@ module.exports = {
   // Contracts paths
   CONTRACT_DEFINITIONS: {
     ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
+    UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory', //BILLY: CHECK THIS
+    UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange', //BILLY: CHECK THIS
     StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
     EtherToken: CONTRACTS_UTILS_DIR + '/EtherToken',
     TokenGNO: CONTRACTS_GNO_DIR + '/TokenGNO',

@@ -54,8 +54,8 @@ class ArbitrageRepoImpl extends Cacheable {
 
     // Contracts
     this._arbitrage = contracts.arbitrageContract
-    // this._dx = contracts.dx
-    this._priceOracle = contracts.priceOracle
+    this._uniswapFactory = contracts.uniswapFactory
+    this._uniswapExchange = contracts.uniswapExchange
     this._tokens = Object.assign({
       GNO: contracts.gno,
       WETH: contracts.eth,
@@ -82,6 +82,42 @@ class ArbitrageRepoImpl extends Cacheable {
     })
   }
 
+  getArbitrageAddress () {
+    return this._arbitrage.address
+  }
+
+  async getUniswapExchange (uniswapExchangeAddress) {
+    const uniswapExchangeInstance = this._uniswapExchange.at(uniswapExchangeAddress)
+    return uniswapExchangeInstance
+  }
+
+  whichTokenIsEth(tokenA, tokenB) {
+    assert(tokenB.toLowerCase() === this._tokens.WETH.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.toLowerCase(),
+    "Not prepared to do ERC20 to ERC20 arbitrage")
+
+    etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
+    tokenToken = etherToken === tokenA ? tokenB : tokenA
+    return {etherToken, tokenToken}
+  }
+
+  async getUniswapBalances(tokenToken) {
+    const uniswapExchangeAddress = this._uniswapFactory.getExchange(tokenToken)
+    ether_balance = this._ethereumClient.balanceOf(uniswapExchangeAddress)
+    token_balance = this._ethereumClient.tokenBalanceOf({
+      tokenAddress: tokenToken,
+      account: uniswapExchangeAddress
+    })
+
+    // const uniswapExchange = await getUniswapExchange(uniswapExchangeAddress)
+
+    return {
+      etherToken,
+      ether_balance,
+      token_balance,
+      uniswapExchangeAddress
+    }
+  }
+
   async getAbout () {
     const auctioneerAddress = await this._dx.auctioneer.call()
     const tokenNames = Object.keys(this._tokens)
@@ -96,7 +132,7 @@ class ArbitrageRepoImpl extends Cacheable {
       }))
     }
   }
-
+/*
   async getThresholdNewTokenPair () {
     const thresholdNewTokenPair = await this._dx.thresholdNewTokenPair.call()
     return thresholdNewTokenPair.div(1e18)
@@ -189,85 +225,85 @@ class ArbitrageRepoImpl extends Cacheable {
     }
   }
 
-  /*
-  // TODO: Review this logic. This are the states of the diagram
-  // (not used right now)
-  async getState2 ({ sellToken, buyToken }) {
-    assertPair(sellToken, buyToken)
+  
+  // // TODO: Review this logic. This are the states of the diagram
+  // // (not used right now)
+  // async getState2 ({ sellToken, buyToken }) {
+  //   assertPair(sellToken, buyToken)
 
-    const {
-      auctionStart,
-      auction,
-      auctionOpp
-    } = await this.getStateInfo({ sellToken, buyToken })
-    const {
-      isClosed,
-      isTheoreticalClosed,
-      sellVolume
-    } = auction
+  //   const {
+  //     auctionStart,
+  //     auction,
+  //     auctionOpp
+  //   } = await this.getStateInfo({ sellToken, buyToken })
+  //   const {
+  //     isClosed,
+  //     isTheoreticalClosed,
+  //     sellVolume
+  //   } = auction
 
-    const {
-      isClosed: isClosedOpp,
-      isTheoreticalClosed: isTheoreticalClosedOpp,
-      sellVolume: sellVolumeOpp
-    } = auctionOpp
+  //   const {
+  //     isClosed: isClosedOpp,
+  //     isTheoreticalClosed: isTheoreticalClosedOpp,
+  //     sellVolume: sellVolumeOpp
+  //   } = auctionOpp
 
-    if (auctionStart === null) {
-      // We havent surplus the threshold
-      return 'WAITING_FOR_FUNDING' // S0
-    } else if (sellVolume === 0 || sellVolumeOpp === 0) {
-      // One of the auctions doesn't have sell volume
+  //   if (auctionStart === null) {
+  //     // We havent surplus the threshold
+  //     return 'WAITING_FOR_FUNDING' // S0
+  //   } else if (sellVolume === 0 || sellVolumeOpp === 0) {
+  //     // One of the auctions doesn't have sell volume
 
-      if (
-        (sellVolume === 0 && isTheoreticalClosedOpp) ||
-        (sellVolumeOpp === 0 && isTheoreticalClosed)) {
-        // One has no SellVolume
-        // The other is theoretically closed
-        return 'ONE_THEORETICAL_CLOSED' // S7
-      } else {
-        // One of the auctions is running
-        // the other one has no sell volume
-        return 'RUNNING_ONE_NOT_SELL_VOLUME' // S1
-      }
-    } else {
-      // They both have volume
+  //     if (
+  //       (sellVolume === 0 && isTheoreticalClosedOpp) ||
+  //       (sellVolumeOpp === 0 && isTheoreticalClosed)) {
+  //       // One has no SellVolume
+  //       // The other is theoretically closed
+  //       return 'ONE_THEORETICAL_CLOSED' // S7
+  //     } else {
+  //       // One of the auctions is running
+  //       // the other one has no sell volume
+  //       return 'RUNNING_ONE_NOT_SELL_VOLUME' // S1
+  //     }
+  //   } else {
+  //     // They both have volume
 
-      if (
-        isTheoreticalClosed && isTheoreticalClosedOpp &&
-        !isClosed && !isClosedOpp) {
-        // both are close theoretical
-        // and not closed yet
-        return 'BOTH_THEORETICAL_CLOSED' // S4
-      } else if (isClosedOpp || isClosed) {
-        // At least, one of the auctions is closed for real
+  //     if (
+  //       isTheoreticalClosed && isTheoreticalClosedOpp &&
+  //       !isClosed && !isClosedOpp) {
+  //       // both are close theoretical
+  //       // and not closed yet
+  //       return 'BOTH_THEORETICAL_CLOSED' // S4
+  //     } else if (isClosedOpp || isClosed) {
+  //       // At least, one of the auctions is closed for real
 
-        if (
-          (isClosed && !isTheoreticalClosedOpp) ||
-          (isClosedOpp && !isTheoreticalClosed)
-        ) {
-          // One auction is closed
-          // The other one is still running
-          return 'ONE_CLEARED_AUCTION' // S2
-        } else if (
-          (isClosed && isTheoreticalClosedOpp) ||
-          (isClosedOpp && isTheoreticalClosed)) {
-          // One is closed for real
-          // The other is closed theoretical
-          return 'ONE_CLEARED_AUCTION_ONE_THEORETICAL_CLOSE' // S6
-        }
-      }
+  //       if (
+  //         (isClosed && !isTheoreticalClosedOpp) ||
+  //         (isClosedOpp && !isTheoreticalClosed)
+  //       ) {
+  //         // One auction is closed
+  //         // The other one is still running
+  //         return 'ONE_CLEARED_AUCTION' // S2
+  //       } else if (
+  //         (isClosed && isTheoreticalClosedOpp) ||
+  //         (isClosedOpp && isTheoreticalClosed)) {
+  //         // One is closed for real
+  //         // The other is closed theoretical
+  //         return 'ONE_CLEARED_AUCTION_ONE_THEORETICAL_CLOSE' // S6
+  //       }
+  //     }
 
-      if (isTheoreticalClosedOpp || isTheoreticalClosed) {
-        // One theoretical close
-        // S3
-        return 'ONE_THEORETICAL_CLOSED'
-      }
+  //     if (isTheoreticalClosedOpp || isTheoreticalClosed) {
+  //       // One theoretical close
+  //       // S3
+  //       return 'ONE_THEORETICAL_CLOSED'
+  //     }
 
-      // The only state left
-      return 'RUNNING' // S0
-    }
-  }
-  */
+  //     // The only state left
+  //     return 'RUNNING' // S0
+  //   }
+  // }
+  
 
   async getAuctionIndex ({ sellToken, buyToken }) {
     assertPair(sellToken, buyToken)
@@ -711,7 +747,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     // Let DX use the ether
     const tokenContract = this._getTokenContractBySymbol(token)
     return tokenContract
-      .approve(this._dx.address, amount, { from }) /*,  gas: 200000 */
+      .approve(this._dx.address, amount, { from }) //,  gas: 200000
       // .then(toTransactionNumber)
   }
 
@@ -783,11 +819,11 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
   async postSellOrder ({
     sellToken, buyToken, auctionIndex, from, amount, gasPrice
   }) {
-    /*
-    logger.debug('postSellOrder: %o', {
-      sellToken, buyToken, auctionIndex, from, amount
-    })
-    */
+    
+    // logger.debug('postSellOrder: %o', {
+    //   sellToken, buyToken, auctionIndex, from, amount
+    // })
+    
 
     assertAuction(sellToken, buyToken, auctionIndex)
     assert(from, 'The from param is required')
@@ -1206,27 +1242,27 @@ volume: ${state}`)
   }
 
   // TODO: Implement a price function for auctions that are running
-  /*
-        fraction memory ratioOfPriceOracles = computeRatioOfHistoricalPriceOracles(sellToken, buyToken, auctionIndex);
+  
+        // fraction memory ratioOfPriceOracles = computeRatioOfHistoricalPriceOracles(sellToken, buyToken, auctionIndex);
 
-        // If we're calling the function into an unstarted auction,
-        // it will return the starting price of that auction
-        uint timeElapsed = atleastZero(int(now - getAuctionStart(sellToken, buyToken)));
+        // // If we're calling the function into an unstarted auction,
+        // // it will return the starting price of that auction
+        // uint timeElapsed = atleastZero(int(now - getAuctionStart(sellToken, buyToken)));
 
-        // The numbers below are chosen such that
-        // P(0 hrs) = 2 * lastClosingPrice, P(6 hrs) = lastClosingPrice, P(>=24 hrs) = 0
+        // // The numbers below are chosen such that
+        // // P(0 hrs) = 2 * lastClosingPrice, P(6 hrs) = lastClosingPrice, P(>=24 hrs) = 0
 
-        // 10^4 * 10^35 = 10^39
-        price.num = atleastZero(int((86400 - timeElapsed) * ratioOfPriceOracles.num));
-        // 10^4 * 10^35 = 10^39
-        price.den = (timeElapsed + 43200) * ratioOfPriceOracles.den;
+        // // 10^4 * 10^35 = 10^39
+        // price.num = atleastZero(int((86400 - timeElapsed) * ratioOfPriceOracles.num));
+        // // 10^4 * 10^35 = 10^39
+        // price.den = (timeElapsed + 43200) * ratioOfPriceOracles.den;
 
-        if (price.num * sellVolumesCurrent[sellToken][buyToken] <= price.den * buyVolumes[sellToken][buyToken]) {
-            price.num = buyVolumes[sellToken][buyToken];
-            price.den = sellVolumesCurrent[sellToken][buyToken];
-        }
+        // if (price.num * sellVolumesCurrent[sellToken][buyToken] <= price.den * buyVolumes[sellToken][buyToken]) {
+        //     price.num = buyVolumes[sellToken][buyToken];
+        //     price.den = sellVolumesCurrent[sellToken][buyToken];
+        // }
 
-  */
+  
 
   async getFeeRatio ({ address }) {
     assert(address, 'The address is required')
@@ -1395,10 +1431,10 @@ volume: ${state}`)
         // Rename the primaryToken and secondaryToken to sellTokeb, buyToken
         const eventDataRenamed = Object.assign({}, eventData, {
           sellToken: eventData.primaryToken,
-          buyToken: eventData.secondarToken/*,
-          primaryToken: undefined,
-          secondarToken: undefined
-          */
+          buyToken: eventData.secondarToken,
+          // primaryToken: undefined,
+          // secondarToken: undefined
+          
         })
 
         delete eventDataRenamed.primaryToken
@@ -1787,13 +1823,13 @@ volume: ${state}`)
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
 
-    /*
-    auctionLogger.debug(sellToken, buyToken,
-      '_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
-      sellToken, buyToken,
-      buyVolume, sellVolume
-    )
-    */
+    
+    // auctionLogger.debug(sellToken, buyToken,
+    //   '_getIsClosedState(%s-%s): buyVolume: %d, sellVolume: %d',
+    //   sellToken, buyToken,
+    //   buyVolume, sellVolume
+    // )
+    
 
     const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
@@ -1807,12 +1843,12 @@ volume: ${state}`)
     }
 
     if (price && hasAuctionStarted()) {
-      /*
-      auctionLogger.debug(sellToken, buyToken, 'Auction index: %d, Price: %d/%d %s/%s',
-        auctionIndex, price.numerator, price.denominator,
-        sellToken, buyToken
-      )
-      */
+      
+      // auctionLogger.debug(sellToken, buyToken, 'Auction index: %d, Price: %d/%d %s/%s',
+      //   auctionIndex, price.numerator, price.denominator,
+      //   sellToken, buyToken
+      // )
+      
 
       // (Pn x SV) / (Pd x BV)
       // example:
@@ -1838,21 +1874,21 @@ volume: ${state}`)
       // closed if sellVolume=0 and the auction has started and hasn't been cleared
       isClosed = hasAuctionStarted()
     } else {
-      /*
-      debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
-        sellToken, buyToken,
-        closingPrice.numerator, closingPrice.denominator
-      )
-      */
+      
+      // debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
+      //   sellToken, buyToken,
+      //   closingPrice.numerator, closingPrice.denominator
+      // )
+      
       isClosed = closingPrice !== null
     }
 
-    /*
-    debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
-      sellToken, buyToken,
-      isClosed, isTheoreticalClosed
-    )
-    */
+    
+    // debug('_getIsClosedState(%s-%s): is closed? %s. Is theoretical closed? %s',
+    //   sellToken, buyToken,
+    //   isClosed, isTheoreticalClosed
+    // )
+    
 
     return {
       buyVolume,
@@ -1931,10 +1967,10 @@ volume: ${state}`)
     checkToken = true,
     cacheTime
   }) {
-    /*
-    debug('Get "%s" for token %s. Args: %s',
-      operation, token, args)
-    */
+    
+    // debug('Get "%s" for token %s. Args: %s',
+    //   operation, token, args)
+    
 
     const tokenAddress = await this._getTokenAddress(token, checkToken)
     const params = [tokenAddress, ...args]
@@ -1953,10 +1989,10 @@ volume: ${state}`)
     checkTokens = false,
     cacheTime
   }) {
-    /*
-    debug('Get "%s" for pair %s-%s. Args: %s',
-      operation, sellToken, buyToken, args)
-      */
+    
+    // debug('Get "%s" for pair %s-%s. Args: %s',
+    //   operation, sellToken, buyToken, args)
+      
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [ sellTokenAddress, buyTokenAddress, ...args ]
@@ -1974,11 +2010,11 @@ volume: ${state}`)
     checkTokens = false,
     cacheTime
   }) {
-    /*
-    debug('Get %s for auction %d of pair %s-%s',
-      operation, auctionIndex, sellToken, buyToken
-    )
-    */
+    
+    // debug('Get %s for auction %d of pair %s-%s',
+    //   operation, auctionIndex, sellToken, buyToken
+    // )
+    
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [ sellTokenAddress, buyTokenAddress, auctionIndex, ...args ]
@@ -2330,6 +2366,7 @@ volume: ${state}`)
 
     return now
   }
+  */
 }
 
 function toFraction ([ numerator, denominator ]) {
@@ -2341,22 +2378,22 @@ function toFraction ([ numerator, denominator ]) {
   }
 }
 
-/*
-function _toOrderFromEvent (event) {
-  logger.debug('Event: %s', event)
-  return {
-    auctionIdex: 1
-  }
-}
 
-function _toClearedAuctionFromEvent (event) {
-  return event.args
-}
+// function _toOrderFromEvent (event) {
+//   logger.debug('Event: %s', event)
+//   return {
+//     auctionIdex: 1
+//   }
+// }
 
-function _toClearedAuctionFromEvent (event) {
-  return event.args
-}
-*/
+// function _toClearedAuctionFromEvent (event) {
+//   return event.args
+// }
+
+// function _toClearedAuctionFromEvent (event) {
+//   return event.args
+// }
+
 
 // function _toEventData(event) {
 //   return event.args
@@ -2366,18 +2403,19 @@ function _toClearedAuctionFromEvent (event) {
 //   return transactionResult.tx
 // }
 
-function epochToDate (epoch) {
-  return new Date(epoch * 1000)
-}
+// function epochToDate (epoch) {
+//   return new Date(epoch * 1000)
+// }
 
-function assertPair (sellToken, buyToken) {
-  assert(sellToken, 'The sell token is required')
-  assert(buyToken, 'The buy token is required')
-}
+// function assertPair (sellToken, buyToken) {
+//   assert(sellToken, 'The sell token is required')
+//   assert(buyToken, 'The buy token is required')
+// }
 
-function assertAuction (sellToken, buyToken, auctionIndex) {
-  assertPair(sellToken, buyToken)
-  assert(auctionIndex >= 0, 'The auction index is invalid')
-}
+// function assertAuction (sellToken, buyToken, auctionIndex) {
+//   assertPair(sellToken, buyToken)
+//   assert(auctionIndex >= 0, 'The auction index is invalid')
+// }
 
-module.exports = AuctionRepoImpl
+
+module.exports = ArbitrageRepoImpl

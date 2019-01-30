@@ -332,45 +332,292 @@ keeps happening`
   }
 
   async _doEnsureArbitrageLiquidity ({ tokenA, tokenB, from, buyLiquidityRules }) {
-    const buyLiquidityResult = []
+    const results = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
 
     // trigger arbitrage by token and amount
     // on dutch opportunity
     // on uniswap opportunity
 
-    // const auctionIndex = await this._auctionRepo.getAuctionIndex(auction)
-    // // Make sure the token pair has been added to the DX
-    // assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
+    const auctionIndex = await this._auctionRepo.getAuctionIndex(auction)
+    // Make sure the token pair has been added to the DX
+    assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
 
-    // const [ soldTokensA, soldTokensB ] = await Promise.all([
-    //   // tokenA-tokenB: Get soldTokens
-    //   this._getPricesAndEnsureLiquidity({
-    //     sellToken: tokenA,
-    //     buyToken: tokenB,
-    //     auctionIndex,
-    //     from,
-    //     buyLiquidityRules
-    //   }),
+    const [ soldTokensA, soldTokensB ] = await Promise.all([
+      // tokenA-tokenB: Get soldTokens
+      this._getPricesAndAttemptArbitrage({
+        sellToken: tokenA,
+        buyToken: tokenB,
+        auctionIndex,
+        from,
+        buyLiquidityRules
+      }),
 
-    //   // tokenB-tokenA: Get soldTokens
-    //   this._getPricesAndEnsureLiquidity({
-    //     sellToken: tokenB,
-    //     buyToken: tokenA,
-    //     auctionIndex,
-    //     from,
-    //     buyLiquidityRules
-    //   })
-    // ])
+      // tokenB-tokenA: Get soldTokens
+      this._getPricesAndAttemptArbitrage({
+        sellToken: tokenB,
+        buyToken: tokenA,
+        auctionIndex,
+        from,
+        buyLiquidityRules
+      })
+    ])
 
-    // if (soldTokensA) {
-    //   buyLiquidityResult.push(soldTokensA)
-    // }
-    // if (soldTokensB) {
-    //   buyLiquidityResult.push(soldTokensB)
-    // }
+    if (soldTokensA) {
+      results.push(soldTokensA)
+    }
+    if (soldTokensB) {
+      results.push(soldTokensB)
+    }
 
-    // return buyLiquidityResult
+    return results
+  }
+
+  async _getPricesAndAttemptArbitrage ({ buyToken, sellToken, auctionIndex, from, buyLiquidityRules }) {
+
+    const auctionState = await this._auctionRepo.getAuctionState({
+      sellToken,
+      buyToken,
+      auctionIndex
+    })
+    // If the current auction is not cleared (not price + has)
+    const {
+      sellVolume,
+      isClosed,
+      isTheoreticalClosed
+    } = auctionState
+
+    // // We need to check arbitrage opportunity if:
+    // //  * The auction has sell volume
+    // //  * Is not closed yet
+    // //  * Is not in theoretical closed state
+    if (!sellVolume.isZero()) {
+      if (!isClosed && !isTheoreticalClosed) {
+
+
+        const {etherToken, tokenToken} = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)        
+
+        const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
+        let maxToSpend = this._auctionRepo.getBalance({
+          token: etherToken,
+          address: arbitrageAddress
+        })
+
+        const {
+          ether_balance,
+          token_balance
+        } = await Promise(this._arbitrageRepo.getUniswapBalances(tokenToken))
+
+        const price = this._auctionRepo.getCurrentAuctionPrice({
+          sellToken,
+          buyToken,
+          auctionIndex,
+          from
+        })
+        if (!price) return
+
+        const {
+          numerator, // buyVolumes[sellToken][buyToken]
+          denominator // sellVolumesCurrent[sellToken][buyToken]
+        } = price
+        
+    
+        if (sellToken === etherToken) {
+          // if sellToken is etherToken
+          // then you're looking for an opportunity to buy the token on dutch
+          // and sell it on uniswap
+
+          // this means dutchX price needs to be less than uniswap price
+
+          // price for token = ether per token
+          // sell token is ether => denominator is in ether
+          // buy token is token => numerator is in token
+          const dutchPrice =  denominator / numerator // (totalEther / totalTokens)
+
+          const minimumSpend = 1 // how much ether for 1 token
+          assert(sellVolume > minimumSpend, "Not enough sell volume to execute")
+
+          // dutch price per token  = ether / token
+          const etherReturned  = this.getInputPrice(minimumSpend, token_balance, ether_balance)
+          const uniPricePerToken = etherReturned / minimumSpend
+
+          if (dutchPrice < uniPricePerToken) {
+
+            let amount = this.getSpendAmount({
+              dutchPrice,
+              minimumSpend,
+              maxToSpend,
+              input_token: buyToken,
+              input_balance: token_balance,
+              output_balance: ether_balance,
+              dutchOpportunity: true
+            })
+          
+            await this._arbitrageRepo.dutchOpportunity(buyToken, amount);
+
+          } else {
+            // no dice
+          }
+        } else {
+          // else if buyToken is etherToken 
+          // then you're looking for an opportunity to buy the token on uniswap
+          // and sell it on dutchX
+
+          // this means uniswap price needs to be less than dutchX price
+
+          // price for token = ether per token
+          // sell token is token => denominator is in token
+          // buy token is ether => numerator is in ether
+          const dutchPrice =  numerator / denominator// (totalEther / totalTokens
+
+          const minimumSpend = 1 // how much token for x ether (totalGas?)
+          assert(sellVolume > minimumSpend, "Not enough sell volume to execute")
+
+          // dutch price per token  = ether / token
+          const tokensReturned = this.getInputPrice(minimumSpend, ether_balance, token_balance)
+          const uniPricePerToken = minimumSpend / tokensReturned
+
+          if (uniPricePerToken < dutchPrice) {
+
+            let amount = this.getSpendAmount({
+              dutchPrice,
+              minimumSpend,
+              maxToSpend,
+              input_token: sellToken,
+              input_balance: ether_balance,
+              output_balance: token_balance,
+              dutchOpportunity: false
+            })
+
+            await this._arbitrageRepo.uniswapOpportunity(sellToken, amount);
+
+          } else {
+            // no dice
+          }
+        }
+    //     const [ price, currentMarketPrice ] = await Promise.all([
+    //       // Get the current price for the auction
+    //       this._auctionRepo.getCurrentAuctionPrice({
+    //         sellToken,
+    //         buyToken,
+    //         auctionIndex,
+    //         from
+    //       }),
+
+    //       // Get the market price
+    //       this._priceRepo.getPrice({
+    //         tokenA: sellToken,
+    //         tokenB: buyToken
+    //       }).then(price => ({
+    //         numerator: numberUtil.toBigNumber(price.toString()),
+    //         denominator: numberUtil.ONE
+    //       }))
+    //     ])
+    //     assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
+
+    //     if (price) {
+    //       // If there is a price, the auction is running
+    //       return this._doBuyLiquidityUsingCurrentPrices({
+    //         sellToken,
+    //         buyToken,
+    //         auctionIndex,
+    //         from,
+    //         buyLiquidityRules,
+    //         currentMarketPrice: currentMarketPrice,
+    //         price: price,
+    //         auctionState
+    //       })
+    //     }
+      } else {
+        // The auction is CLOSED or THEORETICALY CLOSED
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'The auction is already closed: %o',
+          params: [{
+            isTheoreticalClosed,
+            isClosed
+          }]
+        })
+      }
+    } else {
+      // No sell volume
+      auctionLogger.debug({
+        sellToken,
+        buyToken,
+        msg: "The auction doesn't have any sell volume, so there's nothing to buy"
+      })
+    }
+  }
+
+
+
+  // adapted from uniswapExchange Vyper Contract
+  getInputPrice(input_amount, input_reserve, output_reserve) {
+    assert(input_reserve > 0, 'Input reserve must be greater than 0');
+    assert(output_reserve > 0, 'Input reserve must be greater than 0');
+    input_amount_with_fee = input_amount * 997
+    numerator = input_amount_with_fee * output_reserve
+    denominator = (input_reserve * 1000) + input_amount_with_fee
+    return numerator / denominator
+  }
+
+
+
+
+  getSpendAmount({
+    maxToSpend,
+    input_balance,
+    output_balance,
+    dutchPrice,
+    dutchOpportunity,
+    minimumSpend
+  }) {
+    const spendIncrementSmall = 100
+    const spendIncrementLarge = 100000
+
+    let output_returned = 0
+    let input_amount = minimumSpend
+    let useLargeIncrement = true
+    let finalPrice = false
+    let opportunity = true
+
+    // want to loop through larger and larger spending increments
+    // should begin that there is no opportunity and spend amount is less than maxToSpend
+    // should check the smallest increment to see if there is an opporunity
+    // if not there won't be one at larger increments
+    // if so you should increase the increments until maxToSpend is hit or until there is no longer an opportunity
+    while (!finalPrice) {
+      input_amount += useLargeIncrement ? spendIncrementLarge : spendIncrementSmall
+      if (input_amount > maxToSpend || !opportunity) {
+        if (useLargeIncrement) {
+          useLargeIncrement = false
+          opportunity = true
+          input_amount -= spendIncrementLarge
+          continue
+        } else {
+          input_amount -= spendIncrementSmall
+          finalPrice = true
+          continue
+        }
+      }
+      output_returned = getInputPrice(input_amount, input_balance, output_balance)
+      uniswapPrice = output_returned / input_amount
+
+      if (dutchOpportunity) {
+        if (dutchPrice < uniswapPrice) {
+          opportunity = false
+        }
+      } else {
+        if (uniswapPrice < dutchPrice) {
+          opportunity = false
+        }
+      }
+
+    }
+
+    return input_amount
+
   }
 
   async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from, buyLiquidityRules }) {

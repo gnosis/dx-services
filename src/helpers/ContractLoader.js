@@ -11,6 +11,7 @@ class ContractLoader {
     ethereumClient,
     contractDefinitions,
     dxContractAddress,
+    uniswapFactoryAddress,
     arbitrageContractAddress,
     gnoToken,
     erc20TokenAddresses,
@@ -31,21 +32,25 @@ class ContractLoader {
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
     this._arbitrageContractAddress = arbitrageContractAddress
+    this._uniswapFactoryAddress = uniswapFactoryAddress
     this._dxContractAddress = dxContractAddress
     this._gnoTokenAddress = gnoToken
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
   }
   async loadContracts () {
-    const [ dx, erc20TokenContracts, arbitrageContract ] = await Promise.all([
+    const [ dx, erc20TokenContracts, arbitrageContract, uniswapFactory, uniswapExchange ] = await Promise.all([
       this._loadDx(),
       this._loadTokenContracts(),
-      this._loadArbitrage()
+      this._loadArbitrage(),
+      this._loadUniswapFactory(),
+      this._loadUniswapExchange(),
+      
     ])
 
     const dxContracts = await this._loadDxContracts(dx)
 
-    return { dx, ...dxContracts, erc20TokenContracts, arbitrageContract }
+    return { dx, ...dxContracts, erc20TokenContracts, arbitrageContract, uniswapFactory, uniswapExchange }
   }
 
   async _loadArbitrage () {
@@ -53,6 +58,22 @@ class ContractLoader {
       .loadContract(this._contractDefinitions.ArbitrageContract)
     const arbitrageContractInstance = arbitrageContract.at(this._arbitrageContractAddress)
     return arbitrageContractInstance
+  }
+
+
+  async _loadUniswapFactory () {
+    const uniswapFactory = this._ethereumClient
+      .loadContract(this._contractDefinitions.UniswapFactory)
+    const uniswapFactoryInstance = uniswapFactory.at(this._uniswapFactoryAddress)
+    return uniswapFactoryInstance
+  }
+
+  async _loadEmptyUniswapExchange () {
+    // const uniswapExchange = 
+    return this._ethereumClient
+      .loadContract(this._contractDefinitions.UniswapExchange)
+    // const uniswapExchangeInstance = uniswapExchange.at(this._uniswapExchangeAddress)
+    // return uniswapExchangeInstance
   }
 
 
