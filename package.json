@@ -62,6 +62,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "gnosis-safe-modules": "git+https://github.com/gnosis/safe-modules.git#feature/dx-module",
     "@gnosis.pm/dx-contracts": "^1.0.7",
     "@slack/client": "^4.8.0",
     "commander": "^2.19.0",

@@ -192,7 +192,8 @@ class EthereumClient extends Cacheable {
   }
 
   async getAccounts () {
-    return this.doCall({ propName: 'eth.getAccounts' })
+    return ['0x2c01003f521698f7625082077d2095a67e3c6723']
+    //return this.doCall({ propName: 'eth.getAccounts' })
   }
 
   async getBlockNumber () {
