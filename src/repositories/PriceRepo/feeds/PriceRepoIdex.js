@@ -38,7 +38,8 @@ class PriceRepoIdex {
       return false
     }
 
-    const lastPrice = isEthFirst ? response['last'] : 1 / response['last']
+    // ETH_GEN in IDEX returns GEN/WETH value
+    const lastPrice = isEthFirst ? 1 / response['last'] : response['last']
 
     debug('Idex Response to ' + market + ': ', lastPrice.toString())
     return lastPrice.toString()
