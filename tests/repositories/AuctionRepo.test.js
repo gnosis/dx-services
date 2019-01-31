@@ -4,26 +4,31 @@ debug.log = console.debug.bind(console)
 const testSetup = require('../helpers/testSetup')
 const BigNumber = require('bignumber.js')
 const numberUtil = require('../../src/helpers/numberUtil.js')
-// const clone = require('lodash.clonedeep')
 
-const setupPromise = testSetup()
+let currentSnapshotId, setup
 
-let currentSnapshotId
+beforeAll(async (done) => {
+  const setupInstance = testSetup()
+  // Custom configuration
+  // Call to _setupInstance.setConfig is not needed when SAFE_MODULE_ADDRESSES is already not configured
+  setupInstance.setConfig({
+    'SAFE_MODULE_ADDRESSES': null
+  })
+  setup = await setupInstance.init()
+  done()
+})
 
 beforeEach(async () => {
-  const { ethereumClient } = await setupPromise
-
-  currentSnapshotId = await ethereumClient.makeSnapshot()
+  currentSnapshotId = await setup.ethereumClient.makeSnapshot()
 })
 
 afterEach(async () => {
-  const { ethereumClient } = await setupPromise
-
-  return ethereumClient.revertSnapshot(currentSnapshotId)
+  return setup.ethereumClient.revertSnapshot(currentSnapshotId)
 })
 
 test('It should allow to approve one token', async () => {
-  const { auctionRepo, owner } = await setupPromise
+  const { auctionRepo, owner } = setup
+
   const getIsApprovedRDN = () => auctionRepo.isApprovedToken({
     token: 'RDN'
   })
@@ -44,7 +49,8 @@ test('It should allow to approve one token', async () => {
 
 test('It should fail when unknow token is required', async () => {
   expect.assertions(1)
-  const { auctionRepo } = await setupPromise
+
+  const { auctionRepo } = setup
 
   const getUnknownToken = () => auctionRepo.getTokenAddress({ token: 'ABC' })
   try {
@@ -55,7 +61,7 @@ test('It should fail when unknow token is required', async () => {
 })
 
 test('It should return the fee ratio', async () => {
-  const { user1, auctionRepo } = await setupPromise
+  const { user1, auctionRepo } = setup
   // GIVEN a base setupTest
 
   // WHEN we ask for the account fee ratio
@@ -69,7 +75,7 @@ describe('Market interacting tests', async () => {
   let beforeSetupState
 
   beforeAll(async () => {
-    const { fundUser1, ethereumClient } = await setupPromise
+    const { fundUser1, ethereumClient } = setup
 
     beforeSetupState = await ethereumClient.makeSnapshot()
     // Avoid seting up test cases for each test
@@ -77,13 +83,13 @@ describe('Market interacting tests', async () => {
   })
 
   afterAll(async () => {
-    const { ethereumClient } = await setupPromise
+    const { ethereumClient } = setup
 
     return ethereumClient.revertSnapshot(beforeSetupState)
   })
 
   test('It should return account balances', async () => {
-    const { user1, auctionRepo } = await setupPromise
+    const { user1, auctionRepo } = setup
     // GIVEN a base setupTest
 
     // WHEN we ask for account balance
@@ -130,7 +136,7 @@ describe('Market interacting tests', async () => {
 
   test('It should return added token pairs', async () => {
     debug('Launching \'It should return added token pairs\'')
-    const { auctionRepo } = await setupPromise
+    const { auctionRepo } = setup
     // GIVEN a state without token pairs added
     let tokenPairs = await auctionRepo.getTokenPairs()
     expect(tokenPairs.length).toBe(0)
@@ -146,7 +152,7 @@ describe('Market interacting tests', async () => {
   // Add funds to auction (sell tokens in auction)
   test('It should allow to add funds to an auction', async () => {
     debug('Launching \'It should allow to add funds to an auction\'')
-    const { user1 } = await setupPromise
+    const { user1 } = setup
 
     // GIVEN a new token pair
     await _addRdnEthTokenPair({})
@@ -174,7 +180,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should return seller balance for an auction', async () => {
-    const { user1, auctionRepo } = await setupPromise
+    const { user1, auctionRepo } = setup
     // GIVEN a new token pair
     await _addRdnEthTokenPair({})
 
@@ -196,7 +202,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should get correct closing state for a not started auction', async () => {
-    const { user1, auctionRepo, ethereumClient } = await setupPromise
+    const { user1, auctionRepo, ethereumClient } = setup
 
     // GIVEN a new token pair
     await _addRdnEthTokenPair({ ethFunding: 10 })
@@ -226,7 +232,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should return indices of auctions with claimable tokens for sellers', async () => {
-    const { user1, auctionRepo } = await setupPromise
+    const { user1, auctionRepo } = setup
 
     await _addRdnEthTokenPair({})
 
@@ -255,7 +261,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should return indices of auctions with claimable tokens for buyers', async () => {
-    const { user1, auctionRepo, ethereumClient } = await setupPromise
+    const { user1, auctionRepo, ethereumClient } = setup
 
     await _addRdnEthTokenPair({})
     await ethereumClient.increaseTime(6.1 * 60 * 60)
@@ -285,7 +291,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should claim from several auctions as seller', async () => {
-    const { user1, auctionRepo, ethereumClient } = await setupPromise
+    const { user1, auctionRepo, ethereumClient } = setup
 
     await _addRdnEthTokenPair({ ethFunding: 10 })
     // Fund and close 2 auctions where we participate
@@ -314,7 +320,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should claim from several auctions as buyer', async () => {
-    const { user1, auctionRepo, ethereumClient } = await setupPromise
+    const { user1, auctionRepo, ethereumClient } = setup
 
     await _addRdnEthTokenPair({ ethFunding: 10 })
     // Fund and close 2 auctions where we participate
@@ -345,7 +351,7 @@ describe('Market interacting tests', async () => {
 
   // Test buy tokens in auction
   test('It should allow to buy tokens in an auction', async () => {
-    const { user1, ethereumClient } = await setupPromise
+    const { user1, ethereumClient } = setup
 
     // GIVEN a new token pair after 6 hours of funding
     await _addRdnEthTokenPair({})
@@ -389,7 +395,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should allow return buyer balance for an auction', async () => {
-    const { user1, ethereumClient, auctionRepo } = await setupPromise
+    const { user1, ethereumClient, auctionRepo } = setup
 
     // GIVEN a new token pair before user buying anything
     await _addRdnEthTokenPair({})
@@ -424,7 +430,7 @@ describe('Market interacting tests', async () => {
   // Test auction closing
   test('It should close auction after all tokens sold', async () => {
     jest.setTimeout(10000)
-    const { user1, ethereumClient } = await setupPromise
+    const { user1, ethereumClient } = setup
 
     // GIVEN a new token pair after 6 hours of funding
     await _addRdnEthTokenPair({ rdnFunding: 0.5 })
@@ -473,7 +479,7 @@ describe('Market interacting tests', async () => {
 
   // Closing an auction in PENDING_CLOSE_THEORETICAL state
   test('It should allow to close a PENDING_CLOSE_THEORETICAL auction', async () => {
-    const { user1, ethereumClient } = await setupPromise
+    const { user1, ethereumClient } = setup
 
     // GIVEN an auction after many tokens sold and 24 hours later
     await _addRdnEthTokenPair({ ethFunding: 10 })
@@ -505,7 +511,7 @@ describe('Market interacting tests', async () => {
 
   // Ask for sell volume for next auction
   test('It should add sell volume for next auction', async () => {
-    const { user1, ethereumClient, auctionRepo } = await setupPromise
+    const { user1, ethereumClient, auctionRepo } = setup
 
     // GIVEN a RUNNING auction
     await _addRdnEthTokenPair({ ethFunding: 10 })
@@ -531,7 +537,7 @@ describe('Market interacting tests', async () => {
   // Add a non ethereum market
   test('It should allow to add markets between tokens different from WETH', async () => {
     jest.setTimeout(10000)
-    const { web3, auctionRepo, user1 } = await setupPromise
+    const { web3, auctionRepo, user1 } = setup
 
     // GIVEN a state status of UNKNOWN_TOKEN_PAIR for RDN-WETH
     let rdnEthState = await _getState({})
@@ -596,7 +602,7 @@ describe('Market interacting tests', async () => {
   })
 
   test('It should return last available closing price', async () => {
-    const { user1, auctionRepo, ethereumClient } = await setupPromise
+    const { user1, auctionRepo, ethereumClient } = setup
 
     const initialClosingPrice = {
       numerator: new BigNumber(4079),
@@ -648,7 +654,7 @@ describe('Market interacting tests', async () => {
     let sendTransactionFn
 
     beforeAll(async () => {
-      const { auctionRepo } = await setupPromise
+      const { auctionRepo } = setup
 
       // We save a copy of the function we use to test retries
       // Is a complex object with a function at root and som auxiliary methods in properties
@@ -657,7 +663,7 @@ describe('Market interacting tests', async () => {
     })
 
     beforeEach(async () => {
-      const { auctionRepo } = await setupPromise
+      const { auctionRepo } = setup
 
       // wrap scope function with mock properties
       // Contract function is a complex object with a function and some auxiliary methods
@@ -669,7 +675,7 @@ describe('Market interacting tests', async () => {
     })
 
     afterEach(async () => {
-      const { auctionRepo } = await setupPromise
+      const { auctionRepo } = setup
 
       // We use this function to remove mock methods in order to avoid issues
       // and restore pure origin functionality
@@ -678,7 +684,7 @@ describe('Market interacting tests', async () => {
     })
 
     test('It should retry the transaction in case of failure', async () => {
-      const { user1, auctionRepo } = await setupPromise
+      const { user1, auctionRepo } = setup
 
       // GIVEN a new token pair
       await _addRdnEthTokenPair({})
@@ -711,7 +717,7 @@ describe('Market interacting tests', async () => {
     })
 
     test('It should not retry the transaction if max gas price reached', async () => {
-      const { user1, auctionRepo } = await setupPromise
+      const { user1, auctionRepo } = setup
 
       // GIVEN a new token pair
       await _addRdnEthTokenPair({})
@@ -752,7 +758,7 @@ describe('Market interacting tests', async () => {
     })
 
     test('It return a rejected transaction', async () => {
-      const { user1, auctionRepo } = await setupPromise
+      const { user1, auctionRepo } = setup
 
       // GIVEN a new token pair
       await _addRdnEthTokenPair({})
@@ -837,25 +843,25 @@ const INITIAL_USER1_BALANCE = [
 ]
 
 async function _getIsApprovedMarket ({ tokenA = 'RDN', tokenB = 'WETH' }) {
-  const { auctionRepo } = await setupPromise
+  const { auctionRepo } = setup
 
   return auctionRepo.isValidTokenPair({ tokenA, tokenB })
 }
 
 async function _getStateInfo ({ sellToken = 'RDN', buyToken = 'WETH' }) {
-  const { auctionRepo } = await setupPromise
+  const { auctionRepo } = setup
 
   return auctionRepo.getStateInfo({ sellToken, buyToken })
 }
 
 async function _getState ({ sellToken = 'RDN', buyToken = 'WETH' }) {
-  const { auctionRepo } = await setupPromise
+  const { auctionRepo } = setup
 
   return auctionRepo.getState({ sellToken, buyToken })
 }
 
 async function _getCurrentAuctionPrice ({ sellToken = 'RDN', buyToken = 'WETH' }) {
-  const { auctionRepo } = await setupPromise
+  const { auctionRepo } = setup
 
   const auctionIndex = await auctionRepo.getAuctionIndex({
     buyToken,
@@ -892,7 +898,7 @@ async function _fundAndCloseAuction ({ sellToken = 'RDN', buyToken = 'WETH', fro
 }
 
 async function _buySell (operation, { from, buyToken, sellToken, amount }) {
-  const { web3, auctionRepo } = await setupPromise
+  const { web3, auctionRepo } = setup
 
   let auctionIndex = await auctionRepo.getAuctionIndex({
     buyToken,
@@ -926,7 +932,7 @@ async function _addRdnEthTokenPair ({
     denominator: 1000000
   }
 }) {
-  const { web3, auctionRepo, user1 } = await setupPromise
+  const { web3, auctionRepo, user1 } = setup
 
   await auctionRepo.addTokenPair({
     from: user1,
@@ -939,7 +945,7 @@ async function _addRdnEthTokenPair ({
 }
 
 async function _toBigNumberWei (value) {
-  const { web3 } = await setupPromise
+  const { web3 } = setup
 
   return new BigNumber(web3.toWei(value, 'ether'))
 }

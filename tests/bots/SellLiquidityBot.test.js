@@ -1,7 +1,5 @@
 const SellLiquidityBot = require('../../src/bots/SellLiquidityBot')
-
 const testSetup = require('../helpers/testSetup')
-const setupPromise = testSetup()
 
 const BigNumber = require('bignumber.js')
 
@@ -12,8 +10,20 @@ const MARKETS = [
 
 let sellLiquidityBot
 
-beforeAll(async () => {
-  await setupPromise
+beforeAll(async (done) => {
+  // Instantiate the Setup environment
+  const _setupInstance = testSetup()
+
+  // Custom configuration
+  _setupInstance.setConfig({
+    'AUCTION_REPO': {
+      // Use Base AuctionRepo, this configuration is not needed if AuctionRepoImpl is setted on /conf/config-repos.js
+      'factory': 'src/repositories/AuctionRepo/AuctionRepoImpl'
+    }
+  })
+
+  // Initialise contracts, helpers, services etc..
+  await _setupInstance.init()
 
   sellLiquidityBot = new SellLiquidityBot({
     name: 'SellLiquidityBot',
@@ -26,6 +36,9 @@ beforeAll(async () => {
 
   await sellLiquidityBot.init()
   await sellLiquidityBot.start()
+
+  // Wait until everything is ready to go
+  done()
 })
 
 afterAll(() => {

@@ -15,9 +15,9 @@ async function _createEthereumRepo () {
     factoryConf: ethereumRepoConf
   } = conf.getFactory('ETHEREUM_REPO')
 
-  const web3 = require('../../web3')
   const getEthereumClient = require('../../getEthereumClient')
   const ethereumClient = await getEthereumClient()
+  const web3 = ethereumClient.getWeb3()
 
   const {
     CACHE

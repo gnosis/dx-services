@@ -3,10 +3,27 @@
 const testSetup = require('../helpers/testSetup')
 const blocks = require('../data/blocks').blocks
 
-const setupPromise = testSetup()
+let setup
+
+// Execute Test Suite setup
+beforeAll(async (done) => {
+  const _setupInstance = testSetup()
+
+  // Custom configuration
+  // Call to _setupInstance.setConfig is not needed when SAFE_MODULE_ADDRESSES is already not configured
+  _setupInstance.setConfig({
+    'SAFE_MODULE_ADDRESSES': null
+  })
+
+  // Initialise contracts, helpers, services etc..
+  setup = await _setupInstance.init()
+
+  // Wait until everything is ready to go
+  done()
+})
 
 test('It should allow to get token contract info', async () => {
-  const { contracts, ethereumRepo } = await setupPromise
+  const { contracts, ethereumRepo } = setup
 
   // GIVEN Raiden Token contract address
   let rdnTokenAddress = contracts.erc20TokenContracts.RDN.address
@@ -118,7 +135,7 @@ BLOCK_TEST_CASES.forEach(({
 
 function _testGetBlockFn (getBlockFunctionName, blockNumber, deltaTime, expectedBlock) {
   return async () => {
-    const { ethereumRepo } = await setupPromise
+    const { ethereumRepo } = setup
 
     // We mock the getBlock function in order to mock blocks to be deterministic
     ethereumRepo._ethereumClient.getBlock = _getBlock

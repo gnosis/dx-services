@@ -60,7 +60,9 @@ let config = {
   ...customConfig,
   ...require('./config-env-vars'),
   MARKETS: markets.map(orderMarketTokens),
-  getFactory
+  getFactory,
+  getDXMode,
+  update // update config function
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
@@ -133,6 +135,10 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
   }, {})
 }
 
+/**
+* @param {string} factoryPropName. Name of the property to look for in the configuration object
+* @return {Object} Dictionary object containing reference to the looked up object and its eventual configuration
+*/
 function getFactory (factoryPropName) {
   const assert = require('assert')
   const path = require('path')
@@ -141,7 +147,7 @@ function getFactory (factoryPropName) {
   assert(factoryConfAux, `"${factoryPropName}" was not defined in the conf`)
 
   const { factory, ...factoryConf } = factoryConfAux
-  assert(factory, '"factory" is required in ETHEREUM_REPO config')
+  assert(factory, `"factory" is required in ${factoryPropName} config`)
 
   const factoryPath = path.join('../', factory)
   // console.log('factoryPath: ', factoryPath)
@@ -151,6 +157,28 @@ function getFactory (factoryPropName) {
     Factory,
     factoryConf
   }
+}
+
+/**
+ * Returns the DX configuration mode, classic or safe
+ * @return {string} - classic|safe
+ */
+function getDXMode () {
+  if (config.SAFE_MODULE_ADDRESSES && config.SAFE_MODULE_ADDRESSES.SAFE_ADDRESS) {
+    return 'safe'
+  } else {
+    return 'classic'
+  }
+}
+
+/**
+* Allow to update the configuration at runtime - used mostly by testSetup.js to allow
+* executing tests running smoothly different configurations
+* @param {Object} - Configuration dictionary object
+* @return {Object} - Updated configuration
+*/
+function update (newConfig) {
+  return Object.assign(config, newConfig)
 }
 
 module.exports = config

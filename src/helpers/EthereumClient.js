@@ -192,8 +192,7 @@ class EthereumClient extends Cacheable {
   }
 
   async getAccounts () {
-    return ['0x2c01003f521698f7625082077d2095a67e3c6723']
-    //return this.doCall({ propName: 'eth.getAccounts' })
+    return this.doCall({ propName: 'eth.getAccounts' })
   }
 
   async getBlockNumber () {
@@ -217,7 +216,7 @@ class EthereumClient extends Cacheable {
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
 
-    if (this._cache && cacheTime !== null) {
+    if (this._cache && cacheTime !== null) { // @TODO review, cacheTime sometimes is undefined
       const cacheKey = this._getCacheKey({ propName, params })
       return this._cache.get({
         key: cacheKey,

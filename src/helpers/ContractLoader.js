@@ -14,6 +14,9 @@ class ContractLoader {
     gnoToken,
     erc20TokenAddresses,
     contractsBaseDir
+    // safeAddress,
+    // safeCompleteModuleAddress,
+    // safeSellerModuleAddress
   }) {
     assert(ethereumClient, '"ethereumClient" is required')
     assert(contractDefinitions, '"contractDefinitions" is required')
@@ -33,7 +36,13 @@ class ContractLoader {
     this._gnoTokenAddress = gnoToken
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
+
+    // Safe Module related configs
+    // this._safeAddress = safeAddress
+    // this._safeCompleteModuleAddress = safeCompleteModuleAddress
+    // this._safeSellerModuleAddress = safeSellerModuleAddress
   }
+
   async loadContracts () {
     const [ dx, erc20TokenContracts ] = await Promise.all([
       this._loadDx(),
@@ -41,6 +50,7 @@ class ContractLoader {
     ])
 
     const dxContracts = await this._loadDxContracts(dx)
+    // const safeModuleContracts = await this._loadSafeDXModuleContracts()
 
     return { dx, ...dxContracts, erc20TokenContracts }
   }
@@ -165,6 +175,37 @@ class ContractLoader {
       gno
     }
   }
+
+  /**
+  * @return {Object} Dictionary object containing the instance of Safe, SafeDXCompleteModule and SafeDXSellerModule
+  */
+//  async _loadSafeDXModuleContracts () {
+//     let returnData = {}
+
+//     if (this._contractDefinitions.Safe) {
+//       const safeContract = this._ethereumClient
+//         .loadContract(this._contractDefinitions.Safe)
+
+//       returnData.Safe = safeContract.at(this._safeAddress)
+//     }
+
+//     // Get contract instance only if its contract and address were provided in the config
+//     if (this._contractDefinitions.SafeDXCompleteModule && this._safeCompleteModuleAddress) {
+//       const dxCompleteModuleContract = this._ethereumClient
+//         .loadContract(this._contractDefinitions.SafeDXCompleteModule)
+
+//       returnData.SafeDXCompleteModule = dxCompleteModuleContract.at(this._safeCompleteModuleAddress)
+//     }
+
+//     if (this._contractDefinitions.SafeDXSellerModule && this._safeSellerModuleAddress) {
+//       const dxSellerModuleContract = this._ethereumClient
+//         .loadContract(this._contractDefinitions.SafeDXSellerModule)
+
+//       returnData.SafeDXSellerModule = dxSellerModuleContract.at(this._safeSellerModuleAddress)
+//     }
+
+//     return returnData
+//   }
 
   async _getDeployedAddress (contractName, contract, enforceLocalOnly = true) {
     if (enforceLocalOnly) {

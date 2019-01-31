@@ -33,7 +33,7 @@ async function createInstances ({
   createReportService = true, // TODO: Improve how we pull services
   config: configOverride = {}
 } = {}) {
-  const config = Object.assign({}, originalConfig, configOverride)
+  const config = originalConfig.update(configOverride)
   debug('Initializing app for %s environment...', config.ENVIRONMENT)
 
   const eventBus = await getEventBus()
