@@ -13,12 +13,14 @@ const loadContracts = require('../loadContracts')
 const getEthereumClient = require('../getEthereumClient')
 
 // Repos
+const getArbitrageRepo = require('../repositories/ArbitrageRepo')
 const getAuctionRepo = require('../repositories/AuctionRepo')
 const getPriceRepo = require('../repositories/PriceRepo')
 const getEthereumRepo = require('../repositories/EthereumRepo')
 const getSlackRepo = require('../repositories/SlackRepo')
 
 // Services
+const getArbitrageService = require('../services/ArbitrageService')
 const getAuctionService = require('../services/AuctionService')
 const getBotsService = require('../services/BotsService')
 const getDxInfoService = require('../services/DxInfoService')
@@ -48,6 +50,7 @@ async function createInstances ({
   const contracts = await loadContracts()
 
   // Repos
+  const arbitrageRepo = await getArbitrageRepo()
   const auctionRepo = await getAuctionRepo()
   const priceRepo = await getPriceRepo()
   const ethereumRepo = await getEthereumRepo()
@@ -63,6 +66,7 @@ async function createInstances ({
   const botsService = await getBotsService()
   const marketService = await getMarketService()
   const auctionService = await getAuctionService()
+  const arbitrageService = await getArbitrageService()
 
   let reportService
   if (createReportService) {
@@ -85,6 +89,7 @@ async function createInstances ({
     dxTradeService,
     botsService,
     marketService,
+    arbitrageService,
     auctionService,
     reportService
   }
@@ -93,6 +98,7 @@ async function createInstances ({
     // For testing is handy to return also the repos, client, etc
     instances = Object.assign({}, instances, {
       priceRepo,
+      arbitrageRepo,
       auctionRepo,
       ethereumRepo,
       ethereumClient

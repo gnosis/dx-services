@@ -76,6 +76,7 @@
     "raven": "^2.6.4",
     "truffle-contract": "^3.0.3",
     "truffle-hdwallet-provider": "0.0.6",
+    "truffle-shavings": "github:okwme/arbitrage",
     "yamljs": "^0.3.0",
     "yargs": "^11.0.0"
   },

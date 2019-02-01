@@ -155,6 +155,14 @@ class ArbitrageRepoImpl extends Cacheable {
     })
   }
 
+  async depositEther({amount, from}) {
+    return this._doTransaction({
+      operation: 'depositEther',
+      from,
+      amount
+    })
+  }
+
   // async getAbout () {
   //   const auctioneerAddress = await this._arbitrage.auctioneer.call()
   //   const tokenNames = Object.keys(this._tokens)
@@ -211,13 +219,15 @@ class ArbitrageRepoImpl extends Cacheable {
     return operation + ':' + params.join('-')
   }
 
-  async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params }) {
+  async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params, value }) {
+    value = value || '0'
     logger.debug({
       msg: '_doTransaction: %o',
       params: [
         operation,
         from,
-        params
+        params,
+        value
       ]
     })
 
@@ -229,7 +239,7 @@ class ArbitrageRepoImpl extends Cacheable {
 
       // Estimate gas
       this._arbitrage[operation]
-        .estimateGas(...params, { from })
+        .estimateGas(...params, { from, value })
     ])
 
     const { initialGasPrice, fastGasPrice } = gasPrices
@@ -257,7 +267,8 @@ class ArbitrageRepoImpl extends Cacheable {
         params,
         gas,
         gasPriceParam,
-        nonce: undefined
+        nonce: undefined,
+        value
       })
     })
   }
@@ -292,19 +303,21 @@ class ArbitrageRepoImpl extends Cacheable {
     params,
     gas,
     gasPriceParam, // if manually set
-    nonce
+    nonce,
+    value
   }) {
     return this
       ._arbitrage[operation](...params, {
         from,
         gas,
-        gasPrice
+        gasPrice,
+        value
       }).then(result => {
         resolve(result)
       }).catch(error => {
         logger.error({
-          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Error: %s',
-          params: [ operation, from, params, gas, gasPrice, error ],
+          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Value: %d. Error: %s',
+          params: [ operation, from, params, gas, gasPrice, value, error ],
           error
         })
 

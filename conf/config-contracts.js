@@ -9,6 +9,8 @@ const CONTRACTS_ARBITRAGE_DIR = 'node_modules/okwme/arbitrage/build/contracts'
 module.exports = {
   // Contracts
   DX_CONTRACT_ADDRESS: null,
+  UNISWAP_FACTORY_ADDRESS: null,
+  ARBITRAGE_CONTRACT_ADDRESS: null,
 
   // TODO: Do we need this?
   GNO_TOKEN_ADDRESS: null,
@@ -22,7 +24,7 @@ module.exports = {
 
   // Contracts paths
   CONTRACT_DEFINITIONS: {
-    ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
+    ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage', //BILLY: CHECK THIS
     UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory', //BILLY: CHECK THIS
     UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange', //BILLY: CHECK THIS
     StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
