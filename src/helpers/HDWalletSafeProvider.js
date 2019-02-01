@@ -18,6 +18,7 @@ const logger = new Logger('dx-service:helpers:HDWalletSafeProvider')
 const NONCE_LOCK_DISABLED = process.env.DISABLE_NONCE_LOCK === 'true' || isLocal
 
 class HDWalletSafeProvider extends TruffleHDWalletProvider {
+
   constructor ({
     mnemonic,
     url,
@@ -25,18 +26,21 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     numAddresses = 5,
     shareNonce = true,
     blockForNonceCalculation = 'pending',
-    operator,
+    operator, // User account that is gonna send transactions
     safeAddress,
     safeModuleAddress,
-    safeModuleMode = 'complete'
+    safeModuleMode = 'complete', // Use complete safe-module by default
+    defaultGas = 300000
   }) {
     assert(mnemonic, '"mnemonic" is mandatory')
     assert(url, '"url" is mandatory')
-    assert(safeAddress, '"safeAddress is mandatory')
+    assert(safeAddress, '"safeAddress" is mandatory for running in Safe mode')
+    assert(safeModuleAddress, '"safeModuleAddress" is mandatory for running in Safe mode')
 
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._blockForNonceCalculation = blockForNonceCalculation
-    this._operator = operator || this.addresses[0]
+    this._defaultGas = defaultGas
+    this._operator = operator || this.addresses[0] // use 1st account in HDWallet
     this._safeAddress = safeAddress
     this._safeModuleAddress = safeModuleAddress
     this._safeModuleMode = safeModuleMode
@@ -101,6 +105,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
           params: [] },
        '1': [Function] }
     */
+
     let method = args.method
     let params = args.params
     let newParams
@@ -134,7 +139,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         'to': this._safeModule.address,
         'value': 0,
         'data': moduleData,
-        'gas': 300000
+        'gas': this._defaultGas
       }
       // Rewrite arguments
       arguments['0'].params[0] = newParams
@@ -145,6 +150,15 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         logger.trace('Send transaction: %o', arguments)
         return super.sendAsync(...arguments)
       }
+    } else if (method === 'eth_accounts') {
+      // return safe address
+      // arguments['1'] is the callback function setted up by _promisify()
+      return arguments['1'](null, {
+        "id": 21,
+        "jsonrpc": "2.0",
+        "result": [this._safeAddress]
+      })
+      
     } else {
       logger.trace('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)

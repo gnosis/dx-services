@@ -33,10 +33,7 @@ function _getWeb3 ({ conf }) {
   logger.debug(`Use DX ${configMode} configuration mode`)
 
   if (configMode == 'safe') {
-    const {
-      SAFE_MODULE_ADDRESSES
-    } = conf
-
+    const { SAFE_MODULE_ADDRESSES } = conf
     // Determine which safe-module to use (complete or seller)
     let safeModuleMode = 'complete' // complete by default
     let safeModuleAddress = SAFE_MODULE_ADDRESSES.SAFE_COMPLETE_MODULE_CONTRACT_ADDRESS
@@ -47,7 +44,7 @@ function _getWeb3 ({ conf }) {
     }
 
     logger.debug(`Use Safe-Module ${safeModuleMode} mode`)
-  
+
     this._provider = new HDWalletSafeProvider({
       mnemonic: MNEMONIC,
       url: ETHEREUM_RPC_URL,

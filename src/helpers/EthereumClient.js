@@ -216,7 +216,7 @@ class EthereumClient extends Cacheable {
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
 
-    if (this._cache && cacheTime !== null) { // @TODO review, cacheTime sometimes is undefined
+    if (this._cache && cacheTime !== null && cacheTime !== undefined) { // @TODO review, cacheTime sometimes is undefined
       const cacheKey = this._getCacheKey({ propName, params })
       return this._cache.get({
         key: cacheKey,
