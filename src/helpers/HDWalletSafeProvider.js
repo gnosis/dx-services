@@ -36,9 +36,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._blockForNonceCalculation = blockForNonceCalculation
-    //this._mainAddress = '0xf17f52151ebef6c7334fad080c5704d77216b732'
-    this._mainAddress = operator || this.addresses[0] // parent class addresses
-    this._operator = operator || this.addresses[0] // '0xf17f52151ebef6c7334fad080c5704d77216b732'
+    this._operator = operator || this.addresses[0]
     this._safeAddress = safeAddress
     this._safeModuleAddress = safeModuleAddress
     this._safeModuleMode = safeModuleMode
@@ -56,18 +54,18 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     this._safeModule = truffleContract(moduleABI).at(this._safeModuleAddress)
   }
 
+  // Force return the Safe address
   getAccounts () {
-    console.log("#### HDWalletSafeProvider getAccounts")
     return [this._safeAddress]
   }
+
+  // Force return the Safe address
   getAddress (idx) {
-    console.log("#### HDWalletSafeProvider getAddress")
     return this._safeAddress
   }
 
-  // returns the addresses cache
+  // Force return the Safe address
   getAddresses () {
-    console.log("#### HDWalletSafeProvider getAddresses")
     return [this._safeAddress]
   }
 
@@ -75,7 +73,6 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     return new Promise((resolve, reject) => {
       this._web3.eth.getTransactionCount(this._operator, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
-          // console.error('[HDWalletProvider] Error getting the nonce')
           logger.debug('Error getting the nonce', error)
           reject(error)
         } else {
@@ -124,18 +121,13 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       }
     }
 
-    // console.log(JSON.stringify(arguments, null, 4))
-
-    // if (method === 'eth_call') {
-    //   console.log(JSON.stringify(arguments, null, 4))
-    // }
-
-    if (method === 'eth_estimateGas') {
+    //if (method === 'eth_estimateGas') {
       //arguments['1'] = console.log
       // return arguments['1']({ jsonrpc: '2.0', result: '0x493e0' })
-    }
+    //}
 
     if (method === 'eth_sendTransaction') {
+      // Get Safe Module contract data
       const moduleData = this._safeModule.contract.executeWhitelisted.getData(params[0].to, params[0].value, params[0].data)
       newParams = {
         'from': this._operator,
@@ -144,11 +136,8 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         'data': moduleData,
         'gas': 300000
       }
-
+      // Rewrite arguments
       arguments['0'].params[0] = newParams
-
-      // console.log(JSON.stringify(arguments, null, 4))
-      // console.log(params)
 
       if (!NONCE_LOCK_DISABLED) {
         this._sendTxWithUniqueNonce(...arguments)
@@ -173,7 +162,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     }
 
     sendTxWithUniqueNonce({
-      from: from || this._mainAddress,
+      from: from || this._operator,
       getNonceFn: () => this.getNonce(from),
       sendTransaction: nonce => {
         const nonceHex = '0x' + nonce.toString(16)
@@ -183,8 +172,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         } else {
           params.nonce = nonceHex
         }
-        // logger.info('Send transaction with params %O', params)
-        // console.log('[HDWalletProvider] Params: %O', params)
+
         const sendParams = Object.assign({}, args, { params })
         logger.debug('Send transaction with unique nonce: %o', sendParams)
 
@@ -204,14 +192,6 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     })
   }
 
-  _sendAsyncWithNonce () {
-    return super.sendAsync()
-  }
-
-  send () {
-    // console.log('[HDWalletProvider] Intercepting send: ', arguments)
-    return super.send(...arguments)
-  }
 }
 
 module.exports = HDWalletSafeProvider

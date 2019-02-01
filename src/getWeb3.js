@@ -36,6 +36,17 @@ function _getWeb3 ({ conf }) {
     const {
       SAFE_MODULE_ADDRESSES
     } = conf
+
+    // Determine which safe-module to use (complete or seller)
+    let safeModuleMode = 'complete' // complete by default
+    let safeModuleAddress = SAFE_MODULE_ADDRESSES.SAFE_COMPLETE_MODULE_CONTRACT_ADDRESS
+
+    if (SAFE_MODULE_ADDRESSES.SAFE_SELLER_MODULE_CONTRACT_ADDRESS) {
+      safeModuleMode = 'seller'
+      safeModuleAddress = SAFE_MODULE_ADDRESSES.SAFE_SELLER_MODULE_CONTRACT_ADDRESS
+    }
+
+    logger.debug(`Use Safe-Module ${safeModuleMode} mode`)
   
     this._provider = new HDWalletSafeProvider({
       mnemonic: MNEMONIC,
@@ -43,7 +54,8 @@ function _getWeb3 ({ conf }) {
       addressIndex: 0,
       numAddresses: 5,
       safeAddress: SAFE_MODULE_ADDRESSES.SAFE_ADDRESS,
-      safeModuleAddress: SAFE_MODULE_ADDRESSES.SAFE_COMPLETE_MODULE_CONTRACT_ADDRESS // @TODO review how to switch between complete and seller module
+      safeModuleAddress,
+      safeModuleMode
     })
     this._provider.loadSafeModule()
   } else {
