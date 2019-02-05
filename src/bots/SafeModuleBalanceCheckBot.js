@@ -1,4 +1,4 @@
-const loggerNamespace = 'dx-service:bots:BalanceCheckBot'
+const loggerNamespace = 'dx-service:bots:SafeModuleBalanceCheckBot'
 const BalanceCheckBot = require('./BalanceCheckBot')
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
@@ -18,10 +18,9 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
     tokens,
     notifications,
     minimumAmountForEther,
-    minimumAmountInUsdForToken,
-    operatorAddress
+    minimumAmountInUsdForToken
   }) {
-    super({ 
+    super({
       name,
       accountIndex,
       botAddress,
@@ -32,7 +31,15 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
       tokens
     })
 
-    assert(operatorAddress, 'operatorAddress is required')
+    // assert(operatorAddress, 'operatorAddress is required')
+    // this._operatorAddress = operatorAddress
+  }
+
+  async setAddress () {
+    await super.setAddress()
+    const web3 = this._ethereumClient.getWeb3()
+    const operatorAddress = web3.currentProvider.getHDAccount(this._accountIndex)
+    assert(operatorAddress, 'Couldn\'t get the operator address, check that HDWalletSafeProvider is setted up correctly')
     this._operatorAddress = operatorAddress
   }
 

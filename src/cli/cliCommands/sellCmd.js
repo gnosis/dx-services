@@ -1,7 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
 const getAddress = require('../../helpers/getAddress')
-
-const getAddress = require('../../helpers/getAddress')
 const getDxInfoService = require('../../services/DxInfoService')
 const getDxTradeService = require('../../services/DxTradeService')
 

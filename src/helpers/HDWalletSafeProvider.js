@@ -40,7 +40,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     super(mnemonic, url, addressIndex, numAddresses, shareNonce)
     this._blockForNonceCalculation = blockForNonceCalculation
     this._defaultGas = defaultGas
-    this._operator = operator || this.addresses[0] // use 1st account in HDWallet
+    this._operator = operator || this.addresses[addressIndex] // use 1st account in HDWallet
     this._safeAddress = safeAddress
     this._safeModuleAddress = safeModuleAddress
     this._safeModuleMode = safeModuleMode
@@ -56,6 +56,13 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     }
 
     this._safeModule = truffleContract(moduleABI).at(this._safeModuleAddress)
+  }
+
+  /**
+  * @returns {string} account in the HD list of addresses specified by the provided index
+  */
+  getHDAccount (accountIndex ) {
+    return this.addresses[accountIndex]
   }
 
   // Force return the Safe address
@@ -126,11 +133,6 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       }
     }
 
-    //if (method === 'eth_estimateGas') {
-      //arguments['1'] = console.log
-      // return arguments['1']({ jsonrpc: '2.0', result: '0x493e0' })
-    //}
-
     if (method === 'eth_sendTransaction') {
       // Get Safe Module contract data
       const moduleData = this._safeModule.contract.executeWhitelisted.getData(params[0].to, params[0].value, params[0].data)
@@ -158,7 +160,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         "jsonrpc": "2.0",
         "result": [this._safeAddress]
       })
-      
+
     } else {
       logger.trace('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)
