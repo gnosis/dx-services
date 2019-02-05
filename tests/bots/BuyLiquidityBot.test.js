@@ -40,14 +40,6 @@ beforeAll(async (done) => {
   // Instantiate the Setup environment
   const _setupInstance = testSetup()
 
-  // Custom configuration
-  _setupInstance.setConfig({
-    'AUCTION_REPO': {
-      // Use Base AuctionRepo, this configuration is not needed if AuctionRepoImpl is setted on /conf/config-repos.js
-      'factory': 'src/repositories/AuctionRepo/AuctionRepoImpl'
-    }
-  })
-
   // Initialise contracts, helpers, services etc..
   setup = await _setupInstance.init()
 

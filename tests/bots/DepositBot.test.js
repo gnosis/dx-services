@@ -10,14 +10,6 @@ beforeAll(async (done) => {
   // Instantiate the Setup environment
   setupInstance = testSetup()
 
-  // Custom configuration
-  setupInstance.setConfig({
-    'AUCTION_REPO': {
-      // Use Base AuctionRepo, this configuration is not needed if AuctionRepoImpl is setted on /conf/config-repos.js
-      'factory': 'src/repositories/AuctionRepo/AuctionRepoImpl'
-    }
-  })
-
   // Initialise contracts, helpers, services etc..
   const { dxInfoService, dxTradeService } = await setupInstance.init()
 
