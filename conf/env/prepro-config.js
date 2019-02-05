@@ -4,6 +4,7 @@ const ENVIRONMENT = process.env.NODE_ENV
 const RDN_TOKEN_ADDRESS = null
 const OMG_TOKEN_ADDRESS = null
 const MNEMONIC = null
+const PK = null
 
 module.exports = {
   ENVIRONMENT,
@@ -13,5 +14,6 @@ module.exports = {
   OMG_TOKEN_ADDRESS,
 
   // Ethereum config
-  MNEMONIC
+  MNEMONIC,
+  PK
 }

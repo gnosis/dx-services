@@ -7,6 +7,7 @@ let setup
 
 // Execute Test Suite setup
 beforeAll(async (done) => {
+  jest.setTimeout(10000); // increase timeout, 5seconds by default
   const _setupInstance = testSetup()
 
   // Custom configuration

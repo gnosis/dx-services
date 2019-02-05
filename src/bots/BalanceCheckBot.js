@@ -55,7 +55,7 @@ class BalanceCheckBot extends Bot {
 
     this._tokens = tokens
     this._notifications = notifications
-    this._minimumAmountForEther = minimumAmountForEther
+    this._minimumAmountForEther = minimumAmountForEther * 1e18 // all balances are compared in WEI
     this._minimumAmountInUsdForToken = minimumAmountInUsdForToken
 
     this._lastCheck = null
@@ -162,9 +162,12 @@ class BalanceCheckBot extends Bot {
     return {
       botAddress: this._botAddress,
       tokens: this._tokens,
+      minimumAmountForEther: this._minimumAmountForEther,
+      minimumAmountInUsdForToken: this._minimumAmountInUsdForToken,
       lastCheck: this._lastCheck,
       lastWarnNotification: this._lastWarnNotification,
       lastError: this._lastError,
+      notifications: this._notifications,
       lastSlackEtherBalanceNotification: this._lastSlackEtherBalanceNotification,
       lastSlackTokenBalanceNotification: this._lastSlackTokenBalanceNotification
     }
@@ -188,27 +191,41 @@ class BalanceCheckBot extends Bot {
       notify: true
     })
 
-    // Notify to slack
-    this._notifyToSlack({
-      name: 'Ether Balance',
-      lastNotificationVariableName: '_lastSlackEtherBalanceNotification',
-      message: {
-        attachments: [{
-          color: 'danger',
-          title: message,
-          fields: [
-            {
-              title: 'Ether balance',
-              value: numberUtil.roundDown(balance, 4) + ' ETH',
-              short: false
-            }, {
-              title: 'Bot account',
-              value: account,
-              short: false
-            }
-          ],
-          footer: this.botInfo
-        }]
+    this._notifications.forEach(({ type, channel }) => {
+      switch (type) {
+        case 'slack':
+          if (this._slackRepo.isEnabled()) {
+            // Notify to slack
+            this._notifyToSlack({
+              channel,
+              name: 'Ether Balance',
+              lastNotificationVariableName: '_lastSlackEtherBalanceNotification',
+              message: {
+                attachments: [{
+                  color: 'danger',
+                  title: message,
+                  fields: [
+                    {
+                      title: 'Ether balance',
+                      value: numberUtil.roundDown(balance, 4) + ' ETH',
+                      short: false
+                    }, {
+                      title: 'Bot account',
+                      value: account,
+                      short: false
+                    }
+                  ],
+                  footer: this.botInfo
+                }]
+              }
+            })
+          }
+          break
+        case 'email':
+        default:
+          logger.error({
+            msg: 'Error notification type is unknown: ' + type
+          })
       }
     })
   }

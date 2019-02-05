@@ -4,12 +4,14 @@ const CONTRACTS_SAFE_MODULE_DIR = 'node_modules/gnosis-safe-modules/build/contra
 // To enable the SafeModule, please add the properties: Safe, SafeDXCompleteModule, SafeDXSellerModule
 // and export their addresses
 const CONTRACT_DEFINITIONS = {
-  StandardToken: CONTRACTS_BASE_DIR + '/StandardToken',
+  GnosisStandardToken: CONTRACTS_BASE_DIR + '/GnosisStandardToken',
   DutchExchange: CONTRACTS_BASE_DIR + '/DutchExchange',
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
+  DutchExchangeHelper: CONTRACTS_BASE_DIR + '/DutchExchangeHelper',
   EtherToken: CONTRACTS_BASE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_BASE_DIR + '/TokenFRT',
+  TokenFRTProxy: CONTRACTS_BASE_DIR + '/TokenFRTProxy',
   TokenOWL: CONTRACTS_BASE_DIR + '/TokenOWL',
   TokenOWLProxy: CONTRACTS_BASE_DIR + '/TokenOWLProxy',
   TokenGNO: CONTRACTS_BASE_DIR + '/TokenGNO',

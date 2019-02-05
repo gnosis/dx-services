@@ -1,6 +1,3 @@
-const debug = require('debug')('dx-service:conf')
-debug.log = console.debug.bind(console)
-
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')
 
@@ -45,7 +42,6 @@ const markets =
   getEnvMarkets() ||
   envConf.MARKETS ||
   defaultConf.MARKETS
-debug('markets: %o', markets)
 
 // Get tokens
 const tokens = getConfiguredTokenList(markets)
@@ -66,13 +62,19 @@ let config = {
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
+// Debug config
+process.env.DEBUG = config.DEBUG
+const debug = require('debug')('dx-service:conf')
+debug.log = console.debug.bind(console)
+
+// debug('markets: %o', markets)
 debug('tokens', tokens)
 debug('config.ERC20_TOKEN_ADDRESSES', config.ERC20_TOKEN_ADDRESSES)
 // debug('config.ERC20_TOKEN_ADDRESSES: \n%O', config.ERC20_TOKEN_ADDRESSES)
 
 // Normalize token order for markets (alphabet order)
 function orderMarketTokens ({ tokenA, tokenB }) {
-  const [ sortedTokenA, sortedTokenB ] = getTokenOrder(tokenA, tokenB)
+  const [sortedTokenA, sortedTokenB] = getTokenOrder(tokenA, tokenB)
   return { tokenA: sortedTokenA, tokenB: sortedTokenB }
 }
 

@@ -1,6 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getAddress = require('../../helpers/getAddress')
+const getLiquidityService = require('../../services/LiquidityService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'sell-liquidity <token-pair>',
     'Ensure the sell liquidity for a token pair',
@@ -9,15 +12,20 @@ function registerCommand ({ cli, instances, logger }) {
     }, async function (argv) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
-      const {
-        botAccount,
+      const DEFAULT_ACCOUNT_INDEX = 0
+      const [
+        address,
         liquidityService
-      } = instances
+      ] = await Promise.all([
+        getAddress(DEFAULT_ACCOUNT_INDEX),
+        getLiquidityService()
+      ])
+
       logger.info(`Ensure the SELL liquidity for ${sellToken}-${buyToken}`)
       const soldTokens = await liquidityService.ensureSellLiquidity({
         sellToken,
         buyToken,
-        from: botAccount
+        from: address
       })
 
       if (soldTokens.length > 0) {

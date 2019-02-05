@@ -30,17 +30,49 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   }
 }
 
-const config = {
-  EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
-  EXCHANGE_PRICE_FEED_STRATEGIES
+const PRICE_FEEDS = {
+  binance: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoBinance'
+  },
+  huobi: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoHuobi'
+  },
+  kraken: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoKraken',
+    url: 'https://api.kraken.com',
+    version: '0'
+  },
+  bitfinex: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoBitfinex'
+  },
+  idex: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoIdex'
+  },
+  hitbtc: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoHitbtc'
+  },
+  liquid: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoLiquid'
+  }
 }
 
-const priceRepo = new PriceRepoImpl({
-  config
-})
+const STRATEGIES = {
+  sequence: {
+    factory: 'src/repositories/PriceRepo/strategies/sequence'
+  }
+}
+
+const config = {
+  priceFeedStrategiesDefault: EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT,
+  priceFeedStrategies: EXCHANGE_PRICE_FEED_STRATEGIES,
+  priceFeeds: PRICE_FEEDS,
+  strategies: STRATEGIES
+}
+
+const priceRepo = new PriceRepoImpl(config)
 
 priceRepo.getPrice({
-  tokenA: 'OMG',
+  tokenA: 'GEN',
   tokenB: 'WETH'
 })
   .then(response => {

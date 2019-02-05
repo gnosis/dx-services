@@ -14,6 +14,7 @@ async function loadContracts () {
     const {
       CONTRACT_DEFINITIONS,
       DX_CONTRACT_ADDRESS,
+      DX_HELPER_ADDRESS,
       GNO_TOKEN_ADDRESS,
       ERC20_TOKEN_ADDRESSES,
       CONTRACTS_BASE_DIR
@@ -23,6 +24,7 @@ async function loadContracts () {
       ethereumClient,
       contractDefinitions: CONTRACT_DEFINITIONS,
       dxContractAddress: DX_CONTRACT_ADDRESS,
+      dxHelperAddress: DX_HELPER_ADDRESS,
       gnoToken: GNO_TOKEN_ADDRESS,
       erc20TokenAddresses: ERC20_TOKEN_ADDRESSES,
       contractsBaseDir: CONTRACTS_BASE_DIR
