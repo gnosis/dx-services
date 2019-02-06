@@ -31,8 +31,9 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
       tokens
     })
 
-    // assert(operatorAddress, 'operatorAddress is required')
-    // this._operatorAddress = operatorAddress
+    assert(accountIndex !== undefined && accountIndex >= 0, 'AccountIndex is mandatory')
+    // Set accountIndex independently from the botAddress being setted
+    this._accountIndex = accountIndex
   }
 
   async setAddress () {
