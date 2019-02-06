@@ -82,8 +82,8 @@ class LiquidityService {
       waitToReleaseTheLock,
       liquidityCheckName: 'buy'
     })
-  }  
-  
+  }
+
   async ensureArbitrageLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
     return this._ensureLiquidityAux({
       sellToken,
@@ -374,7 +374,6 @@ keeps happening`
   }
 
   async _getPricesAndAttemptArbitrage ({ buyToken, sellToken, auctionIndex, from, buyLiquidityRules }) {
-
     const auctionState = await this._auctionRepo.getAuctionState({
       sellToken,
       buyToken,
@@ -393,9 +392,8 @@ keeps happening`
     // //  * Is not in theoretical closed state
     if (!sellVolume.isZero()) {
       if (!isClosed && !isTheoreticalClosed) {
-
         // first we detect which of our tokens is the ether Token
-        const {etherToken} = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)        
+        const { etherToken } = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)
 
         // next we check our arbitrage contract's ether balance
         // to see what the maximum amount we can spend is
@@ -416,6 +414,8 @@ keeps happening`
           from
         })
 
+        const dutchPrice = numerator / denominator
+
         // we know the current dutch price but the current uniswap price will depend
         // on the size of the trade being made. For this reason use the ether_balance
         // and token_balance to iterate over different input amounts to see if we can
@@ -423,37 +423,31 @@ keeps happening`
 
         // now we get the current state of the uniswap exchange for our token pair
         const {
-        ether_balance,
-        token_balance
-      } = await Promise(this._arbitrageRepo.getUniswapBalances({buyToken, sellToken}))
-      
-      // sellToken is referring to trades on the dutchX. That means that if the sellToken
-      // is the same as etherToken, then it is an attempt to buy some new token on the dutchX
-      // for some amount of ether in order to sell it on uniswap at a higher price.
-      // This is an opportunity if the dutch price is less than the uniswap price.
-      // vvvvvvvvvv
+          ether_balance,
+          token_balance
+        } = await Promise(this._arbitrageRepo.getUniswapBalances({ buyToken, sellToken }))
 
-        if (sellToken === etherToken) {
+        // We are the buyer. If the buyer token is ether, the seller token is a real token.
+        // If we want some real token from the DutchX, it means there is an opporunity to sell
+        // on uniswap at a greater price in Ether. this would be an opportunity on the dutchX.
+        // a dutchOpportunity...
+        // vvvvvvvvvv
+        if (buyToken === etherToken) {
           // dutchOpportunity
 
-          // price for token = ether per token
-          // sell token is ether => denominator of dutch price is in ether
-          // buy token is token => numerator of dutch price is in token
-          const dutchPrice =  denominator / numerator // (ether per token)
-          
           // smallest increment of token to spend on uniswap after purchase on dutchX
           // we'll use this to check for the best possible price on uniswap
           // if we were to spend minimumSpend tokens on uniswap, what price would we get?
           // if this price is greater than the dutch price, we'll have a dutch opportunity
-          const minimumSpend = 1 
-          assert(sellVolume > minimumSpend, "Not enough sell volume to execute minimum spend")
+          const minimumSpend = 1
+          assert(sellVolume > minimumSpend, 'Not enough sell volume to execute minimum spend')
 
           // this is the maximum amount of ether we should spend on this opportunity to make a profit
           let amount = this.getSpendAmount({
             dutchPrice,
             minimumSpend,
             maxToSpend,
-            input_token: buyToken,
+            // input_token: sellToken,
             input_balance: token_balance,
             output_balance: ether_balance,
             buyOnDutch: true
@@ -462,39 +456,33 @@ keeps happening`
           // otherwise execute the opportunity
           if (amount !== 0) {
             return this._arbitrageRepo.dutchOpportunity({
-              buyToken,
-              amount
-            });
+              arbToken: sellToken,
+              amount,
+              from
+            })
           }
 
-
-      // buyToken is refering to trades on the dutchX. That means that if the buyToken
-      // is the same as etherToken , then it is an attempt to buy some new token on uniswap
-      // for some amount of ether in order to sell it on the dutchX at a higher price.
-      // This is an opportunity if the uniswap price is less than the dutch price.
-      // vvvvvvvvvv
-       
-        } else {
-          //uniswapOpporunity
-
-          // price for token = ether per token
-          // sell token is token => denominator of dutch price is in token
-          // buy token is ether => numerator of dutch price is in ether
-          const dutchPrice =  numerator / denominator // (ether per token)
+        // We are the buyer. If the seller token is ether, our buyer token is a real token. We use the
+        // buyer token to get etherToken from the dutchX. If we want ether from DutchX, it means
+        // we would have bought some token cheaply from uniswap. This would have been an opportunity on uniswap.
+        // a uniswapOpportunity...
+        // vvvvvvvvvv
+        } else if (sellToken === etherToken) {
+          // uniswapOpporunity
 
           // smallest increment of ether to spend on uniswap before purchase on dutchX
           // we'll use this to check for the best possible price on uniswap
           // if we were to spend minimumSpend ether on uniswap, what price would we get?
           // if this price is less than the dutch price, we'll have a uniswap opportunity
           const minimumSpend = 1 // should this be the gas execution amount? so that the trade will at least pay for the gas it costs to execute?
-          assert(sellVolume > minimumSpend, "Not enough sell volume to execute minimum spend")
+          assert(sellVolume > minimumSpend, 'Not enough sell volume to execute minimum spend')
 
           // this is the maximum amount of ether we should spend on this opportunity to make a profit
           let amount = this.getSpendAmount({
             dutchPrice,
             minimumSpend,
             maxToSpend,
-            input_token: sellToken,
+            // input_token: sellToken,
             input_balance: ether_balance,
             output_balance: token_balance,
             buyOnDutch: false
@@ -502,7 +490,11 @@ keeps happening`
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
           if (amount !== 0) {
-            return this._arbitrageRepo.uniswapOpportunity(sellToken, amount);
+            return this._arbitrageRepo.uniswapOpportunity({
+              arbToken: buyToken,
+              amount,
+              from
+            })
           }
         }
         // this will be reached if the amount returned from getSpendAmount was 0 on either opportunity
@@ -533,22 +525,18 @@ keeps happening`
     }
   }
 
-
-
   // adapted from uniswapExchange Vyper Contract
-  getInputPrice(input_amount, input_reserve, output_reserve) {
-    assert(input_reserve > 0, 'Input reserve must be greater than 0');
-    assert(output_reserve > 0, 'Input reserve must be greater than 0');
+  getInputPrice (input_amount, input_reserve, output_reserve) {
+    assert(input_reserve > 0, 'Input reserve must be greater than 0')
+    assert(output_reserve > 0, 'Input reserve must be greater than 0')
     input_amount_with_fee = input_amount * 997
     numerator = input_amount_with_fee * output_reserve
     denominator = (input_reserve * 1000) + input_amount_with_fee
     return numerator / denominator
   }
 
-
-
-
-  getSpendAmount({
+  getSpendAmount ({
+    // input_token,
     maxToSpend,
     input_balance,
     output_balance,
@@ -556,6 +544,11 @@ keeps happening`
     buyOnDutch,
     minimumSpend
   }) {
+    // these must be positive amounts.
+    // it is also worth considering making the small increment rather large
+    // because if it is too precise, the profit margin may disappear between the time it is
+    // calculated and actually execute. The dutch X price would improve, but the increased
+    // purchase amount might actually create too much slippage on uniswap, possibly destroying the profit
     const spendIncrementSmall = 100
     const spendIncrementLarge = 100000
 
@@ -567,12 +560,12 @@ keeps happening`
 
     // check to see if there is an opportunity even if you input the smallest amount
 
-    output_returned  = this.getInputPrice(input_amount, input_balance, output_balance)
+    output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
     uniswapPrice = output_returned / input_amount
-    if (buyOnDutch && dutchPrice < uniswapPrice) {
+    if (buyOnDutch && dutchPrice <= uniswapPrice) {
       // if buyOnDutch is true then dutchX price needs to be less than uniswap price
       opportunity = true
-    } else if (!buyOnDutch && uniswapPrice < dutchPrice) {
+    } else if (!buyOnDutch && uniswapPrice <= dutchPrice) {
       // if buyOnDutch is false then uniswap price needs to be less than dutchX price
       opportunity = true
     }
@@ -581,10 +574,8 @@ keeps happening`
       return 0
     }
 
-
     // want to loop through larger and larger spending increments
     // until maxToSpend is hit or until the price is no longer an opportunity
-    // this makes sense ot me intuitively, but maybe i should be checking for net profit instead of price?
     // this asks: what's the largest amount i can buy on uniswap
     // while still getting a better price than the dutchX
     while (!finalPrice) {
@@ -598,26 +589,21 @@ keeps happening`
         } else {
           input_amount -= spendIncrementSmall
           finalPrice = true
-          continue
+          return input_amount
         }
       }
       output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
       uniswapPrice = output_returned / input_amount
-
-      if (buyOnDutch) {
-        if (dutchPrice > uniswapPrice) {
-          opportunity = false
-        }
-      } else {
-        if (uniswapPrice > dutchPrice) {
-          opportunity = false
-        }
+      if (buyOnDutch && dutchPrice > uniswapPrice) {
+        // if buyOnDutch is true then dutchX price needs to be less than uniswap price
+        opportunity = false
+      } else if (!buyOnDutch && uniswapPrice > dutchPrice) {
+        // if buyOnDutch is false then uniswap price needs to be less than dutchX price
+        opportunity = false
       }
-
     }
 
     return input_amount
-
   }
 
   async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from, buyLiquidityRules }) {

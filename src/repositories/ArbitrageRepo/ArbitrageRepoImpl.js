@@ -109,49 +109,24 @@ class ArbitrageRepoImpl extends Cacheable {
       tokenAddress: tokenToken,
       account: uniswapExchangeAddress
     })
-
-    // if (sellToken === etherToken) {
-    //   input_balance = token_balance
-    //   output_balance = ether_balance
-    //   buyOnDutch = true
-    // } else {
-    //   input_balance = ether_balance
-    //   output_balance = token_balance
-    //   buyOnDutch = false
-    // }
     return {
-      // buyOnDutch,
-      // input_balance,
-      // output_balance,
-      // etherToken,
-      // uniswapExchangeAddress,
       ether_balance,
       token_balance
     }
   }
 
-  async dutchOpportunity({buyToken, amount, from}) {
-    let etherBalanceBefore
-
-    try {
-      await this._doTransaction({
+  async dutchOpportunity({arbToken, amount, from}) {
+      return this._doTransaction({
         operation: 'dutchOpportunity',
         from,
-        params: [buyToken, amount]
+        params: [arbToken, amount]
       })
-
-      let etherBalanceAfter;
-    } catch(error) {
-      return false
-    }
   }
-
-
-  async uniswapOpportunity({sellToken, amount, from}) {
+  async uniswapOpportunity({arbToken, amount, from}) {
     return this._doTransaction({
       operation: 'uniswapOpportunity',
       from,
-      params: [sellToken, amount]
+      params: [arbToken, amount]
     })
   }
 
