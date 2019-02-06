@@ -15,6 +15,9 @@ class ContractLoader {
     gnoToken,
     erc20TokenAddresses,
     contractsBaseDir
+    // safeAddress,
+    // safeCompleteModuleAddress,
+    // safeSellerModuleAddress
   }) {
     assert(ethereumClient, '"ethereumClient" is required')
     assert(contractDefinitions, '"contractDefinitions" is required')
@@ -35,7 +38,13 @@ class ContractLoader {
     this._gnoTokenAddress = gnoToken
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
+
+    // Safe Module related configs
+    // this._safeAddress = safeAddress
+    // this._safeCompleteModuleAddress = safeCompleteModuleAddress
+    // this._safeSellerModuleAddress = safeSellerModuleAddress
   }
+
   async loadContracts () {
     const [dx, erc20TokenContracts] = await Promise.all([
       this._loadDx(),

@@ -1,7 +1,5 @@
 const BuyLiquidityBot = require('../../src/bots/BuyLiquidityBot')
-
 const testSetup = require('../helpers/testSetup')
-const setupPromise = testSetup()
 
 const BigNumber = require('bignumber.js')
 
@@ -36,10 +34,14 @@ const BUY_LIQUIDITY_RULES = [
   }
 ]
 
-let buyLiquidityBot
+let buyLiquidityBot, setup
 
-beforeAll(async () => {
-  await setupPromise
+beforeAll(async (done) => {
+  // Instantiate the Setup environment
+  const _setupInstance = testSetup()
+
+  // Initialise contracts, helpers, services etc..
+  setup = await _setupInstance.init()
 
   buyLiquidityBot = new BuyLiquidityBot({
     name: 'BuyLiquidityBot',
@@ -53,6 +55,9 @@ beforeAll(async () => {
 
   await buyLiquidityBot.init()
   await buyLiquidityBot.start()
+
+  // Wait until everything is ready to go
+  done()
 })
 
 afterAll(() => {

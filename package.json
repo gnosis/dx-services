@@ -64,6 +64,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "gnosis-safe-modules": "git+https://github.com/gnosis/safe-modules.git#feature/dx-module",
     "@gnosis.pm/dx-contracts": "2.0.0-RC17",
     "@gnosis.pm/owl-token": "2.0.0-RC3",
     "@gnosis.pm/util-contracts": "2.0.0-RC5",
