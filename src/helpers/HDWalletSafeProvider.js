@@ -11,6 +11,10 @@ const isLocal = environment === 'local'
 
 const logger = new Logger('dx-service:helpers:HDWalletSafeProvider')
 
+// TODO
+// Figure out if we can create a base HDWalletProvider class with common methods for all providers
+// like getNonce 
+
 // Disable the nonce lock:
 //    - LOCAL: Disabled by default (true)
 //    - DEV/PRE/PRO: Enabled by default (false)
@@ -80,8 +84,12 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     return [this._safeAddress]
   }
 
+  // Force getNonce to return operator's nonce
+  // TODO figure out if getNonce gets called only within this class, in that case we wouldn't
+  // need to force calling  getTransactionCount with this._operator), we would use simply 'from' instead
   getNonce (from) {
     return new Promise((resolve, reject) => {
+      this._resetNonceCache()
       this._web3.eth.getTransactionCount(this._operator, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           logger.debug('Error getting the nonce', error)
@@ -150,6 +158,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         this._sendTxWithUniqueNonce(...arguments)
       } else {
         logger.trace('Send transaction: %o', arguments)
+        this._resetNonceCache()
         return super.sendAsync(...arguments)
       }
     } else if (method === 'eth_accounts') {
@@ -206,6 +215,16 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         })
       }
     })
+  }
+
+  _resetNonceCache () {
+    const nonceProvider = this.engine._providers.find(provider => {
+      return provider.hasOwnProperty('nonceCache')
+    })
+    if (nonceProvider === undefined) {
+      throw new Error('Unexpected providers setup. Review the HDWalletProvider setup')
+    }
+    nonceProvider.nonceCache = {}
   }
 
 }
