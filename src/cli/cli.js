@@ -69,14 +69,14 @@ async function run (instances) {
   require('./cliCommands/addTokenPairCmd')(commandParams)
 
   // Arbitrage commands
-  require('./cliCommands/arbTransferOwnership')(commandParams) // onlyOwner
+  // require('./cliCommands/arbTransferOwnership')(commandParams) // onlyOwner
   require('./cliCommands/arbDepositEtherCmd')(commandParams)
-  require('./cliCommands/arbWithdrawTransferEtherCmd')(commandParams) // onlyOwner
-  require('./cliCommands/arbTransferEtherCmd')(commandParams) // onlyOwner
-  require('./cliCommands/arbDepositTokenCmd')(commandParams) // onlyOwner
-  require('./cliCommands/arbTransferTokenCmd')(commandParams) // onlyOwner
-  require('./cliCommands/arbUniswapOpportunityCmd')(commandParams)
-  require('./cliCommands/arbDutchOpportunityCmd')(commandParams)
+  // require('./cliCommands/arbWithdrawTransferEtherCmd')(commandParams) // onlyOwner
+  // require('./cliCommands/arbTransferEtherCmd')(commandParams) // onlyOwner
+  // require('./cliCommands/arbDepositTokenCmd')(commandParams) // onlyOwner
+  // require('./cliCommands/arbTransferTokenCmd')(commandParams) // onlyOwner
+  // require('./cliCommands/arbUniswapOpportunityCmd')(commandParams)
+  // require('./cliCommands/arbDutchOpportunityCmd')(commandParams)
 
   // Setup commands (we might need to move this ones to `setup` cli)
   // add-token-pair, add-funding-for-test-user,...

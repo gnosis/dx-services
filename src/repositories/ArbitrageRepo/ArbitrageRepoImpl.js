@@ -53,6 +53,7 @@ class ArbitrageRepoImpl extends Cacheable {
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
+    this._dx = contracts.dx
     this._arbitrage = contracts.arbitrageContract
     this._uniswapFactory = contracts.uniswapFactory
     this._uniswapExchange = contracts.uniswapExchange
@@ -66,10 +67,6 @@ class ArbitrageRepoImpl extends Cacheable {
     logger.debug({
       msg: `Arbitrage contract in address %s`,
       params: [ this._arbitrage.address ]
-    })
-    logger.debug({
-      msg: `Price Oracle in address %s`,
-      params: [ this._priceOracle.address ]
     })
 
     this.ready = Promise.resolve()
@@ -91,17 +88,17 @@ class ArbitrageRepoImpl extends Cacheable {
     return uniswapExchangeInstance
   }
 
-  whichTokenIsEth(tokenA, tokenB) {
+  whichTokenIsEth (tokenA, tokenB) {
     assert(tokenB.toLowerCase() === this._tokens.WETH.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.toLowerCase(),
-    "Not prepared to do ERC20 to ERC20 arbitrage")
+      'Not prepared to do ERC20 to ERC20 arbitrage')
 
     etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
     tokenToken = etherToken === tokenA ? tokenB : tokenA
-    return {etherToken, tokenToken}
+    return { etherToken, tokenToken }
   }
 
-  async getUniswapBalances({buyToken, sellToken}) {
-    const {tokenToken} = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)        
+  async getUniswapBalances ({ buyToken, sellToken }) {
+    const { tokenToken } = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)
 
     const uniswapExchangeAddress = await this._uniswapFactory.getExchange(tokenToken)
     ether_balance = this._ethereumClient.balanceOf(uniswapExchangeAddress)
@@ -115,14 +112,14 @@ class ArbitrageRepoImpl extends Cacheable {
     }
   }
 
-  async dutchOpportunity({arbToken, amount, from}) {
-      return this._doTransaction({
-        operation: 'dutchOpportunity',
-        from,
-        params: [arbToken, amount]
-      })
+  async dutchOpportunity ({ arbToken, amount, from }) {
+    return this._doTransaction({
+      operation: 'dutchOpportunity',
+      from,
+      params: [arbToken, amount]
+    })
   }
-  async uniswapOpportunity({arbToken, amount, from}) {
+  async uniswapOpportunity ({ arbToken, amount, from }) {
     return this._doTransaction({
       operation: 'uniswapOpportunity',
       from,
@@ -130,11 +127,20 @@ class ArbitrageRepoImpl extends Cacheable {
     })
   }
 
-  async depositEther({amount, from}) {
+  async getOwner () {
+    return this._doCall({
+      operation: 'owner'
+    })
+  }
+
+  async depositEther ({ amount, from }) {
+
+    // let tx = await this._tokens.WETH.approve(this._dx.address, amount, {from})
+
     return this._doTransaction({
       operation: 'depositEther',
       from,
-      amount
+      value: amount
     })
   }
 
@@ -160,7 +166,7 @@ class ArbitrageRepoImpl extends Cacheable {
   }) {
     // NOTE: cacheTime can be set null/0 on porpouse, so it's handled from the
     //  caller method
-
+    params = params || []
     logger.debug('Transaction: ' + operation, params)
     if (this._cache && cacheTime !== null) {
       const cacheKey = this._getCacheKey({ operation, params })
@@ -196,6 +202,7 @@ class ArbitrageRepoImpl extends Cacheable {
 
   async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params, value }) {
     value = value || '0'
+    params = params || []
     logger.debug({
       msg: '_doTransaction: %o',
       params: [
@@ -299,7 +306,6 @@ class ArbitrageRepoImpl extends Cacheable {
         reject(error)
       })
   }
-
 }
 
 function toFraction ([ numerator, denominator ]) {

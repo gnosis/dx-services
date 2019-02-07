@@ -16,6 +16,7 @@ async function loadContracts () {
       ERC20_TOKEN_ADDRESSES,
       CONTRACTS_BASE_DIR
     } = conf
+
     const contractLoader = new ContractLoader({
       ethereumClient,
       contractDefinitions: CONTRACT_DEFINITIONS,

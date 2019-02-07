@@ -43,8 +43,7 @@ class ContractLoader {
       this._loadDx(),
       this._loadTokenContracts(),
       this._loadArbitrage(),
-      this._loadUniswapFactory(),
-      this._loadUniswapExchange(),
+      this._loadUniswapFactory()
       
     ])
 

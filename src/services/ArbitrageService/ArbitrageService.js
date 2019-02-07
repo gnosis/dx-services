@@ -32,7 +32,12 @@ class ArbitrageService {
     amount,
     from
   }) {
-    await this._arbitrageRepo.depositEther({amount, from})
+    return await this._arbitrageRepo.depositEther({amount, from})
+  }
+
+
+  async getOwner() {
+    return this._arbitrageRepo.getOwner()
   }
 
 }

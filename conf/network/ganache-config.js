@@ -1,5 +1,10 @@
 const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
+const CONTRACTS_ARBITRAGE_DIR = 'node_modules/@okwme/arbitrage/build/contracts'
 const CONTRACT_DEFINITIONS = {
+  ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage', //BILLY: CHECK THIS
+  UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory', //BILLY: CHECK THIS
+  UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange', //BILLY: CHECK THIS
+
   StandardToken: CONTRACTS_BASE_DIR + '/StandardToken',
   DutchExchange: CONTRACTS_BASE_DIR + '/DutchExchange',
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
