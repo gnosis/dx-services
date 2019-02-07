@@ -27,6 +27,10 @@ function toBigNumberFraction (fraction, inDecimal = true) {
   }
 }
 
+function toDecimal (num, decimal) {
+  return toBigNumber(num).div(10**decimal)
+}
+
 function isBigNumber (n) {
   // The current version of bignumber is too old and doesn't have isBigNumber method
   // It cannot be updated due to web3
@@ -97,6 +101,7 @@ module.exports = {
   roundDown,
   toWei,
   fromWei,
+  toDecimal,
 
   // some convenience constants
   ONE,

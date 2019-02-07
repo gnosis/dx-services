@@ -22,10 +22,34 @@ class ArbitrageService {
     this._markets = markets
   }
 
-  async getBalance() {
+  async getContractEtherBalance() {
     const account = this._arbitrageRepo.getArbitrageAddress()
-    const balance = await this._ethereumRepo.balanceOf({ account })
-    return numberUtil.fromWei(balance)
+    const contractBalance = await this._ethereumRepo.balanceOf({ account })
+    return numberUtil.fromWei(contractBalance)
+  }
+
+  async getBalance(token) {
+    const account = this._arbitrageRepo.getArbitrageAddress()
+    let tokenAddress, contractBalance
+    tokenAddress = !token ? await this._auctionRepo.ethToken() : token
+    const tokenInfo = await this._ethereumRepo.tokenGetInfo({tokenAddress})
+
+
+    if (!token) {
+      contractBalance = await this._ethereumRepo.balanceOf({ account })
+      contractBalance = numberUtil.fromWei(contractBalance)
+      contractBalance += ' Eth'
+    } else {
+      contractBalance = await this._ethereumRepo.tokenBalanceOf({tokenAddress, account})
+      contractBalance = numberUtil.toDecimal(contractBalance, tokenInfo.decimals || 0)
+      contractBalance += ' ' + tokenInfo.symbol
+    }
+
+    let dutchBalance = await this._auctionRepo.getBalance ({ token: tokenAddress, address: account })
+    dutchBalance = numberUtil.toDecimal(dutchBalance, tokenInfo.decimals || 0)
+    dutchBalance += ' ' + tokenInfo.symbol
+
+    return {contractBalance, dutchBalance}
   }
 
   async depositEther({

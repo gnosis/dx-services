@@ -81,6 +81,10 @@ class AuctionRepoImpl extends Cacheable {
     })
   }
 
+  async ethToken () {
+    return this._doCall({operation: 'ethToken', params: []})
+  }
+
   async getAbout () {
     const auctioneerAddress = await this._dx.auctioneer.call()
     const tokenNames = Object.keys(this._tokens)

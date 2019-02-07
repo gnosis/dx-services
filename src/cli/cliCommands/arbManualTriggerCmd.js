@@ -5,12 +5,12 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'depositEther <amount>',
-    'Deposit any Ether in the contract to the dx as WETH',
+    'arbitrage',
+    'Attempt an arbitrage',
     yargs => {
-      cliUtils.addPositionalByName('amount', yargs)
+      // cliUtils.addPositionalByName('amount', yargs)
     }, async function (argv) {
-      const { amount } = argv
+      // const { amount } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
