@@ -1,14 +1,7 @@
-/* global artifacts */
+/* global artifacts, web3 */
 /* eslint no-undef: "error" */
 
-const deployMath = require('@gnosis.pm/util-contracts/src/migrations/2_deploy_math')
-const deployWeth = require('@gnosis.pm/util-contracts/src/migrations/3_deploy_WETH')
-const deployGno = require('@gnosis.pm/gno-token/src/migrations/3_deploy_GNO')
-const deployOwl = require('@gnosis.pm/owl-token/src/migrations/3_deploy_OWL.js')
-const deployAirdrop = require('@gnosis.pm/owl-token/src/migrations/4_deploy_OWL_airdrop.js')
-const setupMinter = require('@gnosis.pm/owl-token/src/migrations/5_set_airdrop_as_OWL_minter')
-
-const migrationsDx = require('../node_modules/@gnosis.pm/dx-contracts/src/migrations')
+const migrationsDx = require('@gnosis.pm/dx-contracts/src/migrations-truffle-4')
 
 module.exports = (deployer, network, accounts) => {
   if (network === 'development') {
@@ -28,16 +21,13 @@ module.exports = (deployer, network, accounts) => {
     }
 
     deployer
-      .then(() => deployMath(deployParams))
-      .then(() => deployWeth(deployParams))
-      .then(() => deployGno(deployParams))
-      .then(() => deployOwl(deployParams))
-      .then(() => deployAirdrop(deployParams))
-      .then(() => setupMinter(deployParams))
       .then(() => migrationsDx(deployParams))
       .then(() => deployer.deploy(TokenRDN, accounts[0]))
       .then(() => deployer.deploy(TokenOMG, accounts[0]))
   } else {
-    throw new Error('Migrations are just for development. Current network is %s', network)
+    throw new Error(
+      'Migrations are just for development. Current network is %s',
+      network
+    )
   }
 }

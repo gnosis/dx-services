@@ -35,17 +35,6 @@ class LiquidityService {
 
     // Config
     this._buyLiquidityRules = buyLiquidityRulesDefault
-      // Transform fractions to bigdecimals
-      .map(threshold => ({
-        marketPriceRatio: numberUtil
-          .toBigNumberFraction(threshold.marketPriceRatio),
-        buyRatio: numberUtil
-          .toBigNumberFraction(threshold.buyRatio)
-      }))
-      // Sort the thresholds by buyRatio (in descendant order)
-      .sort((thresholdA, thresholdB) => {
-        return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
-      })
 
     // Avoids concurrent calls that might endup buy/selling two times
     this.concurrencyCheck = {}
@@ -115,7 +104,7 @@ class LiquidityService {
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
       messageCurrentCheck = 'Ensure that sell liquidity is over $%d'
-      paramsCurrentCheck = [ minimumSellVolume ]
+      paramsCurrentCheck = [minimumSellVolume]
     } else if (liquidityCheckName === 'buy') {
       doEnsureLiquidityFnName = '_doEnsureBuyLiquidity'
       baseLockName = 'BUY-LIQUIDITY'
@@ -173,7 +162,7 @@ class LiquidityService {
         buyToken,
         msg: `There is a concurrent %s check going on, so no aditional \
 check should be done`,
-        params: [ liquidityCheckName ]
+        params: [liquidityCheckName]
       })
       boughtOrSoldTokensPromise = Promise.resolve([])
     } else {
@@ -216,7 +205,7 @@ check should be done`,
   async _doEnsureSellLiquidity ({ tokenA, tokenB, from }) {
     const soldTokens = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
-    const [ auctionIndex, auctionStart ] = await Promise.all([
+    const [auctionIndex, auctionStart] = await Promise.all([
       this._auctionRepo.getAuctionIndex(auction),
       this._auctionRepo.getAuctionStart(auction)
     ])
@@ -229,7 +218,7 @@ check should be done`,
       // We are in a waiting for funding period
 
       // Get the liquidity and minimum sell volume
-      const [ { fundingA, fundingB }, minimumSellVolume ] = await Promise.all([
+      const [{ fundingA, fundingB }, minimumSellVolume] = await Promise.all([
         this._auctionRepo.getFundingInUSD({
           tokenA, tokenB, auctionIndex
         }),
@@ -246,7 +235,7 @@ check should be done`,
           sellToken: tokenA,
           buyToken: tokenB,
           msg: 'Not enough liquidity for auction %d: %s=$%d, %s=$%d',
-          params: [ auctionIndex, tokenA, fundingA, tokenB, fundingB ],
+          params: [auctionIndex, tokenA, fundingA, tokenB, fundingB],
           notify: true
         })
 
@@ -301,7 +290,7 @@ keeps happening`
     // Make sure the token pair has been added to the DX
     assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
 
-    const [ soldTokensA, soldTokensB ] = await Promise.all([
+    const [soldTokensA, soldTokensB] = await Promise.all([
       // tokenA-tokenB: Get soldTokens
       this._getPricesAndEnsureLiquidity({
         sellToken: tokenA,
@@ -343,29 +332,28 @@ keeps happening`
     // Make sure the token pair has been added to the DX
     assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
 
-    const [ soldTokensA, soldTokensB ] = await Promise.all([
-      // tokenA-tokenB: Get soldTokens
-      this._getPricesAndAttemptArbitrage({
-        sellToken: tokenA,
-        buyToken: tokenB,
-        auctionIndex,
-        from,
-        buyLiquidityRules
-      }),
+    // tokenA-tokenB: Get soldTokens
+    const soldTokensA = await this._getPricesAndAttemptArbitrage({
+      sellToken: tokenA,
+      buyToken: tokenB,
+      auctionIndex,
+      from,
+      buyLiquidityRules
+    })
 
-      // // tokenB-tokenA: Get soldTokens
-      // this._getPricesAndAttemptArbitrage({
-      //   sellToken: tokenB,
-      //   buyToken: tokenA,
-      //   auctionIndex,
-      //   from,
-      //   buyLiquidityRules
-      // })
-    ])
+    // tokenB-tokenA: Get soldTokens
+    const soldTokensB = await this._getPricesAndAttemptArbitrage({
+      sellToken: tokenB,
+      buyToken: tokenA,
+      auctionIndex,
+      from,
+      buyLiquidityRules
+    })
 
-    if (soldTokensA) {
-      results.push(soldTokensA)
-    }
+
+    // if (soldTokensA) {
+    //   results.push(soldTokensA)
+    // }
     if (soldTokensB) {
       results.push(soldTokensB)
     }
@@ -414,8 +402,7 @@ keeps happening`
           auctionIndex,
           from
         })
-        console.log(numerator, denominator)
-        const dutchPrice = numerator / denominator
+
 
         // we know the current dutch price but the current uniswap price will depend
         // on the size of the trade being made. For this reason use the ether_balance
@@ -428,12 +415,20 @@ keeps happening`
           token_balance
         } = await this._arbitrageRepo.getUniswapBalances({ buyToken, sellToken })
 
+        console.log('ether_balance', ether_balance.toString(10), 'token_balance', token_balance.toString(10))
+        console.log('price', ether_balance.div(token_balance).toString(10), 'price2', token_balance.div(ether_balance).toString(10))
+
         // We are the buyer. If the buyer token is ether, the seller token is a real token.
         // If we want some real token from the DutchX, it means there is an opporunity to sell
         // on uniswap at a greater price in Ether. this would be an opportunity on the dutchX.
         // a dutchOpportunity...
         // vvvvvvvvvv
+        let dutchPrice
+        dutchPrice = numerator / denominator
+
         if (buyToken === etherToken) {
+          // dutchPrice = denominator / numerator
+
           console.log('DUTCH OPP')
           // dutchOpportunity
 
@@ -450,14 +445,20 @@ keeps happening`
             minimumSpend,
             maxToSpend,
             // input_token: sellToken,
-            input_balance: token_balance,
-            output_balance: ether_balance,
+            input_balance: token_balance, // sell token balance
+            output_balance: ether_balance, // buy token balance
             buyOnDutch: true
           })
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
           if (!amount.eq(0) ){
-            console.log('amount != 0', amount.toString(10))
+            console.log('amount: ', amount.toString(10))
+
+            let uniswapExpected = await this._arbitrageRepo.getEthToTokenInputPrice(sellToken, amount.toString(10))
+            
+            console.log('uniswapExpected: ', uniswapExpected.toString(10))
+            console.log('price', uniswapExpected.div(amount).toString(10))
+            console.log('price', amount.div(uniswapExpected).toString(10))
             return this._arbitrageRepo.dutchOpportunity({
               arbToken: sellToken,
               amount: amount.toString(10),
@@ -474,6 +475,8 @@ keeps happening`
         // vvvvvvvvvv
         } else if (sellToken === etherToken) {
           console.log('UNI OPP')
+          // dutchPrice = numerator / denominator
+
           // uniswapOpporunity
 
           // smallest increment of ether to spend on uniswap before purchase on dutchX
@@ -489,13 +492,21 @@ keeps happening`
             minimumSpend,
             maxToSpend,
             // input_token: sellToken,
-            input_balance: ether_balance,
-            output_balance: token_balance,
+            input_balance: ether_balance, // sell token balance
+            output_balance: token_balance, // buy token balance
             buyOnDutch: false
           })
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
-          if (amount !== 0) {
+          if (!amount.eq(0)) {
+            console.log('amount: ', amount.toString(10))
+
+            // let uniswapExpected = await this._arbitrageRepo.getEthToTokenInputPrice(buyToken, amount.toString(10))
+            let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(buyToken, amount.toString(10))
+            amount = uniswapExpected
+            console.log('uniswapExpected: ', uniswapExpected.toString(10))
+            console.log('price', uniswapExpected.div(amount).toString(10))
+            console.log('price', amount.div(uniswapExpected).toString(10))
             return this._arbitrageRepo.uniswapOpportunity({
               arbToken: buyToken,
               amount,
@@ -568,7 +579,6 @@ keeps happening`
     input_balance = numberUtil.toBigNumber(input_balance)
     output_balance = numberUtil.toBigNumber(output_balance)
     dutchPrice = numberUtil.toBigNumber(dutchPrice)
-    console.log('maxToSpend', maxToSpend.toString(10))
     maxToSpend = numberUtil.toBigNumber(maxToSpend)
     let useLargeIncrement = true
     let finalPrice = false
@@ -578,17 +588,14 @@ keeps happening`
 
     output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
     let uniswapPrice = output_returned.div(input_amount)
-    console.log('first', input_amount.toString(10), uniswapPrice.toString(10), dutchPrice.toString(10))
-    if (buyOnDutch && dutchPrice.lte(uniswapPrice)) {
+    console.log('first', 'amount: ' + input_amount.toString(10), 'uni: ' + uniswapPrice.toString(10), 'dutch:' + dutchPrice.toString(10))
+    if (dutchPrice.lte(uniswapPrice)) {
       // if buyOnDutch is true then dutchX price needs to be less than uniswap price
-      opportunity = true
-    } else if (!buyOnDutch && uniswapPrice.lte(dutchPrice)) {
-      // if buyOnDutch is false then uniswap price needs to be less than dutchX price
       opportunity = true
     }
 
     if (!opportunity) {
-      return 0
+      return numberUtil.toBigNumber(0)
     }
 
     // want to loop through larger and larger spending increments
@@ -596,43 +603,42 @@ keeps happening`
     // this asks: what's the largest amount i can buy on uniswap
     // while still getting a better price than the dutchX
     while (!finalPrice) {
-      input_amount = input_amount.add(useLargeIncrement ? spendIncrementLarge : spendIncrementSmall)
-
       if (input_amount.gt(maxToSpend) || !opportunity) {
         if (useLargeIncrement) {
           console.log('still using large increment, lets reduce by increment large and try again using small increment')
-          console.log('input_amount', input_amount.toString(10))
           useLargeIncrement = false
           opportunity = true
           input_amount = input_amount.sub(spendIncrementLarge)
-          console.log('input_amount', input_amount.toString(10))
           continue
         } else {
           console.log('now using small increment, lets reduce by increment small and try return')
-          console.log('input_amount', input_amount.toString(10))
           input_amount = input_amount.sub(spendIncrementSmall)
-          console.log('input_amount', input_amount.toString(10))
           finalPrice = true
+          output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
+          uniswapPrice = output_returned.div(input_amount)
+          console.log('FINAL', 'amount: ' + input_amount.toString(10), 'uni: ' + uniswapPrice.toString(10), 'dutch:' + dutchPrice.toString(10))
           return input_amount
         }
       }
       output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
       uniswapPrice = output_returned.div(input_amount)
-      console.log('subsequent', input_amount.toString(10), uniswapPrice.toString(10), dutchPrice.toString(10))
-      if (buyOnDutch && dutchPrice.gt(uniswapPrice)) {
+      console.log('seubsequent', 'amount: ' + input_amount.toString(10), 'uni: ' + uniswapPrice.toString(10), 'dutch:' + dutchPrice.toString(10))
+      if (dutchPrice.gt(uniswapPrice)) {
         // if buyOnDutch is true then dutchX price needs to be less than uniswap price
         opportunity = false
-      } else if (!buyOnDutch && uniswapPrice.gt(dutchPrice)) {
-        // if buyOnDutch is false then uniswap price needs to be less than dutchX price
-        opportunity = false
+      } else {
+        input_amount = input_amount.add(useLargeIncrement ? spendIncrementLarge : spendIncrementSmall)
       }
-      console.log('end input_amount', input_amount.toString(10))
     }
-
-    // return input_amount
   }
 
   async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from, buyLiquidityRules }) {
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'auctionIndex: %d, from: %s',
+      params: [auctionIndex, from]
+    })
     const auctionState = await this._auctionRepo.getAuctionState({
       sellToken,
       buyToken,
@@ -645,13 +651,20 @@ keeps happening`
       isTheoreticalClosed
     } = auctionState
 
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'State of the auction: %o',
+      params: [{ sellVolume: sellVolume.toNumber(), isClosed, isTheoreticalClosed }]
+    })
+
     // We do need to ensure the liquidity if:
     //  * The auction has sell volume
     //  * Is not closed yet
     //  * Is not in theoretical closed state
     if (!sellVolume.isZero()) {
       if (!isClosed && !isTheoreticalClosed) {
-        const [ price, currentMarketPrice ] = await Promise.all([
+        const [price, currentMarketPrice] = await Promise.all([
           // Get the current price for the auction
           this._auctionRepo.getCurrentAuctionPrice({
             sellToken,
@@ -671,6 +684,12 @@ keeps happening`
         ])
         assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
 
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'Price: %s, Market price: %s',
+          params: [formatUtil.formatFraction(price), formatUtil.formatFraction(currentMarketPrice)]
+        })
         if (price) {
           // If there is a price, the auction is running
           return this._doBuyLiquidityUsingCurrentPrices({
@@ -747,6 +766,17 @@ keeps happening`
     price,
     auctionState
   }) {
+    const rules = (buyLiquidityRules || this._buyLiquidityRules).map(({ marketPriceRatio, buyRatio }) => ({
+      marketPriceRatio: formatUtil.formatFraction(marketPriceRatio),
+      buyRatio: formatUtil.formatFraction(buyRatio)
+    }))
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Do ensure liquidity for auction %d. Rules: %o',
+      params: [auctionIndex, rules]
+    })
+
     let buyLiquidityOperation = null
 
     // Get the percentage that should be bought
@@ -831,7 +861,7 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Posting a buy order for %d %s ($%d)',
-          params: [ buyTokensWithFee.div(1e18), buyToken, amountToBuyInUSD ]
+          params: [buyTokensWithFee.div(1e18), buyToken, amountToBuyInUSD]
         })
         const buyOrder = await this._auctionRepo.postBuyOrder({
           sellToken,
@@ -844,7 +874,7 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Posted a buy order. Transaction: %s',
-          params: [ buyOrder.tx ]
+          params: [buyOrder.tx]
         })
 
         buyLiquidityOperation = {
@@ -875,21 +905,18 @@ keeps happening`
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
 
-    let rules = this._buyLiquidityRules
-    if (buyLiquidityRules) {
-      rules = buyLiquidityRules
-        // Transform fractions to bigdecimals
-        .map(threshold => ({
-          marketPriceRatio: numberUtil
-            .toBigNumberFraction(threshold.marketPriceRatio),
-          buyRatio: numberUtil
-            .toBigNumberFraction(threshold.buyRatio)
-        }))
-        // Sort the thresholds by buyRatio (in descendant order)
-        .sort((thresholdA, thresholdB) => {
-          return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
-        })
-    }
+    const rules = (buyLiquidityRules || this._buyLiquidityRules)
+      // Transform fractions to bigdecimals
+      .map(threshold => ({
+        marketPriceRatio: numberUtil
+          .toBigNumberFraction(threshold.marketPriceRatio),
+        buyRatio: numberUtil
+          .toBigNumberFraction(threshold.buyRatio)
+      }))
+      // Sort the thresholds by buyRatio (in descendant order)
+      .sort((thresholdA, thresholdB) => {
+        return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
+      })
 
     // Get the matching rule with the highest
     //  * note that the rules aresorted by buyRatio (in descendant order)
@@ -927,7 +954,7 @@ keeps happening`
       sellToken,
       buyToken,
       msg: 'Selling %d %s ($%d)',
-      params: [ amountInSellTokens.div(1e18), sellToken, amountToSellInUSD ]
+      params: [amountInSellTokens.div(1e18), sellToken, amountToSellInUSD]
     })
     const sellOrder = await this._auctionRepo.postSellOrder({
       sellToken,
@@ -940,7 +967,7 @@ keeps happening`
       sellToken,
       buyToken,
       msg: 'Posted a sell order. Transaction: %s',
-      params: [ sellOrder.tx ]
+      params: [sellOrder.tx]
     })
 
     return {

@@ -1,6 +1,7 @@
 // Base paths
 const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
-const CONTRACTS_UTILS_DIR = 'node_modules/@gnosis.pm/util-contracts/build/contracts'
+const CONTRACTS_UTILS_DIR =
+  'node_modules/@gnosis.pm/util-contracts/build/contracts'
 const CONTRACTS_GNO_DIR = 'node_modules/@gnosis.pm/gno-token/build/contracts'
 const CONTRACTS_OWL_DIR = 'node_modules/@gnosis.pm/owl-token/build/contracts'
 const CONTRACTS_DX_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
@@ -29,13 +30,16 @@ module.exports = {
     UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange', //BILLY: CHECK THIS
 
     StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
+    GnosisStandardToken: CONTRACTS_UTILS_DIR + '/GnosisStandardToken',
     EtherToken: CONTRACTS_UTILS_DIR + '/EtherToken',
     TokenGNO: CONTRACTS_GNO_DIR + '/TokenGNO',
     TokenOWL: CONTRACTS_OWL_DIR + '/TokenOWL',
     TokenOWLProxy: CONTRACTS_OWL_DIR + '/TokenOWLProxy',
     TokenFRT: CONTRACTS_DX_DIR + '/TokenFRT',
+    TokenFRTProxy: CONTRACTS_DX_DIR + '/TokenFRTProxy',
     PriceOracleInterface: CONTRACTS_DX_DIR + '/PriceOracleInterface',
     DutchExchangeProxy: CONTRACTS_DX_DIR + '/DutchExchangeProxy',
-    DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange'
+    DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange',
+    DutchExchangeHelper: CONTRACTS_DX_DIR + '/DutchExchangeHelper'
   }
 }

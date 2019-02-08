@@ -8,7 +8,6 @@ const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const BOT_TYPE = 'BuyLiquidityBot'
-const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../getEthereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
@@ -246,7 +245,7 @@ class BuyLiquidityBot extends Bot {
       sellToken,
       buyToken,
       msg: 'There was an error buy ensuring liquidity with the account %s: %s',
-      params: [ this._botAddress, error ],
+      params: [this._botAddress, error],
       error
     })
   }

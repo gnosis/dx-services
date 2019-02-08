@@ -6,13 +6,26 @@ const ethereumRepoMock = new EthereumRepoMock({})
 const numberUtil = require('../../src/helpers/numberUtil.js')
 
 const auctionsMockData = require('../data/auctions')
-
 const BigNumber = require('bignumber.js')
 
-const setupPromise = testSetup()
+let setup
+
+// Execute Test Suite setup
+beforeAll(async (done) => {
+  const _setupInstance = testSetup()
+  // Custom configuration
+  // Call to _setupInstance.setConfig is not needed when SAFE_MODULE_ADDRESSES is already not configured
+  _setupInstance.setConfig({
+    'SAFE_MODULE_ADDRESSES': null
+  })
+  // Initialise contracts, helpers, services etc..
+  setup = await _setupInstance.init()
+  // Wait until everything is ready to go
+  done()
+})
 
 test('It should return available markets', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
   dxInfoService._ethereumRepo = ethereumRepoMock
@@ -29,7 +42,7 @@ test('It should return available markets', async () => {
 })
 
 test('It should return a token list', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
   dxInfoService._ethereumRepo = ethereumRepoMock
@@ -44,7 +57,7 @@ test('It should return a token list', async () => {
 })
 
 test('It should return auction state', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -54,7 +67,7 @@ test('It should return auction state', async () => {
 })
 
 test('It should return auction index', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -64,7 +77,7 @@ test('It should return auction index', async () => {
 })
 
 test('It should return closing price for auction', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -85,7 +98,7 @@ test('It should return closing price for auction', async () => {
 })
 
 test('It should return closing prices for N auctions', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -99,7 +112,7 @@ test('It should return closing prices for N auctions', async () => {
 })
 
 test('It should return market details', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -109,7 +122,7 @@ test('It should return market details', async () => {
 })
 
 test('It should return current auction price', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -123,7 +136,7 @@ test('It should return current auction price', async () => {
 })
 
 test('It should return current auction start', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -133,7 +146,7 @@ test('It should return current auction start', async () => {
 })
 
 test('It should return current auction sell volume', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -143,7 +156,7 @@ test('It should return current auction sell volume', async () => {
 })
 
 test('It should return next auction sell volume', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -153,7 +166,7 @@ test('It should return next auction sell volume', async () => {
 })
 
 test('It should return current auction buy volume', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -163,7 +176,7 @@ test('It should return current auction buy volume', async () => {
 })
 
 test('It should get balances for all currencies of an account', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -179,7 +192,7 @@ test('It should get balances for all currencies of an account', async () => {
 })
 
 test('It should get current price in USD', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 
@@ -196,7 +209,7 @@ test('It should get current price in USD', async () => {
 })
 
 test('It should get current fee ratio for an user', async () => {
-  const { dxInfoService } = await setupPromise
+  const { dxInfoService } = setup
 
   dxInfoService._auctionRepo = auctionRepoMock
 

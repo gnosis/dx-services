@@ -1,3 +1,5 @@
+const conf = require('../../conf')
+process.env.DEBUG = conf.DEBUG
 const Debug = require('debug')
 
 const messageNotifier = require('./messageNotifier')

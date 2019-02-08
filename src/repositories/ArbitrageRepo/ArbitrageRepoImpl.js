@@ -90,6 +90,19 @@ class ArbitrageRepoImpl extends Cacheable {
     return uniswapExchangeInstance
   }
 
+  async getEthToTokenInputPrice (token, amount) {
+    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(token)
+    let uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
+    return uniswapExchangeInstance.getEthToTokenInputPrice(amount)
+  }
+
+  async getTokenToEthInputPrice (token, amount) {
+    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(token)
+    let uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
+    return uniswapExchangeInstance.getTokenToEthInputPrice(amount)
+  }
+
+
   whichTokenIsEth (tokenA, tokenB) {
 
     assert(tokenB.toLowerCase() === this._tokens.WETH.address.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase(),

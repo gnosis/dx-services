@@ -7,11 +7,7 @@ const getClaimableTokens = require('../helpers/getClaimableTokens')
 const numberUtil = require('../../../src/helpers/numberUtil')
 
 class DxTradeService {
-  constructor ({
-    auctionRepo,
-    ethereumRepo,
-    markets
-  }) {
+  constructor ({ auctionRepo, ethereumRepo, markets }) {
     assert(auctionRepo, '"assert" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     // assert(markets, '"markets" is required')
@@ -24,13 +20,21 @@ class DxTradeService {
 
   async buy ({ sellToken, buyToken, auctionIndex, from, amount }) {
     return this._auctionRepo.postBuyOrder({
-      sellToken, buyToken, auctionIndex, from, amount
+      sellToken,
+      buyToken,
+      auctionIndex,
+      from,
+      amount
     })
   }
 
   async sell ({ sellToken, buyToken, auctionIndex, from, amount }) {
     return this._auctionRepo.postSellOrder({
-      sellToken, buyToken, auctionIndex, from, amount
+      sellToken,
+      buyToken,
+      auctionIndex,
+      from,
+      amount
     })
   }
 
@@ -85,31 +89,58 @@ class DxTradeService {
         }
 
         return {
-          auctionsAsSeller, auctionsAsBuyer
+          auctionsAsSeller,
+          auctionsAsBuyer
         }
-      }, {
+      },
+      {
         auctionsAsSeller: [],
         auctionsAsBuyer: []
-      })
+      }
+    )
 
     let claimSellerResult = []
     if (auctionsAsSeller.length > 0) {
-      logger.info('I have to claim from %d auctions as seller', auctionsAsSeller.length)
+      logger.info(
+        'I have to claim from %d auctions as seller',
+        auctionsAsSeller.length
+      )
       auctionsAsSeller.forEach(({ sellToken, buyToken, indices }) => {
-        logger.info('Claiming as seller %s-%s for auctions: %s', sellToken, buyToken, indices)
+        logger.info(
+          'Claiming as seller %s-%s for auctions: %s',
+          sellToken,
+          buyToken,
+          indices
+        )
       })
-      claimSellerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
-        auctionsAsSeller, address })
+      claimSellerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller(
+        {
+          auctionsAsSeller,
+          address
+        }
+      )
     }
 
     let claimBuyerResult = []
     if (auctionsAsBuyer.length > 0) {
-      logger.info('I have to claim from %d auctions as buyer', auctionsAsBuyer.length)
+      logger.info(
+        'I have to claim from %d auctions as buyer',
+        auctionsAsBuyer.length
+      )
       auctionsAsBuyer.forEach(({ sellToken, buyToken, indices }) => {
-        logger.info('Claiming as buyer %s-%s for auctions: %s', sellToken, buyToken, indices)
+        logger.info(
+          'Claiming as buyer %s-%s for auctions: %s',
+          sellToken,
+          buyToken,
+          indices
+        )
       })
-      claimBuyerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({
-        auctionsAsBuyer, address })
+      claimBuyerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer(
+        {
+          auctionsAsBuyer,
+          address
+        }
+      )
     }
     // const claimPromises = []
     // auctionsAsSeller.length > 0
@@ -128,8 +159,13 @@ class DxTradeService {
   }
 
   async claimSellerFunds ({ tokenA, tokenB, address, auctionIndex }) {
-    logger.info('Claiming seller funds for address %s in auction %d of %s-%s',
-      address, auctionIndex, tokenA, tokenB)
+    logger.info(
+      'Claiming seller funds for address %s in auction %d of %s-%s',
+      address,
+      auctionIndex,
+      tokenA,
+      tokenB
+    )
     return this._auctionRepo.claimSellerFunds({
       sellToken: tokenA,
       buyToken: tokenB,
@@ -139,8 +175,13 @@ class DxTradeService {
   }
 
   async claimBuyerFunds ({ tokenA, tokenB, address, auctionIndex }) {
-    logger.info('Claiming buyer funds for address %s in auction %d of %s-%s',
-      address, auctionIndex, tokenA, tokenB)
+    logger.info(
+      'Claiming buyer funds for address %s in auction %d of %s-%s',
+      address,
+      auctionIndex,
+      tokenA,
+      tokenB
+    )
     return this._auctionRepo.claimBuyerFunds({
       sellToken: tokenA,
       buyToken: tokenB,
@@ -170,7 +211,13 @@ class DxTradeService {
 
     logger.info({
       msg: 'Transfered %d %s from %s to %s. Transaction: %s',
-      params: [ amountInEther, token, fromAddress, toAddress, transactionResult.tx ]
+      params: [
+        amountInEther,
+        token,
+        fromAddress,
+        toAddress,
+        transactionResult.tx
+      ]
     })
 
     return transactionResult
@@ -197,7 +244,7 @@ class DxTradeService {
     // const accountAddress = await this._getAccountAddress(accountIndex)
     logger.info({
       msg: 'Fund the account %s with %d %s',
-      params: [ accountAddress, amountInEth, token ]
+      params: [accountAddress, amountInEth, token]
     })
 
     let transactionResult
@@ -219,14 +266,16 @@ class DxTradeService {
         amount
       })
       logger.info({
-        msg: 'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
-        params: [ amountInEth, token, transactionResult.tx ]
+        msg:
+          'Approved the DX to use %d %s on behalf of the user. Transaction: %s',
+        params: [amountInEth, token, transactionResult.tx]
       })
     } else {
       // We have anough allowance
       logger.info({
-        msg: 'Not need to do any approval. The DX already have an allowance of %d',
-        params: [ allowance.div(1e18) ]
+        msg:
+          'Not need to do any approval. The DX already have an allowance of %d',
+        params: [allowance.div(1e18)]
       })
     }
 
@@ -237,8 +286,9 @@ class DxTradeService {
       amount
     })
     logger.info({
-      msg: 'Deposited %d %s into DX account balances for the user. Transaction: %s',
-      params: [ amountInEth, token, transactionResult.tx ]
+      msg:
+        'Deposited %d %s into DX account balances for the user. Transaction: %s',
+      params: [amountInEth, token, transactionResult.tx]
     })
 
     return transactionResult
@@ -255,12 +305,11 @@ class DxTradeService {
     const amountInWei = numberUtil.toBigNumber(amount)
 
     if (etherTokenBalance.lessThan(amount)) {
-      const missingDifference = amountInWei
-        .minus(etherTokenBalance)
+      const missingDifference = amountInWei.minus(etherTokenBalance)
 
       logger.info({
-        msg: `We don't have enogth WETH, so we need to wrap %d ETH into the WETH token`,
-        params: [ missingDifference.div(1e18) ]
+        msg: `We don't have enougth WETH, so we need to wrap %d ETH into the WETH token`,
+        params: [missingDifference.div(1e18)]
       })
 
       transactionResult = await this._auctionRepo.depositEther({
@@ -269,7 +318,7 @@ class DxTradeService {
       })
       logger.info({
         msg: 'Wrapped %d ETH in WETH token. Transaction: %s',
-        params: [ amountInWei.div(1e18), transactionResult.tx ]
+        params: [amountInWei.div(1e18), transactionResult.tx]
       })
     }
   }
@@ -280,7 +329,7 @@ class DxTradeService {
     // const accountAddress = await this._getAccountAddress(accountIndex)
     logger.info({
       msg: 'Withdraw the account %s with %d %s',
-      params: [ accountAddress, amountInEth, token ]
+      params: [accountAddress, amountInEth, token]
     })
 
     let transactionResult
@@ -292,8 +341,9 @@ class DxTradeService {
       amount
     })
     logger.info({
-      msg: 'Withdrawed %d %s into DX account balances for the user. Transaction: %s',
-      params: [ amountInEth, token, transactionResult.tx ]
+      msg:
+        'Withdrawed %d %s into DX account balances for the user. Transaction: %s',
+      params: [amountInEth, token, transactionResult.tx]
     })
 
     return transactionResult
@@ -304,7 +354,7 @@ class DxTradeService {
 
     logger.info({
       msg: 'Unwrap %d to the account %s',
-      params: [ amount, accountAddress ]
+      params: [amount, accountAddress]
     })
 
     let transactionResult
@@ -316,7 +366,7 @@ class DxTradeService {
     })
     logger.info({
       msg: 'Unwraped %d WETH into %s account. Transaction: %s',
-      params: [ amountInEth, accountAddress, transactionResult.tx ]
+      params: [amountInEth, accountAddress, transactionResult.tx]
     })
 
     return transactionResult
@@ -325,8 +375,11 @@ class DxTradeService {
   async _getAccountAddress (accountIndex) {
     const accounts = await this._ethereumRepo.getAccounts(accountIndex)
 
-    assert(accounts.length >= accountIndex - 1, `There should be at least \
-${accountIndex} accounts, but there's just ${accounts}`)
+    assert(
+      accounts.length >= accountIndex - 1,
+      `There should be at least \
+${accountIndex} accounts, but there's just ${accounts}`
+    )
 
     return accounts[accountIndex - 1]
   }

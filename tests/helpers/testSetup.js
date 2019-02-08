@@ -22,10 +22,6 @@ const INITIAL_AMOUNTS = {
   OMG: 1500
 }
 
-const config = {
-  AUCTION_REPO: 'impl'
-}
-
 // const balanceProps = ['token', 'balance']
 
 async function getContracts ({ ethereumClient, auctionRepo }) {
@@ -666,13 +662,28 @@ function weiToEth (wei) {
 }
 */
 
+/**
+* @return {Object} - An object containing the init() function which must be called in
+* order to set up all the environment.
+* Call setConfig(config) before the init() function to provide a custom configuration.
+*/
 function testSetup () {
-  return instanceFactory({ test: true, config })
+  let _config = require('../../conf')
+
+  const _instanceFactory = () => instanceFactory({ test: true, config: _config })
     .then(async instances => {
       const contracts = await getContracts(instances)
       const helpers = await getHelpers(instances, contracts)
       return Object.assign({}, contracts, helpers, instances)
     })
+
+  return {
+    setConfig: config => {
+      _config.update(config) // override runtime config
+    },
+    getConfig: () => _config,
+    init: _instanceFactory
+  }
 }
 
 module.exports = testSetup

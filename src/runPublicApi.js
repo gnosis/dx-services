@@ -8,6 +8,7 @@ const logger = new Logger(loggerNamespace)
 //  * We temporarily add an arbitrary mnemonic, just for the API (no funding
 //   should ever go to this addresses)
 process.env.MNEMONIC = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+process.env.IS_API = true
 
 // Helpers
 const gracefullShutdown = require('./helpers/gracefullShutdown')

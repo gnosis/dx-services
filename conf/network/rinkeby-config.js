@@ -4,7 +4,7 @@ const GNO_NETWORKS = require('../../node_modules/@gnosis.pm/gno-token/networks.j
 const ARBITRAGE_NETWORKS = require('../../node_modules/okwme/arbitrage/networks.json')
 
 const env = process.env.NODE_ENV
-let DX_CONTRACT_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS, GNO_TOKEN_ADDRESS
+let DX_CONTRACT_ADDRESS, DX_HELPER_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS, GNO_TOKEN_ADDRESS
 let DAI_TOKEN_ADDRESS, GEN_TOKEN_ADDRESS, MKR_TOKEN_ADDRESS
 
 // In Rinkeby we use different instances of the contract for dev and staging
@@ -13,6 +13,7 @@ if (env === 'pre' || env === 'pro') {
   //  We use set all addresses to null, because they should be provided
   //  The DX contract address is loaded from the NPM package
   DX_CONTRACT_ADDRESS = null
+  DX_HELPER_ADDRESS = null
   RDN_TOKEN_ADDRESS = null
   OMG_TOKEN_ADDRESS = null
 
@@ -22,6 +23,7 @@ if (env === 'pre' || env === 'pro') {
   // Rinkeby: dev
   //  We use a different DX contract than the one defined in the NPM package
   DX_CONTRACT_ADDRESS = NETWORKS_DEV['DutchExchangeProxy']['4'].address
+  DX_HELPER_ADDRESS = NETWORKS_DEV['DutchExchangeHelper']['4'].address
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'
   GNO_TOKEN_ADDRESS = GNO_NETWORKS['TokenGNO']['4'].address
@@ -37,7 +39,7 @@ if (env === 'pre' || env === 'pro') {
   DX_CONTRACT_ADDRESS = null
   UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
   ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['Arbitrage']['4']
-
+  DX_HELPER_ADDRESS = null
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'
 
@@ -65,6 +67,7 @@ module.exports = {
   DX_CONTRACT_ADDRESS,
   UNISWAP_FACTORY_ADDRESS,
   ARBITRAGE_CONTRACT_ADDRESS,
+  DX_HELPER_ADDRESS,
   GNO_TOKEN_ADDRESS,
   RDN_TOKEN_ADDRESS,
   OMG_TOKEN_ADDRESS,
