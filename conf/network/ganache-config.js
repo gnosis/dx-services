@@ -9,6 +9,7 @@ const CONTRACT_DEFINITIONS = {
   DutchExchange: CONTRACTS_BASE_DIR + '/DutchExchange',
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
+  UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
   EtherToken: CONTRACTS_BASE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_BASE_DIR + '/TokenFRT',
   TokenOWL: CONTRACTS_BASE_DIR + '/TokenOWL',
@@ -19,5 +20,6 @@ const CONTRACT_DEFINITIONS = {
 module.exports = {
   NETWORK: 'ganache',
   CONTRACTS_BASE_DIR,
-  CONTRACT_DEFINITIONS
+  CONTRACT_DEFINITIONS,
+  UNI_TOKEN_ADDRESS: '0x8273e4B8ED6c78e252a9fCa5563Adfcc75C91b2A'
 }

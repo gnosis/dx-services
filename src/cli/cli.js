@@ -70,6 +70,7 @@ async function run (instances) {
 
   // Arbitrage commands
   // require('./cliCommands/arbTransferOwnership')(commandParams) // onlyOwner
+  require('./cliCommands/arbManualTriggerCmd')(commandParams)
   require('./cliCommands/arbGetBalanceCmd')(commandParams)
   require('./cliCommands/arbDepositEtherCmd')(commandParams)
   // require('./cliCommands/arbWithdrawTransferEtherCmd')(commandParams) // onlyOwner

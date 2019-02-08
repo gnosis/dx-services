@@ -30,7 +30,7 @@
     "test-coverage": "NODE_ENV=test jest --coverage && cat ./coverage/lcov.info | coveralls",
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
-    "cli": "DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
+    "cli": "MARKETS=UNI-WETH DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=rinkeby node src/cli/cli.js",
     "cli-kovan": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=kovan node src/cli/cli.js",
     "cli-mainnet": "MARKETS=RDN-WETH,OMG-WETH,DAI-WETH RDN_TOKEN_ADDRESS=0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6 OMG_TOKEN_ADDRESS=0xd26114cd6EE289AccF82350c8d8487fedB8A0C07 DAI_TOKEN_ADDRESS=0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359 DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=mainnet node src/cli/cli.js",

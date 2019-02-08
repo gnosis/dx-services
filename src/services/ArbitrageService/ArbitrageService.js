@@ -22,6 +22,14 @@ class ArbitrageService {
     this._markets = markets
   }
 
+  async ethToken () {
+    return this._auctionRepo.ethToken()
+  }
+
+  async manualTrigger() {
+    await this._arbitrageRepo
+  }
+
   async getContractEtherBalance() {
     const account = this._arbitrageRepo.getArbitrageAddress()
     const contractBalance = await this._ethereumRepo.balanceOf({ account })
