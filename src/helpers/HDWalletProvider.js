@@ -5,6 +5,7 @@ const assert = require('assert')
 const Web3 = require('web3')
 const TruffleHDWalletProvider = require('truffle-hdwallet-provider')
 const sendTxWithUniqueNonce = require('./sendTxWithUniqueNonce')
+// const NonceTrackerSubprovider = require('./NonceTrackerSubprovider')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
@@ -18,25 +19,76 @@ const NONCE_LOCK_DISABLED = process.env.DISABLE_NONCE_LOCK === 'true' || isLocal
 class HDWalletProvider extends TruffleHDWalletProvider {
   constructor ({
     mnemonic,
+    privateKeys,
     url,
     addressIndex = 0,
-    numAddresses = 5,
+    numAddresses: numAddressesAux = 5,
     shareNonce = true,
     blockForNonceCalculation = 'pending'
   }) {
-    assert(mnemonic, '"mnemonic" is mandatory')
+    const accountCredentials = privateKeys || mnemonic
+    let numAddresses = privateKeys ? privateKeys.length : numAddressesAux
+
+    assert(accountCredentials, '"privateKey" or "mnemonic" are mandatory')
     assert(url, '"url" is mandatory')
 
     // console.log('[HDWalletProvider] New provider for: %s', url)
-    super(mnemonic, url, addressIndex, numAddresses, shareNonce)
+    super(accountCredentials, url, addressIndex, numAddresses, shareNonce)
     this._web3 = new Web3(this)
     this._blockForNonceCalculation = blockForNonceCalculation
     this._mainAddress = this.addresses[0]
-    // logger.debug('Main address: %s', this._mainAddress)
+
+    // this.engine.stop()
+    // // const nonceSubProvider = this.engine._providers.find(provider => {
+    // //   return provider.hasOwnProperty('nonceCache')
+    // // })
+    //
+    // this.engine._providers = this.engine._providers.reduce((providers, provider) => {
+    //   if (!provider.hasOwnProperty('nonceCache')) {
+    //     providers.push(provider)
+    //   }
+    //   return providers
+    // }, [])
+    //
+    // // nonceSubProvider.handleRequest = (payload, next, end) => {
+    // //   next()
+    // // }
+    // this.engine.start()
+
+    // /*
+    //   Small hack to solve: https://github.com/MetaMask/provider-engine/issues/300
+    //   while the PR is not merged
+    //     0: HookedSubprovider
+    //     1: NonceSubProvider
+    //     2: FiltersSubprovider
+    //     3: if (provided is string)  ProviderSubprovider --> HttpProvider
+    //       else ProviderSubprovider --> provider
+    // */
+    // if (this.engine._providers.length !== 4) {
+    //   throw new Error('Unexpected providers setup. Review the HDWalletProvider setup')
+    // }
+    // // const [, nonceSubProvider] = this.engine._providers
+
+    // // // Proxy nonce subprovider to handle reverts
+    // // const nonceSubProviderHandleRequest = nonceSubProvider.handleRequest.bind(nonceSubProvider)
+
+    // // nonceSubProvider.handleRequest = function (payload, next, end) {
+    // //   const self = nonceSubProvider
+
+    // //   if (payload.method === 'evm_revert') {
+    // //     // Clear cache on a testrpc revert
+    // //     self.nonceCache = {}
+    // //     next()
+    // //   } else {
+    // //     return nonceSubProviderHandleRequest(payload, next, end)
+    // //   }
+    // // }
+    // this.engine._providers[1] = new NonceTrackerSubprovider()
   }
 
   getNonce (from) {
     return new Promise((resolve, reject) => {
+      this._resetNonceCache()
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           // console.error('[HDWalletProvider] Error getting the nonce')
@@ -65,6 +117,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
         this._sendTxWithUniqueNonce(...arguments)
       } else {
         logger.trace('Send transaction: %o', arguments)
+        this._resetNonceCache()
         return super.sendAsync(...arguments)
       }
     } else {
@@ -73,9 +126,20 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     }
   }
 
+  _resetNonceCache () {
+    const nonceProvider = this.engine._providers.find(provider => {
+      return provider.hasOwnProperty('nonceCache')
+    })
+    if (nonceProvider === undefined) {
+      throw new Error('Unexpected providers setup. Review the HDWalletProvider setup')
+    }
+    nonceProvider.nonceCache = {}
+    // console.log(nonceProvider)
+  }
+
   _sendTxWithUniqueNonce (args) {
     let { params } = args
-    const [ , callback ] = arguments
+    const [, callback] = arguments
     let from
     if (Array.isArray(params)) {
       from = params[0].from

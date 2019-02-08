@@ -1,7 +1,17 @@
 #!/usr/bin/env node
-const { MNEMONIC: DEFAULT_MNEMONIC } = require('../../conf/env/local-config')
+const {
+  MNEMONIC: DEFAULT_MNEMONIC,
+  PK: DEFAULT_PK
+} = require('../../conf/env/local-config')
+
 const mnemonic = process.env.MNEMONIC || DEFAULT_MNEMONIC
+const pk = process.env.PK || DEFAULT_PK
+
 process.env.MNEMONIC = mnemonic
+if (pk) {
+  process.env.PK = pk
+}
+
 const DEBUG = process.env.DEBUG || 'ERROR-*,WARN-*,INFO-*'
 process.env.DEBUG = DEBUG
 
@@ -23,7 +33,7 @@ instanceFactory()
     gracefullShutdown.shutDown()
   })
 
-async function run (instances) {
+async function run(instances) {
   const cli = yargs.usage('$0 <cmd> [args]')
   const commandParams = { cli, instances, logger }
 

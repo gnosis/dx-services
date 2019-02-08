@@ -142,19 +142,21 @@ class EthereumClient extends Cacheable {
   async getTransactionCount (account, block) {
     // console.log('Getting nonce for account: ', account)
     // console.log('getTransactionCount: ', block)
-    return _promisify(this._web3.eth.getTransactionCount, [ account, block ])
+    return _promisify(this._web3.eth.getTransactionCount, [account, block])
   }
 
   async getBlock (blockNumber) {
     if (blockNumber === undefined) {
       blockNumber = await this.getBlockNumber()
     }
+    // logger.debug('Get block: ', blockNumber)
+
     // NOTE: not using doCall on purpose because error with this context in web3
     // Using web3 0.2.X
     const fetchFn = () =>
-      _promisify(this._web3.eth.getBlock, [ blockNumber.toString() ])
+      _promisify(this._web3.eth.getBlock, [blockNumber.toString()])
 
-    const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [ blockNumber.toString() ] })
+    const cacheKey = this._getCacheKey({ propName: 'eth.getBlock', params: [blockNumber.toString()] })
     if (this._cache) {
       const that = this
       return this._cache.get({
@@ -208,7 +210,7 @@ class EthereumClient extends Cacheable {
   }
 
   async balanceOf (account) {
-    return this.doCall({ propName: 'eth.getBalance', params: [ account ] })
+    return this.doCall({ propName: 'eth.getBalance', params: [account] })
   }
 
   async doCall ({ propName, params, cacheTime = this.callCacheTime }) {
@@ -448,7 +450,7 @@ class EthereumClient extends Cacheable {
       // Increase time
       ._sendAsync('evm_increaseTime', {
         id,
-        params: [ increaseMs ]
+        params: [increaseMs]
       })
       // then mine block
       .then(() => {
@@ -465,7 +467,7 @@ class EthereumClient extends Cacheable {
     return _promisify((params, cb) => {
       // we need to curry the function
       this._web3.currentProvider.sendAsync(params, cb)
-    }, [ params ])
+    }, [params])
   }
 
   getWeb3 () {
@@ -499,25 +501,25 @@ async function _promisify (fn, params) {
   })
 }
 
-function _handleGetGasPriceError (error) {
-  // Notify error
-  logger.error({
-    msg: 'Error getting the price: %o',
-    params: [{
-      environment,
-      network: this._network,
-      gasStation: this._urlPriceFeedGasStation,
-      safe: this._urlPriceFeedSafe
-    }],
-    error
-  })
+// function _handleGetGasPriceError (error) {
+//   // Notify error
+//   logger.error({
+//     msg: 'Error getting the price: %o',
+//     params: [{
+//       environment,
+//       network: this._network,
+//       gasStation: this._urlPriceFeedGasStation,
+//       safe: this._urlPriceFeedSafe
+//     }],
+//     error
+//   })
 
-  // Return fallback default gas price
-  return {
-    safeLow: DAFAULT_GAS_PRICE_SAFE_LOW,
-    average: DAFAULT_GAS_PRICE_AVERAGE,
-    fast: DAFAULT_GAS_PRICE_FAST
-  }
-}
+//   // Return fallback default gas price
+//   return {
+//     safeLow: DAFAULT_GAS_PRICE_SAFE_LOW,
+//     average: DAFAULT_GAS_PRICE_AVERAGE,
+//     fast: DAFAULT_GAS_PRICE_FAST
+//   }
+// }
 
 module.exports = EthereumClient

@@ -13,7 +13,7 @@ const gracefullShutdown = require('../helpers/gracefullShutdown')
 // Env
 logger.info('Claiming funds')
 
-async function claimFunds () {
+async function claimFunds() {
   const { BOTS, ENVIRONMENT } = config
 
   const botRunner = new BotRunner({
@@ -77,11 +77,11 @@ const _doClaim = async ({ botAddress, markets, name, config }) => {
 }
 
 // List markets grouped by account
-function _getAccountMarkets (accountMarkets, bot) {
+function _getAccountMarkets(accountMarkets, bot) {
   const name = bot.name
   const markets = bot._markets
   const botAddress = bot.getAddress()
-  assert(botAddress, 'The bot address was not configured. Define the MNEMONIC environment var')
+  assert(botAddress, 'The bot address was not configured. Define the PK or MNEMONIC environment var')
 
   // First time we see this account
   if (!accountMarkets.hasOwnProperty(botAddress)) {
@@ -93,7 +93,7 @@ function _getAccountMarkets (accountMarkets, bot) {
     accountMarkets[botAddress].name += ', ' + name
   }
 
-  function _isEqualTokenPair (tokenPair, { sellToken, buyToken }) {
+  function _isEqualTokenPair(tokenPair, { sellToken, buyToken }) {
     return tokenPair.sellToken === sellToken && tokenPair.buyToken === buyToken
   }
 
@@ -103,20 +103,22 @@ function _getAccountMarkets (accountMarkets, bot) {
       _isEqualTokenPair(market, { sellToken: tokenA, buyToken: tokenB }))
     ) {
       accountMarkets[botAddress].markets.push({
-        sellToken: tokenA, buyToken: tokenB })
+        sellToken: tokenA, buyToken: tokenB
+      })
     }
     if (!accountMarkets[botAddress].markets.some(market =>
       _isEqualTokenPair(market, { sellToken: tokenB, buyToken: tokenA }))
     ) {
       accountMarkets[botAddress].markets.push({
-        sellToken: tokenB, buyToken: tokenA })
+        sellToken: tokenB, buyToken: tokenA
+      })
     }
   })
 
   return accountMarkets
 }
 
-function handleError (error) {
+function handleError(error) {
   process.exitCode = 1
   logger.error({
     msg: 'Error booting the application: ' + error.toString(),

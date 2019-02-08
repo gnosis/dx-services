@@ -13,18 +13,32 @@ const HDWalletProvider = require('./helpers/HDWalletProvider')
 const NODE_ERROR_EMPTY_RESPONSE = 'Error: Invalid JSON RPC response: ""'
 const SILENT_TIME_FOR_NODE_ERRORS = 120000 // 120s
 
+let MNEMONIC
 const {
-  MNEMONIC,
+  MNEMONIC: CONF_MNEMONIC,
+  PK,
   ETHEREUM_RPC_URL
 } = conf
 
-assert(MNEMONIC, 'The "MNEMONIC" is mandatory')
+// FIXME make API MNEMONIC independent
+MNEMONIC = process.env.IS_API ? process.env.MNEMONIC : CONF_MNEMONIC
+
+assert(MNEMONIC || PK, 'The "PK" or MNEMONIC" is mandatory')
 assert(ETHEREUM_RPC_URL, 'The "ETHEREUM_RPC_URL" is mandatory')
 
 // Setup provider and Web3
 logger.debug('Using %s RPC api to connect to Ethereum', this._url)
+
+let privateKeys, mnemonic
+if (PK) {
+  privateKeys = [PK]
+} else {
+  mnemonic = MNEMONIC
+}
+
 this._provider = new HDWalletProvider({
-  mnemonic: MNEMONIC,
+  privateKeys,
+  mnemonic,
   url: ETHEREUM_RPC_URL,
   addressIndex: 0,
   numAddresses: 5
@@ -51,7 +65,7 @@ function _printNodeError (error) {
   }
   logger[debugLevel]({
     msg: 'Error in Ethereum node %s: %s',
-    params: [ this._url, error.message ]
+    params: [this._url, error.message]
     // error // We hide the stack trace, is not usefull in this case (dispached by web3 internals)
   })
 }
