@@ -24,6 +24,11 @@ async function _createArbitrageRepo () {
   const getEthereumClient = require('../../getEthereumClient')
   const ethereumClient = await getEthereumClient()
 
+
+  // Get ethereum client
+  const getEthereumRepo = require('../EthereumRepo')
+  const ethereumRepo = await getEthereumRepo()
+
   const {
     CACHE,
     DEFAULT_GAS,
@@ -35,6 +40,7 @@ async function _createArbitrageRepo () {
   } = conf
 
   return new ArbitrageRepo({
+    ethereumRepo,
     ethereumClient,
     contracts,
 

@@ -30,6 +30,7 @@
     "test-coverage": "NODE_ENV=test jest --coverage && cat ./coverage/lcov.info | coveralls",
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
+    "initialize": "yarn cli depositEther 1 && yarn cli deposit 20 WETH && yarn cli deposit 0.3 UNI && yarn cli add-token-pair --token-pair UNI-WETH && yarn cli2 -t 13",
     "cli": "MARKETS=UNI-WETH DEBUG=ERROR-*,WARN-*,INFO-* node src/cli/cli.js",
     "cli-rinkeby": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=rinkeby node src/cli/cli.js",
     "cli-kovan": "DEBUG=ERROR-*,WARN-*,INFO-* NETWORK=kovan node src/cli/cli.js",
@@ -62,7 +63,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gnosis.pm/dx-contracts": "^1.0.7",
+    "@gnosis.pm/dx-contracts": "^2.0.0",
     "@slack/client": "^4.8.0",
     "commander": "^2.19.0",
     "cors": "^2.8.5",

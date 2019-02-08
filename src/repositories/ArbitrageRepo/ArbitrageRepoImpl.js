@@ -23,6 +23,7 @@ const isLocal = environment === 'local'
 
 class ArbitrageRepoImpl extends Cacheable {
   constructor ({
+    ethereumRepo,
     ethereumClient,
     contracts,
     // Cache
@@ -43,6 +44,7 @@ class ArbitrageRepoImpl extends Cacheable {
     assert(ethereumClient, '"ethereumClient" is required')
     assert(contracts, '"contracts" is required')
 
+    this._ethereumRepo = ethereumRepo
     this._ethereumClient = ethereumClient
     this._defaultGas = defaultGas
     this._transactionRetryTime = transactionRetryTime
@@ -89,20 +91,20 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   whichTokenIsEth (tokenA, tokenB) {
-    assert(tokenB.toLowerCase() === this._tokens.WETH.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.toLowerCase(),
+
+    assert(tokenB.toLowerCase() === this._tokens.WETH.address.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase(),
       'Not prepared to do ERC20 to ERC20 arbitrage')
 
-    etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
-    tokenToken = etherToken === tokenA ? tokenB : tokenA
+    const etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
+    const tokenToken = etherToken === tokenA ? tokenB : tokenA
     return { etherToken, tokenToken }
   }
 
   async getUniswapBalances ({ buyToken, sellToken }) {
-    const { tokenToken } = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)
-
-    const uniswapExchangeAddress = await this._uniswapFactory.getExchange(tokenToken)
-    ether_balance = this._ethereumClient.balanceOf(uniswapExchangeAddress)
-    token_balance = this._ethereumClient.tokenBalanceOf({
+    const { tokenToken } = this.whichTokenIsEth(buyToken, sellToken)
+    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenToken)
+    const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
+    const token_balance = await this._ethereumRepo.tokenBalanceOf({
       tokenAddress: tokenToken,
       account: uniswapExchangeAddress
     })
@@ -203,7 +205,7 @@ class ArbitrageRepoImpl extends Cacheable {
   async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params, value }) {
     value = value || '0'
     params = params || []
-    logger.debug({
+    logger.info({
       msg: '_doTransaction: %o',
       params: [
         operation,
@@ -214,7 +216,8 @@ class ArbitrageRepoImpl extends Cacheable {
     })
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
-
+    let test = await this._arbitrage[operation].call(...params, { from, value })
+    console.log("test", test)
     const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
@@ -226,11 +229,11 @@ class ArbitrageRepoImpl extends Cacheable {
 
     const { initialGasPrice, fastGasPrice } = gasPrices
 
-    logger.debug({
+    logger.info({
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
-    logger.debug({
+    logger.info({
       msg: 'Initial gas price is set to %d by %s',
       params: [ initialGasPrice, this._gasPriceDefault ]
     })

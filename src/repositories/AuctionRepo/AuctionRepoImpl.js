@@ -1244,9 +1244,8 @@ volume: ${state}`)
 
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)
-
     // let currentAuctionPrice
-    return this
+    return await this
       ._callForAuction({
         operation: 'getCurrentAuctionPrice',
         sellToken,
@@ -1255,7 +1254,6 @@ volume: ${state}`)
         cacheTime: this._cacheTimeShort
       })
       .then(toFraction)
-
     // TODO: breaking many places for now
     // if (!currentAuctionPrice) {
     //   // Handle the sellVolume=0 case
@@ -1977,11 +1975,9 @@ volume: ${state}`)
     checkTokens = false,
     cacheTime
   }) {
-    /*
-    debug('Get %s for auction %d of pair %s-%s',
+    console.log('Get %s for auction %d of pair %s-%s',
       operation, auctionIndex, sellToken, buyToken
     )
-    */
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [ sellTokenAddress, buyTokenAddress, auctionIndex, ...args ]
@@ -2336,8 +2332,10 @@ volume: ${state}`)
 }
 
 function toFraction ([ numerator, denominator ]) {
+  console.log('toFracton', numerator.toString(10), denominator.toString(10))
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {
+    console.log('isZero!!!')
     return null
   } else {
     return { numerator, denominator }

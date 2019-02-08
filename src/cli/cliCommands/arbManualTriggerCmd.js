@@ -27,12 +27,12 @@ function registerCommand ({ cli, logger }) {
       const ethToken = await arbitrageService.ethToken()
 
       // Get auction index
-      await liquidityService.ensureSellLiquidity({
+      await liquidityService.ensureArbitrageLiquidity({
         sellToken: token,
         buyToken: ethToken,
         from
       })
-      //  async ensureSellLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
+      // async ensureArbitrageLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
       // logger.info('The deposit was succesful. Transaction: %s', depositResult.tx)
     })
 }
