@@ -33,14 +33,15 @@ class PriceRepoIdex {
     let isEthFirst = tokenA == 'ETH'
 
     let market = 'ETH_' + (isEthFirst ? tokenB : tokenA)
-    
+
     let response = (await this._doPost(url, {market: market}))[market]
 
     if (response === undefined) {
       return false
     }
 
-    let lastPrice = isEthFirst ? response['last'] : 1/response['last']
+    // ETH_GEN in IDEX returns GEN/WETH value
+    let lastPrice = isEthFirst ? 1/response['last'] : response['last']
 
     debug('Idex Response to ' + market + ': ', lastPrice.toString())
     return lastPrice.toString()
