@@ -1236,7 +1236,7 @@ volume: ${state}`)
 
   async getFeeRatio ({ address }) {
     assert(address, 'The address is required')
-
+    console.log({address})
     return this
       ._doCall({
         operation: 'getFeeRatio',
@@ -1246,16 +1246,16 @@ volume: ${state}`)
   }
 
   async getCurrentAuctionPriceWithFees ({sellToken, buyToken, auctionIndex, amount, from}) {
-
+    console.log({sellToken, buyToken, auctionIndex})
     const {numerator, denominator} = await this.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex});
-    
+    console.log({numerator, denominator})
     const sellVolume = await this.getSellVolume({sellToken, buyToken})
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
-
+    console.log({sellVolume, buyVolume})
     // 10^30 * 10^37 = 10^67
     let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
     outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
-
+    console.log({outstandingVolume})
     let amountAfterFee;
     if (amount.lt(outstandingVolume)) {
         if (amount.gt(0)) {
@@ -1265,21 +1265,23 @@ volume: ${state}`)
         amount = outstandingVolume;
         amountAfterFee = outstandingVolume;
     }
+    
     return amountAfterFee
   }
 
 
   async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from) {
-
-    const foo = await this.getFeeRatio({address: from})
+    
+    console.log('settleFee')
     const [numerator, denominator] = await this.getFeeRatio({address: from})
+    console.log({numerator, denominator})
     // 10^30 * 10^3 / 10^4 = 10^29
     let fee = amount.mul(numerator).div(denominator)
 
     if (fee > 0) {
-        fee = await this.settleFeeSecondPart(primaryToken, fee);
-        usersExtraTokens = await this.getExtraTokens({sellToken, buyToken, auctionIndex})
-
+        fee = await this.settleFeeSecondPart(primaryToken, fee, from);
+        // usersExtraTokens = await this.getExtraTokens({sellToken:primaryToken, buyToken:secondaryToken, auctionIndex})
+        // console.log({usersExtraTokens})
         // extraTokens[primaryToken][secondaryToken][auctionIndex + 1] = add(usersExtraTokens, fee);
     }
 
@@ -1304,7 +1306,7 @@ volume: ${state}`)
 
     let owlBalance = await this._tokens.OWL.balanceOf(from)
     amountOfowlTokenBurned = amountOfowlTokenBurned.lt(owlBalance) ? amountOfowlTokenBurned : owlBalance
-
+    let newFee
     if (amountOfowlTokenBurned.gt(0)) {
         // Adjust fee
         // 10^35 * 10^29 = 10^64
@@ -1736,6 +1738,14 @@ volume: ${state}`)
 
   async getPriceInEth ({ token }) {
     assert(token, 'The token is required')
+
+    if (token.toLowerCase() === this._tokens.WETH.address) {
+      return {
+        numerator: numberUtil.toBigNumber(1),
+        denominator: numberUtil.toBigNumber(1)
+      }
+    }
+
     // If none of the token are WETH, we make sure the market <token>/WETH exists
     const tokenEthMarketExists = await this.isValidTokenPair({
       tokenA: token,

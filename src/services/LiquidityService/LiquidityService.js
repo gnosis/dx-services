@@ -635,8 +635,13 @@ keeps happening`
         }
       }
 
-      dutchPrice = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount: input_amount, from})
-      dutchPrice = numberUtil.toBigNumber(dutchPrice.numerator).div(numberUtil.toBigNumber(dutchPrice.denominator))
+      // figure out actual dutch price!
+      dutchReturn = amountAfterFee.mul(dutchPrice)
+
+      amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount: input_amount, from})
+      
+      console.log('!!!!!!!!!', dutchPrice.toString(10))
+      
       output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
       uniswapPrice = output_returned.div(input_amount)
       console.log('seubsequent', 'amount: ' + input_amount.toString(10), 'uni: ' + uniswapPrice.toString(10), 'dutch:' + dutchPrice.toString(10))
