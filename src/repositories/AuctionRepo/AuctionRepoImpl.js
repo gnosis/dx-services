@@ -1246,33 +1246,35 @@ volume: ${state}`)
   }
 
   async getCurrentAuctionPriceWithFees ({sellToken, buyToken, auctionIndex, amount, from}) {
-    (num, den) = await this.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex});
+
+    const {numerator, denominator} = await this.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex});
     
     const sellVolume = await this.getSellVolume({sellToken, buyToken})
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
 
     // 10^30 * 10^37 = 10^67
-    let outstandingVolume = sellVolume.mul(num).div(den).sub(buyVolume)
+    let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
     outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
 
     let amountAfterFee;
-    if (amount < outstandingVolume) {
-        if (amount > 0) {
+    if (amount.lt(outstandingVolume)) {
+        if (amount.gt(0)) {
             amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from);
         }
     } else {
         amount = outstandingVolume;
         amountAfterFee = outstandingVolume;
     }
+    return amountAfterFee
   }
 
 
   async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from) {
-    let feeNum
-    let feeDen
-    (feeNum, feeDen) = await this.getFeeRatio({address: from})
+
+    const foo = await this.getFeeRatio({address: from})
+    const [numerator, denominator] = await this.getFeeRatio({address: from})
     // 10^30 * 10^3 / 10^4 = 10^29
-    let fee = amount.mul(feeNum).div(feeDen)
+    let fee = amount.mul(numerator).div(denominator)
 
     if (fee > 0) {
         fee = await this.settleFeeSecondPart(primaryToken, fee);
@@ -1286,12 +1288,10 @@ volume: ${state}`)
 
   async settleFeeSecondPart(primaryToken, fee, from) {
     // Allow user to reduce up to half of the fee with owlToken
-    let num;
-    let den;
-    (num, den) = await this.getPriceInEth({token:primaryToken})
+    const {numerator, denominator} = await this.getPriceInEth({token: primaryToken})
     // Convert fee to ETH, then USD
     // 10^29 * 10^30 / 10^30 = 10^29
-    let feeInETH = fee.mul(num).div(den)
+    let feeInETH = fee.mul(numerator).div(denominator)
 
     let ethUSDPrice = await this.getPriceEthUsd()
     // 10^29 * 10^6 = 10^35

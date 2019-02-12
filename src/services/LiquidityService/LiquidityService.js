@@ -406,6 +406,7 @@ keeps happening`
         })
 
 
+
         // we know the current dutch price but the current uniswap price will depend
         // on the size of the trade being made. For this reason use the ether_balance
         // and token_balance to iterate over different input amounts to see if we can
@@ -445,14 +446,18 @@ keeps happening`
           assert(sellVolume > minimumSpend, 'Not enough sell volume to execute minimum spend')
 
           // this is the maximum amount of ether we should spend on this opportunity to make a profit
-          let amount = this.getSpendAmount({
+          let amount = await this.getSpendAmount({
             dutchPrice,
             minimumSpend,
             maxToSpend,
             // input_token: sellToken,
             input_balance: numberUtil.toBigNumber(token_balance), // sell token balance
             output_balance: numberUtil.toBigNumber(ether_balance), // buy token balance
-            buyOnDutch: true
+            buyOnDutch: true,
+            from,
+            sellToken,
+            buyToken,
+            auctionIndex
           })
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
@@ -464,7 +469,6 @@ keeps happening`
             console.log('uniswapExpected: ', uniswapExpected.toString(10))
             console.log('price', uniswapExpected.mul(amount).toString(10))
             console.log('price', amount.div(uniswapExpected).toString(10))
-            return
             // return this._arbitrageRepo.dutchOpportunity({
             //   arbToken: sellToken,
             //   amount: amount.toString(10),
@@ -493,14 +497,18 @@ keeps happening`
           assert(sellVolume > minimumSpend, 'Not enough sell volume to execute minimum spend')
 
           // this is the maximum amount of ether we should spend on this opportunity to make a profit
-          let amount = this.getSpendAmount({
+          let amount = await this.getSpendAmount({
             dutchPrice,
             minimumSpend,
             maxToSpend,
             // input_token: sellToken,
             input_balance: numberUtil.toBigNumber(ether_balance), // sell token balance
             output_balance: numberUtil.toBigNumber(token_balance), // buy token balance
-            buyOnDutch: false
+            buyOnDutch: false,
+            from,
+            sellToken,
+            buyToken,
+            auctionIndex
           })
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
@@ -513,11 +521,11 @@ keeps happening`
             console.log('uniswapExpected: ', uniswapExpected.toString(10))
             console.log('price', uniswapExpected.div(amount).toString(10))
             console.log('price', amount.div(uniswapExpected).toString(10))
-            return this._arbitrageRepo.uniswapOpportunity({
-              arbToken: buyToken,
-              amount,
-              from
-            })
+            // return this._arbitrageRepo.uniswapOpportunity({
+            //   arbToken: buyToken,
+            //   amount,
+            //   from
+            // })
           } else {
             console.log('amount = 0')
           }
@@ -562,14 +570,18 @@ keeps happening`
     return numerator.div(denominator)
   }
 
-  getSpendAmount ({
+  async getSpendAmount ({
     // input_token,
     maxToSpend,
     input_balance,
     output_balance,
     dutchPrice,
     buyOnDutch,
-    minimumSpend
+    minimumSpend,
+    from,
+    sellToken,
+    buyToken,
+    auctionIndex
   }) {
     // these must be positive amounts.
     // it is also worth considering making the small increment rather large
@@ -622,6 +634,9 @@ keeps happening`
           return input_amount
         }
       }
+
+      dutchPrice = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount: input_amount, from})
+      dutchPrice = numberUtil.toBigNumber(dutchPrice.numerator).div(numberUtil.toBigNumber(dutchPrice.denominator))
       output_returned = this.getInputPrice(input_amount, input_balance, output_balance)
       uniswapPrice = output_returned.div(input_amount)
       console.log('seubsequent', 'amount: ' + input_amount.toString(10), 'uni: ' + uniswapPrice.toString(10), 'dutch:' + dutchPrice.toString(10))
