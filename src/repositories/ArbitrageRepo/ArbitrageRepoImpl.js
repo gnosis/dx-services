@@ -114,17 +114,34 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async getUniswapBalances ({ buyToken, sellToken }) {
-    const { tokenToken } = this.whichTokenIsEth(buyToken, sellToken)
+    const {etherToken, tokenToken } = this.whichTokenIsEth(buyToken, sellToken)
     let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenToken)
     const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
     const token_balance = await this._ethereumRepo.tokenBalanceOf({
       tokenAddress: tokenToken,
       account: uniswapExchangeAddress
     })
-    return {
-      ether_balance,
-      token_balance
+    // buyerToken is exchanged for sellerToken, sellerToken is inputToken, buyerToken is outputToken
+
+    if (buyToken.toLowerCase() === etherToken.toLowerCase()) {
+      // if buyerToken is etherToken
+      // then sellerToken is tokenToken... so tokenToken is used as inputToken
+      // that will be exchanged for etherToken outputToken
+      return {
+        input_balance: token_balance,
+        output_balance: ether_balance
+      }
+    } else {
+      return {
+        input_balance: ether_balance,
+        output_balance: token_balance
+      }
     }
+
+    // return {
+    //   ether_balance,
+    //   token_balance
+    // }
   }
 
   async dutchOpportunity ({ arbToken, amount, from }) {

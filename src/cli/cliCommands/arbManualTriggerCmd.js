@@ -26,18 +26,18 @@ function registerCommand ({ cli, logger }) {
       console.log('ready')
 
       const ethToken = await arbitrageService.ethToken()
-      console.log({ethToken})
       // Get auction index
-      const depositResult = await liquidityService.ensureArbitrageLiquidity({
+      const arbitrageResult = await liquidityService.ensureArbitrageLiquidity({
         sellToken: token,
         buyToken: ethToken,
         from
       }).catch(error => {
-        logger.error('The deposit was NOT succesful.', error)
+        logger.error('The arbitrage was NOT succesful.', error)
 
       }) 
+      console.log({arbitrageResult})
       // async ensureArbitrageLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
-      logger.info('The deposit was succesful. Transaction: %s', depositResult.tx)
+      // logger.info('The arbitrage was succesful. Transaction: %s', arbitrageResult.tx)
     })
 }
 

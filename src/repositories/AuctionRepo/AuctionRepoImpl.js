@@ -345,14 +345,13 @@ class AuctionRepoImpl extends Cacheable {
   }
 
   async isValidTokenPair ({ tokenA, tokenB }) {
-    console.log({tokenA, tokenB})
     assertPair(tokenA, tokenB)
 
     const auctionIndex = await this.getAuctionIndex({
       sellToken: tokenA,
       buyToken: tokenB
     })
-    auctionLogger.info({tokenA, tokenB, msg: 'isValidTokenPair? auctionIndex=%s', params: [ auctionIndex ]})
+    // auctionLogger.info({tokenA, tokenB, msg: 'isValidTokenPair? auctionIndex=%s', params: [ auctionIndex ]})
 
     return auctionIndex > 0
   }
@@ -1236,7 +1235,6 @@ volume: ${state}`)
 
   async getFeeRatio ({ address }) {
     assert(address, 'The address is required')
-    console.log({address})
     return this
       ._doCall({
         operation: 'getFeeRatio',
@@ -1246,43 +1244,32 @@ volume: ${state}`)
   }
 
   async getCurrentAuctionPriceWithFees ({sellToken, buyToken, auctionIndex, amount, from}) {
-    console.log({sellToken, buyToken, auctionIndex})
     const {numerator, denominator} = await this.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex});
-    console.log({numerator, denominator})
     const sellVolume = await this.getSellVolume({sellToken, buyToken})
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
-    console.log({sellVolume, buyVolume})
     // 10^30 * 10^37 = 10^67
     let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
     outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
-    console.log({outstandingVolume})
-    let amountAfterFee;
+    let amountAfterFee = amount
     if (amount.lt(outstandingVolume)) {
-        if (amount.gt(0)) {
-            amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from);
-        }
+      if (amount.gt(0)) {
+        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from);
+      }
     } else {
-        amount = outstandingVolume;
-        amountAfterFee = outstandingVolume;
+      amountAfterFee = outstandingVolume;
     }
-    
+
     return amountAfterFee
   }
 
 
   async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from) {
-    
-    console.log('settleFee')
     const [numerator, denominator] = await this.getFeeRatio({address: from})
-    console.log({numerator, denominator})
     // 10^30 * 10^3 / 10^4 = 10^29
     let fee = amount.mul(numerator).div(denominator)
 
     if (fee > 0) {
         fee = await this.settleFeeSecondPart(primaryToken, fee, from);
-        // usersExtraTokens = await this.getExtraTokens({sellToken:primaryToken, buyToken:secondaryToken, auctionIndex})
-        // console.log({usersExtraTokens})
-        // extraTokens[primaryToken][secondaryToken][auctionIndex + 1] = add(usersExtraTokens, fee);
     }
 
     return amount.sub(fee)
@@ -2060,9 +2047,9 @@ volume: ${state}`)
     checkTokens = false,
     cacheTime
   }) {
-    console.log('Get %s for auction %d of pair %s-%s',
-      operation, auctionIndex, sellToken, buyToken
-    )
+    // console.log('Get %s for auction %d of pair %s-%s',
+    //   operation, auctionIndex, sellToken, buyToken
+    // )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [sellTokenAddress, buyTokenAddress, auctionIndex, ...args]
@@ -2420,7 +2407,6 @@ volume: ${state}`)
 function toFraction ([numerator, denominator]) {
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {
-    console.log('isZero!!!')
     return null
   } else {
     return { numerator, denominator }
