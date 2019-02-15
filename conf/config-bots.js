@@ -81,6 +81,7 @@ const SELL_BOT_MAIN = {
   factory: 'src/bots/SellLiquidityBot',
   markets: BOT_MARKETS,
   accountIndex: MAIN_BOT_ACCOUNT,
+  // minimumSellVolumeInUsd: null,
   notifications,
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
