@@ -220,7 +220,7 @@ check should be done`,
       // We are in a waiting for funding period
 
       // Get the liquidity and minimum sell volume
-      const { fundingA, fundingB } = this._auctionRepo.getFundingInUSD({
+      const { fundingA, fundingB } = await this._auctionRepo.getFundingInUSD({
         tokenA, tokenB, auctionIndex
       })
 
