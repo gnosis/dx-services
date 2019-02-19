@@ -62,10 +62,10 @@ function registerCommand ({ cli, logger }) {
         return tokensAcc
       }, tokens)
 
-      // tokens.push({
-      //   symbol: magnoliaToken.symbol,
-      //   tokenAddress: magnoliaToken.address
-      // })
+      tokens.push({
+        symbol: magnoliaToken.symbol,
+        tokenAddress: magnoliaToken.address
+      })
 
       // Add WETH to the ERC20 list to see balance as is an special token
       // tokens.push({
