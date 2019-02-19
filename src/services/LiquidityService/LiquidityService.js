@@ -100,7 +100,7 @@ class LiquidityService {
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
       messageCurrentCheck, paramsCurrentCheck, minimumSellVolume
     if (liquidityCheckName === 'sell') {
-      minimumSellVolume = minimumSellVolumeInUsd || await this._auctionRepo.getThresholdNewAuction()
+      minimumSellVolume = minimumSellVolumeInUsd ? numberUtil.toBigNumber(minimumSellVolumeInUsd) : await this._auctionRepo.getThresholdNewAuction()
 
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
