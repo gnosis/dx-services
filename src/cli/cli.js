@@ -29,11 +29,11 @@ instanceFactory()
   .then(run)
   .then(() => gracefullShutdown.shutDown())
   .catch(error => {
-    console.error(error)
+    console.error('Error in CLI', error)
     gracefullShutdown.shutDown()
   })
 
-async function run(instances) {
+async function run (instances) {
   const cli = yargs.usage('$0 <cmd> [args]')
   const commandParams = { cli, instances, logger }
 

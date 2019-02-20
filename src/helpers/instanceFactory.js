@@ -10,7 +10,7 @@ const isLocal = environment === 'local'
 
 const getEventBus = require('../getEventBus')
 const loadContracts = require('../loadContracts')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 
 // Repos
 const getAuctionRepo = require('../repositories/AuctionRepo')

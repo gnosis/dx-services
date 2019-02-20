@@ -1,10 +1,12 @@
-const Logger = require('./Logger')
-const logger = new Logger('dx-service:helpers:HDWalletProvider')
+const Logger = require('../Logger')
+const logger = new Logger('dx-service:web3Providers:hd')
+const gracefullShutdown = require('../gracefullShutdown')
+const _printProviderError = require('./_printProviderError')
 
 const assert = require('assert')
 const Web3 = require('web3')
 const TruffleHDWalletProvider = require('truffle-hdwallet-provider')
-const sendTxWithUniqueNonce = require('./sendTxWithUniqueNonce')
+const sendTxWithUniqueNonce = require('../sendTxWithUniqueNonce')
 // const NonceTrackerSubprovider = require('./NonceTrackerSubprovider')
 
 const environment = process.env.NODE_ENV
@@ -26,14 +28,21 @@ class HDWalletProvider extends TruffleHDWalletProvider {
     shareNonce = true,
     blockForNonceCalculation = 'pending'
   }) {
+    logger.info('Create HD wallet provider with url: %s', url)
     const accountCredentials = privateKeys || mnemonic
     let numAddresses = privateKeys ? privateKeys.length : numAddressesAux
 
     assert(accountCredentials, '"privateKey" or "mnemonic" are mandatory')
     assert(url, '"url" is mandatory')
 
-    // console.log('[HDWalletProvider] New provider for: %s', url)
     super(accountCredentials, url, addressIndex, numAddresses, shareNonce)
+
+    // Notify on provider errors
+    this.engine.on('error', _printProviderError)
+
+    // Stop provider on shutdown
+    gracefullShutdown.onShutdown(() => this.engine.stop())
+
     this._web3 = new Web3(this)
     this._blockForNonceCalculation = blockForNonceCalculation
     this._mainAddress = this.addresses[0]

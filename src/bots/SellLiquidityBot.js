@@ -13,13 +13,13 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
 
 const BOT_TYPE = 'SellLiquidityBot'
 const getAddress = require('../helpers/getAddress')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
 const getSlackRepo = require('../repositories/SlackRepo')
 
 class SellLiquidityBot extends Bot {
-  constructor({
+  constructor ({
     name,
     botAddress,
     accountIndex,
@@ -60,7 +60,7 @@ class SellLiquidityBot extends Bot {
     this._lastError = null
   }
 
-  async _doInit() {
+  async _doInit () {
     logger.debug('Init Sell Bot: ' + this.name)
     const [
       ethereumClient,
@@ -82,7 +82,7 @@ class SellLiquidityBot extends Bot {
     await this.setAddress()
   }
 
-  async _doStart() {
+  async _doStart () {
     logger.debug({ msg: 'Initialized bot: ' + this.name })
 
     // Ensure the sell liquidity when an aunction has ended
@@ -139,11 +139,11 @@ class SellLiquidityBot extends Bot {
     }, this._checkTimeInMilliseconds)
   }
 
-  async _doStop() {
+  async _doStop () {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
-  async _ensureSellLiquidity({ sellToken, buyToken, from }) {
+  async _ensureSellLiquidity ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
     try {
@@ -183,7 +183,7 @@ class SellLiquidityBot extends Bot {
     return liquidityWasEnsured
   }
 
-  _notifySoldTokens(sellOrder) {
+  _notifySoldTokens (sellOrder) {
     const {
       sellToken,
       buyToken,
@@ -231,7 +231,7 @@ class SellLiquidityBot extends Bot {
     })
   }
 
-  _notifySoldTokensSlack({ channel, soldTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
+  _notifySoldTokensSlack ({ channel, soldTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
     this._slackRepo
       .postMessage({
         channel,
@@ -275,7 +275,7 @@ class SellLiquidityBot extends Bot {
       })
   }
 
-  _handleError(sellToken, buyToken, error) {
+  _handleError (sellToken, buyToken, error) {
     auctionLogger.error({
       sellToken,
       buyToken,
@@ -285,7 +285,7 @@ class SellLiquidityBot extends Bot {
     })
   }
 
-  async getInfo() {
+  async getInfo () {
     return {
       botAddress: this._botAddress,
       minimumSellVolumeInUsd: this._minimumSellVolumeInUsd,

@@ -9,7 +9,7 @@ const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'BalanceCheckBot'
 
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getAddress = require('../helpers/getAddress')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
@@ -109,7 +109,8 @@ class BalanceCheckBot extends Bot {
 
       // Get ETH balance
       const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
-        account })
+        account
+      })
 
       // Get balance of ERC20 tokens
       const balanceOfTokensPromise = this._liquidityService.getBalances({
@@ -117,7 +118,7 @@ class BalanceCheckBot extends Bot {
         address: account
       })
 
-      const [ balanceOfEther, balanceOfTokens ] = await Promise.all([
+      const [balanceOfEther, balanceOfTokens] = await Promise.all([
         balanceOfEtherPromise,
         balanceOfTokensPromise
       ])
@@ -150,7 +151,7 @@ class BalanceCheckBot extends Bot {
       botHasEnoughTokens = false
       logger.error({
         msg: 'There was an error checking the balance for the bot: %s',
-        params: [ error ],
+        params: [error],
         error
       })
     }
