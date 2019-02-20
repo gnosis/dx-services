@@ -33,7 +33,7 @@ instanceFactory()
     gracefullShutdown.shutDown()
   })
 
-async function run(instances) {
+async function run (instances) {
   const cli = yargs.usage('$0 <cmd> [args]')
   const commandParams = { cli, instances, logger }
 
@@ -52,7 +52,7 @@ async function run(instances) {
   require('./cliCommands/approvedCmd')(commandParams)
   require('./cliCommands/closingPriceCmd')(commandParams)
   require('./cliCommands/closingPriceOfficialCmd')(commandParams)
-  require('./cliCommands/feesCmd')(commandParams)
+  require('./cliCommands/liquidityContributionCmd')(commandParams)
   require('./cliCommands/claimingsCmd')(commandParams)
 
   // Trade commands
