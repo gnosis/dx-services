@@ -8,14 +8,12 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
+const setupPromise = testSetup()
+
 let sellLiquidityBot
 
 beforeAll(async (done) => {
-  // Instantiate the Setup environment
-  const _setupInstance = testSetup()
-
-  // Initialise contracts, helpers, services etc..
-  await _setupInstance.init()
+  await setupPromise
 
   sellLiquidityBot = new SellLiquidityBot({
     name: 'SellLiquidityBot',

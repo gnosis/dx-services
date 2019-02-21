@@ -8,8 +8,7 @@ async function getEthereumClient () {
       NETWORK,
       CACHE,
       URL_GAS_PRICE_FEED_GAS_STATION,
-      URL_GAS_PRICE_FEED_SAFE,
-      getDXMode
+      URL_GAS_PRICE_FEED_SAFE
     } = conf
 
     // Get instance of web3 by 

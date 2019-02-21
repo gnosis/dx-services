@@ -34,14 +34,12 @@ const BUY_LIQUIDITY_RULES = [
   }
 ]
 
-let buyLiquidityBot, setup
+const setupPromise = testSetup()
 
-beforeAll(async (done) => {
-  // Instantiate the Setup environment
-  const _setupInstance = testSetup()
+let buyLiquidityBot
 
-  // Initialise contracts, helpers, services etc..
-  setup = await _setupInstance.init()
+beforeAll(async () => {
+  await setupPromise
 
   buyLiquidityBot = new BuyLiquidityBot({
     name: 'BuyLiquidityBot',
@@ -55,9 +53,6 @@ beforeAll(async (done) => {
 
   await buyLiquidityBot.init()
   await buyLiquidityBot.start()
-
-  // Wait until everything is ready to go
-  done()
 })
 
 afterAll(() => {

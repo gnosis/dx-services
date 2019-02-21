@@ -5,13 +5,11 @@ const BigNumber = require('bignumber.js')
 
 const TOKENS = [ 'WETH', 'RDN' ]
 
-let depositBot, setupInstance
-beforeAll(async (done) => {
-  // Instantiate the Setup environment
-  setupInstance = testSetup()
+const setupPromise = testSetup()
 
-  // Initialise contracts, helpers, services etc..
-  const { dxInfoService, dxTradeService } = await setupInstance.init()
+let depositBot, setupInstance
+beforeAll(async () => {
+  const { dxInfoService, dxTradeService } = await setupPromise
 
   // we wrap functions we will mock with jest.fn
   dxInfoService.getBalanceOfEther =
@@ -21,13 +19,10 @@ beforeAll(async (done) => {
     jest.fn(dxInfoService.getAccountBalancesForTokensNotDeposited)
 
   dxTradeService.deposit = jest.fn(dxTradeService.deposit)
-
-  // Wait until everything is ready to go
-  done()
 })
 
 beforeEach(async () => {
-  await setupInstance.init()
+  await setupPromise
 
   depositBot = new DepositBot({
     name: 'DepositBot',
