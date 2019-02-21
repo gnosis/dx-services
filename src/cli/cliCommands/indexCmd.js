@@ -1,6 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'index <token-pair>',
     'Get the auction index for a given auction',
@@ -10,9 +12,7 @@ function registerCommand ({ cli, instances, logger }) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
 
-      const {
-        dxInfoService
-      } = instances
+      const dxInfoService = await getDxInfoService()
 
       // Get auction index
       const auctionIndex = await dxInfoService.getAuctionIndex({

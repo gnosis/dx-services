@@ -1,6 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command('seller-balance <token-pair> <auction-index> <account>', 'Get the seller balances for a given auction and account', yargs => {
     cliUtils.addPositionalByName('token-pair', yargs)
     cliUtils.addPositionalByName('auction-index', yargs)
@@ -9,9 +11,7 @@ function registerCommand ({ cli, instances, logger }) {
     const { tokenPair, auctionIndex, account } = argv
     const [ sellToken, buyToken ] = tokenPair.split('-')
 
-    const {
-      dxInfoService
-    } = instances
+    const dxInfoService = await getDxInfoService()
 
     const sellerBalance = await dxInfoService.getSellerBalance({
       sellToken,
