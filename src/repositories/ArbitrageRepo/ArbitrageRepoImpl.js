@@ -236,7 +236,7 @@ class ArbitrageRepoImpl extends Cacheable {
     value = value || '0'
     params = params || []
     logger.info({
-      msg: '_doTransaction: %o',
+      msg: '_doTransactionnnn: %o',
       params: [
         operation,
         from,
@@ -246,8 +246,9 @@ class ArbitrageRepoImpl extends Cacheable {
     })
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
+
     let test = await this._arbitrage[operation].call(...params, { from, value })
-    console.log("test", test)
+
     const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
