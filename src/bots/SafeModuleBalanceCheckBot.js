@@ -32,7 +32,7 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
     })
 
     assert(accountIndex !== undefined && accountIndex >= 0, 'AccountIndex is mandatory')
-    // Set accountIndex independently from the botAddress being setted
+    // Set accountIndex independently from the botAddress being set
     this._accountIndex = accountIndex
   }
 
@@ -40,8 +40,16 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
     await super.setAddress()
     const web3 = this._ethereumClient.getWeb3()
     const operatorAddress = web3.currentProvider.getHDAccount(this._accountIndex)
-    assert(operatorAddress, 'Couldn\'t get the operator address, check that HDWalletSafeProvider is setted up correctly')
+    assert(operatorAddress, 'Couldn\'t get the operator address, check that HDWalletSafeProvider is set up correctly')
     this._operatorAddress = operatorAddress
+  }
+
+  getOperatorAddress () {
+    return this._operatorAddress
+  }
+
+  getBotAddress () {
+    return this._botAddress
   }
 
   async _checkBalance () {
@@ -51,7 +59,7 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
       const account = this._botAddress
 
       // Get ETH balance of the Safe Operator
-      const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
+      const balanceOfEtherPromise =  this._dxInfoService.getBalanceOfEther({
         account: this._operatorAddress })
 
       // Get balance of ERC20 tokens
@@ -67,6 +75,7 @@ class SafeModuleBalanceCheckBot extends BalanceCheckBot {
 
       // Check if the account has ETHER below the minimum amount
       const minimumAmountForEther = this._minimumAmountForEther || MINIMUM_AMOUNT_FOR_ETHER
+
       if (balanceOfEther < minimumAmountForEther) {
         this._lastWarnNotification = new Date()
         // Notify lack of ether

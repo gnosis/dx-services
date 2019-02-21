@@ -15,6 +15,5 @@ test('It should load the SafeModule configuration', async () => {
 test('It should instantiate the HDSafeWalletProvider', async () => {
   const { ethereumClient } = await testSetup()
   const provider = await ethereumClient.getWeb3().currentProvider
-  const isInstance = provider instanceof HDSafeWalletProvider
   expect(provider).toBeInstanceOf(HDSafeWalletProvider)
 })
