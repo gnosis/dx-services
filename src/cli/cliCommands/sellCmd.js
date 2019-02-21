@@ -4,7 +4,7 @@ const getAddress = require('../../helpers/getAddress')
 const getDxInfoService = require('../../services/DxInfoService')
 const getDxTradeService = require('../../services/DxTradeService')
 
-function registerCommand ({ cli, instances, logger }) {
+function registerCommand ({ cli, logger }) {
   cli.command(
     'sell <amount> <token-pair> [auction-index]',
     'Sell in a auction for a token pair',

@@ -3,6 +3,8 @@ const getDateRangeFromParams = require('../../helpers/getDateRangeFromParams')
 const formatUtil = require('../../helpers/formatUtil')
 // const numberUtil = require('../../helpers/numberUtil')
 
+const getDxInfoService = require('../../services/DxInfoService')
+
 const HEADERS = `\
 Trade date\t\
 Operation\t\
@@ -23,7 +25,7 @@ Block hash\t\
 Block number
 `
 
-function registerCommand ({ cli, instances, logger }) {
+function registerCommand ({ cli, logger }) {
   cli.command(
     'trades',
     'Get all the operations performed in a time period. It requires either the params "from-date" and "to-date" or the "period" param',
@@ -66,9 +68,7 @@ function registerCommand ({ cli, instances, logger }) {
       // TODO: This command, is use for early testing, but it will be shaped into
       // a command that would allow to filter by dates, addresse, token, ..
       // Right now it filters by the bot address and use the defined time period
-      const {
-        dxInfoService
-      } = instances
+      const dxInfoService = await getDxInfoService()
 
       const { fromDate, toDate } = getDateRangeFromParams({
         period, fromDateStr, toDateStr

@@ -1,7 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
 const numberUtil = require('../../helpers/numberUtil')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'usd-price <amount> <token>',
     'Get the price of the specified amounts of a token in USD',
@@ -10,9 +12,7 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('token', yargs)
     }, async function (argv) {
       const { token, amount } = argv
-      const {
-        dxInfoService
-      } = instances
+      const dxInfoService = await getDxInfoService()
 
       logger.info(`Get the price of ${amount} ${token} in USD`)
 
