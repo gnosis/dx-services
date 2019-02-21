@@ -52,9 +52,23 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     // Stop provider on shutdown
     gracefullShutdown.onShutdown(() => this.engine.stop())
 
-    // Configure all the safes
+    // Configure all the safes, and construct some handy maps
+    this._safesByOperator = this._loadSafesByOperator(safes)
+    this._safesByAddress = Object.values(this._safesByOperator).reduce((acc, safe) => {
+      acc[safe.safeAddress] = safe
+      return acc
+    }, {})
+    this._safeAddresses = Object.keys(this._safesByAddress)
+
+    this._blockForNonceCalculation = blockForNonceCalculation
+    this._defaultGas = defaultGas
+    this._defaultFrom = this.getAccounts()[0]
+    this._web3 = new Web3(this)
+  }
+
+  _loadSafesByOperator (safes) {
     const that = this
-    this._safesByOperator = safes.reduce((acc, safe, index) => {
+    return safes.reduce((acc, safe, index) => {
       const {
         operatorAddressIndex,
         safeAddress,
@@ -90,10 +104,6 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
       return acc
     }, {})
-
-    this._blockForNonceCalculation = blockForNonceCalculation
-    this._defaultGas = defaultGas
-    this._web3 = new Web3(this)
   }
 
   _loadSafeModuleContract ({
@@ -132,27 +142,26 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
   // Force return the Safe address
   getAccounts () {
-    return Object.keys(this._safesByOperator)
+    return this._safeAddresses // Object.keys(this._safesByOperator)
   }
 
   // Force return the Safe address
   getAddress (idx) {
-    return this.getAccounts()[idx]
+    return this._safeAddresses[idx]
   }
 
   // Force return the Safe address
   getAddresses () {
-    return [this._safeAddress]
+    return this._safeAddresses
   }
 
-  // Force getNonce to return operator's nonce
-  // TODO figure out if getNonce gets called only within this class, in that case we wouldn't
-  // need to force calling  getTransactionCount with this._operator), we would use simply 'from' instead
   getNonce (from) {
     return new Promise((resolve, reject) => {
       this._resetNonceCache()
-      this._web3.eth.getTransactionCount(this._operator, this._blockForNonceCalculation, (error, nonce) => {
+      // console.debug('Get nonce from "%s"', from)
+      this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
+          // console.error('[HDWalletProvider] Error getting the nonce')
           logger.debug('Error getting the nonce', error)
           reject(error)
         } else {
@@ -201,6 +210,11 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       }
     }
 
+    // if (method === 'eth_estimateGas') {
+    //   logger.debug('Estimate gas: %O', params)
+    // }
+    // logger.info(method, arguments)
+
     if (method === 'eth_sendTransaction') {
       // Get Safe Module contract data
       const [txObject, ...extraArguments] = arguments
@@ -212,7 +226,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         data
       } = txDetails
 
-      const safe = this._safesByOperator[from]
+      const safe = this._safesByAddress[from]
       assert(safe, 'Unknown safe with address ' + from)
 
       const {
@@ -224,12 +238,13 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       const executeWhitelistedCallData = moduleContract.executeWhitelisted.request(to, value, data)
       const moduleData = executeWhitelistedCallData.params[0].data
       logger.debug(`Send transaction using the safe module:
-        To: ${to}
-        Safe module: ${safeModuleAddress}
-        Operator: ${operatorAddress}
-        Value: ${value}
-        Original Data: ${data}
-        Data: ${moduleData}`)
+        Original tx:
+          To: ${to}
+          Value: ${value}
+          Original Data: ${data}
+        Safe Module: ${safeModuleAddress}
+          Operator: ${operatorAddress}
+          Data: ${moduleData}`)
 
       // Rewrite the transaction so it's sent to the safe instead
       const safeTxArguments = [{
@@ -247,7 +262,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
       // TODO: Remove
       logger.debug('Send transaction: %O', safeTxArguments)
-      logger.debug('Send transaction - params: ', safeTxArguments[0].params)
+      logger.debug('Transaction - params: ', safeTxArguments[0].params)
 
       if (!NONCE_LOCK_DISABLED) {
         this._sendTxWithUniqueNonce(...safeTxArguments)
@@ -276,6 +291,17 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     }
   }
 
+  // _getOperatorFromSafe(from) {
+  //   const safe = this._safesByAddress[from]
+  //   if (!safe) {
+  //     const errorMsg = `The "from" address must be a known Safe contract. From: ${from}. Safe Addresses: ${this._safeAddresses.join(', ')}`
+  //     console.error(errorMsg)
+  //     assert(false, errorMsg)
+  //   }
+
+  //   return safe.operatorAddress
+  // }
+
   _sendTxWithUniqueNonce (args) {
     let { params } = args
     const [, callback] = arguments
@@ -287,7 +313,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     }
 
     sendTxWithUniqueNonce({
-      from: from || this._operator,
+      from: from || this._defaultFrom,
       getNonceFn: () => this.getNonce(from),
       sendTransaction: nonce => {
         const nonceHex = '0x' + nonce.toString(16)

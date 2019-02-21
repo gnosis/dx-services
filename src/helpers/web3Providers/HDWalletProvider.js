@@ -98,6 +98,7 @@ class HDWalletProvider extends TruffleHDWalletProvider {
   getNonce (from) {
     return new Promise((resolve, reject) => {
       this._resetNonceCache()
+      // console.debug('Get nonce from "%s"', from)
       this._web3.eth.getTransactionCount(from, this._blockForNonceCalculation, (error, nonce) => {
         if (error) {
           // console.error('[HDWalletProvider] Error getting the nonce')
