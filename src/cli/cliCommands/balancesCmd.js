@@ -34,9 +34,16 @@ function registerCommand ({ cli, logger }) {
       }
 
       logger.info(`\n**********  Balance for ${account}  **********\n`)
-      const balanceETH = await dxInfoService.getBalanceOfEther({ account })
+      const [ balanceETH, lockedFrt, currentLiqContributionLevel ] = await Promise.all([
+        dxInfoService.getBalanceOfEther({ account }),
+        contracts.mgn.lockedTokenBalances(account),
+        dxInfoService.getCurrentFeeRatio({ address: account })
+      ])
+
       logger.info('\tACCOUNT: %s', account)
       logger.info('\tBALANCE: %d ETH', formatUtil.formatFromWei(balanceETH))
+      logger.info('\tLocked FRT: %d MGN', formatUtil.formatFromWei(lockedFrt))
+      logger.info('\tLiquidity Contribution Level: %d ', currentLiqContributionLevel)
 
       const [ configuredMarketsTokenList, magnoliaToken ] = await Promise.all([
         dxInfoService.getConfiguredTokenList(),
