@@ -10,7 +10,6 @@ const numberUtil = require('../helpers/numberUtil')
 const BOT_TYPE = 'BalanceCheckBot'
 
 const getEthereumClient = require('../getEthereumClient')
-const getAddress = require('../helpers/getAddress')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -27,7 +26,8 @@ class BalanceCheckBot extends Bot {
   constructor ({
     name,
     botAddress,
-    accountIndex,
+    botAddressForEther,
+    botAddressForTokens,
     tokens,
     notifications,
     minimumAmountForEther,
@@ -36,15 +36,16 @@ class BalanceCheckBot extends Bot {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
     assert(notifications, 'notifications is required')
+    assert(botAddress || (botAddressForEther && botAddressForTokens) !== undefined, '"botAddress" or "botAddressForEth + botAddressForTokens" is required')
 
     if (botAddress) {
       // Config using bot address
-      assert(botAddress, 'botAddress is required')
-      this._botAddress = botAddress
+      this._botAddressForEther = botAddress
+      this._botAddressForTokens = botAddress
     } else {
-      // Config using bot account address
-      assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
-      this._accountIndex = accountIndex
+      // Config using different address for Ether & tokens
+      this._botAddressForEther = botAddressForEther
+      this._botAddressForTokens = botAddressForTokens
     }
 
     // If notification has slack, validate
@@ -101,22 +102,19 @@ class BalanceCheckBot extends Bot {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
-  async _checkBalance ({
-    accountForEther = this._botAddress,
-    accountForTokens = this._botAddress
-  }) {
+  async _checkBalance () {
     this._lastCheck = new Date()
     let botHasEnoughTokens
     try {
       // Get ETH balance
       const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
-        accountForEther
+        account: this._botAddressForEther
       })
 
       // Get balance of ERC20 tokens
       const balanceOfTokensPromise = this._liquidityService.getBalances({
         tokens: this._tokens,
-        address: accountForTokens
+        address: this._botAddressForTokens
       })
 
       const [balanceOfEther, balanceOfTokens] = await Promise.all([
@@ -129,7 +127,7 @@ class BalanceCheckBot extends Bot {
       if (balanceOfEther < minimumAmountForEther) {
         this._lastWarnNotification = new Date()
         // Notify lack of ether
-        this._notifyLackOfEther(balanceOfEther, accountForEther, minimumAmountForEther)
+        this._notifyLackOfEther(balanceOfEther, this._botAddressForEther, minimumAmountForEther)
       }
 
       // Check if there are tokens below the minimum amount
@@ -139,12 +137,11 @@ class BalanceCheckBot extends Bot {
         return balanceInfo.amountInUSD.lessThan(minimumAmountInUsdForToken)
       })
 
-      const accountsDescription = (accountForEther === accountForTokens) ? accountForEther : `${accountForEther} (Ether), ${accountForTokens} (ERC20 tokens)`
       if (tokenBelowMinimum.length > 0) {
         // Notify lack of tokens
-        this._notifyLackOfTokens(tokenBelowMinimum, accountsDescription, minimumAmountInUsdForToken)
+        this._notifyLackOfTokens(tokenBelowMinimum, this._botAddressForTokens, minimumAmountInUsdForToken)
       } else {
-        logger.debug('Everything is fine for account: %s', accountsDescription)
+        logger.debug('Everything is fine for account: %s', this._botAddressForTokens)
       }
 
       botHasEnoughTokens = true
@@ -162,8 +159,20 @@ class BalanceCheckBot extends Bot {
   }
 
   async getInfo () {
+    let addresses
+    if (this._botAddressForEther === this._botAddressForTokens) {
+      addresses = {
+        botAddress: this._botAddressForEther
+      }
+    } else {
+      addresses = {
+        botAddressForEther: this._botAddressForEther,
+        botAddressForTokens: this._botAddressForTokens
+      }
+    }
+
     return {
-      botAddress: this._botAddress,
+      ...addresses,
       tokens: this._tokens,
       minimumAmountForEther: this._minimumAmountForEther,
       minimumAmountInUsdForToken: this._minimumAmountInUsdForToken,
