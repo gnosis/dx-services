@@ -131,23 +131,32 @@ const DEPOSIT_BOT = {
 
 const AUTO_CLAIM_AUCTIONS = 90
 
+const CLAIM_BOT = {
+  name: 'Claim bot',
+  factory: 'src/bots/ClaimBot',
+  markets: BOT_MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications,
+  // You can use this to have some time to manually withdraw funds
+  autoClaimAuctions: AUTO_CLAIM_AUCTIONS,
+  cronSchedule: '00  02,06,10,14,18,22  *  *  *' // Each 4 hours
+}
+
 module.exports = {
   BOTS: [
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
     // DEPOSIT_BOT,
+    // CLAIM_BOT,
     HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS
-    /*
-    BUY_BOT_BACKUP
-    */
   ],
 
   // TODO: Try to remove the next props
   // MAIN_BOT_ACCOUNT,
-  BUY_LIQUIDITY_RULES_DEFAULT,
-  AUTO_CLAIM_AUCTIONS
+  BUY_LIQUIDITY_RULES_DEFAULT// ,
+  // AUTO_CLAIM_AUCTIONS
 }
 
 function _getBotsNotificationChannel () {
