@@ -101,23 +101,25 @@ class BalanceCheckBot extends Bot {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
-  async _checkBalance () {
+  async _checkBalance ({
+    accountForEther = this._botAddress,
+    accountForTokens = this._botAddress
+  }) {
     this._lastCheck = new Date()
     let botHasEnoughTokens
     try {
-      const account = this._botAddress
-
       // Get ETH balance
       const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
-        account })
+        accountForEther
+      })
 
       // Get balance of ERC20 tokens
       const balanceOfTokensPromise = this._liquidityService.getBalances({
         tokens: this._tokens,
-        address: account
+        address: accountForTokens
       })
 
-      const [ balanceOfEther, balanceOfTokens ] = await Promise.all([
+      const [balanceOfEther, balanceOfTokens] = await Promise.all([
         balanceOfEtherPromise,
         balanceOfTokensPromise
       ])
@@ -127,7 +129,7 @@ class BalanceCheckBot extends Bot {
       if (balanceOfEther < minimumAmountForEther) {
         this._lastWarnNotification = new Date()
         // Notify lack of ether
-        this._notifyLackOfEther(balanceOfEther, account, minimumAmountForEther)
+        this._notifyLackOfEther(balanceOfEther, accountForEther, minimumAmountForEther)
       }
 
       // Check if there are tokens below the minimum amount
@@ -137,11 +139,12 @@ class BalanceCheckBot extends Bot {
         return balanceInfo.amountInUSD.lessThan(minimumAmountInUsdForToken)
       })
 
+      const accountsDescription = (accountForEther === accountForTokens) ? accountForEther : `${accountForEther} (Ether), ${accountForTokens} (ERC20 tokens)`
       if (tokenBelowMinimum.length > 0) {
         // Notify lack of tokens
-        this._notifyLackOfTokens(tokenBelowMinimum, account, minimumAmountInUsdForToken)
+        this._notifyLackOfTokens(tokenBelowMinimum, accountsDescription, minimumAmountInUsdForToken)
       } else {
-        logger.debug('Everything is fine for account: %s', account)
+        logger.debug('Everything is fine for account: %s', accountsDescription)
       }
 
       botHasEnoughTokens = true
@@ -150,7 +153,7 @@ class BalanceCheckBot extends Bot {
       botHasEnoughTokens = false
       logger.error({
         msg: 'There was an error checking the balance for the bot: %s',
-        params: [ error ],
+        params: [error],
         error
       })
     }
@@ -230,7 +233,7 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  _notifyLackOfTokens (tokenBelowMinimum, account, minimumAmountInUsdForToken) {
+  _notifyLackOfTokens (tokenBelowMinimum, accountsDescription, minimumAmountInUsdForToken) {
     // Notify which tokens are below the minimum value
     this._lastWarnNotification = new Date()
     const tokenBelowMinimumValue = tokenBelowMinimum.map(balanceInfo => {
@@ -250,7 +253,7 @@ class BalanceCheckBot extends Bot {
 
     fields = [].concat({
       title: 'Bot account',
-      value: account,
+      value: accountsDescription,
       short: false
     }, fields)
 
@@ -259,7 +262,7 @@ class BalanceCheckBot extends Bot {
       msg: message + ': ' + tokenNames,
       contextData: {
         extra: {
-          account,
+          account: accountsDescription,
           tokenBelowMinimum: tokenBelowMinimumValue
         }
       },
