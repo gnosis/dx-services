@@ -4,13 +4,13 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
+const getAddress = require('../helpers/getAddress')
 const formatUtil = require('../helpers/formatUtil')
 const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'BalanceCheckBot'
 
 const getEthereumClient = require('../helpers/ethereumClient')
-const getAddress = require('../helpers/getAddress')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -28,6 +28,8 @@ class BalanceCheckBot extends Bot {
     name,
     botAddress,
     accountIndex,
+    botAddressForEther,
+    botAddressForTokens,
     tokens,
     notifications,
     minimumAmountForEther,
@@ -36,16 +38,7 @@ class BalanceCheckBot extends Bot {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
     assert(notifications, 'notifications is required')
-
-    if (botAddress) {
-      // Config using bot address
-      assert(botAddress, 'botAddress is required')
-      this._botAddress = botAddress
-    } else {
-      // Config using bot account address
-      assert(accountIndex !== undefined, '"botAddress" or "accountIndex" is required')
-      this._accountIndex = accountIndex
-    }
+    assert(botAddress || accountIndex !== undefined || (botAddressForEther && botAddressForTokens) !== undefined, '"botAddress" or "accountIndex" or "botAddressForEth + botAddressForTokens" is required')
 
     // If notification has slack, validate
     const slackNotificationConf = notifications.find(notificationType => notificationType.type === 'slack')
@@ -54,6 +47,11 @@ class BalanceCheckBot extends Bot {
     }
 
     this._tokens = tokens
+    this._botAddress = botAddress
+    this._accountIndex = accountIndex
+    this._botAddressForEther = botAddressForEther
+    this._botAddressForTokens = botAddressForTokens
+
     this._notifications = notifications
     this._minimumAmountForEther = minimumAmountForEther * 1e18 // all balances are compared in WEI
     this._minimumAmountInUsdForToken = minimumAmountInUsdForToken
@@ -84,7 +82,25 @@ class BalanceCheckBot extends Bot {
     this._slackRepo = slackRepo
 
     // Get bot address
-    await this.setAddress()
+    if (!this._botAddressForEther || !this._botAddressForTokens) {
+      if (this._accountIndex !== undefined) {
+        // Setup the bot address using account index
+        await this.setAddress()
+      }
+
+      // Init the addresses
+      if (this._botAddress) {
+        // Config using bot address
+        this._botAddressForEther = this._botAddress
+        this._botAddressForTokens = this._botAddress
+        this._botAddress = await getAddress(this._accountIndex)
+      } else {
+        throw new Error('Address configuration error')
+      }
+    }
+
+    delete this._accountIndex
+    delete this._botAddress
   }
 
   async _doStart () {
@@ -105,17 +121,15 @@ class BalanceCheckBot extends Bot {
     this._lastCheck = new Date()
     let botHasEnoughTokens
     try {
-      const account = this._botAddress
-
       // Get ETH balance
       const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
-        account
+        account: this._botAddressForEther
       })
 
       // Get balance of ERC20 tokens
       const balanceOfTokensPromise = this._liquidityService.getBalances({
         tokens: this._tokens,
-        address: account
+        address: this._botAddressForTokens
       })
 
       const [balanceOfEther, balanceOfTokens] = await Promise.all([
@@ -128,7 +142,7 @@ class BalanceCheckBot extends Bot {
       if (balanceOfEther < minimumAmountForEther) {
         this._lastWarnNotification = new Date()
         // Notify lack of ether
-        this._notifyLackOfEther(balanceOfEther, account, minimumAmountForEther)
+        this._notifyLackOfEther(balanceOfEther, this._botAddressForEther, minimumAmountForEther)
       }
 
       // Check if there are tokens below the minimum amount
@@ -140,9 +154,9 @@ class BalanceCheckBot extends Bot {
 
       if (tokenBelowMinimum.length > 0) {
         // Notify lack of tokens
-        this._notifyLackOfTokens(tokenBelowMinimum, account, minimumAmountInUsdForToken)
+        this._notifyLackOfTokens(tokenBelowMinimum, this._botAddressForTokens, minimumAmountInUsdForToken)
       } else {
-        logger.debug('Everything is fine for account: %s', account)
+        logger.debug('Everything is fine for account: %s', this._botAddressForTokens)
       }
 
       botHasEnoughTokens = true
@@ -160,8 +174,20 @@ class BalanceCheckBot extends Bot {
   }
 
   async getInfo () {
+    let addresses
+    if (this._botAddressForEther === this._botAddressForTokens) {
+      addresses = {
+        botAddress: this._botAddressForEther
+      }
+    } else {
+      addresses = {
+        botAddressForEther: this._botAddressForEther,
+        botAddressForTokens: this._botAddressForTokens
+      }
+    }
+
     return {
-      botAddress: this._botAddress,
+      ...addresses,
       tokens: this._tokens,
       minimumAmountForEther: this._minimumAmountForEther,
       minimumAmountInUsdForToken: this._minimumAmountInUsdForToken,
@@ -231,7 +257,7 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  _notifyLackOfTokens (tokenBelowMinimum, account, minimumAmountInUsdForToken) {
+  _notifyLackOfTokens (tokenBelowMinimum, accountsDescription, minimumAmountInUsdForToken) {
     // Notify which tokens are below the minimum value
     this._lastWarnNotification = new Date()
     const tokenBelowMinimumValue = tokenBelowMinimum.map(balanceInfo => {
@@ -251,7 +277,7 @@ class BalanceCheckBot extends Bot {
 
     fields = [].concat({
       title: 'Bot account',
-      value: account,
+      value: accountsDescription,
       short: false
     }, fields)
 
@@ -260,7 +286,7 @@ class BalanceCheckBot extends Bot {
       msg: message + ': ' + tokenNames,
       contextData: {
         extra: {
-          account,
+          account: accountsDescription,
           tokenBelowMinimum: tokenBelowMinimumValue
         }
       },
