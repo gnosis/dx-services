@@ -1,7 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
-const formatUtil = require('../../helpers/formatUtil')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxTradeService = require('../../services/DxTradeService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'get-allowance <account> <token>',
     'Get the allowance for the DutchX for a given user and token',
@@ -10,9 +11,7 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('token', yargs)
     }, async function (argv) {
       const { account: accountAddress, token } = argv
-      const {
-        dxTradeService
-      } = instances
+      const dxTradeService = await getDxTradeService()
 
       logger.info(`Get the DutchX allowance of:
   Account: %s

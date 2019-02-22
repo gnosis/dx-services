@@ -14,7 +14,7 @@ beforeEach(async () => {
     balanceCheckBot = new BalanceCheckBot({
         accountIndex: 0,
         name: 'SafeModuleBalanceCheckBot',
-        botAddress: conf.SAFE_MODULE_ADDRESSES.SAFE_ADDRESS,
+        botAddress: conf.SAFE_ADDRESS,
         tokens: TOKENS,
         notifications: [],
         minimumAmountForEther: 1000,
@@ -28,8 +28,8 @@ afterEach(() => {
 
 test('It should set accounts correctly', async () => {
     await balanceCheckBot.init()
-    expect(balanceCheckBot.getOperatorAddress()).not.toBe(conf.SAFE_MODULE_ADDRESSES.SAFE_ADDRESS)
-    expect(balanceCheckBot.getBotAddress()).toBe(conf.SAFE_MODULE_ADDRESSES.SAFE_ADDRESS)
+    expect(balanceCheckBot.getOperatorAddress()).not.toBe(conf.SAFE_ADDRESS)
+    expect(balanceCheckBot.getBotAddress()).toBe(conf.SAFE_ADDRESS)
 })
 
 test('It should do a routine check once', async () => {

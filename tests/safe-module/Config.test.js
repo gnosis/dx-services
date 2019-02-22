@@ -1,19 +1,8 @@
-const testSetup = require('../helpers/testSetup')
-const HDSafeWalletProvider = require('../../src/helpers/HDWalletSafeProvider')
+const conf = require('../../conf')
 
-// test('It should load the classic DX configuration', async () => {
-//   await testSetup()
-//   const config = _setupInstance.getConfig()
-//   expect(config.getDXMode()).toBe('classic')
-// })
-
-test('It should load the SafeModule configuration', async () => {
-  const { config } = await testSetup()
-  expect(config.getDXMode()).toBe('safe')
-})
-
-test('It should instantiate the HDSafeWalletProvider', async () => {
-  const { ethereumClient } = await testSetup()
-  const provider = await ethereumClient.getWeb3().currentProvider
-  expect(provider).toBeInstanceOf(HDSafeWalletProvider)
+test('It should load the Safe\'s related addresses on the configuration', async () => {
+  expect(conf.SAFE_ADDRESS).not.toBeNull()
+  expect(conf.SAFE_ADDRESS).not.toBeUndefined()
+  expect(conf.SAFE_MODULE_ADDRESS).not.toBeNull()
+  expect(conf.SAFE_MODULE_ADDRESS).not.toBeUndefined()
 })

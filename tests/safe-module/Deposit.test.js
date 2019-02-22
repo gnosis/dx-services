@@ -1,10 +1,10 @@
 const Web3 = require('web3')
 const conf = require('../../conf')
-const HDWalletProvider = require('../../src/helpers/HDWalletProvider')
+const HDWalletProvider = require('../../src/helpers/web3Providers/HDWalletProvider')
 const testSetup = require('../helpers/testSetup')
 
 const setupPromise = testSetup()
-const safeAddress = conf.SAFE_MODULE_ADDRESSES.SAFE_ADDRESS
+const safeAddress = conf.SAFE_ADDRESS
 const minSafeBalance = 1 // ETH
 let dxOperator, currentSnapshotId, hdWalletProvider
 
@@ -62,9 +62,8 @@ afterEach(async () => {
   return ethereumClient.revertSnapshot(currentSnapshotId)
 })
 
-test('It should wrap ETH into WETH and deposit into the DX', async () => {
+test('It should wrap ETH into WETH and deposit into the DX, buy and sell WETH => RDN', async () => {
   const { dxInfoService, dxTradeService, ethereumClient } = await setupPromise
-  // const safeInstance = ethereumClient.getWeb3().currentProvider.getSafeModule() // Get currently instantiated Safe contract
   const safeETHBalanceBefore = await ethereumClient.balanceOf(safeAddress)
   const safeWETHBalanceBefore = await dxInfoService.getAccountBalanceForToken({ token: 'WETH', address: safeAddress })
   const dxOperatorBalanceBefore = await dxInfoService.getAccountBalanceForToken({ token: 'WETH', address: dxOperator })

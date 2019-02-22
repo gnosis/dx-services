@@ -1,5 +1,6 @@
-const conf = require('../conf')
-const getWeb3 = require('./getWeb3')
+const conf = require('../../../conf')
+const getWeb3 = require('../web3')
+const EthereumClient = require('./EthereumClient')
 let ethereumClient
 
 async function getEthereumClient () {
@@ -11,9 +12,8 @@ async function getEthereumClient () {
       URL_GAS_PRICE_FEED_SAFE
     } = conf
 
-    // Get instance of web3 by 
-    const web3 = getWeb3({ conf })
-    const EthereumClient = require('./helpers/EthereumClient')
+    // Get instance of web3 by
+    const web3 = await getWeb3()
 
     ethereumClient = new EthereumClient({
       web3,
@@ -29,4 +29,10 @@ async function getEthereumClient () {
   return ethereumClient
 }
 
-module.exports = getEthereumClient
+module.exports = async () => {
+  if (!ethereumClient) {
+    ethereumClient = await getEthereumClient()
+  }
+
+  return ethereumClient
+}

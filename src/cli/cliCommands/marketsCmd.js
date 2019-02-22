@@ -1,6 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'markets [count]',
     'Return the list of avaliable token pairs',
@@ -8,9 +10,8 @@ function registerCommand ({ cli, instances, logger }) {
       cliUtils.addPositionalByName('count', yargs)
     }, async function (argv) {
       const { count } = argv
-      const {
-        dxInfoService
-      } = instances
+
+      const dxInfoService = await getDxInfoService()
 
       // Get auction index
       // TODO: Use pagination, fetch in blocks

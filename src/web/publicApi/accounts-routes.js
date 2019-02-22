@@ -11,6 +11,16 @@ function createRoutes ({ dxInfoService },
   const routes = []
 
   routes.push({
+    path: '/:accountAddress/current-liquidity-contribution-ratio',
+    get (req, res) {
+      let params = { address: req.params.accountAddress }
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getCurrentFeeRatio(params)
+    }
+  })
+
+  // TODO deprecated endpoint remove in future versions
+  routes.push({
     path: '/:accountAddress/current-fee-ratio',
     get (req, res) {
       let params = { address: req.params.accountAddress }

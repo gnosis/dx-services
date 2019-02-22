@@ -12,7 +12,8 @@ const defaultConf = {
   ...require('./config-bots'),
   ...require('./config-contracts'),
   ...require('./config-notification'),
-  ...require('./config-repos')
+  ...require('./config-repos'),
+  ...require('./config-web3')
 }
 
 // Load env conf
@@ -56,9 +57,7 @@ let config = {
   ...customConfig,
   ...require('./config-env-vars'),
   MARKETS: markets.map(orderMarketTokens),
-  getFactory,
-  getDXMode,
-  update // update config function
+  getFactory
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
@@ -159,28 +158,6 @@ function getFactory (factoryPropName) {
     Factory,
     factoryConf
   }
-}
-
-/**
- * Returns the DX configuration mode, classic or safe
- * @return {string} - classic|safe
- */
-function getDXMode () {
-  if (config.SAFE_MODULE_ADDRESSES && config.SAFE_MODULE_ADDRESSES.SAFE_ADDRESS) {
-    return 'safe'
-  } else {
-    return 'classic'
-  }
-}
-
-/**
-* Allow to update the configuration at runtime - used mostly by testSetup.js to allow
-* executing tests running smoothly different configurations
-* @param {Object} - Configuration dictionary object
-* @return {Object} - Updated configuration
-*/
-function update (newConfig) {
-  return Object.assign(config, newConfig)
 }
 
 module.exports = config
