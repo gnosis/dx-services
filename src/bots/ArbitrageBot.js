@@ -8,7 +8,7 @@ const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const BOT_TYPE = 'ArbitrageLiquidityBot'
-const getAddress = require('../helpers/getAddress')
+// const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../getEthereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')

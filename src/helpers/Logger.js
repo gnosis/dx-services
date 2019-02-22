@@ -56,7 +56,8 @@ class Logger {
     const logger = this._getLogger(level, sufix)
     const isErrorOrWarning = (level === 'WARN' || level === 'ERROR')
     if (isErrorOrWarning || logger.enabled) {
-      logger(msg, '\n', JSON.stringify(...params, 0, 4))
+      // msg.indexOf('%o') > -1 ? logger(msg, ...params) : logger(msg, '\n', JSON.stringify(...params, 0, 4))
+      logger(msg, ...params)
       if (error) {
         console.error(error)
       }

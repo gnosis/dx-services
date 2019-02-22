@@ -337,7 +337,7 @@ keeps happening`
       sellToken: tokenA,
       buyToken: tokenB,
       auctionIndex,
-      from,
+      from
       // buyLiquidityRules
     })
 
@@ -346,10 +346,9 @@ keeps happening`
       sellToken: tokenB,
       buyToken: tokenA,
       auctionIndex,
-      from,
+      from
       // buyLiquidityRules
     })
-
 
     if (soldTokensA) {
       results.push(soldTokensA)
@@ -361,7 +360,7 @@ keeps happening`
     // if there are some results, there may be more. try to run again with the new ether just gained
     // keep doing this until there is no more arbitrage (no results) then return all results
     if (results.length > 0) {
-      let more = await this._doEnsureArbitrageLiquidity({tokenA, tokenB, from, buyLiquidityRules})
+      let more = await this._doEnsureArbitrageLiquidity({ tokenA, tokenB, from, buyLiquidityRules })
       if (more.length) results.push(...more)
     }
 
@@ -369,7 +368,6 @@ keeps happening`
   }
 
   async _getPricesAndAttemptArbitrage ({ buyToken, sellToken, auctionIndex, from, buyLiquidityRules }) {
-
     const {
       sellVolume,
       isClosed,
@@ -386,9 +384,8 @@ keeps happening`
     // //  * Is not in theoretical closed state
     if (!sellVolume.isZero()) {
       if (!isClosed && !isTheoreticalClosed) {
-
         // get the current price for our token pair on the dutchX
-        // it is buyToken per sellToken, so it tells us that 
+        // it is buyToken per sellToken, so it tells us that
         // price = buyerToken / sellerToken
         // result = buytoken / price
         const {
@@ -408,7 +405,7 @@ keeps happening`
         assert(sellVolume > minimumSpend, 'Not enough sell volume to execute minimum spend')
 
         // when you spend some amount, part is removed as fees. Your buy is recorded as only the reduced amount.
-        let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount: minimumSpend, from})
+        let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: minimumSpend, from })
         let realDutchPrice = minimumSpend.mul(dutchPrice).div(amountAfterFee)
 
         // now we get the current state of the uniswap exchange for our token pair
@@ -421,8 +418,8 @@ keeps happening`
         auctionLogger.info({
           sellToken,
           buyToken,
-          msg: 'Prices',
-          params:[{
+          msg: 'Prices: \n%O',
+          params: [{
             uniswapPrice: uniswapPrice.toString(10) + ' buyToken per sellToken',
             dutchPrice: dutchPrice.toString(10) + ' buyToken per sellToken',
             dutchPriceWithFees: realDutchPrice.toString(10) + ' buyToken per sellToken'
@@ -455,8 +452,8 @@ keeps happening`
           auctionLogger.info({
             sellToken,
             buyToken,
-            msg: 'Attempt Duch Opportunity',
-            params:[{
+            msg: 'Attempt Duch Opportunity: \n%O',
+            params: [{
               maxEtherToSpend: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' ETH'
             }]
           })
@@ -476,9 +473,8 @@ keeps happening`
           })
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
-          if (!amount.eq(0) ){
-
-            amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount, from})
+          if (!amount.eq(0)) {
+            amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount, from })
             var tokensExpectedFromDutch = amountAfterFee.div(dutchPrice)
 
             // how much Ether would be returned after selling the sellToken on uniswap
@@ -486,7 +482,7 @@ keeps happening`
             auctionLogger.info({
               sellToken,
               buyToken,
-              msg: 'Making a dutchX opportunity transaction',
+              msg: 'Making a dutchX opportunity transaction: \n%O',
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
                 amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
@@ -512,7 +508,7 @@ keeps happening`
             auctionLogger.info({
               sellToken,
               buyToken,
-              msg: 'Completed a dutchX opportunity',
+              msg: 'Completed a dutchX opportunity: \n%O',
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
                 balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Eth',
@@ -531,7 +527,7 @@ keeps happening`
           auctionLogger.info({
             sellToken,
             buyToken,
-            msg: 'Attempt Uniswap Opportunity',
+            msg: 'Attempt Uniswap Opportunity: \n%O',
             params: [{
               maxEtherToSpend: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' ETH'
             }]
@@ -539,7 +535,7 @@ keeps happening`
 
           // maxToSpend is referring to the maximum amount of buyTokens on dutchX.
           // when the buyToken is an actual token instead of Ether, it means that
-          // maxToSpend will be the result of spending all available Ether on uniswap. 
+          // maxToSpend will be the result of spending all available Ether on uniswap.
           let maxToSpend = this.getInputPrice(maxEtherToSpend, input_balance, output_balance)
 
           // tokenAmount is the maximum amount of buyToken we should spend on the dutchX on this opportunity to make a profit
@@ -557,20 +553,19 @@ keeps happening`
           // now we have the amount to use as buyToken on dutchX, but we actually need the amount
           // of ether to spend on uniswap. To get this we need to find out how much the tokens
           // cost in ether on uniswap.
-          let amount = this.getOutputPrice(tokenAmount, input_balance, output_balance) 
+          let amount = this.getOutputPrice(tokenAmount, input_balance, output_balance)
 
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
           if (!amount.eq(0)) {
-
             // how much Ether would be returned after selling the token on dutchX
-            amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount: tokenAmount, from})
+            amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: tokenAmount, from })
             let dutchXExpected = amountAfterFee.div(dutchPrice)
 
             auctionLogger.info({
               sellToken,
               buyToken,
-              msg: 'Making a uniswap opportunity transaction',
+              msg: 'Making a uniswap opportunity transaction: \n%O',
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
                 amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
@@ -595,7 +590,7 @@ keeps happening`
             auctionLogger.info({
               sellToken,
               buyToken,
-              msg: 'Completed a uniswap opportunity',
+              msg: 'Completed a uniswap opportunity: \n%O',
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
                 balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Eth',
@@ -616,7 +611,7 @@ keeps happening`
         auctionLogger.info({
           sellToken,
           buyToken,
-          msg: 'The auction is already closed: %o',
+          msg: 'The auction is already closed: \n%O',
           params: [{
             isTheoreticalClosed,
             isClosed
@@ -705,7 +700,7 @@ keeps happening`
       }
 
       // when you spend some amount, part is removed as fees. Your buy is recorded as only the reduced amount.
-      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({sellToken, buyToken, auctionIndex, amount: input_amount, from})
+      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: input_amount, from })
       // if you were to claim your buy right away it would be that amountAfterFee times the current price
       let realDutchPrice = input_amount.mul(dutchPrice).div(amountAfterFee)
 
@@ -749,7 +744,7 @@ keeps happening`
     auctionLogger.debug({
       sellToken,
       buyToken,
-      msg: 'State of the auction: %o',
+      msg: 'State of the auction: \n%O',
       params: [{ sellVolume: sellVolume.toNumber(), isClosed, isTheoreticalClosed }]
     })
 

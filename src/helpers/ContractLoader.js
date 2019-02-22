@@ -56,7 +56,7 @@ class ContractLoader {
       this._loadArbitrage(),
       this._loadUniswapFactory(),
       this._loadEmptyUniswapExchange()
-      
+
     ])
 
     const [ dxHelper, dxContracts ] = await Promise.all([
@@ -70,10 +70,9 @@ class ContractLoader {
   async _loadArbitrage () {
     const arbitrageContract = this._ethereumClient
       .loadContract(this._contractDefinitions.ArbitrageContract)
-    const arbitrageContractInstance = arbitrageContract.at(this._arbitrageContractAddress)
+    const arbitrageContractInstance = arbitrageContract.at(this._arbitrageContractAddress.address)
     return arbitrageContractInstance
   }
-
 
   async _loadUniswapFactory () {
     const uniswapFactory = this._ethereumClient
@@ -83,13 +82,12 @@ class ContractLoader {
   }
 
   async _loadEmptyUniswapExchange () {
-    // const uniswapExchange = 
+    // const uniswapExchange =
     return this._ethereumClient
       .loadContract(this._contractDefinitions.UniswapExchange)
     // const uniswapExchangeInstance = uniswapExchange.at(this._uniswapExchangeAddress)
     // return uniswapExchangeInstance
   }
-
 
   async _loadDx () {
     const dxContract = this._ethereumClient.loadContract(

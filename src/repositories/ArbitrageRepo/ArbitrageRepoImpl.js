@@ -102,9 +102,7 @@ class ArbitrageRepoImpl extends Cacheable {
     return uniswapExchangeInstance.getTokenToEthInputPrice(amount)
   }
 
-
   whichTokenIsEth (tokenA, tokenB) {
-
     assert(tokenB.toLowerCase() === this._tokens.WETH.address.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase(),
       'Not prepared to do ERC20 to ERC20 arbitrage')
 
@@ -114,7 +112,7 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async getUniswapBalances ({ buyToken, sellToken }) {
-    const {etherToken, tokenToken } = this.whichTokenIsEth(buyToken, sellToken)
+    const { etherToken, tokenToken } = this.whichTokenIsEth(buyToken, sellToken)
     let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenToken)
     const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
     const token_balance = await this._ethereumRepo.tokenBalanceOf({
@@ -166,7 +164,6 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async depositEther ({ amount, from }) {
-
     // let tx = await this._tokens.WETH.approve(this._dx.address, amount, {from})
 
     return this._doTransaction({
@@ -236,7 +233,7 @@ class ArbitrageRepoImpl extends Cacheable {
     value = value || '0'
     params = params || []
     logger.info({
-      msg: '_doTransactionnnn: %o',
+      msg: '_doTransaction: %o',
       params: [
         operation,
         from,
@@ -247,7 +244,7 @@ class ArbitrageRepoImpl extends Cacheable {
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
 
-    let test = await this._arbitrage[operation].call(...params, { from, value })
+    await this._arbitrage[operation].call(...params, { from, value })
 
     const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice

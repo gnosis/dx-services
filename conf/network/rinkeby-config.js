@@ -1,10 +1,10 @@
-const NETWORKS = require('../../node_modules/@gnosis.pm/dx-contracts/networks.json')
+// const NETWORKS = require('../../node_modules/@gnosis.pm/dx-contracts/networks.json')
 const NETWORKS_DEV = require('../../node_modules/@gnosis.pm/dx-contracts/networks-dev.json')
 const GNO_NETWORKS = require('../../node_modules/@gnosis.pm/gno-token/networks.json')
-const ARBITRAGE_NETWORKS = require('../../node_modules/okwme/arbitrage/networks.json')
+const ARBITRAGE_NETWORKS = require('../../node_modules/@okwme/arbitrage/networks.json')
 
 const env = process.env.NODE_ENV
-let DX_CONTRACT_ADDRESS, DX_HELPER_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS, GNO_TOKEN_ADDRESS
+let DX_CONTRACT_ADDRESS, DX_HELPER_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS, GNO_TOKEN_ADDRESS, UNISWAP_FACTORY_ADDRESS, ARBITRAGE_CONTRACT_ADDRESS
 let DAI_TOKEN_ADDRESS, GEN_TOKEN_ADDRESS, MKR_TOKEN_ADDRESS
 
 // In Rinkeby we use different instances of the contract for dev and staging
@@ -17,7 +17,7 @@ if (env === 'pre' || env === 'pro') {
   RDN_TOKEN_ADDRESS = null
   OMG_TOKEN_ADDRESS = null
 
-  UNISWAP_FACTORY_ADDRESS = null // ????
+  UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
   ARBITRAGE_CONTRACT_ADDRESS = null // ????
 } else if (env === 'dev') {
   // Rinkeby: dev
@@ -29,7 +29,7 @@ if (env === 'pre' || env === 'pro') {
   GNO_TOKEN_ADDRESS = GNO_NETWORKS['TokenGNO']['4'].address
 
   UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
-  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['Arbitrage']['4']
+  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4']
 
   // Old ones
   // RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
@@ -38,7 +38,7 @@ if (env === 'pre' || env === 'pro') {
   // Rinkeby: local
   DX_CONTRACT_ADDRESS = null
   UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
-  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['Arbitrage']['4']
+  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4']
   DX_HELPER_ADDRESS = null
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'
