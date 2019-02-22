@@ -1,6 +1,8 @@
 const cliUtils = require('../helpers/cliUtils')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+
+function registerCommand ({ cli, logger }) {
   cli.command(
     'price <token-pair>',
     'Get the current price for a token pair',
@@ -9,9 +11,8 @@ function registerCommand ({ cli, instances, logger }) {
     }, async function (argv) {
       const { tokenPair } = argv
       const [ sellToken, buyToken ] = tokenPair.split('-')
-      const {
-        dxInfoService
-      } = instances
+
+      const dxInfoService = await getDxInfoService()
 
       logger.info(`Get market price for the token pair ${sellToken}-${buyToken}`)
 

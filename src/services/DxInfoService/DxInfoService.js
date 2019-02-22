@@ -286,7 +286,7 @@ class DxInfoService {
       this._auctionRepo.getPastAuctionPrice({
         sellToken: tokenA,
         buyToken: tokenB,
-        auctionIndex
+        auctionIndex: auctionIndex - 1
       })
     ])
     let buyVolumesInSellTokens, priceRelationshipPercentage,
@@ -790,7 +790,7 @@ class DxInfoService {
   }
 
   async _getConfiguredTokenList () {
-    let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
+    let tokenList = this._markets.reduce((list, { tokenA, tokenB }) => {
       if (list.indexOf(tokenA) === -1) {
         list.push(tokenA)
       }

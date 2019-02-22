@@ -492,12 +492,33 @@ paths:
               DATE_FORMAT:
               <ul><li>Invalid date format. The required format is a valid ISO 8601 date format</li></ul>
             </span>
+  '/accounts/{accountAddress}/current-liquidity-contribution-ratio':
+    get:
+      tags:
+        - accounts
+      summary: Returns current liquidity contribution ratio
+      description: Returns current liquidity contribution ratio for user account
+      operationId: getFeeRatio
+      produces:
+        - application/json
+      parameters:
+        - name: accountAddress
+          in: path
+          description: An account address
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: number
   '/accounts/{accountAddress}/current-fee-ratio':
     get:
       tags:
         - accounts
-      summary: Returns current fee ratio
-      description: Returns current fee ratio for user account
+      deprecated: true
+      summary: DEPRECATED! See current-liquidity-contribution-ratio
+      description: DEPRECATED! See current-liquidity-contribution-ratio
       operationId: getFeeRatio
       produces:
         - application/json

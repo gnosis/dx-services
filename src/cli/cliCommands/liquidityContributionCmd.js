@@ -6,8 +6,8 @@ const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'fees [--account account] [--from-date fromDate --to-date toDate] [--period period]',
-    'Get the fees applied on the trades',
+    'liquidity-contribution [--account account] [--from-date fromDate --to-date toDate] [--period period]',
+    'Get the liquidity contribution applied on the trades',
     yargs => {
       cliUtils.addOptionByName({ name: 'from-date', yargs })
       cliUtils.addOptionByName({ name: 'to-date', yargs })
@@ -28,14 +28,14 @@ function registerCommand ({ cli, logger }) {
       const dxInfoService = await getDxInfoService()
 
       logger.info('Find %s between %s and %s',
-        account ? 'all the fees for ' + account : 'all fees',
+        account ? 'all the liquidity contribution for ' + account : 'all liquidity contributions',
         formatUtil.formatDateTime(fromDate),
         formatUtil.formatDateTime(toDate)
       )
 
       dxInfoService.getFees({ account })
 
-      // Get fees
+      // Get liquidity contributions
       const fees = await dxInfoService.getFees({
         fromDate, toDate, account
       })
@@ -56,7 +56,7 @@ function registerCommand ({ cli, logger }) {
           )
         })
       } else {
-        logger.info('No fees match the criteria.')
+        logger.info('No liquidity contributions match the criteria.')
       }
     })
 }

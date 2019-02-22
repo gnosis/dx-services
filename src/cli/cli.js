@@ -20,22 +20,19 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const gracefullShutdown = require('../helpers/gracefullShutdown')
 
-// TODO: Remove instanceFactory (pull only instances needed in each command)
 // TODO: If MARKETS is undefined or NULL --> load all
 const yargs = require('yargs')
-const instanceFactory = require('../helpers/instanceFactory')
 
-instanceFactory()
-  .then(run)
+run()
   .then(() => gracefullShutdown.shutDown())
   .catch(error => {
     console.error(error)
     gracefullShutdown.shutDown()
   })
 
-async function run(instances) {
+async function run () {
   const cli = yargs.usage('$0 <cmd> [args]')
-  const commandParams = { cli, instances, logger }
+  const commandParams = { cli, logger }
 
   // Info commands
   require('./cliCommands/balancesCmd')(commandParams)
@@ -52,7 +49,7 @@ async function run(instances) {
   require('./cliCommands/approvedCmd')(commandParams)
   require('./cliCommands/closingPriceCmd')(commandParams)
   require('./cliCommands/closingPriceOfficialCmd')(commandParams)
-  require('./cliCommands/feesCmd')(commandParams)
+  require('./cliCommands/liquidityContributionCmd')(commandParams)
   require('./cliCommands/claimingsCmd')(commandParams)
 
   // Trade commands

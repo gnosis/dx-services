@@ -1,16 +1,22 @@
 const cliUtils = require('../helpers/cliUtils')
 const printState = require('../helpers/printState')
 
-function registerCommand ({ cli, instances, logger }) {
+const getDxInfoService = require('../../services/DxInfoService')
+const getEthereumClient = require('../../getEthereumClient')
+
+function registerCommand ({ cli, logger }) {
   cli.command('state <token-pair>', 'Get the state for a given pair (i.e. WETH-RDN)', yargs => {
     cliUtils.addPositionalByName('token-pair', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString } = argv
     const [ sellToken, buyToken ] = tokenPairString.split('-')
-    const {
+    const [
       ethereumClient, // TODO: use services instead
       dxInfoService
-    } = instances
+    ] = await Promise.all([
+      getEthereumClient(),
+      getDxInfoService()
+    ])
 
     // Get data
     const tokenPair = { sellToken, buyToken }
