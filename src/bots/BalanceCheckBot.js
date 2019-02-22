@@ -4,6 +4,7 @@ const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
+const getAddress = require('../helpers/getAddress')
 const formatUtil = require('../helpers/formatUtil')
 const numberUtil = require('../helpers/numberUtil')
 
@@ -26,6 +27,7 @@ class BalanceCheckBot extends Bot {
   constructor ({
     name,
     botAddress,
+    accountIndex,
     botAddressForEther,
     botAddressForTokens,
     tokens,
@@ -36,17 +38,7 @@ class BalanceCheckBot extends Bot {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
     assert(notifications, 'notifications is required')
-    assert(botAddress || (botAddressForEther && botAddressForTokens) !== undefined, '"botAddress" or "botAddressForEth + botAddressForTokens" is required')
-
-    if (botAddress) {
-      // Config using bot address
-      this._botAddressForEther = botAddress
-      this._botAddressForTokens = botAddress
-    } else {
-      // Config using different address for Ether & tokens
-      this._botAddressForEther = botAddressForEther
-      this._botAddressForTokens = botAddressForTokens
-    }
+    assert(botAddress || accountIndex !== undefined || (botAddressForEther && botAddressForTokens) !== undefined, '"botAddress" or "accountIndex" or "botAddressForEth + botAddressForTokens" is required')
 
     // If notification has slack, validate
     const slackNotificationConf = notifications.find(notificationType => notificationType.type === 'slack')
@@ -55,6 +47,11 @@ class BalanceCheckBot extends Bot {
     }
 
     this._tokens = tokens
+    this._botAddress = botAddress
+    this._accountIndex = accountIndex
+    this._botAddressForEther = botAddressForEther
+    this._botAddressForTokens = botAddressForTokens
+
     this._notifications = notifications
     this._minimumAmountForEther = minimumAmountForEther * 1e18 // all balances are compared in WEI
     this._minimumAmountInUsdForToken = minimumAmountInUsdForToken
@@ -85,7 +82,25 @@ class BalanceCheckBot extends Bot {
     this._slackRepo = slackRepo
 
     // Get bot address
-    await this.setAddress()
+    if (!this._botAddressForEther || !this._botAddressForTokens) {
+      if (this._accountIndex !== undefined) {
+        // Setup the bot address using account index
+        await this.setAddress()
+      }
+
+      // Init the addresses
+      if (this._botAddress) {
+        // Config using bot address
+        this._botAddressForEther = this._botAddress
+        this._botAddressForTokens = this._botAddress
+        this._botAddress = await getAddress(this._accountIndex)
+      } else {
+        throw new Error('Address configuration error')
+      }
+    }
+
+    delete this._accountIndex
+    delete this._botAddress
   }
 
   async _doStart () {
