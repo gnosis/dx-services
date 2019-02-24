@@ -25,7 +25,7 @@ function _getWeb3 ({ conf }) {
 
   assert(MNEMONIC, 'The "MNEMONIC" is mandatory')
   assert(ETHEREUM_RPC_URL, 'The "ETHEREUM_RPC_URL" is mandatory')
-  
+
   // Setup provider and Web3
   logger.debug('Using %s RPC api to connect to Ethereum', this._url)
   // Get configuration mode
@@ -63,7 +63,7 @@ function _getWeb3 ({ conf }) {
       numAddresses: 5
     })
   }
-  
+
   this._provider.engine.on('error', _printNodeError)
   gracefullShutdown.onShutdown(() => this._provider.engine.stop())
   return new Web3(this._provider)
@@ -71,11 +71,11 @@ function _getWeb3 ({ conf }) {
 
 /**
  * Handles NodeJS errors
- * @param {Object} error 
+ * @param {Object} error
  */
 function _printNodeError (error) {
   const errorMessage = error.message
-  let debugLevel, reduceWarnLevelForNodeErrors = false
+  let debugLevel; let reduceWarnLevelForNodeErrors = false
   if (errorMessage === NODE_ERROR_EMPTY_RESPONSE) {
     if (reduceWarnLevelForNodeErrors) {
       debugLevel = 'warn'
