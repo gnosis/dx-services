@@ -39,9 +39,6 @@ class DxTradeService {
   }
 
   async claimAll ({ tokenPairs, address, lastNAuctions }) {
-    // TODO: Return the information about the claimed tokens so we can notify
-    // Increase the log info also
-
     // We get the claimable tokens for all pairs
     const claimableTokensPromises = tokenPairs.map(
       async ({ sellToken: tokenA, buyToken: tokenB }) => {

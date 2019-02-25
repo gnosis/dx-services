@@ -5,7 +5,6 @@ const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
 const schedule = require('node-schedule')
-const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'ClaimBot'
 const getEthereumClient = require('../getEthereumClient')

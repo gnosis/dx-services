@@ -43,7 +43,7 @@ function registerCommand ({ cli, logger }) {
       logger.info('\tACCOUNT: %s', account)
       logger.info('\tBALANCE: %d ETH', formatUtil.formatFromWei(balanceETH))
       logger.info('\tLocked FRT: %d MGN', formatUtil.formatFromWei(lockedFrt))
-      logger.info('\tLiquidity Contribution Level: %d ', currentLiqContributionLevel)
+      logger.info('\tLiquidity Contribution Level: %d % ', currentLiqContributionLevel.mul(100))
 
       const [ configuredMarketsTokenList, magnoliaToken ] = await Promise.all([
         dxInfoService.getConfiguredTokenList(),

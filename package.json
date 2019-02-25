@@ -20,7 +20,7 @@
     "api-kovan": "PUBLIC_API_PORT=9091 NETWORK=kovan nodemon src/runPublicApi.js",
     "bots-script": "./src/run-bots.sh",
     "bots": "node src/runBots.js",
-    "bots-dev": "DEBUG=ERROR-*,WARN-*,INFO-*,*ClaimBot nodemon src/runBots.js",
+    "bots-dev": "DEBUG=ERROR-*,WARN-*,INFO-*,DEBUG-* nodemon src/runBots.js",
     "bots-trace": "DEBUG=* node src/runBots.js",
     "bots-rinkeby": "PUBLIC_API_PORT=9091 NETWORK=rinkeby node src/runBots.js",
     "bots-rinkeby-dev": "DEBUG=ERROR-*,WARN-*,INFO-*,DEBUG-* PUBLIC_API_PORT=9091 NETWORK=rinkeby node src/runBots.js",
