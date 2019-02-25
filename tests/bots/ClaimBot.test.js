@@ -23,7 +23,9 @@ beforeEach(async () => {
     name: 'ClaimBot',
     markets: MARKETS,
     botAddress: '0x123',
-    notifications: []
+    notifications: [],
+    cronSchedule: '00  02,06,10,14,18,22  *  *  *',
+    autoClaimAuctions: 90
   })
 
   claimBot._doClaim = jest.fn(claimBot._doClaim)

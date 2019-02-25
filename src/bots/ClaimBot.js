@@ -12,11 +12,6 @@ const getDxInfoService = require('../services/DxInfoService')
 const getDxTradeService = require('../services/DxTradeService')
 const getSlackRepo = require('../repositories/SlackRepo')
 
-const CLAIM_BOT_CRON_SCHEDULE =
-  process.env.CLAIM_BOT_CRON_SCHEDULE || '00  02,06,10,14,18,22  *  *  *' // Each 4 hours
-const AUTO_CLAIM_AUCTIONS =
-  process.env.AUTO_CLAIM_AUCTIONS || 90
-
 class ClaimBot extends Bot {
   constructor ({
     name,
@@ -24,8 +19,8 @@ class ClaimBot extends Bot {
     accountIndex,
     markets,
     notifications,
-    cronSchedule = CLAIM_BOT_CRON_SCHEDULE,
-    autoClaimAuctions = AUTO_CLAIM_AUCTIONS
+    cronSchedule,
+    autoClaimAuctions
   }) {
     super(name, BOT_TYPE)
     assert(markets, 'markets is required')

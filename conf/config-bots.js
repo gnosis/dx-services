@@ -155,8 +155,8 @@ module.exports = {
 
   // TODO: Try to remove the next props
   // MAIN_BOT_ACCOUNT,
-  BUY_LIQUIDITY_RULES_DEFAULT// ,
-  // AUTO_CLAIM_AUCTIONS
+  BUY_LIQUIDITY_RULES_DEFAULT,
+  AUTO_CLAIM_AUCTIONS
 }
 
 function _getBotsNotificationChannel () {
