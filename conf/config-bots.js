@@ -91,6 +91,9 @@ const BALANCE_CHECK_BOT = {
   factory: 'src/bots/BalanceCheckBot',
   tokens: BOT_TOKENS,
   accountIndex: MAIN_BOT_ACCOUNT,
+  // botAddress: '0x1554238f49f8bd2f78d438fcd7d4396dfc0dd2ed',
+  // botAddressForEther: '0x1554238f49f8bd2f78d438fcd7d4396dfc0dd2ed',
+  // botAddressForTokens: '0x25b8c27508a59bf498646d8819dc349876789f83',
   notifications,
   minimumAmountForEther: 0.4,
   minimumAmountInUsdForToken: 5000
