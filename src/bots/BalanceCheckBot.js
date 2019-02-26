@@ -5,12 +5,12 @@ const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
 const getAddress = require('../helpers/getAddress')
+const getEthereumClient = require('../helpers/ethereumClient')
 const formatUtil = require('../helpers/formatUtil')
 const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'BalanceCheckBot'
 
-const getEthereumClient = require('../getEthereumClient')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')

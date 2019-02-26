@@ -226,7 +226,12 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         data
       } = txDetails
 
-      const safe = this._safesByAddress[from]
+      // const safe = this._safesByAddress[from]
+      const safeByOperator = this._safesByOperator[from]
+      const safeByAddress = this._safesByAddress[from]
+      const safe = safeByOperator || safeByAddress
+      // TODO: review how we execute transactions, whether or not
+      // we set 'from' to the operator or safe address 
       assert(safe, 'Unknown safe with address ' + from)
 
       const {
@@ -265,7 +270,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       logger.debug('Transaction - params: ', safeTxArguments[0].params)
 
       if (!NONCE_LOCK_DISABLED) {
-        this._sendTxWithUniqueNonce(...safeTxArguments)
+        return this._sendTxWithUniqueNonce(...safeTxArguments)
       } else {
         logger.trace('Send transaction: %o', safeTxArguments)
         this._resetNonceCache()
