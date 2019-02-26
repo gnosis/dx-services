@@ -367,14 +367,14 @@ class AuctionRepoImpl extends Cacheable {
 
   // TODO: getCurrencies?
 
-  async getSellVolume ({ sellToken, buyToken }) {
+  async getSellVolume ({ sellToken, buyToken, cacheTime }) {
     assertPair(sellToken, buyToken)
 
     return this._callForPair({
       operation: 'sellVolumesCurrent',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeAverage
+      cacheTime: cacheTime || this._cacheTimeAverage
     })
   }
 
@@ -389,14 +389,14 @@ class AuctionRepoImpl extends Cacheable {
     })
   }
 
-  async getBuyVolume ({ sellToken, buyToken }) {
+  async getBuyVolume ({ sellToken, buyToken, cacheTime }) {
     assertPair(sellToken, buyToken)
 
     return this._callForPair({
       operation: 'buyVolumes',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeShort
+      cacheTime: cacheTime || this._cacheTimeShort
     })
   }
 
@@ -815,12 +815,12 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
     if (auctionStart !== null && auctionStart <= now) {
       // The auction is running
-      assert.equal(auctionIndex, lastAuctionIndex + 1,
+      assert.strictEqual(auctionIndex, lastAuctionIndex + 1,
         'The auction index should be set to the next auction (the auction is running)'
       )
     } else {
       // We are waiting (to start or for funding
-      assert.equal(auctionIndex, lastAuctionIndex,
+      assert.strictEqual(auctionIndex, lastAuctionIndex,
         'The auction index should be set to the current auction (we are in a waiting period)'
       )
     }
@@ -835,7 +835,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     // assert(auctionStart <= now, "The auction hasn't started yet")
     //
     //
-    // assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+    // assert.strictEqual(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
     //
     // const sellVolume = await this.getSellVolume({ sellToken, buyToken })
     // assert(sellVolume > 0, "There's not selling volume")
@@ -883,7 +883,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     assert(auctionStart <= now, "The auction hasn't started yet")
 
     const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
-    assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+    assert.strictEqual(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
 
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
     assert(sellVolume > 0, "There's not selling volume")
@@ -971,7 +971,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     assert(initialClosingPrice, 'The initialClosingPrice is required')
     assert(initialClosingPrice.numerator >= 0, 'The initialClosingPrice numerator is incorrect')
     assert(initialClosingPrice.denominator >= 0, 'The initialClosingPrice denominator is incorrect')
-    assert.notEqual(tokenA, tokenB)
+    assert.notStrictEqual(tokenA, tokenB)
     assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
     assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
 
@@ -1243,17 +1243,20 @@ volume: ${state}`)
       })
   }
 
-  async getCurrentAuctionPriceWithFees ({ sellToken, buyToken, auctionIndex, amount, from }) {
-    const { numerator, denominator } = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
-    const sellVolume = await this.getSellVolume({ sellToken, buyToken })
-    const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
+  async getCurrentAuctionPriceWithFees ({ sellToken, buyToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice }) {
+    const cacheTime = 15
+    const { numerator, denominator } = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex, cacheTime })
+    const sellVolume = await this.getSellVolume({ sellToken, buyToken, cacheTime })
+
+    const buyVolume = await this.getBuyVolume({ sellToken, buyToken, cacheTime })
+
     // 10^30 * 10^37 = 10^67
     let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
     outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
     let amountAfterFee = amount
     if (amount.lt(outstandingVolume)) {
       if (amount.gt(0)) {
-        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from)
+        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice)
       }
     } else {
       amountAfterFee = outstandingVolume
@@ -1262,35 +1265,34 @@ volume: ${state}`)
     return amountAfterFee
   }
 
-  async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from) {
+  async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice) {
     const [numerator, denominator] = await this.getFeeRatio({ address: from })
+
     // 10^30 * 10^3 / 10^4 = 10^29
     let fee = amount.mul(numerator).div(denominator)
 
     if (fee > 0) {
-      fee = await this.settleFeeSecondPart(primaryToken, fee, from)
+      fee = await this.settleFeeSecondPart(primaryToken, fee, from, owlAllowance, owlBalance, ethUSDPrice)
     }
 
     return amount.sub(fee)
   }
 
-  async settleFeeSecondPart (primaryToken, fee, from) {
+  async settleFeeSecondPart (primaryToken, fee, from, owlAllowance, owlBalance, ethUSDPrice) {
+    const cacheTime = 15
     // Allow user to reduce up to half of the fee with owlToken
-    const { numerator, denominator } = await this.getPriceInEth({ token: primaryToken })
+
+    const { numerator, denominator } = await this.getPriceInEth({ token: primaryToken, cacheTime })
+
     // Convert fee to ETH, then USD
     // 10^29 * 10^30 / 10^30 = 10^29
     let feeInETH = fee.mul(numerator).div(denominator)
-
-    let ethUSDPrice = await this.getPriceEthUsd()
     // 10^29 * 10^6 = 10^35
     // Uses 18 decimal places <> exactly as owlToken tokens: 10**18 owlToken == 1 USD
     let feeInUSD = feeInETH.mul(ethUSDPrice)
 
-    let owlAllowance = await this._tokens.OWL.allowance(from, this._dx.address)
     let halfFee = feeInUSD.div(2)
     let amountOfowlTokenBurned = owlAllowance.lt(halfFee) ? owlAllowance : halfFee
-
-    let owlBalance = await this._tokens.OWL.balanceOf(from)
     amountOfowlTokenBurned = amountOfowlTokenBurned.lt(owlBalance) ? amountOfowlTokenBurned : owlBalance
     let newFee
     if (amountOfowlTokenBurned.gt(0)) {
@@ -1304,16 +1306,16 @@ volume: ${state}`)
     return newFee
   }
 
-  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
+  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex, cacheTime }) {
     assertAuction(sellToken, buyToken, auctionIndex)
     // let currentAuctionPrice
-    return await this
+    return this
       ._callForAuction({
         operation: 'getCurrentAuctionPrice',
         sellToken,
         buyToken,
         auctionIndex,
-        cacheTime: this._cacheTimeShort
+        cacheTime: cacheTime || this._cacheTimeShort
       })
       .then(toFraction)
     // TODO: breaking many places for now
@@ -1721,7 +1723,7 @@ volume: ${state}`)
     return claimedFundsList
   }
 
-  async getPriceInEth ({ token }) {
+  async getPriceInEth ({ token, cacheTime }) {
     assert(token, 'The token is required')
 
     if (token.toLowerCase() === this._tokens.WETH.address) {
@@ -1736,16 +1738,19 @@ volume: ${state}`)
       tokenA: token,
       tokenB: 'WETH'
     })
+
     assert(tokenEthMarketExists, `The market ${token}-WETH doesn't exists`)
 
-    return this
+    let foo = await this
       ._callForToken({
         operation: 'getPriceOfTokenInLastAuction',
         token,
-        checkToken: false
+        checkToken: false,
+        cacheTime
       })
       .then(toFraction)
 
+    return foo
     // // Removed the use of getPriceOfTokenInLastAuction
     // //     * The implementation doesn't look in the current auction ¿¿??
     // //     * It involves changing the smart contract, so we have to do a hack in
@@ -2184,7 +2189,7 @@ volume: ${state}`)
 
   async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params }) {
     logger.debug({
-      msg: '_doTransaction: %o',
+      msg: '_doTransaction: \n%O',
       params: [
         operation,
         from,

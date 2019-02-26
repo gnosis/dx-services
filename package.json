@@ -22,6 +22,7 @@
     "bots": "node src/runBots.js",
     "bots-dev": "DEBUG=ERROR-*,WARN-*,INFO-*,DEBUG-* nodemon src/runBots.js",
     "bots-trace": "DEBUG=* node src/runBots.js",
+    "bots-arb-rinkeby": "PUBLIC_API_PORT=9091 NETWORK=rinkeby ARB_ONLY=true node src/runBots.js",
     "bots-rinkeby": "PUBLIC_API_PORT=9091 NETWORK=rinkeby node src/runBots.js",
     "bots-rinkeby-dev": "DEBUG=ERROR-*,WARN-*,INFO-*,DEBUG-* PUBLIC_API_PORT=9091 NETWORK=rinkeby node src/runBots.js",
     "bots-kovan": "PUBLIC_API_PORT=9091 NETWORK=kovan node src/runBots.js",

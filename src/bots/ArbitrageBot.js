@@ -29,7 +29,7 @@ class ArbitrageBot extends Bot {
   }) {
     super(name, BOT_TYPE)
     assert(markets, 'markets is required')
-    assert(rules, 'arbitrageRules is required')
+    // assert(rules, 'arbitrageRules is required')
     assert(notifications, 'notifications is required')
     assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
 

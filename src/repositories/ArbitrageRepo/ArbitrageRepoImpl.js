@@ -1,25 +1,25 @@
 const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
-const AuctionLogger = require('../../helpers/AuctionLogger')
-const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
-const dxFilters = require('../../helpers/dxFilters')
-const auctionLogger = new AuctionLogger(loggerNamespace)
+// const AuctionLogger = require('../../helpers/AuctionLogger')
+// const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
+// const dxFilters = require('../../helpers/dxFilters')
+// const auctionLogger = new AuctionLogger(loggerNamespace)
 const Cacheable = require('../../helpers/Cacheable')
 // const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
 
-const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
+// const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
 
 const assert = require('assert')
 
-const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
-const MAXIMUM_FUNDING = 10 ** 30
+// const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
+// const MAXIMUM_FUNDING = 10 ** 30
 
-const BigNumber = require('bignumber.js')
-const numberUtil = require('../../helpers/numberUtil.js')
+// const BigNumber = require('bignumber.js')
+// const numberUtil = require('../../helpers/numberUtil.js')
 
-const environment = process.env.NODE_ENV
-const isLocal = environment === 'local'
+// const environment = process.env.NODE_ENV
+// const isLocal = environment === 'local'
 
 class ArbitrageRepoImpl extends Cacheable {
   constructor ({
@@ -103,20 +103,34 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   whichTokenIsEth (tokenA, tokenB) {
-    assert(tokenB.toLowerCase() === this._tokens.WETH.address.toLowerCase() || tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase(),
-      'Not prepared to do ERC20 to ERC20 arbitrage')
+    assert(
+      tokenB.toLowerCase() === this._tokens.WETH.address.toLowerCase() ||
+      tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ||
+      tokenB === 'WETH' ||
+      tokenA === 'WETH'
+      ,
+      'Not prepared to do ERC20 to ERC20 arbitrage ')
 
-    const etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
-    const tokenToken = etherToken === tokenA ? tokenB : tokenA
-    return { etherToken, tokenToken }
+    const etherTokenAddress = this._tokens.WETH.address
+    let etherToken, tokenToken, tokenTokenAddress
+    if (tokenB === 'WETH' || tokenA === 'WETH') {
+      etherToken = tokenA === 'WETH' ? tokenA : tokenB
+      tokenToken = etherToken === tokenA ? tokenB : tokenA
+      tokenTokenAddress = this._tokens[tokenToken].address
+    } else {
+      etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
+      tokenToken = etherToken === tokenA ? tokenB : tokenA
+      tokenTokenAddress = tokenToken
+    }
+    return { etherToken, tokenToken, etherTokenAddress, tokenTokenAddress }
   }
 
   async getUniswapBalances ({ buyToken, sellToken }) {
-    const { etherToken, tokenToken } = this.whichTokenIsEth(buyToken, sellToken)
-    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenToken)
+    const { etherToken, tokenTokenAddress } = this.whichTokenIsEth(buyToken, sellToken)
+    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenTokenAddress)
     const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
     const token_balance = await this._ethereumRepo.tokenBalanceOf({
-      tokenAddress: tokenToken,
+      tokenAddress: tokenTokenAddress,
       account: uniswapExchangeAddress
     })
     // buyerToken is exchanged for sellerToken, sellerToken is inputToken, buyerToken is outputToken
@@ -233,7 +247,7 @@ class ArbitrageRepoImpl extends Cacheable {
     value = value || '0'
     params = params || []
     logger.info({
-      msg: '_doTransaction: %o',
+      msg: '_doTransaction: \n%O',
       params: [
         operation,
         from,
@@ -339,13 +353,13 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 }
 
-function toFraction ([ numerator, denominator ]) {
-  // the contract return 0/0 when something is undetermined
-  if (numerator.isZero() && denominator.isZero()) {
-    return null
-  } else {
-    return { numerator, denominator }
-  }
-}
+// function toFraction ([ numerator, denominator ]) {
+//   // the contract return 0/0 when something is undetermined
+//   if (numerator.isZero() && denominator.isZero()) {
+//     return null
+//   } else {
+//     return { numerator, denominator }
+//   }
+// }
 
 module.exports = ArbitrageRepoImpl

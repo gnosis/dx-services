@@ -33,7 +33,7 @@ function _getWeb3 ({ conf }) {
   let configMode = conf.getDXMode()
   logger.debug(`Use DX ${configMode} configuration mode`)
 
-  if (configMode == 'safe') {
+  if (configMode === 'safe') {
     const { SAFE_MODULE_ADDRESSES } = conf
     // Determine which safe-module to use (complete or seller)
     let safeModuleMode = 'complete' // complete by default

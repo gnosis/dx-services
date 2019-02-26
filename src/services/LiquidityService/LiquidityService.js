@@ -384,6 +384,9 @@ keeps happening`
     // //  * Is not in theoretical closed state
     if (!sellVolume.isZero()) {
       if (!isClosed && !isTheoreticalClosed) {
+        // find which of our tokens is the ether Token
+        const { etherToken, etherTokenAddress } = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)
+
         // get the current price for our token pair on the dutchX
         // it is buyToken per sellToken, so it tells us that
         // price = buyerToken / sellerToken
@@ -399,20 +402,14 @@ keeps happening`
         })
         let dutchPrice = numerator.div(denominator)
 
-        // smallest increment of used to calculate prices
-        // TODO: should maybe be hardcoded as cost of gas in Eth (or equivalent in token)
-        let minimumSpend = numberUtil.toBigNumber(1)
-        assert(sellVolume > minimumSpend, 'Not enough sell volume to execute minimum spend')
-
-        // when you spend some amount, part is removed as fees. Your buy is recorded as only the reduced amount.
-        let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: minimumSpend, from })
-        let realDutchPrice = minimumSpend.mul(dutchPrice).div(amountAfterFee)
+        const dutchAttempt = buyToken === etherToken
 
         // now we get the current state of the uniswap exchange for our token pair
         const {
           input_balance, // our current sellToken on dutchX
           output_balance // our current buyToken on dutchX
         } = await this._arbitrageRepo.getUniswapBalances({ buyToken, sellToken })
+
         let uniswapPrice = output_balance.div(input_balance) // buyToken per sellToken
 
         auctionLogger.info({
@@ -420,14 +417,14 @@ keeps happening`
           buyToken,
           msg: 'Prices: \n%O',
           params: [{
-            uniswapPrice: uniswapPrice.toString(10) + ' buyToken per sellToken',
-            dutchPrice: dutchPrice.toString(10) + ' buyToken per sellToken',
-            dutchPriceWithFees: realDutchPrice.toString(10) + ' buyToken per sellToken'
+            dutchAttempt,
+            theoreticalUniswapPrice: uniswapPrice.toString(10) + ' buyToken per sellToken',
+            theoreticalDutchPrice: dutchPrice.toString(10) + ' buyToken per sellToken'
           }]
         })
 
-        // return now if there is no arbitrage opportunity
-        if (realDutchPrice.gt(uniswapPrice)) {
+        // return now if there is no arbitrage opportunity when prices are only theoretical (better than actual prices)
+        if (dutchPrice.gt(uniswapPrice)) {
           auctionLogger.warn({
             sellToken,
             buyToken,
@@ -436,18 +433,12 @@ keeps happening`
           return null
         }
 
-        // find which of our tokens is the ether Token
-        const { etherToken } = this._arbitrageRepo.whichTokenIsEth(buyToken, sellToken)
-
         // next we check our arbitrage contract's ether balance
         // to see what the maximum amount we can spend is
         const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
-        console.log({
-          token: etherToken,
-          address: arbitrageAddress
-        })
+
         let maxEtherToSpend = await this._auctionRepo.getBalance({
-          token: etherToken,
+          token: etherTokenAddress,
           address: arbitrageAddress
         })
 
@@ -460,8 +451,20 @@ keeps happening`
           return null
         }
 
+        // gasCosts is the amount of profit needed from the arbitrage to pay for gas costs
+        const uniswapGasEstimate = 559830
+        const dutchGasEstimate = 565134
+        const { fastGasPrice } = await this._arbitrageRepo._getGasPrices()
+        let gasCosts = dutchAttempt ? dutchGasEstimate : uniswapGasEstimate
+        gasCosts = numberUtil.toBigNumber(gasCosts).mul(fastGasPrice)
+
+        let owlAllowance = await this._auctionRepo._tokens.OWL.allowance(from, this._auctionRepo._dx.address)
+        let owlBalance = await this._auctionRepo._tokens.OWL.balanceOf(from)
+        const ethUSDPrice = await this._auctionRepo.getPriceEthUsd()
+
         // dutchOpportunity
-        if (buyToken === etherToken) {
+        if (dutchAttempt) {
+          // if (buyToken === etherToken) {
           auctionLogger.info({
             sellToken,
             buyToken,
@@ -475,23 +478,28 @@ keeps happening`
           // amount is the maximum amount of Ether we should spend on this opportunity to make a profit
           let amount = await this.getSpendAmount({
             dutchPrice,
-            minimumSpend,
             maxToSpend: maxEtherToSpend,
             input_balance, // sellToken balance
             output_balance, // buyToken balance
             from,
             sellToken,
             buyToken,
-            auctionIndex
+            auctionIndex,
+            owlAllowance,
+            owlBalance,
+            ethUSDPrice
           })
+
+          let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice })
+          var tokensExpectedFromDutch = amountAfterFee.div(dutchPrice)
+
+          // how much Ether would be returned after selling the sellToken on uniswap
+          let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(sellToken, tokensExpectedFromDutch.toString(10))
+          const expectedProfit = uniswapExpected.sub(amount).sub(gasCosts)
+
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
-          if (!amount.eq(0)) {
-            amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount, from })
-            var tokensExpectedFromDutch = amountAfterFee.div(dutchPrice)
-
-            // how much Ether would be returned after selling the sellToken on uniswap
-            let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(sellToken, tokensExpectedFromDutch.toString(10))
+          if (amount.gt(0) && expectedProfit.gt(0)) {
             auctionLogger.info({
               sellToken,
               buyToken,
@@ -514,7 +522,7 @@ keeps happening`
             })
 
             let balanceAfter = await this._auctionRepo.getBalance({
-              token: etherToken,
+              token: etherTokenAddress,
               address: arbitrageAddress
             })
 
@@ -525,7 +533,8 @@ keeps happening`
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
                 balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Eth',
-                actualProfit: numberUtil.fromWei(balanceAfter.sub(maxEtherToSpend)).toString(10) + ' Eth'
+                actualProfitEth: numberUtil.fromWei(balanceAfter.sub(maxEtherToSpend)).toString(10) + ' Eth',
+                actualProfitWei: balanceAfter.sub(maxEtherToSpend).toString(10) + ' Wei'
               }]
             })
             return tx
@@ -554,36 +563,50 @@ keeps happening`
           // tokenAmount is the maximum amount of buyToken we should spend on the dutchX on this opportunity to make a profit
           let tokenAmount = await this.getSpendAmount({
             dutchPrice,
-            minimumSpend,
             maxToSpend,
             input_balance, // sellToken balance
             output_balance, // buyToken balance
             from,
             sellToken,
             buyToken,
-            auctionIndex
+            auctionIndex,
+            owlAllowance,
+            owlBalance,
+            ethUSDPrice
           })
           // now we have the amount to use as buyToken on dutchX, but we actually need the amount
           // of ether to spend on uniswap. To get this we need to find out how much the tokens
           // cost in ether on uniswap.
           let amount = this.getOutputPrice(tokenAmount, input_balance, output_balance)
 
+          // how much Ether would be returned after selling the token on dutchX
+          let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: tokenAmount, from, owlAllowance, owlBalance, ethUSDPrice })
+          let dutchXExpected = amountAfterFee.div(dutchPrice)
+          const expectedProfit = dutchXExpected.sub(amount).sub(gasCosts)
+
+          auctionLogger.info({
+            sellToken,
+            buyToken,
+            msg: 'Check uniswap opportunity: \n%O',
+            params: [
+              {
+                tokenAmount: tokenAmount.toString(10) + ' token',
+                amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
+                dutchExpected: numberUtil.fromWei(dutchXExpected).toString(10) + ' Eth',
+                gasCosts: numberUtil.fromWei(gasCosts).toString(10) + ' Eth',
+                expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' Eth'
+              }
+            ]
+          })
           // if the amount to spend is 0 there is no opportunity
           // otherwise execute the opportunity
-          if (!amount.eq(0)) {
-            // how much Ether would be returned after selling the token on dutchX
-            amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: tokenAmount, from })
-            let dutchXExpected = amountAfterFee.div(dutchPrice)
-
+          if (amount.gt(0) && expectedProfit.gt(0)) {
             auctionLogger.info({
               sellToken,
               buyToken,
               msg: 'Making a uniswap opportunity transaction: \n%O',
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
-                amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
-                dutchExpected: numberUtil.fromWei(dutchXExpected).toString(10) + ' Eth',
-                expectedProfit: numberUtil.fromWei(dutchXExpected.sub(amount)).toString(10) + ' Eth',
                 dutchPrice: amount.mul(dutchPrice).div(amountAfterFee) + ' WEI / token',
                 uniswapPrice: tokenAmount.div(amount) + ' WEI / token'
               }]
@@ -596,7 +619,7 @@ keeps happening`
             })
 
             let balanceAfter = await this._auctionRepo.getBalance({
-              token: etherToken,
+              token: etherTokenAddress,
               address: arbitrageAddress
             })
 
@@ -607,7 +630,8 @@ keeps happening`
               params: [{
                 balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
                 balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Eth',
-                actualProfit: numberUtil.fromWei(balanceAfter.sub(maxEtherToSpend)).toString(10) + ' Eth'
+                actualProfitEth: numberUtil.fromWei(balanceAfter.sub(maxEtherToSpend)).toString(10) + ' Eth',
+                actualProfitWei: balanceAfter.sub(maxEtherToSpend).toString(10) + ' Wei'
               }]
             })
             return tx
@@ -671,14 +695,16 @@ keeps happening`
 
   async getSpendAmount ({
     maxToSpend,
-    input_balance,
-    output_balance,
+    input_balance, // sellToken balance
+    output_balance, // buyToken balance
     dutchPrice,
-    minimumSpend,
     from,
     sellToken,
     buyToken,
-    auctionIndex
+    auctionIndex,
+    owlAllowance,
+    owlBalance,
+    ethUSDPrice
   }) {
     // these must be positive amounts.
     // it is also worth considering making the small increment rather large
@@ -688,43 +714,39 @@ keeps happening`
     // const spendIncrementSmall = 1e3
     // const spendIncrementLarge = 1e17
 
-    let spendIncrement = numberUtil.toBigNumber(10)
-    const spendIncrementMin = numberUtil.toBigNumber(1e10)
+    let spendIncrement = numberUtil.toBigNumber(1e18)
+    const spendIncrementMin = numberUtil.toBigNumber(1e3)
 
-    let inputAmount = numberUtil.toBigNumber(minimumSpend)
+    let inputAmount = numberUtil.toBigNumber(spendIncrement)
 
     let opportunity = true
     // let useLargeIncrement = true
     let finalPrice = false
 
-    // want to loop through larger and larger spending increments
-    // until maxToSpend is hit or until the price is no longer an opportunity
-    // this asks: what's the largest amount i can buy on uniswap
-    // while still getting a better price than the dutchX
+    // let increasing = true
+
+    // want to loop through smaller and smaller spending increments
+    // stop when maxToSpend is hit or when the increment price is too small
     while (!finalPrice) {
-      console.log('inputAmount now ', inputAmount.toString(10), inputAmount.toString(10).length)
       if (inputAmount.gt(maxToSpend) || !opportunity) {
         if (inputAmount.lte(maxToSpend) && spendIncrement.gt(spendIncrementMin)) {
-          inputAmount = inputAmount.div(spendIncrement)
+          inputAmount = inputAmount.sub(spendIncrement)
           spendIncrement = spendIncrement.div(10)
-          console.log('maxToSpend', maxToSpend.toString(10))
-          console.log('new spend inc', spendIncrement.toString(10))
-          console.log('new inputAmount', inputAmount.toString(10))
           opportunity = true
           continue
         } else {
-          inputAmount = inputAmount.div(spendIncrement)
+          inputAmount = inputAmount.sub(spendIncrement)
           finalPrice = true
-          console.log('finalInputAmount', inputAmount.toString(10))
-          return inputAmount
+          opportunity = true
+          continue
         }
       }
 
       // when you spend some amount, part is removed as fees. Your buy is recorded as only the reduced amount.
-      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: inputAmount, from })
+      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: inputAmount, from, owlAllowance, owlBalance, ethUSDPrice })
+
       // if you were to claim your buy right away it would be that amountAfterFee times the current price
       let realDutchPrice = inputAmount.mul(dutchPrice).div(amountAfterFee)
-
       // inputAmount is a buyerToken. buyertoken is traded for seller token
       // sellerToken is input token, output_token is buyerToken
       // output amount is sellerToken, output amount is input_token
@@ -734,13 +756,13 @@ keeps happening`
       // output_returned is buyerToken
       let outputReturned = this.getInputPrice(outputAmount, input_balance, output_balance)
       let uniswapPrice = outputReturned.div(outputAmount)
-
       if (realDutchPrice.gt(uniswapPrice)) {
         opportunity = false
       } else {
-        inputAmount = inputAmount.mul(spendIncrement)
+        inputAmount = inputAmount.add(spendIncrement)
       }
     }
+    return inputAmount
   }
 
   async _getPricesAndEnsureLiquidity ({ sellToken, buyToken, auctionIndex, from, buyLiquidityRules }) {
