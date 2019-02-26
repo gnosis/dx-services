@@ -1,5 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
-const numberUtil = require('../../helpers/numberUtil')
+const { round, toWei } = require('../../helpers/numberUtil')
 
 const getDxInfoService = require('../../services/DxInfoService')
 
@@ -18,10 +18,10 @@ function registerCommand ({ cli, logger }) {
 
       const price = await dxInfoService.getPriceInUSD({
         token,
-        amount: amount * 1e18
+        amount: toWei(amount)
       })
       logger.info('The current price is: %s %s/USD',
-        numberUtil.round(price),
+        round(price),
         token
       )
     })
