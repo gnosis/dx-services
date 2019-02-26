@@ -7,6 +7,7 @@ const Web3 = require('web3')
 const gracefullShutdown = require('./helpers/gracefullShutdown')
 const HDWalletProvider = require('./helpers/HDWalletProvider')
 const HDWalletSafeProvider = require('./helpers/HDWalletSafeProvider')
+var NonceTrackerSubprovider = require('web3-provider-engine/subproviders/nonce-tracker')
 
 // We handle this error separatelly, because node throw this error from time to
 // time, and it disapears after some seconds
@@ -62,6 +63,9 @@ function _getWeb3 ({ conf }) {
       addressIndex: 0,
       numAddresses: 5
     })
+    var nonceTracker = new NonceTrackerSubprovider()
+    this._provider.engine._providers.unshift(nonceTracker)
+    nonceTracker.setEngine(this._provider.engine)
   }
 
   this._provider.engine.on('error', _printNodeError)
