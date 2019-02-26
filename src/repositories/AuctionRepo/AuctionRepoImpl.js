@@ -83,7 +83,7 @@ class AuctionRepoImpl extends Cacheable {
   }
 
   async ethToken () {
-    return this._doCall({operation: 'ethToken', params: []})
+    return this._doCall({ operation: 'ethToken', params: [] })
   }
 
   async getAbout () {
@@ -1243,9 +1243,9 @@ volume: ${state}`)
       })
   }
 
-  async getCurrentAuctionPriceWithFees ({sellToken, buyToken, auctionIndex, amount, from}) {
-    const {numerator, denominator} = await this.getCurrentAuctionPrice({sellToken, buyToken, auctionIndex});
-    const sellVolume = await this.getSellVolume({sellToken, buyToken})
+  async getCurrentAuctionPriceWithFees ({ sellToken, buyToken, auctionIndex, amount, from }) {
+    const { numerator, denominator } = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+    const sellVolume = await this.getSellVolume({ sellToken, buyToken })
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken })
     // 10^30 * 10^37 = 10^67
     let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
@@ -1253,31 +1253,30 @@ volume: ${state}`)
     let amountAfterFee = amount
     if (amount.lt(outstandingVolume)) {
       if (amount.gt(0)) {
-        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from);
+        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from)
       }
     } else {
-      amountAfterFee = outstandingVolume;
+      amountAfterFee = outstandingVolume
     }
 
     return amountAfterFee
   }
 
-
   async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from) {
-    const [numerator, denominator] = await this.getFeeRatio({address: from})
+    const [numerator, denominator] = await this.getFeeRatio({ address: from })
     // 10^30 * 10^3 / 10^4 = 10^29
     let fee = amount.mul(numerator).div(denominator)
 
     if (fee > 0) {
-        fee = await this.settleFeeSecondPart(primaryToken, fee, from);
+      fee = await this.settleFeeSecondPart(primaryToken, fee, from)
     }
 
     return amount.sub(fee)
   }
 
-  async settleFeeSecondPart(primaryToken, fee, from) {
+  async settleFeeSecondPart (primaryToken, fee, from) {
     // Allow user to reduce up to half of the fee with owlToken
-    const {numerator, denominator} = await this.getPriceInEth({token: primaryToken})
+    const { numerator, denominator } = await this.getPriceInEth({ token: primaryToken })
     // Convert fee to ETH, then USD
     // 10^29 * 10^30 / 10^30 = 10^29
     let feeInETH = fee.mul(numerator).div(denominator)
@@ -1295,16 +1294,15 @@ volume: ${state}`)
     amountOfowlTokenBurned = amountOfowlTokenBurned.lt(owlBalance) ? amountOfowlTokenBurned : owlBalance
     let newFee
     if (amountOfowlTokenBurned.gt(0)) {
-        // Adjust fee
-        // 10^35 * 10^29 = 10^64
-        let adjustment = amountOfowlTokenBurned.mul(fee).div(feeInUSD)
-        newFee = fee.sub(adjustment)
+      // Adjust fee
+      // 10^35 * 10^29 = 10^64
+      let adjustment = amountOfowlTokenBurned.mul(fee).div(feeInUSD)
+      newFee = fee.sub(adjustment)
     } else {
-        newFee = fee;
+      newFee = fee
     }
     return newFee
   }
-
 
   async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
     assertAuction(sellToken, buyToken, auctionIndex)

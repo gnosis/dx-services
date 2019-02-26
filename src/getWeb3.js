@@ -63,6 +63,7 @@ function _getWeb3 ({ conf }) {
       addressIndex: 0,
       numAddresses: 5
     })
+    console.log('nonce tracker getWeb3.js')
     var nonceTracker = new NonceTrackerSubprovider()
     this._provider.engine._providers.unshift(nonceTracker)
     nonceTracker.setEngine(this._provider.engine)

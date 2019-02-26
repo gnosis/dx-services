@@ -57,7 +57,7 @@ const URL_GAS_PRICE_FEED_SAFE = 'https://safe-relay.staging.gnosisdev.com/api/v1
 
 module.exports = {
   NETWORK: 'rinkeby', // 4
-  ETHEREUM_RPC_URL: 'https://rinkeby.infura.io',
+  ETHEREUM_RPC_URL: 'https://node.rinkeby.gnosisdev.com',
 
   // Gas price feed
   URL_GAS_PRICE_FEED_GAS_STATION,

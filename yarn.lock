@@ -167,12 +167,13 @@
   resolved "https://registry.yarnpkg.com/@gnosis.pm/util-contracts/-/util-contracts-2.0.0.tgz#562b14a2d6cb4a59189476dd0f6aaeba5f65abe2"
   integrity sha512-vRgTV36d4ZFdcetKcNbnAtSDrP3OSWEj8YmG3RHK4DBMulPX2asRh8VnopTrZnZQ8enZIDbT1pT7buW+UJqd4g==
 
-"@okwme/arbitrage@github:okwme/arbitrage#ac71b8844b8fca581ab5aba51f599c9779694e17":
+"@okwme/arbitrage@github:okwme/arbitrage#51947f34a264f069d71d2f3f512427f8ef67cf07":
   version "2.1.0"
-  resolved "https://codeload.github.com/okwme/arbitrage/tar.gz/ac71b8844b8fca581ab5aba51f599c9779694e17"
+  resolved "https://codeload.github.com/okwme/arbitrage/tar.gz/51947f34a264f069d71d2f3f512427f8ef67cf07"
   dependencies:
     "@gnosis.pm/mock-contract" "^3.0.7"
     solc "^0.5.2"
+    web3-provider-engine "^14.1.0"
 
 "@sheerun/eslint-config-standard@^10.2.1":
   version "10.2.1"

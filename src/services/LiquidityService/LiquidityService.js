@@ -685,13 +685,16 @@ keeps happening`
     // because if it is too precise, the profit margin may disappear between the time it is
     // calculated and actually executed. The dutch X price would improve, but the increased
     // purchase amount might actually create too much slippage on uniswap, possibly destroying the profit
-    const spendIncrementSmall = 1e16
-    const spendIncrementLarge = 1e17
+    // const spendIncrementSmall = 1e3
+    // const spendIncrementLarge = 1e17
 
-    let input_amount = numberUtil.toBigNumber(minimumSpend)
+    let spendIncrement = numberUtil.toBigNumber(10)
+    const spendIncrementMin = numberUtil.toBigNumber(1e10)
+
+    let inputAmount = numberUtil.toBigNumber(minimumSpend)
 
     let opportunity = true
-    let useLargeIncrement = true
+    // let useLargeIncrement = true
     let finalPrice = false
 
     // want to loop through larger and larger spending increments
@@ -699,38 +702,43 @@ keeps happening`
     // this asks: what's the largest amount i can buy on uniswap
     // while still getting a better price than the dutchX
     while (!finalPrice) {
-      if (input_amount.gt(maxToSpend) || !opportunity) {
-        if (useLargeIncrement) {
-          useLargeIncrement = false
+      console.log('inputAmount now ', inputAmount.toString(10), inputAmount.toString(10).length)
+      if (inputAmount.gt(maxToSpend) || !opportunity) {
+        if (inputAmount.lte(maxToSpend) && spendIncrement.gt(spendIncrementMin)) {
+          inputAmount = inputAmount.div(spendIncrement)
+          spendIncrement = spendIncrement.div(10)
+          console.log('maxToSpend', maxToSpend.toString(10))
+          console.log('new spend inc', spendIncrement.toString(10))
+          console.log('new inputAmount', inputAmount.toString(10))
           opportunity = true
-          input_amount = input_amount.sub(spendIncrementLarge)
           continue
         } else {
-          input_amount = input_amount.sub(spendIncrementSmall)
+          inputAmount = inputAmount.div(spendIncrement)
           finalPrice = true
-          return input_amount
+          console.log('finalInputAmount', inputAmount.toString(10))
+          return inputAmount
         }
       }
 
       // when you spend some amount, part is removed as fees. Your buy is recorded as only the reduced amount.
-      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: input_amount, from })
+      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({ sellToken, buyToken, auctionIndex, amount: inputAmount, from })
       // if you were to claim your buy right away it would be that amountAfterFee times the current price
-      let realDutchPrice = input_amount.mul(dutchPrice).div(amountAfterFee)
+      let realDutchPrice = inputAmount.mul(dutchPrice).div(amountAfterFee)
 
-      // input_amount is a buyerToken. buyertoken is traded for seller token
+      // inputAmount is a buyerToken. buyertoken is traded for seller token
       // sellerToken is input token, output_token is buyerToken
       // output amount is sellerToken, output amount is input_token
-      let output_amount = input_amount.div(realDutchPrice)
-      // input_amount on uniswap is amount returned from the dutchX
+      let outputAmount = inputAmount.div(realDutchPrice)
+      // inputAmount on uniswap is amount returned from the dutchX
       // how much does it cost to acquire this much?
       // output_returned is buyerToken
-      let output_returned = this.getInputPrice(output_amount, input_balance, output_balance)
-      let uniswapPrice = output_returned.div(output_amount)
+      let outputReturned = this.getInputPrice(outputAmount, input_balance, output_balance)
+      let uniswapPrice = outputReturned.div(outputAmount)
 
       if (realDutchPrice.gt(uniswapPrice)) {
         opportunity = false
       } else {
-        input_amount = input_amount.add(useLargeIncrement ? spendIncrementLarge : spendIncrementSmall)
+        inputAmount = inputAmount.mul(spendIncrement)
       }
     }
   }

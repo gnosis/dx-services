@@ -44,6 +44,7 @@ this._provider = new HDWalletProvider({
   addressIndex: 0,
   numAddresses: 5
 })
+console.log('nonce tracker web3.js')
 var nonceTracker = new NonceTrackerSubprovider()
 this._provider.engine._providers.unshift(nonceTracker)
 nonceTracker.setEngine(this._provider.engine)
