@@ -131,6 +131,7 @@ const DEPOSIT_BOT = {
 
 const AUTO_CLAIM_AUCTIONS = 90
 
+// TODO Enable by default in future versions
 const CLAIM_BOT = {
   name: 'Claim bot',
   factory: 'src/bots/ClaimBot',
