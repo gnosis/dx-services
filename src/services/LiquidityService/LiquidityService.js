@@ -389,10 +389,10 @@ keeps happening`
     } else {
       if (!hasAuctionStarted) {
         // Auction hasn't started
-        auctionLogger.error({
+        auctionLogger.info({
           sellToken,
           buyToken,
-          msg: 'The auction is below market price but it hasn\'t started yet. Will check back later'
+          msg: 'The auction hasn\'t started yet. Will check back later'
         })
       } else {
         // No sell volume
