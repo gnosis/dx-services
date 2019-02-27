@@ -10,13 +10,11 @@ const numberUtil = require('../helpers/numberUtil')
 const BOT_TYPE = 'BalanceCheckBot'
 
 const getEthereumClient = require('../getEthereumClient')
-const getAddress = require('../helpers/getAddress')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')
 
 const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = process.env.BALANCE_CHECK_THRESHOLD_USD || 5000 // $5000
-const MINIMUM_AMOUNT_FOR_ETHER = (process.env.BALANCE_CHECK_THRESHOLD_ETHER || 0.4) * 1e18 // 0.4 WETH
 
 const checkTimeMinutes = process.env.BALANCE_BOT_CHECK_TIME_MINUTES || 15 // 15 min
 const slackThresholdMinutes = process.env.BALANCE_BOT_SLACK_THESHOLD_MINUTES || (4 * 60) // 4h
@@ -36,6 +34,7 @@ class BalanceCheckBot extends Bot {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
     assert(notifications, 'notifications is required')
+    assert(minimumAmountForEther, 'minimumAmountForEther is required (in ETH value)')
 
     if (botAddress) {
       // Config using bot address
@@ -123,11 +122,10 @@ class BalanceCheckBot extends Bot {
       ])
 
       // Check if the account has ETHER below the minimum amount
-      const minimumAmountForEther = this._minimumAmountForEther || MINIMUM_AMOUNT_FOR_ETHER
-      if (balanceOfEther < minimumAmountForEther) {
+      if (balanceOfEther < this._minimumAmountForEther) {
         this._lastWarnNotification = new Date()
         // Notify lack of ether
-        this._notifyLackOfEther(balanceOfEther, account, minimumAmountForEther)
+        this._notifyLackOfEther(balanceOfEther, account, this._minimumAmountForEther)
       }
 
       // Check if there are tokens below the minimum amount

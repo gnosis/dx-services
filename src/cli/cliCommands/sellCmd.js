@@ -1,4 +1,6 @@
 const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../helpers/numberUtil')
+
 const getAddress = require('../../helpers/getAddress')
 const getDxInfoService = require('../../services/DxInfoService')
 const getDxTradeService = require('../../services/DxTradeService')
@@ -54,7 +56,7 @@ function registerCommand ({ cli, logger }) {
         sellToken,
         buyToken,
         auctionIndex,
-        amount: amount * 1e18,
+        amount: toWei(amount),
         from: address
       })
       logger.info('The sell was succesful. Transaction: %s', buyResult.tx)

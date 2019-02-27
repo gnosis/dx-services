@@ -336,6 +336,7 @@ keeps happening`
     // If the current auction is not cleared (not price + has)
     const {
       sellVolume,
+      hasAuctionStarted,
       isClosed,
       isTheoreticalClosed
     } = auctionState
@@ -344,14 +345,15 @@ keeps happening`
       sellToken,
       buyToken,
       msg: 'State of the auction: %o',
-      params: [{ sellVolume: sellVolume.toNumber(), isClosed, isTheoreticalClosed }]
+      params: [{ sellVolume: sellVolume.toNumber(), hasAuctionStarted, isClosed, isTheoreticalClosed }]
     })
 
     // We do need to ensure the liquidity if:
     //  * The auction has sell volume
+    //  * The auction has started
     //  * Is not closed yet
     //  * Is not in theoretical closed state
-    if (!sellVolume.isZero()) {
+    if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
         const [price, currentMarketPrice] = await Promise.all([
           // Get the current price for the auction
@@ -405,12 +407,21 @@ keeps happening`
         })
       }
     } else {
-      // No sell volume
-      auctionLogger.debug({
-        sellToken,
-        buyToken,
-        msg: "The auction doesn't have any sell volume, so there's nothing to buy"
-      })
+      if (!hasAuctionStarted) {
+        // Auction hasn't started
+        auctionLogger.info({
+          sellToken,
+          buyToken,
+          msg: 'The auction hasn\'t started yet. Will check back later'
+        })
+      } else {
+        // No sell volume
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: "The auction doesn't have any sell volume, so there's nothing to buy"
+        })
+      }
     }
   }
 

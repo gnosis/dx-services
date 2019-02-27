@@ -266,6 +266,26 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   }
 })
 
+test('It should not ensure buy liquidity if auction has not started yet', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = auctionRepoMock
+
+  // GIVEN an auction with enough funds
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWhereBotShouldBuyButAuctionNotStarted()
+  })
+
+  // WHEN we ensure sell liquidity
+  const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+
+  // THEN we shouldn't be adding a buy order
+  expect(ensureLiquidityState).toEqual([])
+})
+
 test('It should return token balance for an account', async () => {
   const { liquidityService } = setup
 
@@ -345,6 +365,34 @@ function _getAuctionsWhereBotShouldBuyEthRdn () {
     {
       'WETH-RDN': localAuctionsData.auctions['WETH-RDN'],
       'RDN-WETH': localAuctionsData.auctions['RDN-WETH']
+    })
+}
+
+function _getAuctionsWhereBotShouldBuyButAuctionNotStarted () {
+  let localAuctionsData = _getAuctionsWhereBotShouldBuyEthRdn()
+
+  const currentAuctionEthRdnInMock = localAuctionsData['WETH-RDN'].length - 1
+  const now = new Date()
+
+  const updatedAuctionEthRdn = {
+    ...localAuctionsData['RDN-WETH'][currentAuctionEthRdnInMock],
+    auctionStart: new Date(now.getTime() + 600000) // Auction starts in 10 minutes
+  }
+
+  const currentAuctionRdnEthInMock = localAuctionsData['RDN-WETH'].length - 1
+  const updatedAuctionRdnEth = {
+    ...localAuctionsData['RDN-WETH'][currentAuctionRdnEthInMock],
+    auctionStart: new Date(now.getTime() + 600000) // Auction starts in 10 minutes)
+  }
+
+  localAuctionsData['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
+
+  localAuctionsData['RDN-WETH'][currentAuctionRdnEthInMock] = updatedAuctionRdnEth
+
+  return Object.assign({}, localAuctionsData,
+    {
+      'WETH-RDN': localAuctionsData['WETH-RDN'],
+      'RDN-WETH': localAuctionsData['RDN-WETH']
     })
 }
 

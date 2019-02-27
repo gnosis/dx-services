@@ -22,15 +22,33 @@ function registerCommand ({ cli, logger }) {
 
     logger.info('Claiming last %d auctions for %s:',
       count, botAccount)
-    const [ sellerClaimResult, buyerClaimResult ] = await dxTradeService.claimAll({
+    const {
+      claimAmounts,
+      claimSellerTransactionResult,
+      claimBuyerTransactionResult
+    } = await dxTradeService.claimAll({
       tokenPairs, address: botAccount, lastNAuctions: count
     })
-    sellerClaimResult.tx
-      ? logger.info('The seller claim was succesful. Transaction: %s', sellerClaimResult.tx)
+    claimSellerTransactionResult.tx
+      ? logger.info('The seller claim was succesful. Transaction: %s', claimSellerTransactionResult.tx)
       : logger.info('No tokens to claim as seller for %s', tokenPairString)
-    buyerClaimResult.tx
-      ? logger.info('The buyer claim was succesful. Transaction: %s', buyerClaimResult.tx)
+    claimBuyerTransactionResult.tx
+      ? logger.info('The buyer claim was succesful. Transaction: %s', claimBuyerTransactionResult.tx)
       : logger.info('No tokens to claim as buyer for %s', tokenPairString)
+
+    claimAmounts.forEach(amount => {
+      if (amount) {
+        const { tokenA, tokenB, totalSellerClaims, totalBuyerClaims } = amount
+        const tokenPairString = tokenA + '-' + tokenB
+
+        const message = 'The bot claimed for ' + tokenPairString + ': ' +
+          totalSellerClaims + ' tokens as seller, ' +
+          totalBuyerClaims + ' tokens as buyer'
+
+        // Log message
+        logger.info(message)
+      }
+    })
   })
 }
 

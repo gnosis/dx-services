@@ -13,7 +13,7 @@ const gracefullShutdown = require('../helpers/gracefullShutdown')
 // Env
 logger.info('Claiming funds')
 
-async function claimFunds() {
+async function claimFunds () {
   const { BOTS, ENVIRONMENT } = config
 
   const botRunner = new BotRunner({
@@ -65,19 +65,29 @@ const _doClaim = async ({ botAddress, markets, name, config }) => {
   // Execute the claim
   logger.info('Claiming for address %s affected bots: %s', botAddress, name)
 
-  const claimResult = await dxTradeService.claimAll({
+  return dxTradeService.claimAll({
     tokenPairs: markets,
     address: botAddress,
     lastNAuctions: config.AUTO_CLAIM_AUCTIONS
+  }).then(result => {
+    const {
+      claimAmounts,
+      claimSellerTransactionResult,
+      claimBuyerTransactionResult
+    } = result
+
+    logger.info('Claimed for address %s. Result: %o', botAddress, claimAmounts)
+    if (claimSellerTransactionResult) {
+      logger.info('Claim as seller transaction: %s', claimSellerTransactionResult.tx)
+    }
+    if (claimBuyerTransactionResult) {
+      logger.info('Claim as buyer transaction: %s', claimBuyerTransactionResult.tx)
+    }
   })
-
-  logger.info('Claimed for address %s. Result: %o', botAddress, claimResult)
-
-  return claimResult
 }
 
 // List markets grouped by account
-function _getAccountMarkets(accountMarkets, bot) {
+function _getAccountMarkets (accountMarkets, bot) {
   const name = bot.name
   const markets = bot._markets
   const botAddress = bot.getAddress()
@@ -93,7 +103,7 @@ function _getAccountMarkets(accountMarkets, bot) {
     accountMarkets[botAddress].name += ', ' + name
   }
 
-  function _isEqualTokenPair(tokenPair, { sellToken, buyToken }) {
+  function _isEqualTokenPair (tokenPair, { sellToken, buyToken }) {
     return tokenPair.sellToken === sellToken && tokenPair.buyToken === buyToken
   }
 
@@ -118,7 +128,7 @@ function _getAccountMarkets(accountMarkets, bot) {
   return accountMarkets
 }
 
-function handleError(error) {
+function handleError (error) {
   process.exitCode = 1
   logger.error({
     msg: 'Error booting the application: ' + error.toString(),
