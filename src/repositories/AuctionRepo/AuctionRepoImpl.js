@@ -1803,11 +1803,9 @@ volume: ${state}`)
       this.getAuctionStart({ sellToken, buyToken }),
       this._getTime()
     ])
-    const hasAuctionStarted = () => {
-      return auctionStart && auctionStart < now
-    }
+    const hasAuctionStarted = auctionStart && auctionStart < now
 
-    if (price && hasAuctionStarted()) {
+    if (price && hasAuctionStarted) {
       /*
       auctionLogger.debug(sellToken, buyToken, 'Auction index: %d, Price: %d/%d %s/%s',
         auctionIndex, price.numerator, price.denominator,
@@ -1837,7 +1835,7 @@ volume: ${state}`)
     let isClosed
     if (sellVolume.isZero()) {
       // closed if sellVolume=0 and the auction has started and hasn't been cleared
-      isClosed = hasAuctionStarted()
+      isClosed = hasAuctionStarted
     } else {
       /*
       debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
@@ -1858,6 +1856,7 @@ volume: ${state}`)
     return {
       buyVolume,
       sellVolume,
+      hasAuctionStarted,
       closingPrice,
       isClosed,
       isTheoreticalClosed

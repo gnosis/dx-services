@@ -424,7 +424,14 @@ class AuctionRepoMock {
 
     const price = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
     let isTheoreticalClosed = null
-    if (price) {
+
+    const [auctionStart, now] = await Promise.all([
+      this.getAuctionStart({ sellToken, buyToken }),
+      this._getTime()
+    ])
+    const hasAuctionStarted = auctionStart && auctionStart < now
+
+    if (price && hasAuctionStarted) {
       // (Pn x SV) / (Pd x BV)
       // example:
       isTheoreticalClosed = price.numerator
@@ -446,11 +453,8 @@ class AuctionRepoMock {
     //      is considered, autoclosed since the start
     let isClosed
     if (sellVolume.isZero()) {
-      const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
-      const now = await this._getTime()
-
       // closed if sellVolume=0 and the auction has started and hasn't been cleared
-      isClosed = auctionStart && auctionStart < now
+      isClosed = hasAuctionStarted
     } else {
       isClosed = closingPrice !== null
     }
@@ -459,6 +463,7 @@ class AuctionRepoMock {
       buyVolume,
       sellVolume,
       sellVolumeNext,
+      hasAuctionStarted,
       closingPrice,
       isClosed,
       isTheoreticalClosed

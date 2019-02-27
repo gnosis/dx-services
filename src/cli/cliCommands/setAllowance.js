@@ -1,4 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../helpers/numberUtil')
 
 const getDxTradeService = require('../../services/DxTradeService')
 
@@ -27,7 +28,7 @@ function registerCommand ({ cli, logger }) {
       const transactionResult = await dxTradeService.setAllowance({
         token,
         accountAddress,
-        amount: amount * 1e18
+        amount: toWei(amount)
       })
 
       logger.info({
