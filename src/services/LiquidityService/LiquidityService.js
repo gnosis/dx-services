@@ -436,7 +436,6 @@ keeps happening`
         // next we check our arbitrage contract's ether balance
         // to see what the maximum amount we can spend is
         const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
-
         let maxEtherToSpend = await this._auctionRepo.getBalance({
           token: etherTokenAddress,
           address: arbitrageAddress
@@ -446,7 +445,7 @@ keeps happening`
           auctionLogger.warn({
             sellToken,
             buyToken,
-            msg: 'Ether Balance is zero, RUN `cli depositEther <amount>` to deposit ether to the arbitrage bot'
+            msg: `Ether Balance is zero on account ${arbitrageAddress} (arbitrage contract) pls depositEther`
           })
           return null
         }
