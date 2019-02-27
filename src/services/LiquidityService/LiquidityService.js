@@ -325,7 +325,7 @@ keeps happening`
       sellToken,
       buyToken,
       msg: 'State of the auction: %o',
-      params: [{ sellVolume: sellVolume.toNumber(), isClosed, isTheoreticalClosed }]
+      params: [{ sellVolume: sellVolume.toNumber(), hasAuctionStarted, isClosed, isTheoreticalClosed }]
     })
 
     // We do need to ensure the liquidity if:
