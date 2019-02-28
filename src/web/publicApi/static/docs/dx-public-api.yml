@@ -1,10 +1,11 @@
 swagger: '2.0'
 info:
   description: |-
-    Welcome to DutchX API docs.
+    Welcome to DutchX API docs (read-only).
 
-    On this interface you will find information about the auctions running on
-    the **DutchX** smart contracts.
+    On this interface you may query various information about tokens, markets,
+    auction states, accounts of the **DutchX** protocol. All endpoints are returned
+    to you by reading the states directly off the Ethereum blockchain.
 
     We provide you with the TRY button, such that the different endpoints can
     be tested from the documentation web itself.
@@ -37,8 +38,44 @@ paths:
       tags:
         - markets
       summary: Returns all available tokens
-      description: Returns an array of all the available tokens in the DutchX
+      description: >-
+        Returns an array of all tokens that are listed (and hence can be traded)
+        on the DutchX. All are at least listed in an auction with WETH;
+        check either “returns all available markets” or “returns if a given
+        token pair has been added to the DutchX” below, to see if there are additional
+        token-pairings available.
       operationId: getTokens
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            required:
+              - data
+              - pagination
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/TokenDetails'
+              pagination:
+                $ref: '#/definitions/PaginationObject'
+  /tokens/whitelisted:
+    get:
+      tags:
+        - markets
+      summary: Returns whitelisted tokens
+      description: >-
+        Returns all tokens that have been whitelisted on the DutchX protocol.
+        A whitelisted token has the potential to create Magnolia tokens
+        (used for reduction of liquidity contribution) if traded in a whitelisted pair.
+        Tokens can be available for trading on the DutchX protocol,
+        albeit not whitelisted (and hence trades do not generate Magnolia);
+        on the flip side, tokens could be whitelisted, however not listed/traded on the DutchX protocol.
+        Check “returns all available tokens” for a list of those that are tradable.
+      operationId: getWhitelistedTokens
       produces:
         - application/json
       responses:
@@ -61,7 +98,10 @@ paths:
       tags:
         - markets
       summary: Returns all available markets
-      description: Returns an array of all the available markets in the DutchX
+      description: >-
+        Returns an array of all the available markets (auctions) in the DutchX.
+        Note that each available token pairing always runs the two opposite auctions
+        simultaneously.
       operationId: getMarkets
       produces:
         - application/json
@@ -85,7 +125,13 @@ paths:
       tags:
         - markets
       summary: Returns market state
-      description: Returns the current state of the requested market
+      description: |-
+        Returns the current state of the requested market: running, This can be any of:
+        - `RUNNING` - Auction is currently ongoing.
+        - `WAITING_FOR_FUNDING` - Sell volume has not reached the threshold to start
+        - `WAITING_FOR_AUCTION_TO_START` - Sell volume threshold was reached and auction should start in next 10 minutes
+        - `ONE_AUCTION_HAS_CLOSED` - Auction is running and one of the auction sides was already closed
+        - `PENDING_CLOSE_THEORETICAL` - Auction reached a price wich fits with the sell and buy volume but needs to be closed
       operationId: getMarketDetails
       produces:
         - application/json
@@ -116,7 +162,11 @@ paths:
       tags:
         - markets
       summary: Returns current market price
-      description: Returns the current market price
+      description: >-
+        Important note: This is not the price oracle. This endpoint this returns
+        the current market price of an auction. IF the auction is currently running,
+        it will return a price that is constantly dropping until the auction ends.
+        If no auction is running, it will return `null`
       operationId: getCurrentPrice
       produces:
         - application/json
@@ -144,7 +194,11 @@ paths:
       tags:
         - markets
       summary: Returns a list of closing prices
-      description: Returns a list of the latest closing prices for a given market
+      description: >-
+        Returns a list of the latest closing prices for a given market.
+        You may select how many past auctions you would like to view. You can find
+        the auction index as well as the price increments (in %-change to the last closing price).
+        The price A-B is read 1A gave [value]B.
       operationId: getLastClosingPrices
       produces:
         - application/json
@@ -194,7 +248,11 @@ paths:
       tags:
         - markets
       summary: Returns closing price for selected auction
-      description: Returns a price object
+      description: >-
+        Returns a specific closing price for a certain `auctionIndex`.
+        The price A-B is read 1A gave [value]B.
+        To see which index the auction is currently at,
+        check “Returns the current auction index” below.
       operationId: getClosingPrice
       produces:
         - application/json
@@ -228,7 +286,10 @@ paths:
       tags:
         - markets
       summary: Returns the current auction index
-      description: Returns an auction index
+      description: >-
+        Returns the current auction index. Upon listing and trading, the token pair
+        started at auction index 1. All subsequent auctions are numbered. There is
+        always only at most one auction running at the same time per token pair.
       operationId: getAuctionIndex
       produces:
         - application/json
@@ -314,7 +375,10 @@ paths:
       tags:
         - markets
       summary: Returns extra tokens for next auction
-      description: Returns the number of extra tokens for next auction
+      description: >-
+        Returns the number of extra tokens for next auction.
+        Note, that you have to include the auction index.
+        For this, check “Returns the current auction index” and add another index.
       operationId: getExtraTokens
       produces:
         - application/json
@@ -348,7 +412,10 @@ paths:
       tags:
         - markets
       summary: Returns sell volume for current auction
-      description: Returns sell volume for current auction
+      description: >-
+        Returns sell volume for current auction. Note that this is only returned
+        if the auction is currently running.
+        See “returns sell volume for next auction” otherwise.
       operationId: getSellVolumeForCurrentAuction
       produces:
         - application/json
