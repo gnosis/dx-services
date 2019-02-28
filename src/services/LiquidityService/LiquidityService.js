@@ -445,7 +445,7 @@ keeps happening`
           auctionLogger.warn({
             sellToken,
             buyToken,
-            msg: `Ether Balance is zero on account ${arbitrageAddress} (arbitrage contract) pls depositEther`
+            msg: `Ether Balance (${etherTokenAddress}) is zero on account ${arbitrageAddress} (arbitrage contract) pls depositEther`
           })
           return null
         }
