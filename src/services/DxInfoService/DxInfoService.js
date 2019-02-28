@@ -400,7 +400,8 @@ class DxInfoService {
   // TODO implement pagination
   async getTokenList ({ count, approved = true } = {}) {
     const tokenPairs = await this._auctionRepo.getTokenPairs()
-    const tokenAddresses = tokenPairs.reduce((addresses, {
+    // Filter repeated token addresses
+    let tokenAddresses = tokenPairs.reduce((addresses, {
       sellToken,
       buyToken
     }) => {
@@ -415,7 +416,21 @@ class DxInfoService {
       return addresses
     }, [])
 
-    const tokenPromises = tokenAddresses.map(async address => {
+    let filteredTokenAddresses = tokenAddresses
+    // If approved is set we filter tokens by state
+    if (approved === true || approved === false) {
+      // Get tokens state
+      const approvedState = await Promise.all(tokenAddresses.map(async address => {
+        return this._auctionRepo.isApprovedToken({ token: address })
+      }))
+      // Filter tokens by state
+      filteredTokenAddresses = tokenAddresses.filter((address, index) => {
+        // Return approved or unapproved tokens
+        return approved ? approvedState[index] : !approvedState[index]
+      })
+    }
+
+    const tokenPromises = filteredTokenAddresses.map(async address => {
       return this._getTokenInfoByAddress(address)
     })
 
