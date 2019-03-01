@@ -423,16 +423,6 @@ keeps happening`
           }]
         })
 
-        // return now if there is no arbitrage opportunity when prices are only theoretical (better than actual prices)
-        if (dutchPrice.gt(uniswapPrice)) {
-          auctionLogger.warn({
-            sellToken,
-            buyToken,
-            msg: 'No arbitrage opportunity'
-          })
-          return null
-        }
-
         // next we check our arbitrage contract's ether balance
         // to see what the maximum amount we can spend is
         const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
@@ -446,6 +436,16 @@ keeps happening`
             sellToken,
             buyToken,
             msg: `Ether Balance (${etherTokenAddress}) is zero on account ${arbitrageAddress} (arbitrage contract) using _dx contract ${this._auctionRepo._dx.address} pls depositEther`
+          })
+          return null
+        }
+
+        // return now if there is no arbitrage opportunity when prices are only theoretical (better than actual prices)
+        if (dutchPrice.gt(uniswapPrice)) {
+          auctionLogger.warn({
+            sellToken,
+            buyToken,
+            msg: 'No arbitrage opportunity'
           })
           return null
         }
