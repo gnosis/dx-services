@@ -802,6 +802,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     })
 
     const isValidTokenPair = await this.isValidTokenPair({ tokenA: sellToken, tokenB: buyToken })
+    // TODO review
     assert(isValidTokenPair, 'The token pair has not been approved')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })

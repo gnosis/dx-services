@@ -13,8 +13,9 @@ const BOT_CLI_SCRIPT = 'npm run cli --'
 // const environment = process.env.NODE_ENV
 // const isLocal = environment === 'local'
 
-testSetup()
-  .then(run)
+const setupInstance = testSetup()
+setupInstance.init()
+  .then(run) 
   .then(() => gracefullShutdown.shutDown())
   .catch(error => {
     console.error(error)

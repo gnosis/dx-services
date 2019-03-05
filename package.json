@@ -1,6 +1,6 @@
 {
   "name": "@gnosis.pm/dx-services",
-  "version": "2.0.3",
+  "version": "2.1.0-SNAPSHOT",
   "description": "",
   "main": "src/runPublicApi.js",
   "directories": {
@@ -64,6 +64,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "gnosis-safe-modules": "git+https://github.com/gnosis/safe-modules.git#feature/dx-module",
     "@gnosis.pm/dx-contracts": "2.0.0",
     "@gnosis.pm/owl-token": "2.0.0",
     "@gnosis.pm/util-contracts": "2.0.0",

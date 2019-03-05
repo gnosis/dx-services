@@ -10,10 +10,26 @@ const clone = require('lodash.clonedeep')
 
 const BigNumber = require('bignumber.js')
 
-const setupPromise = testSetup()
+let setup
+
+// Execute Test Suite setup
+beforeAll(async (done) => {
+  const _setupInstance = testSetup()
+  // Custom configuration
+  // Call to _setupInstance.setConfig is not needed when SAFE_MODULE_ADDRESSES is already not configured
+  _setupInstance.setConfig({
+    'SAFE_MODULE_ADDRESSES': null
+  })
+
+  // Initialise contracts, helpers, services etc..
+  setup = await _setupInstance.init()
+
+  // Wait until everything is ready to go
+  done()
+})
 
 test('It should ensureSellLiquidity', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
@@ -66,7 +82,7 @@ test('It should ensureSellLiquidity', async () => {
 })
 
 test('It should ensureBuyLiquidity', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
@@ -100,7 +116,7 @@ test('It should ensureBuyLiquidity', async () => {
 })
 
 test('It should not ensureBuyLiquidity if enough buy volume', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
@@ -129,7 +145,7 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
 })
 
 test('It should not ensureBuyLiquidity if auction has closed', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
@@ -154,7 +170,7 @@ test('It should not ensureBuyLiquidity if auction has closed', async () => {
 })
 
 test('It should ensureBuyLiquidity if auction has only one side closed', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
@@ -182,7 +198,7 @@ test('It should ensureBuyLiquidity if auction has only one side closed', async (
 })
 
 test('It should detect concurrency when ensuring liquidiy', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // GIVEN a not RUNNING auction, without enough sell liquidiy
   // we mock the auction repo
@@ -214,7 +230,7 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
 })
 
 test('It should not ensure sell liquidity if auction is not waiting for funding', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
   // we mock the auction repo
   liquidityService._auctionRepo = auctionRepoMock
 
@@ -229,7 +245,7 @@ test('It should not ensure sell liquidity if auction is not waiting for funding'
 })
 
 test('It should not ensure sell liquidity if auction has enough funds', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
   expect.assertions(1)
   // we mock the auction repo
   liquidityService._auctionRepo = auctionRepoMock
@@ -271,7 +287,7 @@ test('It should not ensure buy liquidity if auction has not started yet', async 
 })
 
 test('It should return token balance for an account', async () => {
-  const { liquidityService } = await setupPromise
+  const { liquidityService } = setup
 
   // we mock the auction repo
   liquidityService._auctionRepo = auctionRepoMock
