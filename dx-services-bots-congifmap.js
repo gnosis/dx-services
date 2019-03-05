@@ -25,6 +25,10 @@ data:
     // To enable the SafeModule, please add the properties: Safe, SafeDXCompleteModule, SafeDXSellerModule
     // and export their addresses
     const CONTRACT_DEFINITIONS = {
+      ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
+      UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory',
+      UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange',
+  
       GnosisStandardToken: CONTRACTS_BASE_DIR + '/GnosisStandardToken',
       DutchExchange: CONTRACTS_BASE_DIR + '/DutchExchange',
       PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
@@ -83,5 +87,7 @@ data:
         ARB_BOT,
         WATCH_EVENTS_BOT
       ],
-      MARKETS: BOT_MARKETS
+      MARKETS: BOT_MARKETS,
+      CONTRACTS_BASE_DIR,
+      CONTRACT_DEFINITIONS
     }
