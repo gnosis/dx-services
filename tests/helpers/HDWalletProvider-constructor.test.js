@@ -22,14 +22,8 @@ const WALLET_DEFAULTS = {
   blockForNonceCalculation: 'pending'
 }
 
-let wallet
-beforeAll(() => {
-  wallet = new HDWalletProvider({
-    ...WALLET_DEFAULTS,
-    numAddresses: 1,
-    mnemonic
-  })
-})
+// beforeAll(() => {
+// })
 
 describe('Constructor validations', () => {
   test('It throws an error if no mnemonic or private key was provided', () => {
@@ -42,43 +36,72 @@ describe('Constructor validations', () => {
 describe('Mnemonic account setup', () => {
   // Applies only to tests in this describe block
   test('It generate 1 account', () => {
+    // GIVEN: A mnemonic and numAddresses=1
+    const config = {
+      ...WALLET_DEFAULTS,
+      numAddresses: 1,
+      mnemonic
+    }
+
+    // WHEN: Creating the wallet
+    const wallet = new HDWalletProvider(config)
+
+    // THEN: It returns the right address
     expect(wallet.getAddresses()).toEqual([address1])
   })
 
   test('It generate 3 accounts', () => {
-    const walletAux = new HDWalletProvider({
+    // GIVEN: A mnemonic and numAddresses=3
+    const config = {
       ...WALLET_DEFAULTS,
       numAddresses: 3,
       mnemonic
-    })
-    expect(walletAux.getAddresses()).toEqual(addresses)
-    expect(walletAux.getAddress(0)).toEqual(address1)
-    expect(walletAux.getAddress(1)).toEqual(address2)
-    expect(walletAux.getAddress(2)).toEqual(address3)
+    }
+
+    // WHEN: Creating the wallet
+    const wallet = new HDWalletProvider(config)
+
+    // THEN: The addresses are the expected ones
+    expect(wallet.getAddresses()).toEqual(addresses)
+    expect(wallet.getAddress(0)).toEqual(address1)
+    expect(wallet.getAddress(1)).toEqual(address2)
+    expect(wallet.getAddress(2)).toEqual(address3)
   })
 })
 
 describe('Private key account setup', () => {
   // Applies only to tests in this describe block
   test('It generate 1 account', () => {
+    // GIVEN: A private key
     const pk3 = privateKeys[2]
-    const walletAux = new HDWalletProvider({
+    const config = {
       ...WALLET_DEFAULTS,
       numAddresses: 1,
       privateKeys: [pk3]
-    })
-    expect(walletAux.getAddresses()).toEqual([address3])
+    }
+
+    // WHEN: Creating the wallet
+    const wallet = new HDWalletProvider(config)
+
+    // THEN: Returns the expected address
+    expect(wallet.getAddresses()).toEqual([address3])
   })
 
   test('It generate 3 accounts', () => {
-    const walletAux = new HDWalletProvider({
+    // GIVEN: A tree private keys
+    const config = {
       ...WALLET_DEFAULTS,
       numAddresses: 3,
       privateKeys
-    })
-    expect(walletAux.getAddresses()).toEqual(addresses)
-    expect(walletAux.getAddress(0)).toEqual(address1)
-    expect(walletAux.getAddress(1)).toEqual(address2)
-    expect(walletAux.getAddress(2)).toEqual(address3)
+    }
+
+    // WHEN: Creating the wallet
+    const wallet = new HDWalletProvider(config)
+
+    // THEN: Returns the expected addresses
+    expect(wallet.getAddresses()).toEqual(addresses)
+    expect(wallet.getAddress(0)).toEqual(address1)
+    expect(wallet.getAddress(1)).toEqual(address2)
+    expect(wallet.getAddress(2)).toEqual(address3)
   })
 })
