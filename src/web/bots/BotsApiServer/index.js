@@ -2,12 +2,12 @@ const BotsApiServer = require('./BotsApiServer')
 const conf = require('../../../../conf')
 const getBotsService = require('../../../services/BotsService')
 const getReportService = require('../../../services/ReportService')
-const getEthereumClient = require('../../../getEthereumClient')
+const getEthereumClient = require('../../../helpers/ethereumClient')
 
 let botApiServer
 module.exports = async () => {
   if (!botApiServer) {
-    const [ botsService, reportService, ethereumClient ] = await Promise.all([
+    const [botsService, reportService, ethereumClient] = await Promise.all([
       getBotsService(),
       getReportService(),
       getEthereumClient()

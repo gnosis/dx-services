@@ -21,7 +21,7 @@ async function _createAuctionRepo () {
   const contracts = await loadContracts()
 
   // Get ethereum client
-  const getEthereumClient = require('../../getEthereumClient')
+  const getEthereumClient = require('../../helpers/ethereumClient')
   const ethereumClient = await getEthereumClient()
 
   const {

@@ -1,5 +1,5 @@
 const ContractLoader = require('./helpers/ContractLoader')
-const getEthereumClient = require('./getEthereumClient')
+const getEthereumClient = require('./helpers/ethereumClient')
 
 const conf = require('../conf')
 

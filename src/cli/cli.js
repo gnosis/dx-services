@@ -11,7 +11,7 @@ const yargs = require('yargs')
 run()
   .then(() => gracefullShutdown.shutDown())
   .catch(error => {
-    console.error(error)
+    console.error('Error in CLI', error)
     gracefullShutdown.shutDown()
   })
 
