@@ -220,6 +220,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       // Get Safe Module contract data
       const [txObject, ...extraArguments] = arguments
       const [txDetails, ...extraParams] = txObject.params
+
       const {
         from,
         to,
@@ -228,7 +229,9 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       } = txDetails
 
       const safe = this._safesByAddress[from]
-      assert(safe, 'Unknown safe with address ' + from)
+      if (!safe) {
+        throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
+      }
 
       const {
         moduleContract,

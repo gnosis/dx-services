@@ -5,7 +5,7 @@ const {
   SUCCESS_RESULT,
   ERROR_EXCEPTION,
   SUCCESS_ASYNC_FN,
-  ERROR_ASYNC_FN_PARAMS,
+  ERROR_ASYNC_FN,
   RPC_GET_VERSION_PARAMS
 } = require('../testUtil')
 
@@ -24,8 +24,8 @@ beforeEach(() => {
   jest.resetAllMocks()
 })
 
-describe('Send transaction, delegates the to the wallet', () => {
-  test.only('It delegates for successful requests', done => {
+describe('Get version, delegates the to the wallet', () => {
+  test.only('Successful request', done => {
     // GIVEN: An engine that succeed on sendAsync
     wallet.engine.sendAsync.mockImplementation(SUCCESS_ASYNC_FN)
 
@@ -44,9 +44,9 @@ describe('Send transaction, delegates the to the wallet', () => {
     })
   })
 
-  test.only('It delegates for erroneus requests', done => {
+  test.only('Erroneus requests', done => {
     // GIVEN: An engine that succeed on sendAsync
-    wallet.engine.sendAsync.mockImplementation(ERROR_ASYNC_FN_PARAMS)
+    wallet.engine.sendAsync.mockImplementation(ERROR_ASYNC_FN)
 
     // WHEN: Sending a "get version" call
     wallet.sendAsync(RPC_GET_VERSION_PARAMS, (error, result) => {
