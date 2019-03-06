@@ -69,7 +69,7 @@
     "@gnosis.pm/dx-contracts": "2.0.0",
     "@gnosis.pm/owl-token": "2.0.0",
     "@gnosis.pm/util-contracts": "2.0.0",
-    "@okwme/arbitrage": "github:okwme/arbitrage#51947f34a264f069d71d2f3f512427f8ef67cf07",
+    "@okwme/arbitrage": "github:okwme/arbitrage#da92322bbc029fc9617d8dc23cc8161d6557a12b",
     "@slack/client": "^4.8.0",
     "commander": "^2.19.0",
     "cors": "^2.8.5",
