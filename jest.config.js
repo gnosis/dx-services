@@ -11,5 +11,9 @@ module.exports = {
     '!src/main.js',
     '!src/cli/**',
     '!src/web/**'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    'tests/safe-module'
   ]
 }
