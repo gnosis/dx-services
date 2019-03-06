@@ -6,6 +6,5 @@ build
 coverage
 .DS_Store
 .history
-.env-kovan
-.env-rinkeby
-.env-mainnet
+env/*
+!env/*.example

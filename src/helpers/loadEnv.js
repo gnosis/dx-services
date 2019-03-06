@@ -11,8 +11,16 @@ function initEnv () {
   const { error, parsed } = require('dotenv').config(ENV_PATH && { path: ENV_PATH })
 
   if (ENV_PATH && error) {
-    console.error(`\n\nError configuring ENV vars with file "${ENV_PATH}"`)
-    console.error(`Make sure you've created the file "${ENV_PATH}" using "${ENV_PATH}.example" as a template\n\n`)
+    console.error(`
+---------------------- Missing config file ----------------------
+  Error configuring ENV vars with file "${ENV_PATH}"
+
+  Make sure you've created the file "${ENV_PATH}" using "${ENV_PATH}.example" as a template
+  i.e)
+        cp ${ENV_PATH}.example ${ENV_PATH}
+        vim ${ENV_PATH}
+-----------------------------------------------------------------
+`)
     throw error
   }
 
@@ -30,5 +38,5 @@ function initEnv () {
       }
     }
   }
-  console.log()
+  console.log('')
 }
