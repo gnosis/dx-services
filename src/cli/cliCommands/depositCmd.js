@@ -1,4 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getDxTradeService = require('../../services/DxTradeService')
@@ -32,7 +33,7 @@ function registerCommand ({ cli, logger }) {
       )
       const depositResult = await dxTradeService.deposit({
         token,
-        amount: amount * 1e18,
+        amount: toWei(amount),
         accountAddress
       })
       logger.info('The delivery was successful. Transaction: %s', depositResult.tx)

@@ -1,7 +1,9 @@
 const conf = require('../../../conf')
 const assert = require('assert')
 
-function _getProvider () {
+let instance, instancePromise
+
+function _getInstance () {
   let MNEMONIC
   const {
     MNEMONIC: CONF_MNEMONIC,
@@ -48,15 +50,17 @@ function _getProvider () {
   }
 
   // Instanciate the provider
-  const web3Provider = new Web3Provider(providerConfig)
-  return web3Provider
+  return new Web3Provider(providerConfig)
 }
 
-let provider
 module.exports = async () => {
-  if (!provider) {
-    provider = _getProvider()
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return provider
+  return instance
 }

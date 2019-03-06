@@ -1,14 +1,23 @@
 const MarketService = require('./MarketService')
 const getPriceRepo = require('../../repositories/PriceRepo')
 
-let marketService
+let instance, instancePromise
+
+async function _getInstance () {
+  const priceRepo = await getPriceRepo()
+  return new MarketService({
+    priceRepo
+  })
+}
+
 module.exports = async () => {
-  if (!marketService) {
-    const priceRepo = await getPriceRepo()
-    marketService = new MarketService({
-      priceRepo
-    })
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return marketService
+  return instance
 }

@@ -9,7 +9,7 @@ function registerCommand ({ cli, logger }) {
     cliUtils.addPositionalByName('token-pair', yargs)
   }, async function (argv) {
     const { tokenPair: tokenPairString } = argv
-    const [ sellToken, buyToken ] = tokenPairString.split('-')
+    const [sellToken, buyToken] = tokenPairString.split('-')
     const [
       ethereumClient, // TODO: use services instead
       dxInfoService

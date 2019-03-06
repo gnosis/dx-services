@@ -1,15 +1,15 @@
 module.exports = {
   ENVIRONMENT: 'local',
-  DEBUG: 'ERROR-*,WARN-*,INFO-*',
+  DEBUG: process.env.DEBUG || 'ERROR-*,WARN-*,INFO-*',
   MARKETS: [],
 
   // Gas
   DEFAULT_GAS: 6700000,
 
   // Ethereum config
-  ETHEREUM_RPC_URL: 'http://127.0.0.1:8545',
-  MNEMONIC: null,
-  PK: null,
+  ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL || 'http://127.0.0.1:8545',
+  MNEMONIC: process.env.DEBUG || null,
+  PK: process.env.PK || null,
 
   // Cache
   CACHE: _getCacheConf()

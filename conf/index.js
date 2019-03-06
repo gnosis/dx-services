@@ -1,3 +1,5 @@
+require('../src/helpers/loadEnv')
+
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')
 

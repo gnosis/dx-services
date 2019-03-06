@@ -39,9 +39,6 @@ class DxTradeService {
   }
 
   async claimAll ({ tokenPairs, address, lastNAuctions }) {
-    // TODO: Return the information about the claimed tokens so we can notify
-    // Increase the log info also
-
     // We get the claimable tokens for all pairs
     const claimableTokensPromises = tokenPairs.map(
       async ({ sellToken: tokenA, buyToken: tokenB }) => {
@@ -62,7 +59,6 @@ class DxTradeService {
     const { auctionsAsSeller, auctionsAsBuyer } = claimableTokens.reduce(
       (acc, { tokenA, tokenB, sellerClaims, buyerClaims }) => {
         const { auctionsAsSeller, auctionsAsBuyer } = acc
-
         function _getIndicesList (claims) {
           return claims.reduce((indices, { auctionIndex }) => {
             indices.push(auctionIndex)
@@ -99,7 +95,7 @@ class DxTradeService {
       }
     )
 
-    let claimSellerResult = []
+    let claimSellerResult
     if (auctionsAsSeller.length > 0) {
       logger.info(
         'I have to claim from %d auctions as seller',
@@ -121,7 +117,7 @@ class DxTradeService {
       )
     }
 
-    let claimBuyerResult = []
+    let claimBuyerResult
     if (auctionsAsBuyer.length > 0) {
       logger.info(
         'I have to claim from %d auctions as buyer',
@@ -142,20 +138,33 @@ class DxTradeService {
         }
       )
     }
-    // const claimPromises = []
-    // auctionsAsSeller.length > 0
-    //   ? claimPromises.push(this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller({
-    //     auctionsAsSeller, address }))
-    //   : claimPromises.push([])
-    //
-    // auctionsAsBuyer.length > 0
-    //   ? claimPromises.push(this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer({
-    //     auctionsAsBuyer, address }))
-    //   : claimPromises.push([])
 
-    // TODO add here a logger.info notifiying quantities
-    // return Promise.all(claimPromises)
-    return [claimSellerResult, claimBuyerResult]
+    const claimAmounts = claimableTokens.map(({ tokenA, tokenB, sellerClaims, buyerClaims }) => {
+      const sumAmounts = claims => {
+        return claims.reduce((acc, { amount }) => {
+          return acc.add(amount)
+        }, numberUtil.toBigNumber(0))
+      }
+      if (sellerClaims.length || buyerClaims.length) {
+        const totalSellerClaims = numberUtil.fromWei(sumAmounts(sellerClaims))
+        const totalBuyerClaims = numberUtil.fromWei(sumAmounts(buyerClaims))
+        logger.info('Claimed %s tokens as seller for %s-%s', totalSellerClaims, tokenA, tokenB)
+        logger.info('Claimed %s tokens as buyer for %s-%s', totalBuyerClaims, tokenA, tokenB)
+
+        return {
+          tokenA,
+          tokenB,
+          totalSellerClaims,
+          totalBuyerClaims
+        }
+      }
+    })
+
+    return {
+      claimAmounts,
+      claimSellerTransactionResult: claimSellerResult,
+      claimBuyerTransactionResult: claimBuyerResult
+    }
   }
 
   async claimSellerFunds ({ tokenA, tokenB, address, auctionIndex }) {

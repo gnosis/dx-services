@@ -1,15 +1,8 @@
 const conf = require('../../../conf')
 
-let auctionRepo
+let instance, instancePromise
 
-module.exports = async () => {
-  if (!auctionRepo) {
-    auctionRepo = await _createAuctionRepo()
-  }
-  return auctionRepo
-}
-
-async function _createAuctionRepo () {
+async function _getInstance () {
   // Get factory
   const {
     Factory: AuctionRepo,
@@ -54,4 +47,16 @@ async function _createAuctionRepo () {
     // Override config
     ...auctionRepoConf
   })
+}
+
+module.exports = async () => {
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
+  }
+
+  return instance
 }

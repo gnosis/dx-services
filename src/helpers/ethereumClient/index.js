@@ -1,38 +1,41 @@
 const conf = require('../../../conf')
 const getWeb3 = require('../web3')
 const EthereumClient = require('./EthereumClient')
-let ethereumClient
 
-async function getEthereumClient () {
-  if (!ethereumClient) {
-    const {
-      NETWORK,
-      CACHE,
-      URL_GAS_PRICE_FEED_GAS_STATION,
-      URL_GAS_PRICE_FEED_SAFE
-    } = conf
+let instance, instancePromise
 
-    // Get instance of web3 by
-    const web3 = await getWeb3()
+async function _getInstance () {
+  const {
+    NETWORK,
+    CACHE,
+    URL_GAS_PRICE_FEED_GAS_STATION,
+    URL_GAS_PRICE_FEED_SAFE
+  } = conf
 
-    ethereumClient = new EthereumClient({
-      web3,
-      network: NETWORK,
-      cacheConf: CACHE,
-      urlPriceFeedGasStation: URL_GAS_PRICE_FEED_GAS_STATION,
-      urlPriceFeedSafe: URL_GAS_PRICE_FEED_SAFE
-    })
+  // Get instance of web3 by
+  const web3 = await getWeb3()
 
-    await ethereumClient.start()
-  }
+  instance = new EthereumClient({
+    web3,
+    network: NETWORK,
+    cacheConf: CACHE,
+    urlPriceFeedGasStation: URL_GAS_PRICE_FEED_GAS_STATION,
+    urlPriceFeedSafe: URL_GAS_PRICE_FEED_SAFE
+  })
 
-  return ethereumClient
+  await instance.start()
+
+  return instance
 }
 
 module.exports = async () => {
-  if (!ethereumClient) {
-    ethereumClient = await getEthereumClient()
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return ethereumClient
+  return instance
 }
