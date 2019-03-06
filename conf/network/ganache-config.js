@@ -7,9 +7,9 @@ const CONTRACTS_SAFE_MODULE_DIR = 'node_modules/gnosis-safe-modules/build/contra
 // and export their addresses
 const CONTRACT_DEFINITIONS = {
 
-  ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage', //BILLY: CHECK THIS
-  UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory', //BILLY: CHECK THIS
-  UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange', //BILLY: CHECK THIS
+  ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
+  UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory',
+  UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange',
   UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
 
 

@@ -82,11 +82,8 @@ class ContractLoader {
   }
 
   async _loadEmptyUniswapExchange () {
-    // const uniswapExchange =
     return this._ethereumClient
       .loadContract(this._contractDefinitions.UniswapExchange)
-    // const uniswapExchangeInstance = uniswapExchange.at(this._uniswapExchangeAddress)
-    // return uniswapExchangeInstance
   }
 
   async _loadDx () {

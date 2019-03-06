@@ -10,8 +10,8 @@ const CONTRACTS_ARBITRAGE_DIR = 'node_modules/@okwme/arbitrage/build/contracts'
 module.exports = {
   // Contracts
   DX_CONTRACT_ADDRESS: null,
-  UNISWAP_FACTORY_ADDRESS: '0x4e71920b7330515faf5EA0c690f1aD06a85fB60c',
-  ARBITRAGE_CONTRACT_ADDRESS: '0xdE5491f774F0Cb009ABcEA7326342E105dbb1B2E',
+  UNISWAP_FACTORY_ADDRESS: null, // rinkeby: '0x4e71920b7330515faf5EA0c690f1aD06a85fB60c',
+  ARBITRAGE_CONTRACT_ADDRESS: null, // rinkeby: '0xdE5491f774F0Cb009ABcEA7326342E105dbb1B2E',
 
   // TODO: Do we need this?
   GNO_TOKEN_ADDRESS: null,
@@ -25,9 +25,9 @@ module.exports = {
 
   // Contracts paths
   CONTRACT_DEFINITIONS: {
-    ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage', // BILLY: CHECK THIS
-    UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory', // BILLY: CHECK THIS
-    UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange', // BILLY: CHECK THIS
+    ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
+    UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory',
+    UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange',
 
     StandardToken: CONTRACTS_UTILS_DIR + '/StandardToken',
     GnosisStandardToken: CONTRACTS_UTILS_DIR + '/GnosisStandardToken',

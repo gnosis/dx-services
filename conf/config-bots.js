@@ -142,10 +142,11 @@ const DEPOSIT_BOT = {
 const AUTO_CLAIM_AUCTIONS = 90
 
 module.exports = {
-  BOTS: process.env.ARB_ONLY ? [ARB_BOT, WATCH_EVENTS_BOTS] : [
+  BOTS: [
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
+    ARB_BOT,
     // DEPOSIT_BOT,
     HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS

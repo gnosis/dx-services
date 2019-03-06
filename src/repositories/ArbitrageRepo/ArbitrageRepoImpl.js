@@ -1,25 +1,8 @@
 const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
-// const AuctionLogger = require('../../helpers/AuctionLogger')
-// const ethereumEventHelper = require('../../helpers/ethereumEventHelper')
-// const dxFilters = require('../../helpers/dxFilters')
-// const auctionLogger = new AuctionLogger(loggerNamespace)
 const Cacheable = require('../../helpers/Cacheable')
-// const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
-
-// const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
-
 const assert = require('assert')
-
-// const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
-// const MAXIMUM_FUNDING = 10 ** 30
-
-// const BigNumber = require('bignumber.js')
-// const numberUtil = require('../../helpers/numberUtil.js')
-
-// const environment = process.env.NODE_ENV
-// const isLocal = environment === 'local'
 
 class ArbitrageRepoImpl extends Cacheable {
   constructor ({
@@ -149,11 +132,6 @@ class ArbitrageRepoImpl extends Cacheable {
         output_balance: token_balance
       }
     }
-
-    // return {
-    //   ether_balance,
-    //   token_balance
-    // }
   }
 
   async dutchOpportunity ({ arbToken, amount, from }) {
@@ -178,29 +156,12 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async depositEther ({ amount, from }) {
-    // let tx = await this._tokens.WETH.approve(this._dx.address, amount, {from})
-
     return this._doTransaction({
       operation: 'depositEther',
       from,
       value: amount
     })
   }
-
-  // async getAbout () {
-  //   const auctioneerAddress = await this._arbitrage.auctioneer.call()
-  //   const tokenNames = Object.keys(this._tokens)
-
-  //   return {
-  //     auctioneer: auctioneerAddress,
-  //     dxAddress: this._dx.address,
-  //     priceOracleAddress: this._priceOracle.address,
-  //     tokens: tokenNames.map(name => ({
-  //       name,
-  //       address: this._tokens[name].address
-  //     }))
-  //   }
-  // }
 
   async _doCall ({
     operation,
@@ -352,14 +313,5 @@ class ArbitrageRepoImpl extends Cacheable {
       })
   }
 }
-
-// function toFraction ([ numerator, denominator ]) {
-//   // the contract return 0/0 when something is undetermined
-//   if (numerator.isZero() && denominator.isZero()) {
-//     return null
-//   } else {
-//     return { numerator, denominator }
-//   }
-// }
 
 module.exports = ArbitrageRepoImpl

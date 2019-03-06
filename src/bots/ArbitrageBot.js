@@ -147,27 +147,24 @@ class ArbitrageBot extends Bot {
     return liquidityWasEnsured
   }
 
-  _notifyBuyedTokens (buyOrder) {
-    const {
-      sellToken,
-      buyToken,
-      amount,
-      amountInUSD,
-      auctionIndex
-    } = buyOrder
-    // Log sold tokens
-    const amountInTokens = amount.div(1e18)
-    const boughtTokensString = amountInTokens + ' ' + buyToken
+  _notifyBuyedTokens (tx) {
+
+    // const {
+    //   sellToken,
+    //   buyToken,
+    //   amount,
+    //   amountInUSD,
+    //   auctionIndex
+    // } = buyOrder
+    // // Log sold tokens
+    // const amountInTokens = amount.div(1e18)
+    // const boughtTokensString = amountInTokens + ' ' + buyToken
 
     auctionLogger.info({
       sellToken,
       buyToken,
-      msg: "I've bought %s (%d USD) in auction %d for an arbitrage opportunity",
-      params: [
-        boughtTokensString,
-        amountInUSD,
-        auctionIndex
-      ],
+      msg: "Successful tx during arbitrage opportunity",
+      params: tx.receipt.logs,
       notify: true
     })
 
@@ -177,14 +174,14 @@ class ArbitrageBot extends Bot {
         case 'slack':
           // Notify to slack
           if (this._slackRepo.isEnabled()) {
-            this._notifyBuyedTokensSlack({
-              channel,
-              boughtTokensString,
-              sellToken,
-              buyToken,
-              auctionIndex,
-              amountInUSD
-            })
+            // this._notifyBuyedTokensSlack({
+              // channel,
+              // boughtTokensString,
+              // sellToken,
+              // buyToken,
+              // auctionIndex,
+              // amountInUSD
+            // })
           }
           break
         case 'email':

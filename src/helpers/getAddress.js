@@ -16,7 +16,7 @@ async function getAddress (accountIndex) {
         // In LOCAL, for testing we use:
         //  * the account 0 for the owner
         //  * the account 1 for the bot
-        return accounts[0]
+        return accounts[1]
       } else if (accountIndex !== undefined && accounts.length > accountIndex) {
         return accounts[accountIndex]
       }
