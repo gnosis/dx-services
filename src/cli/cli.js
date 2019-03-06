@@ -1,20 +1,5 @@
 #!/usr/bin/env node
-const {
-  MNEMONIC: DEFAULT_MNEMONIC,
-  PK: DEFAULT_PK
-} = require('../../conf/env/local-config')
-
-const mnemonic = process.env.MNEMONIC || DEFAULT_MNEMONIC
-const pk = process.env.PK || DEFAULT_PK
-
-process.env.MNEMONIC = mnemonic
-if (pk) {
-  process.env.PK = pk
-}
-
-const DEBUG = process.env.DEBUG || 'ERROR-*,WARN-*,INFO-*'
-process.env.DEBUG = DEBUG
-
+require('../../conf')
 const loggerNamespace = 'cli'
 const Logger = require('../helpers/Logger')
 const logger = new Logger(loggerNamespace)

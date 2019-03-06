@@ -3,13 +3,22 @@
 const Web3 = require('web3')
 const getWeb3Provider = require('../web3Providers')
 
-let web3
+let instance, instancePromise
+
+async function _getInstance () {
+  const provider = await getWeb3Provider()
+
+  return new Web3(provider)
+}
 
 module.exports = async () => {
-  if (!web3) {
-    const provider = await getWeb3Provider()
-    web3 = new Web3(provider)
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return web3
+  return instance
 }
