@@ -1,15 +1,24 @@
 const conf = require('../../../conf')
 
-let priceRepo
+let instance, instancePromise
+
+async function _getInstance () {
+  const {
+    Factory: PriceRepo,
+    factoryConf: priceRepoConf
+  } = conf.getFactory('PRICE_REPO')
+
+  return new PriceRepo(priceRepoConf)
+}
 
 module.exports = async () => {
-  if (!priceRepo) {
-    const {
-      Factory: PriceRepo,
-      factoryConf: priceRepoConf
-    } = conf.getFactory('PRICE_REPO')
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
 
-    priceRepo = new PriceRepo(priceRepoConf)
+    instance = await instancePromise
   }
-  return priceRepo
+
+  return instance
 }
