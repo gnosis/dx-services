@@ -1,9 +1,10 @@
 const DepositBot = require('../../src/bots/DepositBot')
 const testSetup = require('../helpers/testSetup')
+jest.setTimeout(10000)
 
 const BigNumber = require('bignumber.js')
 
-const TOKENS = [ 'WETH', 'RDN' ]
+const TOKENS = ['WETH', 'RDN']
 
 const setupPromise = testSetup()
 
