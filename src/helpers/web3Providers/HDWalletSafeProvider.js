@@ -54,8 +54,10 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
     // Configure all the safes, and construct some handy maps
     this._safesByOperator = this._loadSafesByOperator(safes)
-    this._safesByAddress = Object.values(this._safesByOperator).reduce((acc, safe) => {
-      acc[safe.safeAddress] = safe
+    this._safesByAddress = Object.values(this._safesByOperator).reduce((acc, safes) => {
+      safes.forEach(safe => {
+        acc[safe.safeAddress] = safe
+      })
       return acc
     }, {})
     this._safeAddresses = Object.keys(this._safesByAddress)
@@ -93,13 +95,19 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         safeModuleAddress
       })
 
-      acc[operatorAddress] = {
+      const safeDetails = {
         id: index,
         operatorAddress,
         safeAddress,
         moduleType: safeModuleType,
         safeModuleAddress,
         moduleContract
+      }
+
+      if (acc[operatorAddress]) {
+        acc[operatorAddress].push(safeDetails)
+      } else {
+        acc[operatorAddress] = [safeDetails]
       }
 
       return acc
@@ -133,16 +141,9 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     return SafeModuleContract.at(safeModuleAddress)
   }
 
-  /**
-  * @returns {string} account in the HD list of addresses specified by the provided index
-  */
-  getHDAccount (accountIndex) {
-    return this.addresses[accountIndex]
-  }
-
   // Force return the Safe address
   getAccounts () {
-    return this._safeAddresses // Object.keys(this._safesByOperator)
+    return this._safeAddresses
   }
 
   // Force return the Safe address
@@ -219,6 +220,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       // Get Safe Module contract data
       const [txObject, ...extraArguments] = arguments
       const [txDetails, ...extraParams] = txObject.params
+
       const {
         from,
         to,
@@ -227,7 +229,9 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       } = txDetails
 
       const safe = this._safesByAddress[from]
-      assert(safe, 'Unknown safe with address ' + from)
+      if (!safe) {
+        throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
+      }
 
       const {
         moduleContract,
