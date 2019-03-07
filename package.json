@@ -28,6 +28,7 @@
     "bots-kovan": "ENV_PATH=env/env-kovan node src/runBots.js",
     "bots-mainnet": "ENV_PATH=env/env-mainnet node src/runBots.js",
     "test": "NODE_ENV=test jest",
+    "test:safe": "NODE_ENV=test jest tests/safe-module --testPathIgnorePatterns=\"node_modules\"",
     "test-coverage": "NODE_ENV=test jest --coverage && cat ./coverage/lcov.info | coveralls",
     "tdd": "NODE_ENV=test jest --watch",
     "test-debug": "NODE_ENV=test DEBUG=* jest",
