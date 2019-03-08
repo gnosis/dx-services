@@ -5,6 +5,7 @@ const CONTRACT_DEFINITIONS = {
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
   DutchExchangeHelper: CONTRACTS_BASE_DIR + '/DutchExchangeHelper',
+  DutchExchangePriceOracle: CONTRACTS_BASE_DIR + '/DutchXPriceOracle',
   EtherToken: CONTRACTS_BASE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_BASE_DIR + '/TokenFRT',
   TokenFRTProxy: CONTRACTS_BASE_DIR + '/TokenFRTProxy',
