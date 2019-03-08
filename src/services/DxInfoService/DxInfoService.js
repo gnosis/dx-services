@@ -296,6 +296,7 @@ class DxInfoService {
       if (price.numerator.isZero()) {
         // The auction runned for too long
         buyVolumesInSellTokens = sellVolume
+        priceRelationshipPercentage = null
       } else {
         // Get the number of sell tokens that we can get for the buyVolume
         buyVolumesInSellTokens = price.denominator
@@ -319,25 +320,6 @@ class DxInfoService {
           part: buyVolumesInSellTokens,
           total: sellVolume
         })
-      }
-
-      if (closingPrice) {
-        if (price.numerator.isZero()) {
-          // The auction runned for too long
-          buyVolumesInSellTokens = sellVolume
-          priceRelationshipPercentage = null
-        } else {
-          // Get the number of sell tokens that we can get for the buyVolume
-          buyVolumesInSellTokens = price.denominator
-            .times(buyVolume)
-            .div(price.numerator)
-
-          priceRelationshipPercentage = price.numerator
-            .mul(closingPrice.denominator)
-            .div(price.denominator)
-            .div(closingPrice.numerator)
-            .mul(100)
-        }
       }
 
       if (state.indexOf('WAITING') === -1) {
