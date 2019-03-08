@@ -30,16 +30,19 @@ const getClaimableTokens = require('../helpers/getClaimableTokens')
 class DxInfoService {
   constructor ({
     auctionRepo,
+    dxPriceOracleRepo,
     ethereumRepo,
     slackRepo,
     markets,
     operationsSlackChannel
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
+    assert(dxPriceOracleRepo, '"dxPriceOracleRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(markets, '"markets" is required')
 
     this._auctionRepo = auctionRepo
+    this._dxPriceOracleRepo = dxPriceOracleRepo
     this._ethereumRepo = ethereumRepo
     this._slackRepo = slackRepo
     this._markets = markets
@@ -893,6 +896,15 @@ class DxInfoService {
     let feeRatio = await this._auctionRepo.getFeeRatio({ address })
 
     return feeRatio[0].div(feeRatio[1])
+  }
+
+  async getOraclePrice ({ token }) {
+    return this._dxPriceOracleRepo.getPrice({ token })
+  }
+
+  async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
+    return this._dxPriceOracleRepo.getPricesAndMedian({
+      token, numberOfAuctions, auctionIndex })
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {

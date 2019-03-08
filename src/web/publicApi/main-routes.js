@@ -45,24 +45,6 @@ function createRoutes ({ dxInfoService },
   */
 
   routes.push({
-    path: '/v1/tokens',
-    get (req, res) {
-      const count = req.query.count !== undefined ? req.query.count : 20
-      addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
-      return dxInfoService.getTokenList({ count, approved: null })
-    }
-  })
-
-  routes.push({
-    path: '/v1/tokens/whitelisted',
-    get (req, res) {
-      const count = req.query.count !== undefined ? req.query.count : 20
-      addCacheHeader({ res, time: CACHE_TIMEOUT_LONG })
-      return dxInfoService.getTokenList({ count, approved: true })
-    }
-  })
-
-  routes.push({
     path: '/about',
     get (req, res) {
       addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
