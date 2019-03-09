@@ -95,9 +95,12 @@ class ClaimBot extends Bot {
     // Execute the claim
     logger.info('Claiming from markets %O using address %s', this._markets, this._botAddress)
 
-    const tokenPairs = this._markets.map(({ tokenA, tokenB }) => {
-      return { sellToken: tokenA, buyToken: tokenB }
-    })
+    const tokenPairs = this._markets.reduce((markets, { tokenA, tokenB }) => {
+      markets.push(
+        { sellToken: tokenA, buyToken: tokenB },
+        { sellToken: tokenB, buyToken: tokenA })
+      return markets
+    }, [])
     return this._dxTradeService.claimAll({
       tokenPairs,
       address: this._botAddress,
