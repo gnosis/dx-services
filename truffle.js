@@ -6,7 +6,7 @@ const DEFAULT_MNEMONIC =
   'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
 
 // Load env vars
-require('dotenv').config()
+require('./src/helpers/loadEnv')
 
 // Get the mnemonic
 const privateKey = process.env.PK

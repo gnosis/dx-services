@@ -8,7 +8,7 @@ const numberUtil = require('../helpers/numberUtil')
 const dateUtil = require('../helpers/dateUtil')
 
 const BOT_TYPE = 'DepositBot'
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getDxInfoService = require('../services/DxInfoService')
 const getDxTradeService = require('../services/DxTradeService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -100,7 +100,8 @@ class DepositBot extends Bot {
     // Prepare balances promises
     // Get ETH balance
     const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
-      account })
+      account
+    })
 
     // Get balance of ERC20 tokens
     const balanceOfTokensPromise = this._dxInfoService.getAccountBalancesForTokensNotDeposited({
@@ -109,7 +110,7 @@ class DepositBot extends Bot {
     })
 
     // Execute balances promises
-    const [ balanceOfEther, balanceOfTokens ] = await Promise.all([
+    const [balanceOfEther, balanceOfTokens] = await Promise.all([
       balanceOfEtherPromise,
       balanceOfTokensPromise
     ])
@@ -117,7 +118,7 @@ class DepositBot extends Bot {
     logger.debug('Balances of ether: %O', balanceOfEther)
     logger.debug('Balances of tokens: %O', balanceOfTokens)
 
-    return [ balanceOfEther, balanceOfTokens ]
+    return [balanceOfEther, balanceOfTokens]
   }
 
   async _depositFunds () {
@@ -139,7 +140,7 @@ class DepositBot extends Bot {
     try {
       const account = this._botAddress
 
-      const [ balanceOfEther, balanceOfTokens ] = await this._getTokenBalances(
+      const [balanceOfEther, balanceOfTokens] = await this._getTokenBalances(
         account)
 
       // Deposit ETH
@@ -168,7 +169,7 @@ class DepositBot extends Bot {
       this.lastError = new Date()
       logger.error({
         msg: 'There was an error trying to automaticaly deposit %s',
-        params: [ error ],
+        params: [error],
         error
       })
     }
