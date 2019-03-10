@@ -3,19 +3,29 @@ const conf = require('../../../conf')
 const getAuctionRepo = require('../../repositories/AuctionRepo')
 const getEthereumRepo = require('../../repositories/EthereumRepo')
 
-let botService
+let instance, instancePromise
+
+async function _getInstance () {
+  const [auctionRepo, ethereumRepo] = await Promise.all([
+    getAuctionRepo(),
+    getEthereumRepo()
+  ])
+
+  return new BotsService({
+    auctionRepo,
+    ethereumRepo,
+    markets: conf.MARKETS
+  })
+}
+
 module.exports = async () => {
-  if (!botService) {
-    const [ auctionRepo, ethereumRepo ] = await Promise.all([
-      getAuctionRepo(),
-      getEthereumRepo()
-    ])
-    botService = new BotsService({
-      auctionRepo,
-      ethereumRepo,
-      markets: conf.MARKETS
-    })
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return botService
+  return instance
 }

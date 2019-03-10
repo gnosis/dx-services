@@ -2,24 +2,10 @@ const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
 
-let setup
-
-// Execute Test Suite setup
-beforeAll(async (done) => {
-  const _setupInstance = testSetup()
-  // Custom configuration
-  // Call to _setupInstance.setConfig is not needed when SAFE_MODULE_ADDRESSES is already not configured
-  _setupInstance.setConfig({
-    'SAFE_MODULE_ADDRESSES': null
-  })
-  // Initialise contracts, helpers, services etc..
-  setup = await _setupInstance.init()
-  // Wait until everything is ready to go
-  done()
-})
+const setupPromise = testSetup()
 
 test('It should post a buy order', async () => {
-  const { dxTradeService } = setup
+  const { dxTradeService } = await setupPromise
 
   // we mock the auction repo
   dxTradeService._auctionRepo = auctionRepoMock
@@ -45,7 +31,7 @@ test('It should post a buy order', async () => {
 })
 
 test('It should post a sell order', async () => {
-  const { dxTradeService } = setup
+  const { dxTradeService } = await setupPromise
 
   // we mock the auction repo
   dxTradeService._auctionRepo = auctionRepoMock

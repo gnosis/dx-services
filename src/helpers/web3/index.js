@@ -1,14 +1,14 @@
-const conf = require('../../../conf')
+// const Logger = require('./helpers/Logger')
+// const logger = new Logger('dx-service:web3')
+const Web3 = require('web3')
+const getWeb3Provider = require('../web3Providers')
 
 let instance, instancePromise
 
 async function _getInstance () {
-  const {
-    Factory: PriceRepo,
-    factoryConf: priceRepoConf
-  } = conf.getFactory('PRICE_REPO')
+  const provider = await getWeb3Provider()
 
-  return new PriceRepo(priceRepoConf)
+  return new Web3(provider)
 }
 
 module.exports = async () => {

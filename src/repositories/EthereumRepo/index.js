@@ -1,21 +1,14 @@
 const conf = require('../../../conf')
 
-let auctionRepo
+let instance, instancePromise
 
-module.exports = async () => {
-  if (!auctionRepo) {
-    auctionRepo = await _createEthereumRepo()
-  }
-  return auctionRepo
-}
-
-async function _createEthereumRepo () {
+async function _getInstance () {
   const {
     Factory: EthereumRepo,
     factoryConf: ethereumRepoConf
   } = conf.getFactory('ETHEREUM_REPO')
 
-  const getEthereumClient = require('../../getEthereumClient')
+  const getEthereumClient = require('../../helpers/ethereumClient')
   const ethereumClient = await getEthereumClient()
   const web3 = ethereumClient.getWeb3()
 
@@ -39,4 +32,16 @@ async function _createEthereumRepo () {
     // Override config
     ...ethereumRepoConf
   })
+}
+
+module.exports = async () => {
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
+  }
+
+  return instance
 }

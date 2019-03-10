@@ -1,4 +1,4 @@
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 
 async function getAddress (accountIndex) {
   const ethereumClient = await getEthereumClient()

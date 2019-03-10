@@ -15,21 +15,11 @@ class ContractLoader {
     gnoToken,
     erc20TokenAddresses,
     contractsBaseDir
-    // safeAddress,
-    // safeCompleteModuleAddress,
-    // safeSellerModuleAddress
   }) {
     assert(ethereumClient, '"ethereumClient" is required')
     assert(contractDefinitions, '"contractDefinitions" is required')
     assert(erc20TokenAddresses, '"erc20TokenAddresses" is required')
     assert(contractsBaseDir, '"contractsBaseDir" is required')
-
-    // FIXME If not given this addresses are automatically resolved from dx-contracts package
-    // I don't know why this was added
-    // if (!isLocal) {
-    //   assert(dxContractAddress, '"dxContractAddress" is required for environment ' + environment)
-    //   assert(gnoToken, '"gnoToken" is required for environment ' + environment)
-    // }
 
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
@@ -38,11 +28,6 @@ class ContractLoader {
     this._gnoTokenAddress = gnoToken
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
-
-    // Safe Module related configs
-    // this._safeAddress = safeAddress
-    // this._safeCompleteModuleAddress = safeCompleteModuleAddress
-    // this._safeSellerModuleAddress = safeSellerModuleAddress
   }
 
   async loadContracts () {
@@ -51,7 +36,7 @@ class ContractLoader {
       this._loadTokenContracts()
     ])
 
-    const [ dxHelper, dxContracts ] = await Promise.all([
+    const [dxHelper, dxContracts] = await Promise.all([
       this._loadDxHelper(dx.address),
       this._loadDxContracts(dx)
     ])
