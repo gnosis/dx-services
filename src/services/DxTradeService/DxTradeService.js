@@ -38,7 +38,14 @@ class DxTradeService {
     })
   }
 
-  async claimAll ({ tokenPairs, address, lastNAuctions }) {
+  async claimAll ({
+    tokenPairs,
+    address,
+    fromAddress: fromAddressAux,
+    lastNAuctions
+  }) {
+    const fromAddress = fromAddressAux || address
+
     // We get the claimable tokens for all pairs
     const claimableTokensPromises = tokenPairs.map(
       async ({ sellToken: tokenA, buyToken: tokenB }) => {
@@ -112,6 +119,7 @@ class DxTradeService {
       claimSellerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsSeller(
         {
           auctionsAsSeller,
+          fromAddress,
           address
         }
       )
@@ -134,6 +142,7 @@ class DxTradeService {
       claimBuyerResult = await this._auctionRepo.claimTokensFromSeveralAuctionsAsBuyer(
         {
           auctionsAsBuyer,
+          fromAddress,
           address
         }
       )

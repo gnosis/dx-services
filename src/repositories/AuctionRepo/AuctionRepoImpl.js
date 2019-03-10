@@ -499,7 +499,11 @@ class AuctionRepoImpl extends Cacheable {
     })
   }
 
-  async claimTokensFromSeveralAuctionsAsSeller ({ auctionsAsSeller, address }) {
+  async claimTokensFromSeveralAuctionsAsSeller ({
+    auctionsAsSeller,
+    address,
+    fromAddress
+  }) {
     // Transform the tokenPairs into addresses
     const auctionsInfoPromises = auctionsAsSeller.map(({ sellToken, buyToken, indices }) => {
       return Promise.all([
@@ -540,12 +544,16 @@ class AuctionRepoImpl extends Cacheable {
 
     return this._doTransaction({
       operation: 'claimTokensFromSeveralAuctionsAsSeller',
-      from: address,
+      from: fromAddress || address,
       params: [auctionSellTokens, auctionBuyTokens, auctionIndices, address]
     })
   }
 
-  async claimTokensFromSeveralAuctionsAsBuyer ({ auctionsAsBuyer, address }) {
+  async claimTokensFromSeveralAuctionsAsBuyer ({
+    auctionsAsBuyer,
+    address,
+    fromAddress
+  }) {
     // Transform the tokenPairs into addresses
     const auctionsInfoPromises = auctionsAsBuyer.map(({ sellToken, buyToken, indices }) => {
       return Promise.all([
@@ -584,7 +592,7 @@ class AuctionRepoImpl extends Cacheable {
     })
     return this._doTransaction({
       operation: 'claimTokensFromSeveralAuctionsAsBuyer',
-      from: address,
+      from: fromAddress || address,
       params: [auctionSellTokens, auctionBuyTokens, auctionIndices, address]
     })
   }

@@ -4,11 +4,12 @@ const getAddress = require('../../helpers/getAddress')
 const getDxTradeService = require('../../services/DxTradeService')
 
 function registerCommand ({ cli, logger }) {
-  cli.command('claim-tokens <token-pairs> [count]', 'Claim tokens for N auctions of a token pair (i.e. claim-tokens WETH-RDN)', yargs => {
+  cli.command('claim-tokens <token-pairs> [count] [--account account]', 'Claim tokens for N auctions of a token pair (i.e. claim-tokens WETH-RDN)', yargs => {
     cliUtils.addPositionalByName('token-pairs', yargs)
     cliUtils.addPositionalByName('count', yargs)
+    cliUtils.addPositionalByName('account', yargs)
   }, async function (argv) {
-    const { tokenPairs: tokenPairString, count } = argv
+    const { tokenPairs: tokenPairString, count, account } = argv
     const tokenPairs = cliUtils.toTokenPairs(tokenPairString)
 
     const DEFAULT_ACCOUNT_INDEX = 0
@@ -20,21 +21,31 @@ function registerCommand ({ cli, logger }) {
       getDxTradeService()
     ])
 
+    const accountAddress = account || botAccount
+
     logger.info('Claiming last %d auctions for %s:',
-      count, botAccount)
+      count, accountAddress)
     const {
       claimAmounts,
       claimSellerTransactionResult,
       claimBuyerTransactionResult
     } = await dxTradeService.claimAll({
-      tokenPairs, address: botAccount, lastNAuctions: count
+      tokenPairs,
+      fromAddress: botAccount,
+      address: accountAddress,
+      lastNAuctions: count
     })
-    claimSellerTransactionResult.tx
-      ? logger.info('The seller claim was succesful. Transaction: %s', claimSellerTransactionResult.tx)
-      : logger.info('No tokens to claim as seller for %s', tokenPairString)
-    claimBuyerTransactionResult.tx
-      ? logger.info('The buyer claim was succesful. Transaction: %s', claimBuyerTransactionResult.tx)
-      : logger.info('No tokens to claim as buyer for %s', tokenPairString)
+    if (claimSellerTransactionResult && claimSellerTransactionResult.tx) {
+      logger.info('The seller claim was succesful. Transaction: %s', claimSellerTransactionResult.tx)
+    } else {
+      logger.info('No tokens to claim as seller for %s', tokenPairString)
+    }
+
+    if (claimBuyerTransactionResult && claimBuyerTransactionResult.tx) {
+      logger.info('The buyer claim was succesful. Transaction: %s', claimBuyerTransactionResult.tx)
+    } else {
+      logger.info('No tokens to claim as buyer for %s', tokenPairString)
+    }
 
     claimAmounts.forEach(amount => {
       if (amount) {
