@@ -8,11 +8,7 @@ function _getInstance () {
   const {
     MNEMONIC: CONF_MNEMONIC,
     PK,
-    ETHEREUM_RPC_URL,
-
-    SAFE_ADDRESS,
-    SAFE_MODULE_ADDRESS,
-    SAFE_MODULE_TYPE
+    ETHEREUM_RPC_URL
   } = conf
 
   // FIXME make API MNEMONIC independent
@@ -41,12 +37,6 @@ function _getInstance () {
 
     // override config
     ...web3ProviderConf
-  }
-
-  if (SAFE_ADDRESS) {
-    providerConfig.safeAddress = SAFE_ADDRESS
-    providerConfig.safeModuleAddress = SAFE_MODULE_ADDRESS
-    providerConfig.safeModuleMode = SAFE_MODULE_TYPE
   }
 
   // Instanciate the provider

@@ -14,5 +14,9 @@ module.exports = {
     '!src/ApiRunner.js',
     '!src/cli/**',
     '!src/web/**'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    'tests/safe-module'
   ]
 }

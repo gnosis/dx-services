@@ -229,6 +229,12 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       } = txDetails
 
       const safe = this._safesByAddress[from]
+
+      // TODO: Allow to send transaction directly with the operator
+      //  - Normally transactions with the mulstisig as the "from" address
+      //  - It might be an interesting adition to allow to provide the operator
+      //    as the "from". In this case, the tx is sent without the module
+
       if (!safe) {
         throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
       }
@@ -269,7 +275,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       logger.debug('Transaction - params: ', safeTxArguments[0].params)
 
       if (!NONCE_LOCK_DISABLED) {
-        this._sendTxWithUniqueNonce(...safeTxArguments)
+        return this._sendTxWithUniqueNonce(...safeTxArguments)
       } else {
         logger.trace('Send transaction: %o', safeTxArguments)
         this._resetNonceCache()

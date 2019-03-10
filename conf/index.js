@@ -59,8 +59,7 @@ let config = {
   ...customConfig,
   ...require('./config-env-vars'),
   MARKETS: markets.map(orderMarketTokens),
-  getFactory,
-  update // update config function
+  getFactory
 }
 config.ERC20_TOKEN_ADDRESSES = getTokenAddresses(tokens, config)
 
@@ -161,16 +160,6 @@ function getFactory (factoryPropName) {
     Factory,
     factoryConf
   }
-}
-
-/**
-* Allow to update the configuration at runtime - used mostly by testSetup.js to allow
-* executing tests running smoothly different configurations
-* @param {Object} - Configuration dictionary object
-* @return {Object} - Updated configuration
-*/
-function update (newConfig) {
-  return Object.assign(config, newConfig)
 }
 
 module.exports = config

@@ -5,6 +5,8 @@ const assert = require('assert')
 //  - more flexible (adds suport for PK)
 //  - Remove it from src/helpers/web3Providers/index.js
 
+let moduleExport = {}
+
 if (process.env.SAFE_ADDRESS) {
   // Gnosis Safe Wallet Provider
   assert(process.env.SAFE_ADDRESS, 'SAFE_ADDRESS env is required')
@@ -23,6 +25,13 @@ if (process.env.SAFE_ADDRESS) {
       safeModuleAddress: process.env.SAFE_MODULE_ADDRESS
     }]
   }
+
+  moduleExport = {
+    SAFE_ADDRESS: process.env.SAFE_ADDRESS,
+    SAFE_MODULE_TYPE: process.env.SAFE_MODULE_TYPE,
+    SAFE_MODULE_ADDRESS: process.env.SAFE_MODULE_ADDRESS,
+    WEB3_PROVIDER
+  }
 } else {
   // HD Wallet Provider
   WEB3_PROVIDER = {
@@ -32,8 +41,10 @@ if (process.env.SAFE_ADDRESS) {
     shareNonce: true,
     blockForNonceCalculation: 'pending'
   }
+
+  moduleExport = {
+    WEB3_PROVIDER
+  }
 }
 
-module.exports = {
-  WEB3_PROVIDER
-}
+module.exports = moduleExport
