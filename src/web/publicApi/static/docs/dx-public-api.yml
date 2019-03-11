@@ -25,6 +25,8 @@ basePath: /api/v1
 tags:
   - name: markets
     description: Get market info
+  - name: prices
+    description: Get prices info
   - name: auctions
     description: Get general auctions info
   - name: accounts
@@ -130,7 +132,7 @@ paths:
         - `RUNNING` - Auction is currently ongoing.
         - `WAITING_FOR_FUNDING` - Sell volume has not reached the threshold to start
         - `WAITING_FOR_AUCTION_TO_START` - Sell volume threshold was reached and auction should start in next 10 minutes
-        - `ONE_AUCTION_HAS_CLOSED` - Auction is running and one of the auction sides was already closed
+        - `ONE_AUCTION_HAS_CLOSED` - Auction is running and one of the auction sides is already closed
         - `PENDING_CLOSE_THEORETICAL` - Auction reached a price wich fits with the sell and buy volume but needs to be closed
       operationId: getMarketDetails
       produces:
@@ -157,14 +159,14 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-  '/markets/{tokenPair}/price':
+  '/markets/{tokenPair}/prices/running':
     get:
       tags:
-        - markets
+        - prices
       summary: Returns current market price
       description: >-
-        Important note: This is not the price oracle. This endpoint this returns
-        the current market price of an auction. IF the auction is currently running,
+        **Important note: This is not the price oracle**. This endpoint this returns
+        the current market price of an auction. If the auction is currently running,
         it will return a price that is constantly dropping until the auction ends.
         If no auction is running, it will return `null`
       operationId: getCurrentPrice
@@ -189,10 +191,10 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-  '/markets/{tokenPair}/closing-prices':
+  '/markets/{tokenPair}/prices/closing':
     get:
       tags:
-        - markets
+        - prices
       summary: Returns a list of closing prices
       description: >-
         Returns a list of the latest closing prices for a given market.
@@ -243,10 +245,10 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-  '/markets/{tokenPair}/closing-prices/{auctionIndex}':
+  '/markets/{tokenPair}/prices/closing/{auctionIndex}':
     get:
       tags:
-        - markets
+        - prices
       summary: Returns closing price for selected auction
       description: >-
         Returns a specific closing price for a certain `auctionIndex`.
@@ -281,6 +283,60 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
+  '/markets/{token}-WETH/prices/median':
+    get:
+      tags:
+        - prices
+      summary: Returns a safe median price
+      description: >-
+        Returns a median of the selected token (always with WETH) of the past 9
+        auctions that have run. Only returns this price if all past 9 auctions
+        have run consecutively (i.e. if enough liquidity was given)
+      operationId: getOraclePrice
+      produces:
+        - application/json
+      parameters:
+        - name: token
+          in: path
+          description: >-
+            A token address string for selecting the desired token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/MarketPrice'
+        '404':
+          description: The token provided is not found
+  '/markets/{token}-WETH/prices/custom-median/{numberOfAuctions}/{auctionIndex}':
+    get:
+      tags:
+        - prices
+      summary: Returns a median oracle price for the selected past auctions
+      description: >-
+        Returns a median of the selected token (always with ETH) of the past N
+        auctions that have run. Only returns a price
+        The DutchX has an internal on-chain price oracle which is the last auction
+        price for the token (with ETH)
+      operationId: getOraclePrice
+      produces:
+        - application/json
+      parameters:
+        - name: token
+          in: path
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/MarketPrice'
+        '404':
+          description: The token provided is not found
   '/markets/{tokenPair}/current-index':
     get:
       tags:
@@ -565,27 +621,6 @@ paths:
         - accounts
       summary: Returns current liquidity contribution ratio
       description: Returns current liquidity contribution ratio for user account
-      operationId: getFeeRatio
-      produces:
-        - application/json
-      parameters:
-        - name: accountAddress
-          in: path
-          description: An account address
-          required: true
-          type: string
-      responses:
-        '200':
-          description: successful operation
-          schema:
-            type: number
-  '/accounts/{accountAddress}/current-fee-ratio':
-    get:
-      tags:
-        - accounts
-      deprecated: true
-      summary: DEPRECATED! See current-liquidity-contribution-ratio
-      description: DEPRECATED! See current-liquidity-contribution-ratio
       operationId: getFeeRatio
       produces:
         - application/json

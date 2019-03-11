@@ -31,6 +31,7 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
+  // TODO DEPRECATED transitioning to markets/{tokenPair}/prices/running
   routes.push({
     path: '/:tokenPair/price',
     get (req, res) {
@@ -40,6 +41,16 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
+  routes.push({
+    path: '/:tokenPair/prices/running',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getCurrentPrice(tokenPair)
+    }
+  })
+
+  // TODO DEPRECATED. Transition to markets/{tokenPair}/prices/closing
   routes.push({
     path: '/:tokenPair/closing-prices',
     get (req, res) {
@@ -60,6 +71,26 @@ function createRoutes ({ dxInfoService, reportService },
   })
 
   routes.push({
+    path: '/:tokenPair/prices/closing',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let count = req.query.count !== undefined ? req.query.count : DEFAULT_PAGE_SIZE
+      if (!_isValidCount(count)) {
+        const error = new Error('Invalid count for closing prices. Count should be between 1 and 50.')
+        error.type = 'INVALID_COUNT'
+        error.status = 412
+        throw error
+      }
+      let params = Object.assign(
+        tokenPair, { count: count }
+      )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getLastClosingPrices(params)
+    }
+  })
+
+  // TODO DEPRECATED. Transition to markets/{tokenPair}/prices/closing/{auctionIndex}
+  routes.push({
     path: '/:tokenPair/closing-prices/:auctionIndex',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
@@ -69,6 +100,39 @@ function createRoutes ({ dxInfoService, reportService },
       )
       addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getClosingPrice(params)
+    }
+  })
+
+  routes.push({
+    path: '/:tokenPair/prices/closing/:auctionIndex',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let params = Object.assign(
+        tokenPair,
+        { auctionIndex: req.params.auctionIndex }
+      )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getClosingPrice(params)
+    }
+  })
+
+  routes.push({
+    path: '/:token-WETH/prices/median',
+    get (req, res) {
+      const token = req.params.token
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getOraclePrice({ token })
+    }
+  })
+
+  routes.push({
+    path: '/:token-WETH/prices/custom-median/:numberOfAuctions/:auctionIndex',
+    get (req, res) {
+      const token = req.params.token
+      const numberOfAuctions = req.params.numberOfAuctions
+      const auctionIndex = req.params.auctionIndex
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
     }
   })
 

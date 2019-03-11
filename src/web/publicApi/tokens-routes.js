@@ -25,26 +25,6 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
-  routes.push({
-    path: '/:token/price',
-    get (req, res) {
-      const token = req.params.token
-      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
-      return dxInfoService.getOraclePrice({ token })
-    }
-  })
-
-  routes.push({
-    path: '/:token/median-price/:numberOfAuctions/:auctionIndex',
-    get (req, res) {
-      const token = req.params.token
-      const numberOfAuctions = req.params.numberOfAuctions
-      const auctionIndex = req.params.auctionIndex
-      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
-      return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
-    }
-  })
-
   return routes
 }
 

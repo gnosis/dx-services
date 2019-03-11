@@ -902,12 +902,16 @@ class DxInfoService {
   }
 
   async getOraclePrice ({ token }) {
-    return this._dxPriceOracleRepo.getPrice({ token })
+    const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
+
+    return this._dxPriceOracleRepo.getPrice({ token: tokenAddress })
   }
 
   async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
+    const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
+
     return this._dxPriceOracleRepo.getPricesAndMedian({
-      token, numberOfAuctions, auctionIndex })
+      token: tokenAddress, numberOfAuctions, auctionIndex })
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
