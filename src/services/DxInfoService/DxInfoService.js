@@ -24,6 +24,7 @@ const numberUtil = require('../../helpers/numberUtil.js')
 
 const getGitInfo = require('../../helpers/getGitInfo')
 const getVersion = require('../../helpers/getVersion')
+const getContractVersions = require('../../helpers/getContractVersions')
 const getAuctionsBalances = require('../helpers/getAuctionsBalances')
 const getClaimableTokens = require('../helpers/getClaimableTokens')
 
@@ -51,6 +52,7 @@ class DxInfoService {
     // About info
     this._gitInfo = getGitInfo()
     this._version = getVersion()
+    this._contractVersions = getContractVersions()
   }
 
   async getVersion () {
@@ -358,6 +360,7 @@ class DxInfoService {
       version: this._version,
       environment: ENVIRONMENT,
       auctions: auctionAbout,
+      contractVersions: this._contractVersions,
       ethereum: ethereumAbout,
       git: this._gitInfo
     }
