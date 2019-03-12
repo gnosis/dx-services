@@ -1,17 +1,17 @@
 const loggerNamespace = 'dx-service:repositories:EthereumClient'
-const Logger = require('../helpers/Logger')
-const numberUtil = require('../helpers/numberUtil')
-const dateUtil = require('../helpers/dateUtil')
-const formatUtil = require('../helpers/formatUtil')
+const Logger = require('../Logger')
+const numberUtil = require('../numberUtil')
+const dateUtil = require('../dateUtil')
+const formatUtil = require('../formatUtil')
 const logger = new Logger(loggerNamespace)
-const Cacheable = require('../helpers/Cacheable')
+const Cacheable = require('../Cacheable')
 const assert = require('assert')
 
 const truffleContract = require('truffle-contract')
-const gracefullShutdown = require('./gracefullShutdown')
+const gracefullShutdown = require('../gracefullShutdown')
 const got = require('got')
 
-const ROOT_DIR = '../../'
+const ROOT_DIR = '../../../'
 const SECONDS_PER_BLOCK = 15
 const CLOSE_POINT_PERCENTAGE = 0.9
 const FAR_POINT_PERCENTAGE = 1 - CLOSE_POINT_PERCENTAGE
@@ -218,7 +218,7 @@ class EthereumClient extends Cacheable {
     const callClass = this._getCallFn(this._web3, propPath)
     const methodName = propPath[propPath.length - 1]
 
-    if (this._cache && cacheTime !== null) {
+    if (this._cache && cacheTime !== null && cacheTime !== undefined) { // @TODO review, cacheTime sometimes is undefined
       const cacheKey = this._getCacheKey({ propName, params })
       return this._cache.get({
         key: cacheKey,

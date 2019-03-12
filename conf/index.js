@@ -1,3 +1,5 @@
+require('../src/helpers/loadEnv')
+
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')
 
@@ -12,7 +14,8 @@ const defaultConf = {
   ...require('./config-bots'),
   ...require('./config-contracts'),
   ...require('./config-notification'),
-  ...require('./config-repos')
+  ...require('./config-repos'),
+  ...require('./config-web3')
 }
 
 // Load env conf
@@ -135,6 +138,10 @@ param ${paramName} was specified. Environemnt: ${config.ENVIRONMENT}`)
   }, {})
 }
 
+/**
+* @param {string} factoryPropName. Name of the property to look for in the configuration object
+* @return {Object} Dictionary object containing reference to the looked up object and its eventual configuration
+*/
 function getFactory (factoryPropName) {
   const assert = require('assert')
   const path = require('path')
@@ -143,7 +150,7 @@ function getFactory (factoryPropName) {
   assert(factoryConfAux, `"${factoryPropName}" was not defined in the conf`)
 
   const { factory, ...factoryConf } = factoryConfAux
-  assert(factory, '"factory" is required in ETHEREUM_REPO config')
+  assert(factory, `"factory" is required in ${factoryPropName} config`)
 
   const factoryPath = path.join('../', factory)
   // console.log('factoryPath: ', factoryPath)

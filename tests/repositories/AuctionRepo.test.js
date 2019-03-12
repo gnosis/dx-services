@@ -4,21 +4,17 @@ debug.log = console.debug.bind(console)
 const testSetup = require('../helpers/testSetup')
 const BigNumber = require('bignumber.js')
 const numberUtil = require('../../src/helpers/numberUtil.js')
-// const clone = require('lodash.clonedeep')
 
 const setupPromise = testSetup()
-
 let currentSnapshotId
 
 beforeEach(async () => {
   const { ethereumClient } = await setupPromise
-
   currentSnapshotId = await ethereumClient.makeSnapshot()
 })
 
 afterEach(async () => {
   const { ethereumClient } = await setupPromise
-
   return ethereumClient.revertSnapshot(currentSnapshotId)
 })
 
@@ -44,6 +40,7 @@ test.skip('It should allow to approve one token', async () => {
 
 test.skip('It should fail when unknow token is required', async () => {
   expect.assertions(1)
+
   const { auctionRepo } = await setupPromise
 
   const getUnknownToken = () => auctionRepo.getTokenAddress({ token: 'ABC' })

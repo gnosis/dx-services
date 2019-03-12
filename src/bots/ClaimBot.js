@@ -7,7 +7,7 @@ const assert = require('assert')
 const schedule = require('node-schedule')
 
 const BOT_TYPE = 'ClaimBot'
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getDxInfoService = require('../services/DxInfoService')
 const getDxTradeService = require('../services/DxTradeService')
 const getSlackRepo = require('../repositories/SlackRepo')

@@ -1,21 +1,30 @@
-async function getClaimableTokens ({ auctionRepo, tokenA, tokenB, address, lastNAuctions }) {
+async function getClaimableTokens ({
+  auctionRepo,
+  tokenA,
+  tokenB,
+  address,
+  lastNAuctions
+}) {
   let [
     sellerClaims,
     buyerClaims,
     marketDetails
   ] = await Promise.all([
     auctionRepo.getIndicesWithClaimableTokensForSellers({
-      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions }),
+      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions
+    }),
 
     auctionRepo.getIndicesWithClaimableTokensForBuyers({
-      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions }),
+      sellToken: tokenA, buyToken: tokenB, address, lastNAuctions
+    }),
 
     auctionRepo.getStateInfo({
-      sellToken: tokenA, buyToken: tokenB })
+      sellToken: tokenA, buyToken: tokenB
+    })
   ])
 
   function _filterUnfinishedAuctions (claims) {
-    const [ claimsIndices, claimsAmounts ] = claims
+    const [claimsIndices, claimsAmounts] = claims
 
     return claimsIndices.reduce((acc, auctionIndex, currentIndex) => {
       if (marketDetails.auction.isClosed ||

@@ -13,7 +13,7 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
 
 const BOT_TYPE = 'SellLiquidityBot'
 const getAddress = require('../helpers/getAddress')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -23,6 +23,7 @@ class SellLiquidityBot extends Bot {
     name,
     botAddress,
     accountIndex,
+    minimumSellVolumeInUsd,
     markets,
     botTransactionsSlackChannel,
     notifications,
@@ -50,6 +51,7 @@ class SellLiquidityBot extends Bot {
     }
 
     this._markets = markets
+    this._minimumSellVolumeInUsd = minimumSellVolumeInUsd
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
@@ -146,7 +148,12 @@ class SellLiquidityBot extends Bot {
     let liquidityWasEnsured
     try {
       liquidityWasEnsured = await this._liquidityService
-        .ensureSellLiquidity({ sellToken, buyToken, from })
+        .ensureSellLiquidity({
+          sellToken,
+          buyToken,
+          from,
+          minimumSellVolumeInUsd: this._minimumSellVolumeInUsd
+        })
         .then(soldTokens => {
           let liquidityWasEnsured = soldTokens.length > 0
           if (liquidityWasEnsured) {
@@ -273,7 +280,7 @@ class SellLiquidityBot extends Bot {
       sellToken,
       buyToken,
       msg: 'There was an error ensuring sell liquidity with the account %s: %s',
-      params: [ this._botAddress, error ],
+      params: [this._botAddress, error],
       error
     })
   }
@@ -281,6 +288,7 @@ class SellLiquidityBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
+      minimumSellVolumeInUsd: this._minimumSellVolumeInUsd,
       lastCheck: this._lastCheck,
       lastSell: this._lastSell,
       lastError: this._lastError,

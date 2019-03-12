@@ -10,7 +10,7 @@ const isLocal = environment === 'local'
 
 const getEventBus = require('../getEventBus')
 const loadContracts = require('../loadContracts')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 
 // Repos
 const getAuctionRepo = require('../repositories/AuctionRepo')
@@ -34,6 +34,7 @@ async function createInstances ({
   config: configOverride = {}
 } = {}) {
   const config = Object.assign({}, originalConfig, configOverride)
+
   debug('Initializing app for %s environment...', config.ENVIRONMENT)
 
   const eventBus = await getEventBus()
