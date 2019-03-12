@@ -11,15 +11,7 @@ class DxPriceOracleRepoImpl extends Cacheable {
     ethereumClient,
     contracts,
     // Cache
-    cacheConf,
-    // Gas
-    defaultGas = 6700000,
-    gasPriceDefault = 'fast', // safeLow, average, fast
-    // Retry
-    transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
-    gasRetryIncrement = 1.2,
-    overFastPriceFactor = 1,
-    gasEstimationCorrectionFactor = 2
+    cacheConf
   }) {
     super({
       cacheConf,
@@ -29,12 +21,6 @@ class DxPriceOracleRepoImpl extends Cacheable {
     assert(contracts, '"contracts" is required')
 
     this._ethereumClient = ethereumClient
-    this._defaultGas = defaultGas
-    this._transactionRetryTime = transactionRetryTime
-    this._gasRetryIncrement = gasRetryIncrement
-    this._overFastPriceFactor = overFastPriceFactor
-    this._gasEstimationCorrectionFactor = gasEstimationCorrectionFactor
-    this._gasPriceDefault = gasPriceDefault
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
@@ -74,7 +60,19 @@ class DxPriceOracleRepoImpl extends Cacheable {
       }).then(toFraction)
   }
 
-  async getPricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
+  async getPriceCustom ({ token, time = 0, maximumTimePeriod = 388800, requireWhitelisted = true, numberOfAuctions = 9 }) {
+    assert(token, '"token" containing a token address is required')
+
+    return this
+      ._callForToken({
+        operation: 'getPriceCustom',
+        token,
+        args: [ time, requireWhitelisted, maximumTimePeriod, numberOfAuctions ],
+        cacheTime: this._cacheTimeAverage
+      }).then(toFraction)
+  }
+
+  async getPricesAndMedian ({ token, numberOfAuctions = 9, auctionIndex }) {
     assert(token, '"token" containing a token address is required')
     assert(numberOfAuctions, '"numberOfAuctions" is required')
     assert(auctionIndex, '"auctionIndex" is required')

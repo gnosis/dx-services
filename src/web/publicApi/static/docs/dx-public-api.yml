@@ -283,7 +283,7 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-  '/markets/{token}-WETH/prices/median':
+  '/markets/{token}-WETH/prices/safe-median':
     get:
       tags:
         - prices
@@ -309,7 +309,7 @@ paths:
             $ref: '#/definitions/MarketPrice'
         '404':
           description: The token provided is not found
-  '/markets/{token}-WETH/prices/custom-median/{numberOfAuctions}/{auctionIndex}':
+  '/markets/{token}-WETH/prices/custom-median':
     get:
       tags:
         - prices
@@ -319,7 +319,7 @@ paths:
         auctions that have run. Only returns a price
         The DutchX has an internal on-chain price oracle which is the last auction
         price for the token (with ETH)
-      operationId: getOraclePrice
+      operationId: getOraclePriceCustom
       produces:
         - application/json
       parameters:
@@ -330,6 +330,81 @@ paths:
             {tokenA}-{tokenB}
           required: true
           type: string
+        - name: time
+          in: query
+          description: >-
+            An Unix timestamp or a price at any point in time
+          required: false
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+        - name: requireWhitelisted
+          in: query
+          description: Require the token to be whitelisted on the DutchX
+          required: false
+          type: boolean
+          default: true
+        - name: maximumTimePeriod
+          in: query
+          description: >-
+            Maximum time period between clearing time of last auction and `time`
+          required: false
+          type: integer
+          format: int32
+          default: 388800
+        - name: numberOfAuctions
+          in: query
+          description: >-
+            Require the token to be whitelisted on the DutchX
+          required: false
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          default: 9
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/MarketPrice'
+        '404':
+          description: The token provided is not found
+  '/markets/{token}-WETH/prices/simple-median/{auctionIndex}':
+    get:
+      tags:
+        - prices
+      summary: Returns a median oracle price for the selected past auctions
+      description: >-
+        Returns a median of the selected token (always with ETH) of the past N
+        auctions that have run. Only returns a price
+        The DutchX has an internal on-chain price oracle which is the last auction
+        price for the token (with ETH)
+      operationId: getOraclePriceSimpleMedian
+      produces:
+        - application/json
+      parameters:
+        - name: token
+          in: path
+          description: >-
+            A token pair string for selecting the desired market
+            {tokenA}-{tokenB}
+          required: true
+          type: string
+        - name: auctionIndex
+          in: path
+          description: >-
+            The auction index to start calculating the median.
+        - name: numberOfAuctions
+          in: query
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 9
+          required: false
+          description: >-
+            Number of auctions to consider. Contract is safe only for odd numbers
       responses:
         '200':
           description: successful operation

@@ -6,6 +6,11 @@ const addCacheHeader = require('../helpers/addCacheHeader')
 const DEFAULT_PAGE_SIZE = 10
 const DEFAULT_MAX_PAGE_SIZE = 50
 
+const DEFAULT_NUMBER_OF_AUCTIONS = 9
+const DEFAULT_ORACLE_TIME = 0
+const DEFAULT_MAXIMUM_TIME_PERIOD = 388800 // '4.5 days'
+const DEFAULT_REQUIRED_WHITELISTED = true
+
 function createRoutes ({ dxInfoService, reportService },
   { short: CACHE_TIMEOUT_SHORT,
     average: CACHE_TIMEOUT_AVERAGE,
@@ -117,7 +122,7 @@ function createRoutes ({ dxInfoService, reportService },
   })
 
   routes.push({
-    path: '/:token-WETH/prices/median',
+    path: '/:token-WETH/prices/safe-median',
     get (req, res) {
       const token = req.params.token
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
@@ -126,11 +131,29 @@ function createRoutes ({ dxInfoService, reportService },
   })
 
   routes.push({
-    path: '/:token-WETH/prices/custom-median/:numberOfAuctions/:auctionIndex',
+    path: '/:token-WETH/prices/custom-median',
     get (req, res) {
       const token = req.params.token
-      const numberOfAuctions = req.params.numberOfAuctions
+      const time = req.query.time !== undefined
+        ? req.query.time : DEFAULT_ORACLE_TIME
+      const maximumTimePeriod = req.query.maximumTimePeriod !== undefined
+        ? req.query.maximumTimePeriod : DEFAULT_MAXIMUM_TIME_PERIOD
+      const requireWhitelisted = req.query.requireWhitelisted !== undefined
+        ? req.query.requireWhitelisted : DEFAULT_REQUIRED_WHITELISTED
+      const numberOfAuctions = req.query.numberOfAuctions !== undefined
+        ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getOraclePriceCustom({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
+    }
+  })
+
+  routes.push({
+    path: '/:token-WETH/prices/simple-median/:auctionIndex',
+    get (req, res) {
+      const token = req.params.token
       const auctionIndex = req.params.auctionIndex
+      const numberOfAuctions = req.query.numberOfAuctions !== undefined
+        ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
     }

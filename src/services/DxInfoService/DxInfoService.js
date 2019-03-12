@@ -904,14 +904,27 @@ class DxInfoService {
   async getOraclePrice ({ token }) {
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
 
-    return this._dxPriceOracleRepo.getPrice({ token: tokenAddress })
+    const oraclePrice = await this._dxPriceOracleRepo.getPrice({ token: tokenAddress })
+
+    return numberUtil.toBigNumberFraction(oraclePrice, true)
+  }
+
+  async getOraclePriceCustom ({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions }) {
+    const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
+
+    const oraclePriceCustom = await this._dxPriceOracleRepo.getPriceCustom({
+      token: tokenAddress, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
+
+    return numberUtil.toBigNumberFraction(oraclePriceCustom, true)
   }
 
   async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
 
-    return this._dxPriceOracleRepo.getPricesAndMedian({
+    const oracleSimpleMedian = await this._dxPriceOracleRepo.getPricesAndMedian({
       token: tokenAddress, numberOfAuctions, auctionIndex })
+
+    return numberUtil.toBigNumberFraction(oracleSimpleMedian, true)
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
