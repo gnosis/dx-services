@@ -5,7 +5,7 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'getBalance [token]',
+    'arbGetBalance [token]',
     'Get the arbitrage contract balance of any token (blank token for Ether)',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
@@ -25,20 +25,6 @@ function registerCommand ({ cli, logger }) {
 
       logger.info('Contract: %s', contractBalance.toString(10))
       logger.info('DutchX: %s', dutchBalance.toString(10))
-
-
-      // console.log('Contract:' + contractBalance.toString(10), 'DutchX:' + dutchBalance.toString(10))
-
-      // logger.info(`Deposit %d Eth plus balance of %d as WETH using the account %s`,
-      // amount,
-      // balance,
-      // from
-      // )
-      // const depositResult = await arbitrageService.depositEther({
-      //   amount: amount * 1e18,
-      //   from
-      // })
-      // logger.info('The deposit was succesful. Transaction: %s', depositResult.tx)
     })
 }
 

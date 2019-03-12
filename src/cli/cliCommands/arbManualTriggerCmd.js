@@ -6,7 +6,7 @@ const getLiquidityService = require('../../services/LiquidityService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbitrage <token>',
+    'arbManualTrigger <token>',
     'Attempt an arbitrage',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
@@ -23,21 +23,18 @@ function registerCommand ({ cli, logger }) {
         getLiquidityService()
       ])
 
-      console.log('ready')
-
       const ethToken = await arbitrageService.ethToken()
-      // Get auction index
-      const arbitrageResult = await liquidityService.ensureArbitrageLiquidity({
-        sellToken: token,
-        buyToken: ethToken,
-        from
-      }).catch(error => {
-        logger.error('The arbitrage was NOT succesful.', error)
 
-      }) 
-      console.log({arbitrageResult})
-      // async ensureArbitrageLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
-      // logger.info('The arbitrage was succesful. Transaction: %s', arbitrageResult.tx)
+      try {
+        const arbitrageResult = await liquidityService.ensureArbitrageLiquidity({
+          sellToken: token,
+          buyToken: ethToken,
+          from
+        })
+        logger.info(`The arbitrage transaction${arbitrageResult.length > 0 ? 's were' : 'was'} succesful. %o`, arbitrageResult)
+      } catch (error) {
+        logger.error('The arbitrage was NOT succesful.', error)
+      }
     })
 }
 

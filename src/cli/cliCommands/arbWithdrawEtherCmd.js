@@ -1,3 +1,4 @@
+
 const cliUtils = require('../helpers/cliUtils')
 
 const getAddress = require('../../helpers/getAddress')
@@ -5,12 +6,12 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbTransferOwnership <address>',
-    'Transfer ownership of the Arbitrage contract',
+    'arbWithdrawEther <amount>',
+    'Withdraw WETH from dutchX and convert to Ether',
     yargs => {
-      cliUtils.addPositionalByName('address', yargs)
+      cliUtils.addPositionalByName('amount', yargs)
     }, async function (argv) {
-      const { address } = argv
+      const { amount } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -20,15 +21,14 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      logger.info(`Transfer ownership of contract to %s from the account %s`,
-      address,
-      from
+      logger.info(`Transfer %d Weth from DutchX and convert to Ether`,
+      amount
       )
-      const transferOwnership = await arbitrageService.transferOwnership({
-        address,
+      const withdrawTransfer = await arbitrageService.withdrawEther({
+        amount: amount * 1e18,
         from
       })
-      logger.info('The transferOwnership tx was succesful. Transaction: %s', transferOwnership.tx)
+      logger.info('The withdrawEther tx was succesful. Transaction: %s', withdrawTransfer.tx)
     })
 }
 

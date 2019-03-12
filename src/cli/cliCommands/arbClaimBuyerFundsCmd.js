@@ -5,13 +5,13 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbDepositToken <amount> <token>',
-    'Deposit any token in the contract to the dx',
+    'arbClaimBuyerFunds <token> <auctionId>',
+    'Claim buyer funds from an auction on the dutchX',
     yargs => {
-      cliUtils.addPositionalByName('amount', yargs)
       cliUtils.addPositionalByName('token', yargs)
+      cliUtils.addPositionalByName('auctionId', yargs)
     }, async function (argv) {
-      const { amount, token } = argv
+      const { token, auctionId } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -21,17 +21,16 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      logger.info(`Deposit %d Token (%s) using the account %s`,
-      amount,
-      token,
-      from
-      )
-      const depositResult = await arbitrageService.depositToken({
+      logger.info(`Claim buyer funds of token %s on the DutchX for auction %d`,
         token,
-        amount: amount * 1e18,
+        auctionId
+      )
+      const claimBuyerFunds = await arbitrageService.claimBuyerFunds({
+        token,
+        auctionId,
         from
       })
-      logger.info('The deposit was succesful. Transaction: %s', depositResult.tx)
+      logger.info('The claimBuyerFunds tx was succesful. Transaction: %s', claimBuyerFunds.tx)
     })
 }
 

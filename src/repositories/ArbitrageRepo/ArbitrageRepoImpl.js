@@ -112,7 +112,7 @@ class ArbitrageRepoImpl extends Cacheable {
     const { etherToken, tokenTokenAddress } = this.whichTokenIsEth(buyToken, sellToken)
     let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenTokenAddress)
     const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
-    const token_balance = await this._ethereumRepo.tokenBalanceOf({
+    const token_balance = await this._depositToken.tokenBalanceOf({
       tokenAddress: tokenTokenAddress,
       account: uniswapExchangeAddress
     })
@@ -134,6 +134,62 @@ class ArbitrageRepoImpl extends Cacheable {
     }
   }
 
+  async transferToken ({ token, amount, from }) {
+    return this._doTransaction({
+      operation: 'transferToken',
+      from,
+      params: [token, amount]
+    })
+  }
+  
+  async claimBuyerFunds ({ token, auctionId, from }) {
+    return this._doTransaction({
+      operation: 'claimBuyerFunds',
+      from,
+      params: [token, auctionId]
+    })
+  }
+
+  async withdrawToken ({ token, amount, from }) {
+    return this._doTransaction({
+      operation: 'withdrawToken',
+      from,
+      params: [token, amount]
+    })
+  }
+
+  async withdrawEther ({ amount, from }) {
+    return this._doTransaction({
+      operation: 'withdrawEther',
+      from,
+      params: [amount]
+    })
+  }
+
+  async withdrawEtherThenTransfer ({ amount, from }) {
+    return this._doTransaction({
+      operation: 'withdrawEtherThenTransfer',
+      from,
+      params: [amount]
+    })
+  }
+
+  async transferEther ({ amount, from }) {
+    return this._doTransaction({
+      operation: 'transferEther',
+      from,
+      params: [amount]
+    })
+  }
+
+  async transferOwnership ({ address, from }) {
+    return this._doTransaction({
+      operation: 'transferOwnership',
+      from,
+      params: [address]
+    })
+  }
+
   async dutchOpportunity ({ arbToken, amount, from }) {
     return this._doTransaction({
       operation: 'dutchOpportunity',
@@ -141,6 +197,7 @@ class ArbitrageRepoImpl extends Cacheable {
       params: [arbToken, amount]
     })
   }
+
   async uniswapOpportunity ({ arbToken, amount, from }) {
     return this._doTransaction({
       operation: 'uniswapOpportunity',
@@ -152,6 +209,14 @@ class ArbitrageRepoImpl extends Cacheable {
   async getOwner () {
     return this._doCall({
       operation: 'owner'
+    })
+  }
+
+  async depositToken ({ token, amount, from }) {
+    return this._doTransaction({
+      operation: 'depositToken',
+      from,
+      params: [token, amount]
     })
   }
 

@@ -22,12 +22,55 @@ class ArbitrageService {
     this._markets = markets
   }
 
+  getAddress () {
+    return this._auctionRepo.address
+  }
+
   async ethToken () {
     return this._auctionRepo.ethToken()
   }
 
   async manualTrigger() {
     await this._arbitrageRepo
+  }
+
+  async depositToken ({ token, amount, from }) {
+    return this._arbitrageRepo.depositToken({ token, amount, from })
+  }
+  
+  async uniswapOpportunity ({ arbToken, amount, from }) {
+    return this._arbitrageRepo.uniswapOpportunity({ arbToken, amount, from })
+  }
+  
+  async transferOwnership ({ address, from }) {
+    return this._arbitrageRepo.transferOwnership({ address, from })
+  }
+
+  async withdrawEther ({ amount, from }) {
+    return this._arbitrageRepo.withdrawEther({ amount, from })
+  }
+
+  async withdrawToken ({ token, amount, from }) {
+    return this._arbitrageRepo.withdrawToken({ token, amount, from })
+  }
+  async claimBuyerFunds ({ token, auctionId, from }) {
+    return this._arbitrageRepo.claimBuyerFunds({ token, auctionId, from })
+  }
+
+  async withdrawEtherThenTransfer ({ amount, from }) {
+    return this._arbitrageRepo.withdrawEtherThenTransfer({ amount, from })
+  }
+
+  async transferEther ({ amount, from }) {
+    return this._arbitrageRepo.transferEther({ amount, from })
+  }
+
+  async transferToken ({ token, amount, from }) {
+    return this._arbitrageRepo.transferToken({ token, amount, from })
+  }
+
+  async dutchOpportunity ({ arbToken, amount, from }) {
+    return this._arbitrageRepo.dutchOpportunity({ arbToken, amount, from })
   }
 
   async getContractEtherBalance() {

@@ -5,7 +5,7 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'depositArbitrageEther <amount>',
+    'arbDepositEther <amount>',
     'Deposit any Ether in the contract to the dx as WETH',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
@@ -20,7 +20,6 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      // Get auction index
       const balance = await arbitrageService.getContractEtherBalance()
 
       logger.info(`Deposit %d Eth plus balance of %d as WETH using the account %s`,
