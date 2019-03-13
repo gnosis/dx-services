@@ -148,7 +148,7 @@
     "@gnosis.pm/owl-token" "^2.0.0"
     "@gnosis.pm/util-contracts" "^2.0.0"
 
-"@gnosis.pm/dx-price-oracle@^0.2.0":
+"@gnosis.pm/dx-price-oracle@0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-price-oracle/-/dx-price-oracle-0.2.0.tgz#942e58ed8ec6783562f55cd00948bf73345c384c"
   integrity sha512-vcmSX2H9J1jcw5J3Ejm9V9eqFh/CXeBeM5ZdKWzrkRK89RMq2tdc9CAHpSUHiDnhHC7Orl3tHSe/dFJap6jpxg==
