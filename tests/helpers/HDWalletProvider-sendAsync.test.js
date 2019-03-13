@@ -25,7 +25,7 @@ beforeEach(() => {
 })
 
 describe('Get version, delegates the to the wallet', () => {
-  test.only('Successful request', done => {
+  test('Successful request', done => {
     // GIVEN: An engine that succeed on sendAsync
     wallet.engine.sendAsync.mockImplementation(SUCCESS_ASYNC_FN)
 
@@ -44,7 +44,7 @@ describe('Get version, delegates the to the wallet', () => {
     })
   })
 
-  test.only('Erroneus requests', done => {
+  test('Erroneus requests', done => {
     // GIVEN: An engine that succeed on sendAsync
     wallet.engine.sendAsync.mockImplementation(ERROR_ASYNC_FN)
 

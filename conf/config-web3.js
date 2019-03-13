@@ -37,7 +37,7 @@ if (process.env.SAFE_ADDRESS) {
   WEB3_PROVIDER = {
     factory: 'src/helpers/web3Providers/HDWalletProvider.js',
     addressIndex: 0,
-    numAddresses: 2,
+    numAddresses: 5,
     shareNonce: true,
     blockForNonceCalculation: 'pending'
   }
