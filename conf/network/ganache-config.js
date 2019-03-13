@@ -1,4 +1,5 @@
 const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
+
 const CONTRACT_DEFINITIONS = {
   GnosisStandardToken: CONTRACTS_BASE_DIR + '/GnosisStandardToken',
   DutchExchange: CONTRACTS_BASE_DIR + '/DutchExchange',

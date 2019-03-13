@@ -22,8 +22,10 @@ const INITIAL_AMOUNTS = {
   OMG: 1500
 }
 
-const config = {
-  AUCTION_REPO: 'impl'
+const baseConfig = {
+  AUCTION_REPO: {
+    factory: 'src/repositories/AuctionRepo/AuctionRepoImpl'
+  }
 }
 
 // const balanceProps = ['token', 'balance']
@@ -667,7 +669,7 @@ function weiToEth (wei) {
 }
 */
 
-function testSetup () {
+function testSetup ({ config = baseConfig } = {}) {
   return instanceFactory({ test: true, config })
     .then(async instances => {
       const contracts = await getContracts(instances)

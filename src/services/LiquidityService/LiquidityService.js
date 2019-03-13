@@ -48,7 +48,7 @@ class LiquidityService {
   async getAbout () {
     const auctionInfo = await this._auctionRepo.getAbout()
     const config = Object.assign({
-      minimumSellVolume: await this._auctionRepo.getThresholdNewAuction()
+      minimumSellVolumeDefault: await this._auctionRepo.getThresholdNewAuction()
     }, auctionInfo)
 
     return {
@@ -70,22 +70,37 @@ class LiquidityService {
     })
   }
 
-  async ensureSellLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
+  async ensureSellLiquidity ({
+    sellToken,
+    buyToken,
+    from,
+    minimumSellVolumeInUsd,
+    waitToReleaseTheLock = true
+  }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
+      minimumSellVolumeInUsd,
       liquidityCheckName: 'sell',
       waitToReleaseTheLock
     })
   }
 
-  async _ensureLiquidityAux ({ sellToken, buyToken, from, buyLiquidityRules, liquidityCheckName, waitToReleaseTheLock }) {
+  async _ensureLiquidityAux ({
+    sellToken,
+    buyToken,
+    from,
+    minimumSellVolumeInUsd,
+    buyLiquidityRules,
+    liquidityCheckName,
+    waitToReleaseTheLock
+  }) {
     // Define some variables to refacor sell/buy liquidity checks
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
-      messageCurrentCheck, paramsCurrentCheck
+      messageCurrentCheck, paramsCurrentCheck, minimumSellVolume
     if (liquidityCheckName === 'sell') {
-      const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
+      minimumSellVolume = minimumSellVolumeInUsd ? numberUtil.toBigNumber(minimumSellVolumeInUsd) : await this._auctionRepo.getThresholdNewAuction()
 
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
@@ -152,6 +167,7 @@ check should be done`,
         tokenA: sellToken,
         tokenB: buyToken,
         from,
+        minimumSellVolume,
         buyLiquidityRules
       })
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
@@ -183,7 +199,12 @@ check should be done`,
     return Promise.all(balancesPromises)
   }
 
-  async _doEnsureSellLiquidity ({ tokenA, tokenB, from }) {
+  async _doEnsureSellLiquidity ({
+    tokenA,
+    tokenB,
+    from,
+    minimumSellVolume
+  }) {
     const soldTokens = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
     const [auctionIndex, auctionStart] = await Promise.all([
@@ -199,12 +220,9 @@ check should be done`,
       // We are in a waiting for funding period
 
       // Get the liquidity and minimum sell volume
-      const [{ fundingA, fundingB }, minimumSellVolume] = await Promise.all([
-        this._auctionRepo.getFundingInUSD({
-          tokenA, tokenB, auctionIndex
-        }),
-        this._auctionRepo.getThresholdNewAuction()
-      ])
+      const { fundingA, fundingB } = await this._auctionRepo.getFundingInUSD({
+        tokenA, tokenB, auctionIndex
+      })
 
       // Check if we surplus it
       if (
@@ -228,7 +246,8 @@ check should be done`,
             buyToken: tokenB,
             funding: fundingA,
             auctionIndex,
-            from
+            from,
+            minimumSellVolume
           })
           soldTokens.push(soldTokenAB)
         }
@@ -238,7 +257,8 @@ check should be done`,
             buyToken: tokenA,
             funding: fundingB,
             auctionIndex,
-            from
+            from,
+            minimumSellVolume
           })
           soldTokens.push(soldTokenBA)
         }
@@ -606,10 +626,16 @@ keeps happening`
     return buyRule ? buyRule.buyRatio : numberUtil.ZERO
   }
 
-  async _sellTokenToCreateLiquidity ({ sellToken, buyToken, funding, auctionIndex, from }) {
+  async _sellTokenToCreateLiquidity ({
+    sellToken,
+    buyToken,
+    funding,
+    auctionIndex,
+    from,
+    minimumSellVolume
+  }) {
     // decide if we sell on the auction A-B or the B-A
     //  * We sell on the auction with more liquidity
-    const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
     let amountToSellInUSD = minimumSellVolume.minus(funding)
 
     // We round up the dollars

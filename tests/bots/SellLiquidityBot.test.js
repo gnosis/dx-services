@@ -1,7 +1,7 @@
 const SellLiquidityBot = require('../../src/bots/SellLiquidityBot')
-
 const testSetup = require('../helpers/testSetup')
-const setupPromise = testSetup()
+
+jest.setTimeout(10000)
 
 const BigNumber = require('bignumber.js')
 
@@ -10,9 +10,11 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
+const setupPromise = testSetup()
+
 let sellLiquidityBot
 
-beforeAll(async () => {
+beforeAll(async done => {
   await setupPromise
 
   sellLiquidityBot = new SellLiquidityBot({
@@ -26,6 +28,9 @@ beforeAll(async () => {
 
   await sellLiquidityBot.init()
   await sellLiquidityBot.start()
+
+  // Wait until everything is ready to go
+  done()
 })
 
 afterAll(() => {
@@ -63,7 +68,8 @@ test('It should trigger ensure liquidity from eventBus trigger', () => {
 
   // WHEN we trigger 'auction:cleared' event
   sellLiquidityBot._eventBus.trigger('auction:cleared', {
-    buyToken: 'RDN', sellToken: 'WETH' })
+    buyToken: 'RDN', sellToken: 'WETH'
+  })
 
   // THEN liquidity ensuring functions have been called
   expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(1)
@@ -86,7 +92,8 @@ test('It should not ensure liquidity from eventBus trigger from not followed mar
 
   // WHEN we trigger 'auction:cleared' event
   sellLiquidityBot._eventBus.trigger('auction:cleared', {
-    buyToken: 'DAI', sellToken: 'WETH' })
+    buyToken: 'DAI', sellToken: 'WETH'
+  })
 
   // THEN liquidity ensuring functions have been called
   expect(BOT_ENSURE_SELL_LIQUIDITY).toHaveBeenCalledTimes(0)
@@ -102,7 +109,8 @@ test('It should not ensure liquidity if already ensuring liquidity.', () => {
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
+  })
 
   // THEN liquidiy is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -121,7 +129,8 @@ test('It should ensure liquidity.', () => {
 
   // WHEN we ensure liquidity
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
+  })
 
   // THEN liquidity is ensured correctly
   ENSURE_LIQUIDITY.then(result => {
@@ -142,7 +151,8 @@ test('It should handle errors if something goes wrong.', () => {
 
   // WHEN we ensure liquidity but an error is thrown
   const ENSURE_LIQUIDITY = sellLiquidityBot._ensureSellLiquidity({
-    buyToken: 'RDN', sellToken: 'WETH', from: '0x123' })
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
+  })
 
   // THEN liquidity can't be ensured
   ENSURE_LIQUIDITY.then(result => {

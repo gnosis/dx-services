@@ -4,22 +4,31 @@ const getAuctionRepo = require('../../repositories/AuctionRepo')
 const getEthereumRepo = require('../../repositories/EthereumRepo')
 const getSlackRepo = require('../../repositories/SlackRepo')
 
-let reportService
+let instance, instancePromise
+
+async function _getInstance () {
+  const [auctionRepo, ethereumRepo, slackRepo] = await Promise.all([
+    getAuctionRepo(),
+    getEthereumRepo(),
+    getSlackRepo()
+  ])
+  return new ReportService({
+    auctionRepo,
+    ethereumRepo,
+    slackRepo,
+    markets: conf.MARKETS,
+    auctionsReportSlackChannel: conf.SLACK_CHANNEL_AUCTIONS_REPORT
+  })
+}
+
 module.exports = async () => {
-  if (!reportService) {
-    const [ auctionRepo, ethereumRepo, slackRepo ] = await Promise.all([
-      getAuctionRepo(),
-      getEthereumRepo(),
-      getSlackRepo()
-    ])
-    reportService = new ReportService({
-      auctionRepo,
-      ethereumRepo,
-      slackRepo,
-      markets: conf.MARKETS,
-      auctionsReportSlackChannel: conf.SLACK_CHANNEL_AUCTIONS_REPORT
-    })
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return reportService
+  return instance
 }

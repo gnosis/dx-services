@@ -5,24 +5,33 @@ const getDxPriceOracleRepo = require('../../repositories/DxPriceOracleRepo')
 const getEthereumRepo = require('../../repositories/EthereumRepo')
 const getSlackRepo = require('../../repositories/SlackRepo')
 
-let dxInfoService
+let instance, instancePromise
+
+async function _getInstance () {
+  const [auctionRepo, dxPriceOracleRepo, ethereumRepo, slackRepo] = await Promise.all([
+    getAuctionRepo(),
+    getDxPriceOracleRepo(),
+    getEthereumRepo(),
+    getSlackRepo()
+  ])
+  return new DxInfoService({
+    auctionRepo,
+    dxPriceOracleRepo,
+    ethereumRepo,
+    slackRepo,
+    markets: conf.MARKETS,
+    operationsSlackChannel: conf.SLACK_CHANNEL_OPERATIONS
+  })
+}
+
 module.exports = async () => {
-  if (!dxInfoService) {
-    const [ auctionRepo, dxPriceOracleRepo, ethereumRepo, slackRepo ] = await Promise.all([
-      getAuctionRepo(),
-      getDxPriceOracleRepo(),
-      getEthereumRepo(),
-      getSlackRepo()
-    ])
-    dxInfoService = new DxInfoService({
-      auctionRepo,
-      dxPriceOracleRepo,
-      ethereumRepo,
-      slackRepo,
-      markets: conf.MARKETS,
-      operationsSlackChannel: conf.SLACK_CHANNEL_OPERATIONS
-    })
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return dxInfoService
+  return instance
 }

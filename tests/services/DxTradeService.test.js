@@ -2,10 +2,6 @@ const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
 
-const auctionsMockData = require('../data/auctions')
-
-const BigNumber = require('bignumber.js')
-
 const setupPromise = testSetup()
 
 test('It should post a buy order', async () => {

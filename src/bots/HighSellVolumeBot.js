@@ -12,7 +12,7 @@ const formatUtil = require('../helpers/formatUtil')
 
 const BOT_TYPE = 'HighSellVolumeBot'
 const getAddress = require('../helpers/getAddress')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getDxInfoService = require('../services/DxInfoService')
 const getMarketService = require('../services/MarketService')
@@ -147,17 +147,20 @@ class HighSellVolumeBot extends Bot {
   async _checkEnoughBalance ({ sellToken, buyToken, from }) {
     logger.debug('Checking enough balance for %s-%s in %s', sellToken, buyToken, from)
     const auctionSellVolumePromise = this._dxInfoService.getSellVolume({
-      sellToken, buyToken })
+      sellToken, buyToken
+    })
     const buyTokenBalancePromise = this._dxInfoService.getAccountBalanceForToken({
-      token: buyToken, address: from })
+      token: buyToken, address: from
+    })
     const externalPricePromise = this._marketService.getPrice({
-      tokenA: sellToken, tokenB: buyToken })
-    const [ auctionSellVolume, buyTokenBalance, estimatedPrice ] =
-    await Promise.all([
-      auctionSellVolumePromise,
-      buyTokenBalancePromise,
-      externalPricePromise
-    ])
+      tokenA: sellToken, tokenB: buyToken
+    })
+    const [auctionSellVolume, buyTokenBalance, estimatedPrice] =
+      await Promise.all([
+        auctionSellVolumePromise,
+        buyTokenBalancePromise,
+        externalPricePromise
+      ])
 
     const estimatedBuyVolume = auctionSellVolume.mul(numberUtil.toBigNumber(estimatedPrice))
     logger.debug('Auction sell volume is %s %s and we have %s %s. With last available price %s %s/%s that should mean we need %s %s',
@@ -169,7 +172,8 @@ class HighSellVolumeBot extends Bot {
     if (estimatedBuyVolume.mul(BALANCE_MARGIN_FACTOR).greaterThan(buyTokenBalance)) {
       logger.debug('We estimate we won`t be able to buy everything')
       this._notifyBalanceBelowEstimate({
-        sellToken, buyToken, from, balance: buyTokenBalance, estimatedBuyVolume })
+        sellToken, buyToken, from, balance: buyTokenBalance, estimatedBuyVolume
+      })
     } else {
       logger.debug('We will be able to buy everything')
     }
@@ -266,7 +270,7 @@ class HighSellVolumeBot extends Bot {
       sellToken,
       buyToken,
       msg: 'There was an error checking for high sell volumes for the account %s: %s',
-      params: [ this._botAddress, error ],
+      params: [this._botAddress, error],
       error
     })
   }
