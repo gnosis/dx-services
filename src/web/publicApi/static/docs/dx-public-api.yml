@@ -291,7 +291,8 @@ paths:
       description: >-
         Returns a median of the selected token (always with WETH) of the past 9
         auctions that have run. Only returns this price if all past 9 auctions
-        have run consecutively (i.e. if enough liquidity was given)
+        have run consecutively (i.e. if enough liquidity was given). If no safe
+        price is available it returns `null`
       operationId: getOraclePrice
       produces:
         - application/json
@@ -316,9 +317,10 @@ paths:
       summary: Returns a median oracle price for the selected past auctions
       description: >-
         Returns a median of the selected token (always with ETH) of the past N
-        auctions that have run. Only returns a price
-        The DutchX has an internal on-chain price oracle which is the last auction
-        price for the token (with ETH)
+        auctions that have run. You can limit the maximum time between auctions,
+        the moment of time (using Unix timestamp) when you want to check the price
+        and if you require this token to be whitelisted. If no price is available
+        using the selected params it returns `null`.
       operationId: getOraclePriceCustom
       produces:
         - application/json
@@ -326,14 +328,13 @@ paths:
         - name: token
           in: path
           description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+            A token address string for selecting the desired token
           required: true
           type: string
         - name: time
           in: query
           description: >-
-            An Unix timestamp or a price at any point in time
+            An Unix timestamp for a price at any point in time
           required: false
           type: integer
           format: int32
@@ -377,9 +378,9 @@ paths:
       summary: Returns a median oracle price for the selected past auctions
       description: >-
         Returns a median of the selected token (always with ETH) of the past N
-        auctions that have run. Only returns a price
-        The DutchX has an internal on-chain price oracle which is the last auction
-        price for the token (with ETH)
+        auctions that have run. This is a simple median using only the number of
+        auctions that you specify and starting in the selected auction index.
+        If no price is available using the selected params it returns `null`.
       operationId: getOraclePriceSimpleMedian
       produces:
         - application/json
@@ -387,8 +388,7 @@ paths:
         - name: token
           in: path
           description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+            A token address string for selecting the desired token
           required: true
           type: string
         - name: auctionIndex

@@ -8,7 +8,6 @@ const assert = require('assert')
 
 class DxPriceOracleRepoImpl extends Cacheable {
   constructor ({
-    ethereumClient,
     contracts,
     // Cache
     cacheConf
@@ -17,22 +16,10 @@ class DxPriceOracleRepoImpl extends Cacheable {
       cacheConf,
       cacheName: 'DxOraclePriceRepo'
     })
-    assert(ethereumClient, '"ethereumClient" is required')
     assert(contracts, '"contracts" is required')
 
-    this._ethereumClient = ethereumClient
-    this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
-
     // Contracts
-    this._dx = contracts.dx
     this._dxPriceOracle = contracts.dxPriceOracle
-    this._priceOracle = contracts.priceOracle
-    this._tokens = Object.assign({
-      GNO: contracts.gno,
-      WETH: contracts.eth,
-      MGN: contracts.mgn,
-      OWL: contracts.owl
-    }, contracts.erc20TokenContracts)
 
     logger.debug({
       msg: `DX Price oracle in address %s`,
@@ -40,13 +27,6 @@ class DxPriceOracleRepoImpl extends Cacheable {
     })
 
     this.ready = Promise.resolve()
-    Object.keys(this._tokens).forEach(token => {
-      const contract = this._tokens[token]
-      logger.debug({
-        msg: `Token %s in address %s`,
-        params: [token, contract.address]
-      })
-    })
   }
 
   async getPrice ({ token }) {
