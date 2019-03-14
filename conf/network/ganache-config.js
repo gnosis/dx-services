@@ -7,7 +7,6 @@ const CONTRACT_DEFINITIONS = {
   UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange',
   UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
 
-
   GnosisStandardToken: CONTRACTS_BASE_DIR + '/GnosisStandardToken',
 
   StandardToken: CONTRACTS_BASE_DIR + '/StandardToken',
@@ -15,7 +14,7 @@ const CONTRACT_DEFINITIONS = {
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
   DutchExchangeHelper: CONTRACTS_BASE_DIR + '/DutchExchangeHelper',
-  UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
+
   EtherToken: CONTRACTS_BASE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_BASE_DIR + '/TokenFRT',
   TokenFRTProxy: CONTRACTS_BASE_DIR + '/TokenFRTProxy',
@@ -29,5 +28,5 @@ module.exports = {
   CONTRACTS_BASE_DIR,
   CONTRACT_DEFINITIONS,
   UNI_TOKEN_ADDRESS: '0xd54b47F8e6A1b97F3A84f63c867286272b273b7C',
-  SAFE_MODULE_ADDRESSES
+  SAFE_MODULE_ADDRESSES: null
 }

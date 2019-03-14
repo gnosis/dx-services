@@ -1,0 +1,148 @@
+const ArbitrageBot = require('../../src/bots/ArbitrageBot')
+const testSetup = require('../helpers/testSetup')
+jest.setTimeout(10000)
+
+const BigNumber = require('bignumber.js')
+
+const MARKETS = [
+  { tokenA: 'WETH', tokenB: 'RDN' },
+  { tokenA: 'WETH', tokenB: 'OMG' }
+]
+
+const BUY_LIQUIDITY_RULES = []
+
+const setupPromise = testSetup()
+
+let arbitrageBot
+
+beforeAll(async () => {
+  console.log('BEFORE ALL')
+  await setupPromise
+  console.log('setupPromise DONE')
+  arbitrageBot = new ArbitrageBot({
+    name: 'ArbitrageBot',
+    botAddress: '0x123',
+    markets: MARKETS,
+    rules: BUY_LIQUIDITY_RULES,
+    notifications: []
+  })
+  console.log('arbitrageBot is a ' + typeof arbitrageBot)
+
+  jest.useFakeTimers()
+
+  await arbitrageBot.init()
+  await arbitrageBot.start()
+})
+
+afterAll(() => {
+  console.log('AFTER ALL')
+  console.log('arbitrageBot is a ' + typeof arbitrageBot)
+  arbitrageBot.stop()
+})
+
+test('It should do a routine check.', async () => {
+  // we mock ensureArbitrageLiquidity function
+  arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidity)
+  const ENSURE_ARBITRAGE_FN = arbitrageBot._liquidityService.ensureArbitrageLiquidity
+
+  // GIVEN a never called ensureArbitrageLiquidity function
+  expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(0)
+
+  // WHEN we wait for an expected time
+  jest.runOnlyPendingTimers()
+
+  // THEN bot autochecked liquidity for all markets just in case
+  expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(2)
+})
+
+test('It should not run arbitrage if already running arbitrage.', () => {
+  expect.assertions(1)
+  // we mock ensureArbitrageLiquidity function
+  arbitrageBot._liquidityService.ensureArbitrageLiquidity = _concurrentLiquidityEnsured
+
+  // GIVEN a running bot
+
+  // WHEN we buy remaining liquidity
+  const ENSURE_ARBITRAGE = arbitrageBot._ensureArbitrageLiquidity({
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
+  })
+
+  // THEN concurrency is detected and do nothing
+  ENSURE_ARBITRAGE.then(result => {
+    expect(result).toBeTruthy()
+  })
+})
+
+test('It should run when called', () => {
+  expect.assertions(3)
+  // we mock ensureArbitrageLiquidity function
+  arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidity)
+  const ENSURE_ARBITRAGE_FN = arbitrageBot._liquidityService.ensureArbitrageLiquidity
+
+  // GIVEN never arbitrage
+  expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(0)
+
+  // WHEN we arbitrage
+  const ENSURE_ARBITRAGE = arbitrageBot._ensureArbitrageLiquidity({
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
+  })
+
+  // THEN arbitrage is ensured correctly
+  ENSURE_ARBITRAGE.then(result => {
+    expect(result).toBeTruthy()
+  })
+  expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(1)
+})
+
+test('It should handle errors if something goes wrong.', () => {
+  expect.assertions(3)
+  // we mock ensureArbitrageLiquidity function
+  arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidityError)
+  arbitrageBot._handleError = jest.fn(arbitrageBot._handleError)
+  const HANDLE_ERROR_FN = arbitrageBot._handleError
+
+  // GIVEN never called handling error function
+  expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(0)
+
+  // WHEN we ensure liquidity but an error is thrown
+  const ENSURE_ARBITRAGE = arbitrageBot._ensureArbitrageLiquidity({
+    buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
+  })
+
+  // THEN liquidity can't be ensured
+  ENSURE_ARBITRAGE.then(result => {
+    expect(result).toBeFalsy()
+  })
+  // THEN handling error function is called
+  expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(1)
+})
+
+function _concurrentLiquidityEnsured ({ sellToken, buyToken, from }) {
+  return Promise.resolve([])
+}
+
+function _ensureLiquidity ({ sellToken, buyToken, from }) {
+  return Promise.resolve([{
+    type: 'UniswapOpportunity',
+    arbToken: buyToken,
+    amount: new BigNumber('522943983903581200'),
+    expectedProfit: '0',
+    actualProfit: '0',
+    dutchPrice: '0',
+    uniswapPrice: '0',
+    tx: {}
+  }, {
+    type: 'DutchOpportunity',
+    arbToken: sellToken,
+    amount: new BigNumber('522943983903581200'),
+    expectedProfit: '0',
+    actualProfit: '0',
+    dutchPrice: '0',
+    uniswapPrice: '0',
+    tx: {}
+  }])
+}
+
+function _ensureLiquidityError ({ sellToken, buyToken, from }) {
+  throw Error('This is an EXPECTED test error')
+}

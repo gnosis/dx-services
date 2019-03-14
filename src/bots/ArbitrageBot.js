@@ -9,7 +9,7 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const BOT_TYPE = 'ArbitrageLiquidityBot'
 // const getAddress = require('../helpers/getAddress')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -84,12 +84,12 @@ class ArbitrageBot extends Bot {
   async _doStart () {
     logger.debug({ msg: 'Initialized bot: ' + this.name })
 
-    // Check the liquidity periodically
+    // Check the opportunity periodically
     setInterval(() => {
       this._markets.forEach(market => {
         const sellToken = market.tokenA
         const buyToken = market.tokenB
-        this._doRoutineLiquidityCheck(sellToken, buyToken)
+        this._doRoutineArbitrageCheck(sellToken, buyToken)
       })
     }, this._checkTimeInMilliseconds)
   }
@@ -98,12 +98,12 @@ class ArbitrageBot extends Bot {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
-  async _doRoutineLiquidityCheck (sellToken, buyToken) {
-    // Do ensure liquidity on the market
+  async _doRoutineArbitrageCheck (sellToken, buyToken) {
+    // Do ensure arbitrage on the market
     auctionLogger.debug({
       sellToken,
       buyToken,
-      msg: "Doing a routine check. Let's see if we need to ensure the liquidity"
+      msg: "Doing a routine check. Let's see if we need to arbitrage"
     })
     return this._ensureArbitrageLiquidity({
       sellToken,
@@ -119,13 +119,13 @@ class ArbitrageBot extends Bot {
     try {
       liquidityWasEnsured = await this._liquidityService
         .ensureArbitrageLiquidity({ sellToken, buyToken, from, arbitrageRules })
-        .then(boughtTokens => {
-          let liquidityWasEnsured = boughtTokens.length > 0
+        .then(successfulArbitrages => {
+          let liquidityWasEnsured = successfulArbitrages.length > 0
           if (liquidityWasEnsured) {
-            // The bot bought some tokens
+            // The bot ran some arbitrage transactions
             this._lastBuy = new Date()
-            boughtTokens.forEach(buyOrder => {
-              this._notifyBuyedTokens(buyOrder)
+            successfulArbitrages.forEach(arbitrage => {
+              this._notifyArbitrage(arbitrage)
             })
           } else {
             // The bot didn't have to do anything
@@ -147,23 +147,28 @@ class ArbitrageBot extends Bot {
     return liquidityWasEnsured
   }
 
-  _notifyBuyedTokens (tx) {
-
-    // const {
-    //   sellToken,
-    //   buyToken,
-    //   amount,
-    //   amountInUSD,
-    //   auctionIndex
-    // } = buyOrder
-    // // Log sold tokens
-    // const amountInTokens = amount.div(1e18)
-    // const boughtTokensString = amountInTokens + ' ' + buyToken
+  _notifyArbitrage (arbitrage) {
+    const {
+      type,
+      arbToken,
+      amount,
+      expectedProfit,
+      actualProfit,
+      dutchPrice,
+      uniswapPrice,
+      tx
+    } = arbitrage
 
     auctionLogger.info({
-      sellToken,
-      buyToken,
-      msg: "Successful tx during arbitrage opportunity",
+      type,
+      arbToken,
+      amount,
+      expectedProfit,
+      actualProfit,
+      dutchPrice,
+      uniswapPrice,
+      tx,
+      msg: `Successful ${type} arbitrage`,
       params: tx.receipt.logs,
       notify: true
     })
@@ -174,14 +179,17 @@ class ArbitrageBot extends Bot {
         case 'slack':
           // Notify to slack
           if (this._slackRepo.isEnabled()) {
-            // this._notifyBuyedTokensSlack({
-              // channel,
-              // boughtTokensString,
-              // sellToken,
-              // buyToken,
-              // auctionIndex,
-              // amountInUSD
-            // })
+            this._notifyArbitrageSlack({
+              channel,
+              type,
+              arbToken,
+              amount,
+              expectedProfit,
+              actualProfit,
+              dutchPrice,
+              uniswapPrice,
+              tx
+            })
           }
           break
         case 'email':
@@ -194,15 +202,15 @@ class ArbitrageBot extends Bot {
     })
   }
 
-  _notifyBuyedTokensSlack ({ channel, boughtTokensString, sellToken, buyToken, auctionIndex, amountInUSD }) {
+  _notifyArbitrageSlack ({ channel, type, arbToken, amount, expectedProfit, actualProfit, dutchPrice, uniswapPrice, tx }) {
     this._slackRepo
       .postMessage({
         channel,
         attachments: [
           {
             color: 'good',
-            title: 'The bot has bought ' + boughtTokensString,
-            text: 'The bot has bought tokens as an arbitrage opportunity.',
+            title: 'Successful ' + type,
+            text: 'The bot has arbitraged tokens because of a(n) ' + type,
             fields: [
               {
                 title: 'Bot name',
@@ -210,19 +218,31 @@ class ArbitrageBot extends Bot {
                 short: false
               }, {
                 title: 'Token pair',
-                value: sellToken + '-' + buyToken,
+                value: arbToken + '-WETH',
                 short: false
               }, {
-                title: 'Auction index',
-                value: auctionIndex,
+                title: 'Tx hash',
+                value: tx.transactionHash,
                 short: false
               }, {
-                title: 'Bought tokens',
-                value: boughtTokensString,
+                title: 'Amount spend (wei)',
+                value: amount,
                 short: false
               }, {
-                title: 'USD worth',
-                value: '$' + amountInUSD,
+                title: 'Expected Profit (wei)',
+                value: expectedProfit,
+                short: false
+              }, {
+                title: 'Actual Profit (wei)',
+                value: actualProfit,
+                short: false
+              }, {
+                title: 'Dutch Price',
+                value: dutchPrice,
+                short: false
+              }, {
+                title: 'uniswapPrice',
+                value: uniswapPrice,
                 short: false
               }
             ],
@@ -242,7 +262,7 @@ class ArbitrageBot extends Bot {
     auctionLogger.error({
       sellToken,
       buyToken,
-      msg: 'There was an error buy ensuring liquidity with the account %s: %s',
+      msg: 'There was an error running an arbitrage with the account %s: %s',
       params: [ this._botAddress, error ],
       error
     })
@@ -254,7 +274,6 @@ class ArbitrageBot extends Bot {
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
       lastError: this._lastError,
-      rules: this._rules,
       notifications: this._notifications,
       checkTimeInMilliseconds: this._checkTimeInMilliseconds,
       markets: this._markets

@@ -111,8 +111,8 @@ class ArbitrageRepoImpl extends Cacheable {
   async getUniswapBalances ({ buyToken, sellToken }) {
     const { etherToken, tokenTokenAddress } = this.whichTokenIsEth(buyToken, sellToken)
     let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenTokenAddress)
-    const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
-    const token_balance = await this._depositToken.tokenBalanceOf({
+    const etherBalance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
+    const tokenBalance = await this._depositToken.tokenBalanceOf({
       tokenAddress: tokenTokenAddress,
       account: uniswapExchangeAddress
     })
@@ -123,13 +123,13 @@ class ArbitrageRepoImpl extends Cacheable {
       // then sellerToken is tokenToken... so tokenToken is used as inputToken
       // that will be exchanged for etherToken outputToken
       return {
-        input_balance: token_balance,
-        output_balance: ether_balance
+        inputBalance: tokenBalance,
+        outputBalance: etherBalance
       }
     } else {
       return {
-        input_balance: ether_balance,
-        output_balance: token_balance
+        inputBalance: etherBalance,
+        outputBalance: tokenBalance
       }
     }
   }
@@ -141,7 +141,7 @@ class ArbitrageRepoImpl extends Cacheable {
       params: [token, amount]
     })
   }
-  
+
   async claimBuyerFunds ({ token, auctionId, from }) {
     return this._doTransaction({
       operation: 'claimBuyerFunds',
