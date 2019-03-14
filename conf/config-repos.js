@@ -10,6 +10,11 @@ module.exports = {
   OVER_FAST_PRICE_FACTOR: 1, // (fast_price * OVER_FAST_PRICE_FACTOR) === using maximum the fastest gas price
   GAS_ESTIMATION_CORRECTION_FACTOR: 2, // Gas estimation correction for proxied contract
 
+  // ArbitrageRepo conf
+  ARBITRAGE_REPO: {
+    factory: 'src/repositories/ArbitrageRepo/ArbitrageRepoImpl' // mock, impl
+  },
+
   // AuctionRepo conf
   AUCTION_REPO: {
     factory: 'src/repositories/AuctionRepo/AuctionRepoImpl' // mock, impl
