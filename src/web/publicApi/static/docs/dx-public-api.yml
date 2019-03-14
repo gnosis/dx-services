@@ -740,6 +740,9 @@ paths:
 
       
         Note, that you have to include the auction index (`auctionIndex`).
+
+        
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getExtraTokens
       produces:
         - application/json
@@ -792,6 +795,9 @@ paths:
 
         The auction will clear when the buy 
         volume equals the sell volume at the current price.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getSellVolumeForCurrentAuction
       produces:
         - application/json
@@ -834,6 +840,8 @@ paths:
         (`1000$` worth of the token), the 
         **next auction will be scheduled to start in 10 min**.
 
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getSellVolumeNext
       produces:
         - application/json
@@ -880,6 +888,9 @@ paths:
 
         The auction will clear when the buy 
         volume equals the sell volume at the current price.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getBuyVolume
       produces:
         - application/json
@@ -934,6 +945,9 @@ paths:
 
 
         It can optionally be filtered by token pair (`tokenPair`).
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getClearedAcutionsInfo
       produces:
         - application/json
@@ -1015,6 +1029,9 @@ paths:
 
         Every time a user **withdraw** or **submit a sell/bid order**, the tokens 
         are deducted from the balance.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getTokenBalanceOf
       produces:
         - application/json
@@ -1059,6 +1076,9 @@ paths:
         Also, note that **you can claim multiple auctions at the same time**, so if 
         you are very active in the DutchX, you may consider not claiming your 
         tokens on every auction, and wait until you have several auctions to claim.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getClaimableTokens
       produces:
         - application/json
@@ -1129,6 +1149,9 @@ paths:
         * `0,0997 Ether` would be place as a sell order.
         
         * `0,0003 Ether` would be availible as LC for next auction.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getFeeRatio
       produces:
         - application/json
@@ -1168,6 +1191,9 @@ paths:
 
         It's important to note, that once an auction starts, 
         **the seller balance won't change during the auction**.
+
+        
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getSellerBalanceForCurrentAuction
       produces:
         - application/json
@@ -1205,6 +1231,8 @@ paths:
       description: >-
         Returns an Ethereum's account seller balance for a given auction.
 
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getSellerBalanceForAuction
       produces:
         - application/json
@@ -1258,6 +1286,9 @@ paths:
         It's important to note, that when the auction starts, all accounts 
         have `0` balance. The balance will be incremented on every buy order for 
         the account.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getBuyerBalanceForCurrentAuction
       produces:
         - application/json
@@ -1294,6 +1325,9 @@ paths:
       summary: Buyer balance for auction
       description: >-
         Returns an Ethereum's account buyer balance for a given auction.
+
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getBuyerBalance
       produces:
         - application/json
