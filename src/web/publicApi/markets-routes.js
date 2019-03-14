@@ -148,10 +148,10 @@ function createRoutes ({ dxInfoService, reportService },
   })
 
   routes.push({
-    path: '/:token-WETH/prices/simple-median/:auctionIndex',
+    path: '/:token-WETH/prices/simple-median',
     get (req, res) {
       const token = req.params.token
-      const auctionIndex = req.params.auctionIndex
+      const auctionIndex = req.query.auctionIndex
       const numberOfAuctions = req.query.numberOfAuctions !== undefined
         ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })

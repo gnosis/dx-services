@@ -525,7 +525,7 @@ paths:
 
 
 
-  '/markets/{token}-WETH/prices/simple-median/{auctionIndex}':
+  '/markets/{token}-WETH/prices/simple-median':
     get:
       tags:
         - Prices
@@ -537,19 +537,23 @@ paths:
         All prices are given in Ether.
 
 
-        The median has proven to be more market manipulation resistant. For more
-        information about the [median](https://en.wikipedia.org/wiki/Median).
+        The median has proven to be more resistant to market manipulation. Check here
+        for more information about the [median](https://en.wikipedia.org/wiki/Median).
 
 
         You can optionally specify the auction index of the auction (`auctionIndex`), and then
         the number of auctions to consider in the median (`numberOfAuctions`).
 
 
-        If you don't specify the auction index, the current auction index would
+        If you don't specify the auction index, the current auction index will
         be used instead.
 
 
         If there's not enough auctions to calculate the median it returns `null`.
+
+
+        **Important: the contract is only safe for odd numbers of auctions.
+        See [here](https://github.com/gnosis/dx-price-oracle/blob/master/contracts/DutchXPriceOracle.sol#L165).**
 
 
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
@@ -564,7 +568,7 @@ paths:
           required: true
           type: string
         - name: auctionIndex
-          in: path
+          in: query
           description: >-
             The auction index to start calculating the median.
         - name: numberOfAuctions
@@ -576,7 +580,8 @@ paths:
           default: 9
           required: false
           description: >-
-            Number of auctions to consider. Contract is safe only for odd numbers
+            Number of auctions to consider. **Contract is only safe for odd numbers of auctions.
+            See [here](https://github.com/gnosis/dx-price-oracle/blob/master/contracts/DutchXPriceOracle.sol#L165).**
       responses:
         '200':
           description: successful operation
@@ -592,23 +597,23 @@ paths:
         - Prices
       summary: Safe median price
       description: >-
-        Return, for a given token, the **Ether price** of that token, as the
-        **safe median of last 9 auction's**.
+        Returns, for a given token, the **Ether price** of that token, as the
+        **safe median of last 9 auctions**.
 
 
         The "safe" part, just means that, it
-        **only returns a price if satisfy the following restrictions**:
+        **only returns a price if the following restrictions are accomplished**:
 
         * **9 auctions have run consecutively** (i.e. if enough liquidity was given).
-        It's requiring at least 9 auctions cleared in the last 4.5 days.
+        It requires to have at least 9 auctions cleared in the last 4.5 days.
 
         * **The token is whitelisted**
 
 
-        If no safe median price is availible, it returns `null`.
+        If no safe median price is available, it returns `null`.
 
 
-        This Endpoints just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle
+        This endpoint just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle
 
 
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
@@ -635,27 +640,29 @@ paths:
     get:
       tags:
         - Prices
-      summary: Custom safe median price
+      summary: Custom median price
       description: >-
-        Return, for a given token, the **Ether price** of that token, as the
-        **safe median of the specified number of auction's**.
+        Returns, for a given token, the **Ether price** of that token, as the
+        **median of the specified number of auctions**. In adition to the token
+        and the number of auction you can specify:
+
+        * **time**: Written as Unix timestamp to check the oracle price in a past time.
+        By default is `0`, this means it will use current time.
+
+        * **requireWhitelisted**: if you require to check if the token have been whitelisted
+        in the DutchX. By default is `true`.
+
+        * **maximumTimePeriod**: The maximum time lapse between the first and the last auction.
+        By default is `388800` this is `4.5` days in seconds.
 
 
-        The "safe" part, just means that, it **only returns a price if satisfy
-        the following restrictions**:
-        - `numberOfAuctions` (`9` by default) auctions must have run consecutively (`*1`).
-        - The token is whitelisted, only if `requireWhitelisted=true` (default)
+        If it's not possible to get a price meeting the requirements, it will return `null`.
 
 
-        If no safe price is availible, it returns `null`.
+        **Important: the contract is only safe for odd numbers of auctions.
+        See [here](https://github.com/gnosis/dx-price-oracle/blob/master/contracts/DutchXPriceOracle.sol#L165).**
 
-
-        (`*1`) If **auctions run consecutively the market is consider a liquid market**.
-        It's requiring that at least `numberOfAuctions` auctions cleared in the last
-        `maximumTimePeriod` (`388800` by default; 4.5 days).
-
-
-        This Endpoints just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle
+        This endpoint just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle
 
 
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
@@ -694,14 +701,15 @@ paths:
           default: 388800
         - name: numberOfAuctions
           in: query
-          description: >-
-            Require the token to be whitelisted on the DutchX
-          required: false
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
           maximum: 100
           default: 9
+          required: false
+          description: >-
+            Number of auctions to consider. **Contract is only safe for odd numbers of auctions.
+            See [here](https://github.com/gnosis/dx-price-oracle/blob/master/contracts/DutchXPriceOracle.sol#L165).**
       responses:
         '200':
           description: successful operation
