@@ -52,6 +52,16 @@ const BUY_BOT_MAIN = {
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
+const ARB_BOT = {
+  name: 'Arbitrage bot',
+  factory: 'src/bots/ArbitrageBot',
+  markets: BOT_MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  // rules: BUY_LIQUIDITY_RULES_DEFAULT,
+  notifications,
+  checkTimeInMilliseconds: 60 * 1000 // 60s
+}
+
 const BUY_BOT_BACKUP = {
   name: 'Backup buyer for RDN-WETH',
   factory: 'src/bots/BuyLiquidityBot',
@@ -152,6 +162,7 @@ module.exports = {
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
+    ARB_BOT,
     // DEPOSIT_BOT,
     // CLAIM_BOT,
     HIGH_SELL_VOLUME_BOT,
