@@ -4,10 +4,10 @@ info:
     Welcome to DutchX API docs (read-only).
 
     On this interface you may query various information about tokens, markets,
-    auction states, accounts of the **DutchX** protocol. 
-    
-    All endpoints are returned to you by reading the states directly off the 
-    Ethereum blockchain from the 
+    auction states, accounts of the **DutchX** protocol.
+
+    All endpoints are returned to you by reading the states directly off the
+    Ethereum blockchain from the
     [following smart contracts](https://dutchx.readthedocs.io/en/latest/smart-contracts_addresses.html).
 
     We provide you with the `TRY` button, such that the different endpoints can
@@ -29,12 +29,15 @@ basePath: /api/v1
 tags:
   - name: Markets and supported tokens
     description: Get market info
-    
+
   - name: Prices
     description: Get prices info
 
-  - name: Auctions
+  - name: Auction state
     description: Get general auctions info
+
+  - name: Auction volumes
+    description: Get auctions volume info
 
   - name: Accounts information
     description: Get account data
@@ -54,8 +57,8 @@ paths:
       summary: Available tokens
       description: >-
         Returns an array of **all tokens that are listed** (and hence can be traded)
-        on the DutchX. 
-        
+        on the DutchX.
+
 
         All tokens are, at least, listed in an auction with WETH.
 
@@ -100,7 +103,7 @@ paths:
         Tokens can be available for trading on the DutchX protocol,
         albeit not whitelisted (and hence trades do not generate Magnolia);
         on the flip side, tokens could be whitelisted, however not listed/traded on the DutchX protocol.
-        
+
 
         Check “Availible markets” for a list of those that are tradable.
 
@@ -208,7 +211,7 @@ paths:
       summary: Market state
       description: |-
         Returns the current state of the requested market
-        
+
         This can be any of:
         - `RUNNING` - Auction is currently ongoing.
         - `WAITING_FOR_FUNDING` - Sell volume has not reached the threshold to start
@@ -244,21 +247,21 @@ paths:
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
 
-          
+
   '/markets/{tokenPair}/current-index':
     get:
       tags:
         - Auction state
       summary: Current auction index
       description: >-
-        Returns the current auction index. 
-        
+        Returns the current auction index.
 
-        Upon listing and trading, the token pair started at auction index `1`. 
+
+        Upon listing and trading, the token pair started at auction index `1`.
         All subsequent auctions are numbered.
 
 
-        There is always only at most one auction running at the same time per 
+        There is always only at most one auction running at the same time per
         token pair.
 
 
@@ -294,7 +297,7 @@ paths:
         - Auction state
       summary: Current auction start
       description: >-
-        Returns the date and time when the auction started, or if the auction 
+        Returns the date and time when the auction started, or if the auction
         it's in `WAITING_FOR_AUCTION_TO_START` state, it's the starting time.
 
 
@@ -325,7 +328,7 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
-  
+
 
 
 
@@ -351,7 +354,7 @@ paths:
         price. This is why auctions usually last arround 6 hours.
 
 
-        If an auction is shorter than 6 hours, it means that it closed with a 
+        If an auction is shorter than 6 hours, it means that it closed with a
         higher price (price increment).
 
 
@@ -368,19 +371,19 @@ paths:
         `P(t) = CP * (24 - t) / ( 12 + t)`
 
 
-        Where: 
-        
+        Where:
+
         * `t`: Time in hours
 
         * `CP`: Last closing price
 
 
-        This is the price that bidders are guaranteed when they send their 
-        buy order. However, since the price keeps decreasing, they will end up 
+        This is the price that bidders are guaranteed when they send their
+        buy order. However, since the price keeps decreasing, they will end up
         paying only the closing price.
 
 
-        It's up to the bidder if he wants to claim right away, or he wants to 
+        It's up to the bidder if he wants to claim right away, or he wants to
         wait until the auction is over (so he can claim the full amount).
 
 
@@ -417,9 +420,9 @@ paths:
       description: >-
         Returns a list of the latest closing prices for a given market.
 
-        
-        You may select how many past auctions you would like to view (`count`). 
-        
+
+        You may select how many past auctions you would like to view (`count`).
+
 
         You can find the auction index as well as the price increments (in %-change to the last closing price).
 
@@ -536,15 +539,15 @@ paths:
 
         The median has proven to be more market manipulation resistant. For more
         information about the [median](https://en.wikipedia.org/wiki/Median).
-        
+
 
         You can optionally specify the auction index of the auction (`auctionIndex`), and then
         the number of auctions to consider in the median (`numberOfAuctions`).
 
 
-        If you don't specify the auction index, the current auction index would 
+        If you don't specify the auction index, the current auction index would
         be used instead.
-        
+
 
         If there's not enough auctions to calculate the median it returns `null`.
 
@@ -581,7 +584,7 @@ paths:
             $ref: '#/definitions/MarketPrice'
         '404':
           description: The token provided is not found
-  
+
 
   '/markets/{token}-WETH/prices/safe-median':
     get:
@@ -589,14 +592,14 @@ paths:
         - Prices
       summary: Safe median price
       description: >-
-        Return, for a given token, the **Ether price** of that token, as the 
+        Return, for a given token, the **Ether price** of that token, as the
         **safe median of last 9 auction's**.
-        
-        
-        The "safe" part, just means that, it 
+
+
+        The "safe" part, just means that, it
         **only returns a price if satisfy the following restrictions**:
 
-        * **9 auctions have run consecutively** (i.e. if enough liquidity was given). 
+        * **9 auctions have run consecutively** (i.e. if enough liquidity was given).
         It's requiring at least 9 auctions cleared in the last 4.5 days.
 
         * **The token is whitelisted**
@@ -605,10 +608,10 @@ paths:
         If no safe median price is availible, it returns `null`.
 
 
-        This Endpoints just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle 
+        This Endpoints just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle
 
 
-        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)        
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getOraclePrice
       produces:
         - application/json
@@ -634,25 +637,25 @@ paths:
         - Prices
       summary: Custom safe median price
       description: >-
-        Return, for a given token, the **Ether price** of that token, as the 
+        Return, for a given token, the **Ether price** of that token, as the
         **safe median of the specified number of auction's**.
-        
+
 
         The "safe" part, just means that, it **only returns a price if satisfy
         the following restrictions**:
         - `numberOfAuctions` (`9` by default) auctions must have run consecutively (`*1`).
         - The token is whitelisted, only if `requireWhitelisted=true` (default)
-        
+
 
         If no safe price is availible, it returns `null`.
 
 
         (`*1`) If **auctions run consecutively the market is consider a liquid market**.
-        It's requiring that at least `numberOfAuctions` auctions cleared in the last 
+        It's requiring that at least `numberOfAuctions` auctions cleared in the last
         `maximumTimePeriod` (`388800` by default; 4.5 days).
 
 
-        This Endpoints just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle 
+        This Endpoints just reads from the following Oracle: https://github.com/gnosis/dx-price-oracle
 
 
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
@@ -706,8 +709,8 @@ paths:
             $ref: '#/definitions/MarketPrice'
         '404':
           description: The token provided is not found
-  
-          
+
+
 
 
   # ===========================================================================
@@ -720,7 +723,7 @@ paths:
         - Auction volumes
       summary: Liquidity Contributions
       description: >-
-        Extra tokens - **Liquidity Contributions** (**LC**) - that will be 
+        Extra tokens - **Liquidity Contributions** (**LC**) - that will be
         batched for next auction
 
 
@@ -729,19 +732,19 @@ paths:
         will be added as liquidity for next auction.
 
 
-        The LC **will be given to the bidders** on top of the tokens they are 
+        The LC **will be given to the bidders** on top of the tokens they are
         entitled by the closing price, so it's good for:
 
         * **Bidders**: They get more tokens, on top of the ones they bought.
-        
-        * **Sellers**: Since the bidders have this incentive, the auction will 
-        clear earlier, raising the price a bit, and giving sellers a 
+
+        * **Sellers**: Since the bidders have this incentive, the auction will
+        clear earlier, raising the price a bit, and giving sellers a
         better price.
 
-      
+
         Note, that you have to include the auction index (`auctionIndex`).
 
-        
+
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getExtraTokens
       produces:
@@ -780,20 +783,20 @@ paths:
       summary: Current sell volume
       description: >-
         Returns the sell volume for the running auction.
-        
+
 
         It will return:
-        
+
         * **The sell volume**: Only if the auction is currently running.
 
         * **null**: In any other case
 
 
-        It's important to note, that once an auction starts, 
+        It's important to note, that once an auction starts,
         **the sell volume won't change during the auction**.
-        
 
-        The auction will clear when the buy 
+
+        The auction will clear when the buy
         volume equals the sell volume at the current price.
 
 
@@ -831,13 +834,13 @@ paths:
         Returns the sell volume for the next auction.
 
 
-        Althougt **a seller can post a sell order anytime**, the protocol 
+        Althougt **a seller can post a sell order anytime**, the protocol
         **won't allow to sell on an a running auction**, this is why, they
         will deposit the tokens of the bid order into the next auction.
 
 
         Once the current auction is cleared, and only if there's enough sell liquidity
-        (`1000$` worth of the token), the 
+        (`1000$` worth of the token), the
         **next auction will be scheduled to start in 10 min**.
 
 
@@ -873,20 +876,20 @@ paths:
       summary: Current buy volume
       description: >-
         Returns the buy volume for the running auction.
-        
+
 
         It will return:
-        
+
         * **The buy volume**: Only if the auction hasn'r cleared yet.
 
         * **null**: In any other case
 
 
-        It's important to note, that the buy volume starts `0`, and then it's 
+        It's important to note, that the buy volume starts `0`, and then it's
         incremmented on every bid.
-        
 
-        The auction will clear when the buy 
+
+        The auction will clear when the buy
         volume equals the sell volume at the current price.
 
 
@@ -931,16 +934,16 @@ paths:
 
         **The period of time is mandatory**, so you must provide either:
         * `fromDate` and `toDate` in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
-        * or, the `period`, with one of the following values: `today`, 
+        * or, the `period`, with one of the following values: `today`,
           `yesterday`, `week`, `last-week`, `current-week`
-        
-        
+
+
         **It returns**:
         * `auctionIndex`: Auction index of the cleared auction
         * `sellToken` and `buyToken` (plus their Ethereum addresses)
-        * `auctionStart` and `auctionEnd`: Start time and clear time (in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format)    
+        * `auctionStart` and `auctionEnd`: Start time and clear time (in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format)
         * `sellVolume` and `buyVolume`
-        * `closingPrice` (note that `closingPrice = buyVolume/sellVolume`) and 
+        * `closingPrice` (note that `closingPrice = buyVolume/sellVolume`) and
           `priceIncrement` (in percentage)
 
 
@@ -1019,7 +1022,7 @@ paths:
         Returns an Ethereum account's balance for a token.
 
 
-        Every seller and buyer, in order to submit an order, 
+        Every seller and buyer, in order to submit an order,
         **it must deposit the tokens into the DutchX first**.
 
 
@@ -1027,7 +1030,7 @@ paths:
         the tokens are added to it's balance.
 
 
-        Every time a user **withdraw** or **submit a sell/bid order**, the tokens 
+        Every time a user **withdraw** or **submit a sell/bid order**, the tokens
         are deducted from the balance.
 
 
@@ -1073,8 +1076,8 @@ paths:
         This endpoint will show you a list of any unclaimed tokens.
 
 
-        Also, note that **you can claim multiple auctions at the same time**, so if 
-        you are very active in the DutchX, you may consider not claiming your 
+        Also, note that **you can claim multiple auctions at the same time**, so if
+        you are very active in the DutchX, you may consider not claiming your
         tokens on every auction, and wait until you have several auctions to claim.
 
 
@@ -1134,12 +1137,12 @@ paths:
         will be added as liquidity for next auction.
 
 
-        This LC ratio is, the percentage of the ask/bid order that would be 
+        This LC ratio is, the percentage of the ask/bid order that would be
         deducted. The ratios are **always between `0.5%` and `0.1%`**
 
 
-        In order to reduce the LC you need **Magnolia tokens (MGN)**. Also, you 
-        can pay half of the fee using **OWL tokens**. For more information, 
+        In order to reduce the LC you need **Magnolia tokens (MGN)**. Also, you
+        can pay half of the fee using **OWL tokens**. For more information,
         checkout [https://blog.gnosis.pm/the-fee-model-7419285bf03f](https://blog.gnosis.pm/the-fee-model-7419285bf03f)
 
 
@@ -1147,7 +1150,7 @@ paths:
         `0.3%`, then `0.0003 Eth` would be deducted, so:
 
         * `0,0997 Ether` would be place as a sell order.
-        
+
         * `0,0003 Ether` would be availible as LC for next auction.
 
 
@@ -1179,20 +1182,20 @@ paths:
         - Account auction participation
       summary: Current seller balance
       description: >-
-        Returns account seller balance for the running auction.        
+        Returns account seller balance for the running auction.
 
         It will return:
-        
-        * **The sell volume for the given Ethereum account**: Only if the auction is currently running. 
+
+        * **The sell volume for the given Ethereum account**: Only if the auction is currently running.
         It can be `0` if the given account hasn't submitted any sell order.
 
         * **null**: In any other case
 
 
-        It's important to note, that once an auction starts, 
+        It's important to note, that once an auction starts,
         **the seller balance won't change during the auction**.
 
-        
+
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getSellerBalanceForCurrentAuction
       produces:
@@ -1207,7 +1210,7 @@ paths:
           type: string
         - name: accountAddress
           in: path
-          description: An ERC20 account address
+          description: An account address
           required: true
           type: string
       responses:
@@ -1246,7 +1249,7 @@ paths:
           type: string
         - name: accountAddress
           in: path
-          description: An ERC20 account address
+          description: An account address
           required: true
           type: string
         - name: auctionIndex
@@ -1274,17 +1277,17 @@ paths:
         - Account auction participation
       summary: Current buyer balance
       description: >-
-        Returns account buyer balance for the running auction.        
+        Returns account buyer balance for the running auction.
 
         It will return:
-        
+
         * **The buy volume for the given Ethereum account**: Only if the auction
          is currently running. It can be `0` if the given account hasn't submitted any buy order.
         * **null**: In any other case
 
 
-        It's important to note, that when the auction starts, all accounts 
-        have `0` balance. The balance will be incremented on every buy order for 
+        It's important to note, that when the auction starts, all accounts
+        have `0` balance. The balance will be incremented on every buy order for
         the account.
 
 
@@ -1302,7 +1305,7 @@ paths:
           type: string
         - name: accountAddress
           in: path
-          description: An ERC20 account address
+          description: An account address
           required: true
           type: string
       responses:
@@ -1341,7 +1344,7 @@ paths:
           type: string
         - name: accountAddress
           in: path
-          description: An ERC20 account address
+          description: An account address
           required: true
           type: string
         - name: auctionIndex
@@ -1362,7 +1365,7 @@ paths:
             Invalid token format. Token pair format is not compilant with
             {tokenA}-{tokenB}. Ex. weth-rdn
 
-  
+
 definitions:
   TokenDetails:
     type: object
