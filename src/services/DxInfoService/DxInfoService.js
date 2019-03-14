@@ -921,8 +921,13 @@ class DxInfoService {
   async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
 
+    const checkedAuctionIndex = !auctionIndex
+      ? await this._auctionRepo.getAuctionIndex({
+        sellToken: tokenAddress, buyToken: 'WETH' })
+      : auctionIndex
+
     const oracleSimpleMedian = await this._dxPriceOracleRepo.getPricesAndMedian({
-      token: tokenAddress, numberOfAuctions, auctionIndex })
+      token: tokenAddress, numberOfAuctions, auctionIndex: checkedAuctionIndex })
 
     return numberUtil.toBigNumberFraction(oracleSimpleMedian, true)
   }
