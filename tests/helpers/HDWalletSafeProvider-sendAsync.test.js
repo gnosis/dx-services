@@ -1,7 +1,6 @@
 const HDWalletSafeProvider = require('../../src/helpers/web3Providers/HDWalletSafeProvider')
 const {
   MNEMONIC,
-  PRIVATE_KEYS,
   ACCOUNTS,
   ADDRESS_2: SAFE_ADDRESS_1,
   ADDRESS_3: SAFE_MODULE_ADDRESS_1,

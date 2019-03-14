@@ -11,7 +11,6 @@ const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'BalanceCheckBot'
 
-const getEthereumClient = require('../helpers/ethereumClient')
 const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -203,11 +202,11 @@ class BalanceCheckBot extends Bot {
     const minimumAmount = minimumAmountForEther * 1e-18
     const balance = balanceOfEther.div(1e18).valueOf()
 
-    const message = 'The bot account has ETHER balance below ' + minimumAmount
+    const message = 'The account account has ETHER balance below ' + minimumAmount
 
     // Log message
     logger.warn({
-      msg: message,
+      msg: `[${account}] ` + message,
       contextData: {
         extra: {
           balanceOfEther: balance,
@@ -282,7 +281,7 @@ class BalanceCheckBot extends Bot {
 
     // Log message
     logger.warn({
-      msg: message + ': ' + tokenNames,
+      msg: `[${accountsDescription}] ` + message + ': ' + tokenNames,
       contextData: {
         extra: {
           account: accountsDescription,
