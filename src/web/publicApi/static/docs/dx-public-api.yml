@@ -387,6 +387,18 @@ paths:
         wait until the auction is over (so he can claim the full amount).
 
 
+        Something important about this price, is that **it's not symetrical**. 
+        At the begining of the auction, both are double the closing price. The 
+        only time when this price is symetrical, it's exactly after 6 hours, 
+        because it's when the prices meet.
+
+
+        Usually, both auctions run at the same time, but, if the auction hasn't
+        started in 24h, and there's no liquidity on one of the sides, it can run
+        with only one side. In this extraordinary case, you will get only a price
+        in the running auction's side. The other side will return `null`.
+
+
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
       operationId: getCurrentPrice
       produces:
