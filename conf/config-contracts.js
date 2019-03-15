@@ -5,6 +5,7 @@ const CONTRACTS_UTILS_DIR =
 const CONTRACTS_GNO_DIR = 'node_modules/@gnosis.pm/gno-token/build/contracts'
 const CONTRACTS_OWL_DIR = 'node_modules/@gnosis.pm/owl-token/build/contracts'
 const CONTRACTS_DX_DIR = 'node_modules/@gnosis.pm/dx-contracts/build/contracts'
+const CONTRACTS_DX_PRICE_ORACLE_DIR = 'node_modules/@gnosis.pm/dx-price-oracle/build/contracts'
 
 module.exports = {
   // Contracts
@@ -32,6 +33,7 @@ module.exports = {
     PriceOracleInterface: CONTRACTS_DX_DIR + '/PriceOracleInterface',
     DutchExchangeProxy: CONTRACTS_DX_DIR + '/DutchExchangeProxy',
     DutchExchange: CONTRACTS_DX_DIR + '/DutchExchange',
-    DutchExchangeHelper: CONTRACTS_DX_DIR + '/DutchExchangeHelper'
+    DutchExchangeHelper: CONTRACTS_DX_DIR + '/DutchExchangeHelper',
+    DutchExchangePriceOracle: CONTRACTS_DX_PRICE_ORACLE_DIR + '/DutchXPriceOracle'
   }
 }
