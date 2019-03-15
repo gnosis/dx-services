@@ -1,7 +1,7 @@
 const cliUtils = require('../helpers/cliUtils')
 const formatUtil = require('../../helpers/formatUtil')
 
-const getDxInfoService = require('../../services/DxTradeService')
+const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(

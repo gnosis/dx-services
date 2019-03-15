@@ -1,4 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getDxTradeService = require('../../services/DxTradeService')
@@ -27,7 +28,7 @@ function registerCommand ({ cli, logger }) {
       )
 
       const withdrawEtherResult = await dxTradeService.withdrawEther({
-        amount: amount * 1e18,
+        amount: toWei(amount),
         accountAddress: address
       })
       logger.info('The unwrap was succesful. Transaction: %s', withdrawEtherResult.tx)

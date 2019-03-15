@@ -21,13 +21,6 @@ class ContractLoader {
     assert(erc20TokenAddresses, '"erc20TokenAddresses" is required')
     assert(contractsBaseDir, '"contractsBaseDir" is required')
 
-    // FIXME If not given this addresses are automatically resolved from dx-contracts package
-    // I don't know why this was added
-    // if (!isLocal) {
-    //   assert(dxContractAddress, '"dxContractAddress" is required for environment ' + environment)
-    //   assert(gnoToken, '"gnoToken" is required for environment ' + environment)
-    // }
-
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
     this._dxContractAddress = dxContractAddress
@@ -36,13 +29,14 @@ class ContractLoader {
     this._erc20TokenAddresses = erc20TokenAddresses
     this._devContractsBaseDir = contractsBaseDir
   }
+
   async loadContracts () {
     const [dx, erc20TokenContracts] = await Promise.all([
       this._loadDx(),
       this._loadTokenContracts()
     ])
 
-    const [ dxHelper, dxContracts ] = await Promise.all([
+    const [dxHelper, dxContracts] = await Promise.all([
       this._loadDxHelper(dx.address),
       this._loadDxContracts(dx)
     ])
@@ -146,6 +140,21 @@ class ContractLoader {
     return gnoTokenContract.at(address)
   }
 
+  async _loadDxPriceOracleContract () {
+    // This is dx-price-oracle that uses DutchX as Price Oracle
+    const dxPriceOracleContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.DutchExchangePriceOracle
+    )
+
+    let address = await this._getDeployedAddress(
+      'DutchX Price Oracle',
+      dxPriceOracleContract,
+      false
+    )
+
+    return dxPriceOracleContract.at(address)
+  }
+
   async _loadTokenContracts () {
     const standardTokenContract = this._ethereumClient.loadContract(
       this._contractDefinitions.GnosisStandardToken
@@ -184,11 +193,12 @@ class ContractLoader {
       .loadContract(this._contractDefinitions.TokenGNO)
     */
 
+    // This Price oracle only exposes ETH value
     const priceOracleContract = this._ethereumClient.loadContract(
       this._contractDefinitions.PriceOracleInterface
     )
 
-    const [priceOracle, eth, mgn, owl, gno] = await Promise.all([
+    const [priceOracle, eth, mgn, owl, gno, dxPriceOracle] = await Promise.all([
       // load addresses from DX
       dx.ethUSDOracle.call(),
       dx.ethToken.call(),
@@ -202,7 +212,8 @@ class ContractLoader {
           etherTokenContract.at(ethAddress),
           mgnTokenContract.at(mgnAddress),
           owlTokenContract.at(owlAddress),
-          this._loadGnoContract()
+          this._loadGnoContract(),
+          this._loadDxPriceOracleContract()
         ])
       )
     return {
@@ -210,7 +221,8 @@ class ContractLoader {
       eth,
       mgn,
       owl,
-      gno
+      gno,
+      dxPriceOracle
     }
   }
 

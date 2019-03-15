@@ -2,7 +2,7 @@ const loggerNamespace = 'dx-service:runBots'
 const Logger = require('./helpers/Logger')
 const logger = new Logger(loggerNamespace)
 
-const originalConfig = require('../conf/')
+const originalConfig = require('../conf')
 
 // Helpers
 const gracefullShutdown = require('./helpers/gracefullShutdown')

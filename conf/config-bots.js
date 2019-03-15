@@ -81,6 +81,7 @@ const SELL_BOT_MAIN = {
   factory: 'src/bots/SellLiquidityBot',
   markets: BOT_MARKETS,
   accountIndex: MAIN_BOT_ACCOUNT,
+  // minimumSellVolumeInUsd: null,
   notifications,
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
@@ -90,6 +91,9 @@ const BALANCE_CHECK_BOT = {
   factory: 'src/bots/BalanceCheckBot',
   tokens: BOT_TOKENS,
   accountIndex: MAIN_BOT_ACCOUNT,
+  // botAddress: '0x1554238f49f8bd2f78d438fcd7d4396dfc0dd2ed',
+  // botAddressForEther: '0x1554238f49f8bd2f78d438fcd7d4396dfc0dd2ed',
+  // botAddressForTokens: '0x25b8c27508a59bf498646d8819dc349876789f83',
   notifications,
   minimumAmountForEther: 0.4,
   minimumAmountInUsdForToken: 5000
@@ -131,17 +135,27 @@ const DEPOSIT_BOT = {
 
 const AUTO_CLAIM_AUCTIONS = 90
 
+// TODO Enable by default in future versions
+const CLAIM_BOT = {
+  name: 'Claim bot',
+  factory: 'src/bots/ClaimBot',
+  markets: BOT_MARKETS,
+  accountIndex: MAIN_BOT_ACCOUNT,
+  notifications,
+  // You can use this to have some time to manually withdraw funds
+  autoClaimAuctions: AUTO_CLAIM_AUCTIONS,
+  cronSchedule: '00  02,06,10,14,18,22  *  *  *' // Each 4 hours
+}
+
 module.exports = {
   BOTS: [
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
     // DEPOSIT_BOT,
+    // CLAIM_BOT,
     HIGH_SELL_VOLUME_BOT,
     WATCH_EVENTS_BOTS
-    /*
-    BUY_BOT_BACKUP
-    */
   ],
 
   // TODO: Try to remove the next props

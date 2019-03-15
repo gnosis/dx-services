@@ -499,7 +499,11 @@ class AuctionRepoImpl extends Cacheable {
     })
   }
 
-  async claimTokensFromSeveralAuctionsAsSeller ({ auctionsAsSeller, address }) {
+  async claimTokensFromSeveralAuctionsAsSeller ({
+    auctionsAsSeller,
+    address,
+    fromAddress
+  }) {
     // Transform the tokenPairs into addresses
     const auctionsInfoPromises = auctionsAsSeller.map(({ sellToken, buyToken, indices }) => {
       return Promise.all([
@@ -540,12 +544,16 @@ class AuctionRepoImpl extends Cacheable {
 
     return this._doTransaction({
       operation: 'claimTokensFromSeveralAuctionsAsSeller',
-      from: address,
+      from: fromAddress || address,
       params: [auctionSellTokens, auctionBuyTokens, auctionIndices, address]
     })
   }
 
-  async claimTokensFromSeveralAuctionsAsBuyer ({ auctionsAsBuyer, address }) {
+  async claimTokensFromSeveralAuctionsAsBuyer ({
+    auctionsAsBuyer,
+    address,
+    fromAddress
+  }) {
     // Transform the tokenPairs into addresses
     const auctionsInfoPromises = auctionsAsBuyer.map(({ sellToken, buyToken, indices }) => {
       return Promise.all([
@@ -584,7 +592,7 @@ class AuctionRepoImpl extends Cacheable {
     })
     return this._doTransaction({
       operation: 'claimTokensFromSeveralAuctionsAsBuyer',
-      from: address,
+      from: fromAddress || address,
       params: [auctionSellTokens, auctionBuyTokens, auctionIndices, address]
     })
   }
@@ -802,6 +810,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     })
 
     const isValidTokenPair = await this.isValidTokenPair({ tokenA: sellToken, tokenB: buyToken })
+    // TODO review
     assert(isValidTokenPair, 'The token pair has not been approved')
 
     const auctionStart = await this.getAuctionStart({ sellToken, buyToken })
@@ -1802,11 +1811,9 @@ volume: ${state}`)
       this.getAuctionStart({ sellToken, buyToken }),
       this._getTime()
     ])
-    const hasAuctionStarted = () => {
-      return auctionStart && auctionStart < now
-    }
+    const hasAuctionStarted = auctionStart && auctionStart < now
 
-    if (price && hasAuctionStarted()) {
+    if (price && hasAuctionStarted) {
       /*
       auctionLogger.debug(sellToken, buyToken, 'Auction index: %d, Price: %d/%d %s/%s',
         auctionIndex, price.numerator, price.denominator,
@@ -1836,7 +1843,7 @@ volume: ${state}`)
     let isClosed
     if (sellVolume.isZero()) {
       // closed if sellVolume=0 and the auction has started and hasn't been cleared
-      isClosed = hasAuctionStarted()
+      isClosed = hasAuctionStarted
     } else {
       /*
       debug('_getIsClosedState(%s-%s): Closing price: %d/%d',
@@ -1857,6 +1864,7 @@ volume: ${state}`)
     return {
       buyVolume,
       sellVolume,
+      hasAuctionStarted,
       closingPrice,
       isClosed,
       isTheoreticalClosed

@@ -3,7 +3,7 @@ const URL_GAS_PRICE_FEED_SAFE = 'https://safe-relay.gnosis.pm/api/v1/gas-station
 
 module.exports = {
   NETWORK: 'mainnet', // 1
-  ETHEREUM_RPC_URL: 'https://mainnet.infura.io ',
+  ETHEREUM_RPC_URL: 'https://mainnet.infura.io',
 
   // Gas price feed
   URL_GAS_PRICE_FEED_GAS_STATION,

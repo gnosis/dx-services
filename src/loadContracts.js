@@ -1,9 +1,13 @@
 const ContractLoader = require('./helpers/ContractLoader')
-const getEthereumClient = require('./getEthereumClient')
+const getEthereumClient = require('./helpers/ethereumClient')
 
 const conf = require('../conf')
 
 let contracts
+/**
+* Loads the contracts into an instance.
+* @return {Object} A dictionary object containing the instances of the contracts.
+*/
 async function loadContracts () {
   const ethereumClient = await getEthereumClient()
   if (!contracts) {
@@ -15,7 +19,8 @@ async function loadContracts () {
       ERC20_TOKEN_ADDRESSES,
       CONTRACTS_BASE_DIR
     } = conf
-    const contractLoader = new ContractLoader({
+
+    let instanceArgs = {
       ethereumClient,
       contractDefinitions: CONTRACT_DEFINITIONS,
       dxContractAddress: DX_CONTRACT_ADDRESS,
@@ -23,7 +28,9 @@ async function loadContracts () {
       gnoToken: GNO_TOKEN_ADDRESS,
       erc20TokenAddresses: ERC20_TOKEN_ADDRESSES,
       contractsBaseDir: CONTRACTS_BASE_DIR
-    })
+    }
+
+    const contractLoader = new ContractLoader(instanceArgs)
     contracts = await contractLoader.loadContracts()
   }
 

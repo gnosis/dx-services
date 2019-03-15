@@ -8,8 +8,15 @@ module.exports = {
     'src/**/*.js',
     // Exclude files
     '!**/*Mock.js',
-    '!src/main.js',
+    '!src/runBots.js',
+    '!src/runPublicApi.js',
+    '!src/BotRunner.js',
+    '!src/ApiRunner.js',
     '!src/cli/**',
     '!src/web/**'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    'tests/safe-module'
   ]
 }

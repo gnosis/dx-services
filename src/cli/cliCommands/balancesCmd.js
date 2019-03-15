@@ -34,28 +34,51 @@ function registerCommand ({ cli, logger }) {
       }
 
       logger.info(`\n**********  Balance for ${account}  **********\n`)
-      const balanceETH = await dxInfoService.getBalanceOfEther({ account })
+      const [ balanceETH, lockedFrt, currentLiqContributionLevel ] = await Promise.all([
+        dxInfoService.getBalanceOfEther({ account }),
+        contracts.mgn.lockedTokenBalances(account),
+        dxInfoService.getCurrentFeeRatio({ address: account })
+      ])
+
       logger.info('\tACCOUNT: %s', account)
       logger.info('\tBALANCE: %d ETH', formatUtil.formatFromWei(balanceETH))
+      logger.info('\tLocked FRT: %d MGN', formatUtil.formatFromWei(lockedFrt))
+      logger.info('\tLiquidity Contribution Level: %d % ', currentLiqContributionLevel.mul(100))
 
-      // const [ tokenList, magnoliaToken ] = await Promise.all([
-      //   dxInfoService.getTokenList(),
-      //   dxInfoService.getMagnoliaToken()
-      // ])
-      // const tokens = tokenList.data
-      // tokens.push(magnoliaToken)
-      const tokens = Object.keys(contracts.erc20TokenContracts).map(symbol => {
+      const [ configuredMarketsTokenList, magnoliaToken ] = await Promise.all([
+        dxInfoService.getConfiguredTokenList(),
+        dxInfoService.getMagnoliaToken()
+      ])
+      let tokens = configuredMarketsTokenList.data.map(({ symbol, address }) => {
         return {
           symbol,
-          tokenAddress: contracts.erc20TokenContracts[symbol].address
+          tokenAddress: address
         }
       })
 
-      // Add WETH to the ERC20 list to see balance as is an special token
+      tokens = Object.keys(contracts.erc20TokenContracts).reduce((tokensAcc, symbol) => {
+        const alreadyAddedToken = token => {
+          return token.symbol === symbol
+        }
+        if (!tokensAcc.some(alreadyAddedToken)) {
+          tokensAcc.push({
+            symbol,
+            tokenAddress: contracts.erc20TokenContracts[symbol].address
+          })
+        }
+        return tokensAcc
+      }, tokens)
+
       tokens.push({
-        symbol: 'WETH',
-        tokenAddress: await dxInfoService.getTokenAddress('WETH')
+        symbol: magnoliaToken.symbol,
+        tokenAddress: magnoliaToken.address
       })
+
+      // Add WETH to the ERC20 list to see balance as is an special token
+      // tokens.push({
+      //   symbol: 'WETH',
+      //   tokenAddress: await dxInfoService.getTokenAddress('WETH')
+      // })
 
       const balancePromises = tokens.map(token => _getBalance({
         account,

@@ -10,10 +10,11 @@ const isLocal = environment === 'local'
 
 const getEventBus = require('../getEventBus')
 const loadContracts = require('../loadContracts')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 
 // Repos
 const getAuctionRepo = require('../repositories/AuctionRepo')
+const getDxPriceOracleRepo = require('../repositories/DxPriceOracleRepo')
 const getPriceRepo = require('../repositories/PriceRepo')
 const getEthereumRepo = require('../repositories/EthereumRepo')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -34,6 +35,7 @@ async function createInstances ({
   config: configOverride = {}
 } = {}) {
   const config = Object.assign({}, originalConfig, configOverride)
+
   debug('Initializing app for %s environment...', config.ENVIRONMENT)
 
   const eventBus = await getEventBus()
@@ -49,6 +51,7 @@ async function createInstances ({
 
   // Repos
   const auctionRepo = await getAuctionRepo()
+  const dxPriceOracle = await getDxPriceOracleRepo()
   const priceRepo = await getPriceRepo()
   const ethereumRepo = await getEthereumRepo()
 
@@ -92,6 +95,7 @@ async function createInstances ({
   if (test) {
     // For testing is handy to return also the repos, client, etc
     instances = Object.assign({}, instances, {
+      dxPriceOracle,
       priceRepo,
       auctionRepo,
       ethereumRepo,

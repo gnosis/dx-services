@@ -24,22 +24,26 @@ const numberUtil = require('../../helpers/numberUtil.js')
 
 const getGitInfo = require('../../helpers/getGitInfo')
 const getVersion = require('../../helpers/getVersion')
+const getContractVersions = require('../../helpers/getContractVersions')
 const getAuctionsBalances = require('../helpers/getAuctionsBalances')
 const getClaimableTokens = require('../helpers/getClaimableTokens')
 
 class DxInfoService {
   constructor ({
     auctionRepo,
+    dxPriceOracleRepo,
     ethereumRepo,
     slackRepo,
     markets,
     operationsSlackChannel
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
+    assert(dxPriceOracleRepo, '"dxPriceOracleRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(markets, '"markets" is required')
 
     this._auctionRepo = auctionRepo
+    this._dxPriceOracleRepo = dxPriceOracleRepo
     this._ethereumRepo = ethereumRepo
     this._slackRepo = slackRepo
     this._markets = markets
@@ -48,6 +52,7 @@ class DxInfoService {
     // About info
     this._gitInfo = getGitInfo()
     this._version = getVersion()
+    this._contractVersions = getContractVersions()
   }
 
   async getVersion () {
@@ -286,7 +291,7 @@ class DxInfoService {
       this._auctionRepo.getPastAuctionPrice({
         sellToken: tokenA,
         buyToken: tokenB,
-        auctionIndex
+        auctionIndex: auctionIndex - 1
       })
     ])
     let buyVolumesInSellTokens, priceRelationshipPercentage,
@@ -296,6 +301,7 @@ class DxInfoService {
       if (price.numerator.isZero()) {
         // The auction runned for too long
         buyVolumesInSellTokens = sellVolume
+        priceRelationshipPercentage = null
       } else {
         // Get the number of sell tokens that we can get for the buyVolume
         buyVolumesInSellTokens = price.denominator
@@ -319,25 +325,6 @@ class DxInfoService {
           part: buyVolumesInSellTokens,
           total: sellVolume
         })
-      }
-
-      if (closingPrice) {
-        if (price.numerator.isZero()) {
-          // The auction runned for too long
-          buyVolumesInSellTokens = sellVolume
-          priceRelationshipPercentage = null
-        } else {
-          // Get the number of sell tokens that we can get for the buyVolume
-          buyVolumesInSellTokens = price.denominator
-            .times(buyVolume)
-            .div(price.numerator)
-
-          priceRelationshipPercentage = price.numerator
-            .mul(closingPrice.denominator)
-            .div(price.denominator)
-            .div(closingPrice.numerator)
-            .mul(100)
-        }
       }
 
       if (state.indexOf('WAITING') === -1) {
@@ -373,6 +360,7 @@ class DxInfoService {
       version: this._version,
       environment: ENVIRONMENT,
       auctions: auctionAbout,
+      contractVersions: this._contractVersions,
       ethereum: ethereumAbout,
       git: this._gitInfo
     }
@@ -400,7 +388,8 @@ class DxInfoService {
   // TODO implement pagination
   async getTokenList ({ count, approved = true } = {}) {
     const tokenPairs = await this._auctionRepo.getTokenPairs()
-    const tokenAddresses = tokenPairs.reduce((addresses, {
+    // Filter repeated token addresses
+    let tokenAddresses = tokenPairs.reduce((addresses, {
       sellToken,
       buyToken
     }) => {
@@ -415,7 +404,21 @@ class DxInfoService {
       return addresses
     }, [])
 
-    const tokenPromises = tokenAddresses.map(async address => {
+    let filteredTokenAddresses = tokenAddresses
+    // If approved is set we filter tokens by state
+    if (approved === true || approved === false) {
+      // Get tokens state
+      const approvedState = await Promise.all(tokenAddresses.map(async address => {
+        return this._auctionRepo.isApprovedToken({ token: address })
+      }))
+      // Filter tokens by state
+      filteredTokenAddresses = tokenAddresses.filter((address, index) => {
+        // Return approved or unapproved tokens
+        return approved ? approvedState[index] : !approvedState[index]
+      })
+    }
+
+    const tokenPromises = filteredTokenAddresses.map(async address => {
       return this._getTokenInfoByAddress(address)
     })
 
@@ -790,7 +793,7 @@ class DxInfoService {
   }
 
   async _getConfiguredTokenList () {
-    let tokenList = this._markets.reduce((list, {tokenA, tokenB}) => {
+    let tokenList = this._markets.reduce((list, { tokenA, tokenB }) => {
       if (list.indexOf(tokenA) === -1) {
         list.push(tokenA)
       }
@@ -896,6 +899,37 @@ class DxInfoService {
     let feeRatio = await this._auctionRepo.getFeeRatio({ address })
 
     return feeRatio[0].div(feeRatio[1])
+  }
+
+  async getOraclePrice ({ token }) {
+    const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
+
+    const oraclePrice = await this._dxPriceOracleRepo.getPrice({ token: tokenAddress })
+
+    return numberUtil.toBigNumberFraction(oraclePrice, true)
+  }
+
+  async getOraclePriceCustom ({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions }) {
+    const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
+
+    const oraclePriceCustom = await this._dxPriceOracleRepo.getPriceCustom({
+      token: tokenAddress, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
+
+    return numberUtil.toBigNumberFraction(oraclePriceCustom, true)
+  }
+
+  async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
+    const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
+
+    const checkedAuctionIndex = !auctionIndex
+      ? await this._auctionRepo.getAuctionIndex({
+        sellToken: tokenAddress, buyToken: 'WETH' })
+      : auctionIndex
+
+    const oracleSimpleMedian = await this._dxPriceOracleRepo.getPricesAndMedian({
+      token: tokenAddress, numberOfAuctions, auctionIndex: checkedAuctionIndex })
+
+    return numberUtil.toBigNumberFraction(oracleSimpleMedian, true)
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {

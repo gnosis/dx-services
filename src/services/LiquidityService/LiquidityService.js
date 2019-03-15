@@ -48,7 +48,7 @@ class LiquidityService {
   async getAbout () {
     const auctionInfo = await this._auctionRepo.getAbout()
     const config = Object.assign({
-      minimumSellVolume: await this._auctionRepo.getThresholdNewAuction()
+      minimumSellVolumeDefault: await this._auctionRepo.getThresholdNewAuction()
     }, auctionInfo)
 
     return {
@@ -70,22 +70,37 @@ class LiquidityService {
     })
   }
 
-  async ensureSellLiquidity ({ sellToken, buyToken, from, waitToReleaseTheLock = true }) {
+  async ensureSellLiquidity ({
+    sellToken,
+    buyToken,
+    from,
+    minimumSellVolumeInUsd,
+    waitToReleaseTheLock = true
+  }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
+      minimumSellVolumeInUsd,
       liquidityCheckName: 'sell',
       waitToReleaseTheLock
     })
   }
 
-  async _ensureLiquidityAux ({ sellToken, buyToken, from, buyLiquidityRules, liquidityCheckName, waitToReleaseTheLock }) {
+  async _ensureLiquidityAux ({
+    sellToken,
+    buyToken,
+    from,
+    minimumSellVolumeInUsd,
+    buyLiquidityRules,
+    liquidityCheckName,
+    waitToReleaseTheLock
+  }) {
     // Define some variables to refacor sell/buy liquidity checks
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
-      messageCurrentCheck, paramsCurrentCheck
+      messageCurrentCheck, paramsCurrentCheck, minimumSellVolume
     if (liquidityCheckName === 'sell') {
-      const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
+      minimumSellVolume = minimumSellVolumeInUsd ? numberUtil.toBigNumber(minimumSellVolumeInUsd) : await this._auctionRepo.getThresholdNewAuction()
 
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
@@ -152,6 +167,7 @@ check should be done`,
         tokenA: sellToken,
         tokenB: buyToken,
         from,
+        minimumSellVolume,
         buyLiquidityRules
       })
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
@@ -183,7 +199,12 @@ check should be done`,
     return Promise.all(balancesPromises)
   }
 
-  async _doEnsureSellLiquidity ({ tokenA, tokenB, from }) {
+  async _doEnsureSellLiquidity ({
+    tokenA,
+    tokenB,
+    from,
+    minimumSellVolume
+  }) {
     const soldTokens = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
     const [auctionIndex, auctionStart] = await Promise.all([
@@ -199,12 +220,9 @@ check should be done`,
       // We are in a waiting for funding period
 
       // Get the liquidity and minimum sell volume
-      const [{ fundingA, fundingB }, minimumSellVolume] = await Promise.all([
-        this._auctionRepo.getFundingInUSD({
-          tokenA, tokenB, auctionIndex
-        }),
-        this._auctionRepo.getThresholdNewAuction()
-      ])
+      const { fundingA, fundingB } = await this._auctionRepo.getFundingInUSD({
+        tokenA, tokenB, auctionIndex
+      })
 
       // Check if we surplus it
       if (
@@ -228,7 +246,8 @@ check should be done`,
             buyToken: tokenB,
             funding: fundingA,
             auctionIndex,
-            from
+            from,
+            minimumSellVolume
           })
           soldTokens.push(soldTokenAB)
         }
@@ -238,7 +257,8 @@ check should be done`,
             buyToken: tokenA,
             funding: fundingB,
             auctionIndex,
-            from
+            from,
+            minimumSellVolume
           })
           soldTokens.push(soldTokenBA)
         }
@@ -316,6 +336,7 @@ keeps happening`
     // If the current auction is not cleared (not price + has)
     const {
       sellVolume,
+      hasAuctionStarted,
       isClosed,
       isTheoreticalClosed
     } = auctionState
@@ -324,14 +345,15 @@ keeps happening`
       sellToken,
       buyToken,
       msg: 'State of the auction: %o',
-      params: [{ sellVolume: sellVolume.toNumber(), isClosed, isTheoreticalClosed }]
+      params: [{ sellVolume: sellVolume.toNumber(), hasAuctionStarted, isClosed, isTheoreticalClosed }]
     })
 
     // We do need to ensure the liquidity if:
     //  * The auction has sell volume
+    //  * The auction has started
     //  * Is not closed yet
     //  * Is not in theoretical closed state
-    if (!sellVolume.isZero()) {
+    if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
         const [price, currentMarketPrice] = await Promise.all([
           // Get the current price for the auction
@@ -385,12 +407,21 @@ keeps happening`
         })
       }
     } else {
-      // No sell volume
-      auctionLogger.debug({
-        sellToken,
-        buyToken,
-        msg: "The auction doesn't have any sell volume, so there's nothing to buy"
-      })
+      if (!hasAuctionStarted) {
+        // Auction hasn't started
+        auctionLogger.info({
+          sellToken,
+          buyToken,
+          msg: 'The auction hasn\'t started yet. Will check back later'
+        })
+      } else {
+        // No sell volume
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: "The auction doesn't have any sell volume, so there's nothing to buy"
+        })
+      }
     }
   }
 
@@ -595,10 +626,16 @@ keeps happening`
     return buyRule ? buyRule.buyRatio : numberUtil.ZERO
   }
 
-  async _sellTokenToCreateLiquidity ({ sellToken, buyToken, funding, auctionIndex, from }) {
+  async _sellTokenToCreateLiquidity ({
+    sellToken,
+    buyToken,
+    funding,
+    auctionIndex,
+    from,
+    minimumSellVolume
+  }) {
     // decide if we sell on the auction A-B or the B-A
     //  * We sell on the auction with more liquidity
-    const minimumSellVolume = await this._auctionRepo.getThresholdNewAuction()
     let amountToSellInUSD = minimumSellVolume.minus(funding)
 
     // We round up the dollars
