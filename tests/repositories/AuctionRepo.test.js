@@ -62,7 +62,7 @@ test.skip('It should return the fee ratio', async () => {
   expect(feeRatio).toEqual(MAXIMUM_DX_FEE)
 })
 
-describe.skip('Market interacting tests', async () => {
+describe.skip('Market interacting tests', () => {
   let beforeSetupState
 
   beforeAll(async () => {

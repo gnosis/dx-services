@@ -27,6 +27,10 @@ const EXCHANGE_PRICE_FEED_STRATEGIES = {
   'WETH-DAI': {
     strategy: 'sequence',
     feeds: ['binance']
+  },
+  'WETH-GNO': {
+    strategy: 'sequence',
+    feeds: ['kraken']
   }
 }
 

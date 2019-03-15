@@ -10,9 +10,9 @@ WORKDIR /usr/src/app/
 COPY package*.json truffle.js yarn.lock ./
 COPY contracts contracts
 
-# Compile necesary contracts for app and cleanup unnecesary files
+# Compile necessary contracts for app and cleanup unnecessary files
 RUN apk add --update --no-cache --virtual build-dependencies bash git python make g++ ca-certificates && \
-    yarn install --pure-lockfile && \
+    yarn install --pure-lockfile --production=true && \
     yarn cache clean && \
     apk del build-dependencies && \
     apk add --no-cache tini git tzdata

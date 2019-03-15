@@ -15,6 +15,11 @@ module.exports = {
     factory: 'src/repositories/AuctionRepo/AuctionRepoImpl' // mock, impl
   },
 
+  // DxPriceOracleRepo conf
+  DX_PRICE_ORACLE_REPO: {
+    factory: 'src/repositories/DxPriceOracleRepo/DxPriceOracleRepoImpl' // mock, impl
+  },
+
   // EthereumRepo conf
   ETHEREUM_REPO: {
     factory: 'src/repositories/EthereumRepo/EthereumRepoImpl' // mock, impl

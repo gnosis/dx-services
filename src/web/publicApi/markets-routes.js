@@ -6,6 +6,11 @@ const addCacheHeader = require('../helpers/addCacheHeader')
 const DEFAULT_PAGE_SIZE = 10
 const DEFAULT_MAX_PAGE_SIZE = 50
 
+const DEFAULT_NUMBER_OF_AUCTIONS = 9
+const DEFAULT_ORACLE_TIME = 0
+const DEFAULT_MAXIMUM_TIME_PERIOD = 388800 // '4.5 days'
+const DEFAULT_REQUIRED_WHITELISTED = true
+
 function createRoutes ({ dxInfoService, reportService },
   { short: CACHE_TIMEOUT_SHORT,
     average: CACHE_TIMEOUT_AVERAGE,
@@ -31,6 +36,7 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
+  // TODO DEPRECATED transitioning to markets/{tokenPair}/prices/running
   routes.push({
     path: '/:tokenPair/price',
     get (req, res) {
@@ -40,6 +46,16 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
+  routes.push({
+    path: '/:tokenPair/prices/running',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getCurrentPrice(tokenPair)
+    }
+  })
+
+  // TODO DEPRECATED. Transition to markets/{tokenPair}/prices/closing
   routes.push({
     path: '/:tokenPair/closing-prices',
     get (req, res) {
@@ -60,6 +76,26 @@ function createRoutes ({ dxInfoService, reportService },
   })
 
   routes.push({
+    path: '/:tokenPair/prices/closing',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let count = req.query.count !== undefined ? req.query.count : DEFAULT_PAGE_SIZE
+      if (!_isValidCount(count)) {
+        const error = new Error('Invalid count for closing prices. Count should be between 1 and 50.')
+        error.type = 'INVALID_COUNT'
+        error.status = 412
+        throw error
+      }
+      let params = Object.assign(
+        tokenPair, { count: count }
+      )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getLastClosingPrices(params)
+    }
+  })
+
+  // TODO DEPRECATED. Transition to markets/{tokenPair}/prices/closing/{auctionIndex}
+  routes.push({
     path: '/:tokenPair/closing-prices/:auctionIndex',
     get (req, res) {
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
@@ -69,6 +105,57 @@ function createRoutes ({ dxInfoService, reportService },
       )
       addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getClosingPrice(params)
+    }
+  })
+
+  routes.push({
+    path: '/:tokenPair/prices/closing/:auctionIndex',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      let params = Object.assign(
+        tokenPair,
+        { auctionIndex: req.params.auctionIndex }
+      )
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getClosingPrice(params)
+    }
+  })
+
+  routes.push({
+    path: '/:token-WETH/prices/safe-median',
+    get (req, res) {
+      const token = req.params.token
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getOraclePrice({ token })
+    }
+  })
+
+  routes.push({
+    path: '/:token-WETH/prices/custom-median',
+    get (req, res) {
+      const token = req.params.token
+      const time = req.query.time !== undefined
+        ? req.query.time : DEFAULT_ORACLE_TIME
+      const maximumTimePeriod = req.query.maximumTimePeriod !== undefined
+        ? req.query.maximumTimePeriod : DEFAULT_MAXIMUM_TIME_PERIOD
+      const requireWhitelisted = req.query.requireWhitelisted !== undefined
+        ? req.query.requireWhitelisted : DEFAULT_REQUIRED_WHITELISTED
+      const numberOfAuctions = req.query.numberOfAuctions !== undefined
+        ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getOraclePriceCustom({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
+    }
+  })
+
+  routes.push({
+    path: '/:token-WETH/prices/simple-median',
+    get (req, res) {
+      const token = req.params.token
+      const auctionIndex = req.query.auctionIndex
+      const numberOfAuctions = req.query.numberOfAuctions !== undefined
+        ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+      return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
     }
   })
 
