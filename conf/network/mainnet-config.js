@@ -1,6 +1,6 @@
 const URL_GAS_PRICE_FEED_GAS_STATION = 'https://ethgasstation.info/json/ethgasAPI.json'
 const URL_GAS_PRICE_FEED_SAFE = 'https://safe-relay.gnosis.pm/api/v1/gas-station/'
-const ARBITRAGE_NETWORKS = require('../../node_modules/@okwme/arbitrage/networks.json')
+const ARBITRAGE_NETWORKS = require('../../node_modules/@gnosis.pm/dx-uniswap-arbitrage/networks.json')
 
 UNISWAP_FACTORY_ADDRESS = '0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95',
 ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['Arbitrage']['1']

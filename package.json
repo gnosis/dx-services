@@ -71,9 +71,9 @@
   "dependencies": {
     "@gnosis.pm/dx-contracts": "2.0.0",
     "@gnosis.pm/dx-price-oracle": "0.2.0",
+    "@gnosis.pm/dx-uniswap-arbitrage": "^0.1.1",
     "@gnosis.pm/owl-token": "2.0.0",
     "@gnosis.pm/util-contracts": "2.0.0",
-    "@okwme/arbitrage": "github:okwme/arbitrage#da92322bbc029fc9617d8dc23cc8161d6557a12b",
     "@slack/client": "^4.8.0",
     "commander": "^2.19.0",
     "cors": "^2.8.5",

@@ -156,6 +156,15 @@
     truffle "^5.0.2"
     truffle-hdwallet-provider "^1.0.2"
 
+"@gnosis.pm/dx-uniswap-arbitrage@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-uniswap-arbitrage/-/dx-uniswap-arbitrage-0.1.1.tgz#ef0e2e11e9a5e7785d8fd71a4e2ccdc66e123955"
+  integrity sha512-2IgciMNe0tHFCa+EpHjCnoGvBWhlFL0psPEVW1Hq5aDm/1J2iM7ru/ib0g6Wl/wlAp0wvxdgOoMUjnNS6wLFfA==
+  dependencies:
+    "@gnosis.pm/mock-contract" "^3.0.7"
+    solc "^0.5.2"
+    web3-provider-engine "^14.1.0"
+
 "@gnosis.pm/gno-token@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/gno-token/-/gno-token-2.0.0.tgz#f9662d3897735ec6fc0e4814233e6613afded5c6"
@@ -3028,15 +3037,7 @@ ethereum-common@^0.0.18:
   resolved "https://registry.yarnpkg.com/ethereum-common/-/ethereum-common-0.0.18.tgz#2fdc3576f232903358976eb39da783213ff9523f"
   integrity sha1-L9w1dvIykDNYl26znaeDIT/5Uj8=
 
-ethereumjs-abi@^0.6.5:
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/ethereumjs-abi/-/ethereumjs-abi-0.6.6.tgz#f8ba3413a98478173f5a00f7f1316819db1d09ec"
-  integrity sha512-w8KubDsA/+OAuqtIR9RGsMcoZ5nhM8vxwjJAJvEIY+clhxA3BHoLG3+ClYQaQhD0n3mlDt3U5rBrmSVJvI3c8A==
-  dependencies:
-    bn.js "^4.10.0"
-    ethereumjs-util "^5.0.0"
-
-"ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
+ethereumjs-abi@^0.6.5, "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
   version "0.6.6"
   resolved "git+https://github.com/ethereumjs/ethereumjs-abi.git#d84a96796079c8595a0c78accd1e7709f2277215"
   dependencies:
@@ -7517,7 +7518,7 @@ solc@0.5.0:
     semver "^5.5.0"
     yargs "^11.0.0"
 
-solc@^0.5.0:
+solc@^0.5.0, solc@^0.5.2:
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.6.tgz#13015328c61c188b96ef2c2889d73ac705195fba"
   integrity sha512-BuvrLwOSAGEUbE4jffLBcO9Vm8OVgxImE5qFTHzjH2n+RqBHeqDDOY0gU4LvGWsA6ttjADJyRriF9Pp0vjIq2g==

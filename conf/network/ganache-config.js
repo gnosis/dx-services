@@ -1,5 +1,5 @@
 const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
-const CONTRACTS_ARBITRAGE_DIR = 'node_modules/@okwme/arbitrage/build/contracts'
+const CONTRACTS_ARBITRAGE_DIR = 'node_modules/@gnosis.pm/dx-uniswap-arbitrage/build/contracts'
 const CONTRACT_DEFINITIONS = {
 
   ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/Arbitrage',
