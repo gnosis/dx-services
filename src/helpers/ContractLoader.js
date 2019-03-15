@@ -167,6 +167,21 @@ class ContractLoader {
     return gnoTokenContract.at(address)
   }
 
+  async _loadDxPriceOracleContract () {
+    // This is dx-price-oracle that uses DutchX as Price Oracle
+    const dxPriceOracleContract = this._ethereumClient.loadContract(
+      this._contractDefinitions.DutchExchangePriceOracle
+    )
+
+    let address = await this._getDeployedAddress(
+      'DutchX Price Oracle',
+      dxPriceOracleContract,
+      false
+    )
+
+    return dxPriceOracleContract.at(address)
+  }
+
   async _loadTokenContracts () {
     const standardTokenContract = this._ethereumClient.loadContract(
       this._contractDefinitions.GnosisStandardToken
@@ -205,11 +220,12 @@ class ContractLoader {
       .loadContract(this._contractDefinitions.TokenGNO)
     */
 
+    // This Price oracle only exposes ETH value
     const priceOracleContract = this._ethereumClient.loadContract(
       this._contractDefinitions.PriceOracleInterface
     )
 
-    const [priceOracle, eth, mgn, owl, gno] = await Promise.all([
+    const [priceOracle, eth, mgn, owl, gno, dxPriceOracle] = await Promise.all([
       // load addresses from DX
       dx.ethUSDOracle.call(),
       dx.ethToken.call(),
@@ -223,7 +239,8 @@ class ContractLoader {
           etherTokenContract.at(ethAddress),
           mgnTokenContract.at(mgnAddress),
           owlTokenContract.at(owlAddress),
-          this._loadGnoContract()
+          this._loadGnoContract(),
+          this._loadDxPriceOracleContract()
         ])
       )
     return {
@@ -231,7 +248,8 @@ class ContractLoader {
       eth,
       mgn,
       owl,
-      gno
+      gno,
+      dxPriceOracle
     }
   }
 

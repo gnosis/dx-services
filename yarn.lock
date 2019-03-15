@@ -148,6 +148,14 @@
     "@gnosis.pm/owl-token" "^2.0.0"
     "@gnosis.pm/util-contracts" "^2.0.0"
 
+"@gnosis.pm/dx-price-oracle@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-price-oracle/-/dx-price-oracle-0.2.0.tgz#942e58ed8ec6783562f55cd00948bf73345c384c"
+  integrity sha512-vcmSX2H9J1jcw5J3Ejm9V9eqFh/CXeBeM5ZdKWzrkRK89RMq2tdc9CAHpSUHiDnhHC7Orl3tHSe/dFJap6jpxg==
+  dependencies:
+    truffle "^5.0.2"
+    truffle-hdwallet-provider "^1.0.2"
+
 "@gnosis.pm/gno-token@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/gno-token/-/gno-token-2.0.0.tgz#f9662d3897735ec6fc0e4814233e6613afded5c6"
@@ -320,14 +328,6 @@
   dependencies:
     "@types/istanbul-lib-coverage" "^1.1.0"
     "@types/yargs" "^12.0.9"
-
-"@okwme/arbitrage@github:okwme/arbitrage#da92322bbc029fc9617d8dc23cc8161d6557a12b":
-  version "2.1.0"
-  resolved "https://codeload.github.com/okwme/arbitrage/tar.gz/da92322bbc029fc9617d8dc23cc8161d6557a12b"
-  dependencies:
-    "@gnosis.pm/mock-contract" "^3.0.7"
-    solc "^0.5.2"
-    web3-provider-engine "^14.1.0"
 
 "@sheerun/eslint-config-standard@^10.2.1":
   version "10.2.1"
@@ -639,6 +639,11 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
+app-module-path@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/app-module-path/-/app-module-path-2.2.0.tgz#641aa55dfb7d6a6f0a8141c4b9c0aa50b6c24dd5"
+  integrity sha1-ZBqlXft9am8KgUHEucCqULbCTdU=
+
 append-transform@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/append-transform/-/append-transform-1.0.0.tgz#046a52ae582a228bd72f58acfbe2967c678759ab"
@@ -724,9 +729,9 @@ astral-regex@^1.0.0:
   integrity sha512-+Ryf6g3BKoRc7jfp7ad8tM4TtMiaWvbF/1/sQcZPkkS7ag3D5nMBCe2UfOTONtAkaG0tO0ij3C5Lwmf1EiyjHg==
 
 async-each@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/async-each/-/async-each-1.0.1.tgz#19d386a1d9edc6e7c1c85d388aedbcc56d33602d"
-  integrity sha1-GdOGodntxufByF04iu28xW0zYC0=
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/async-each/-/async-each-1.0.2.tgz#8b8a7ca2a658f927e9f307d6d1a42f4199f0f735"
+  integrity sha512-6xrbvN0MOBKSJDdonmSSz2OwFSgxRaVtBDes26mj9KIGtDo+g9xosFRSC+i1gQh2oAN/tQ62AI/pGZGQjVOiRg==
 
 async-eventemitter@^0.2.2:
   version "0.2.4"
@@ -1656,9 +1661,9 @@ camelcase@^5.0.0:
   integrity sha512-IXFsBS2pC+X0j0N/GE7Dm7j3bsEBp+oTpb7F50dwEVX7rf3IgwO9XatnegTsDtniKCUtEJH4fSU6Asw7uoVLfQ==
 
 caniuse-lite@^1.0.30000844:
-  version "1.0.30000946"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000946.tgz#ac50a3331bb805b483478bbc26a0ab71bb6d0509"
-  integrity sha512-ZVXtMoZ3Mfq69Ikv587Av+5lwGVJsG98QKUucVmtFBf0tl1kOCfLQ5o6Z2zBNis4Mx3iuH77WxEUpdP6t7f2CQ==
+  version "1.0.30000947"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000947.tgz#c30305e9701449c22e97f4e9837cea3d76aa3273"
+  integrity sha512-ubgBUfufe5Oi3W1+EHyh2C3lfBIEcZ6bTuvl5wNOpIuRB978GF/Z+pQ7pGGUpeYRB0P+8C7i/3lt6xkeu2hwnA==
 
 capture-exit@^1.2.0:
   version "1.2.0"
@@ -2481,9 +2486,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 electron-to-chromium@^1.3.47:
-  version "1.3.115"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.115.tgz#fdaa56c19b9f7386dbf29abc1cc632ff5468ff3b"
-  integrity sha512-mN2qeapQWdi2B9uddxTZ4nl80y46hbyKY5Wt9Yjih+QZFQLdaujEDK4qJky35WhyxMzHF3ZY41Lgjd2BPDuBhg==
+  version "1.3.116"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.116.tgz#1dbfee6a592a0c14ade77dbdfe54fef86387d702"
+  integrity sha512-NKwKAXzur5vFCZYBHpdWjTMO8QptNLNP80nItkSIgUOapPAo9Uia+RvkCaZJtO7fhQaVElSvBPWEc2ku6cKsPA==
 
 elliptic@^6.2.3:
   version "6.4.1"
@@ -3752,12 +3757,11 @@ globals@^9.18.0:
 
 "gnosis-safe-modules@git+https://github.com/gnosis/safe-modules.git#feature/dx-module-refactor":
   version "0.0.1"
-  resolved "git+https://github.com/gnosis/safe-modules.git#efca635f37b8b223e69cf941047be960674c41b3"
+  resolved "git+https://github.com/gnosis/safe-modules.git#e55ff523b49e37e80395ef4de054645168366819"
   dependencies:
     "@gnosis.pm/safe-contracts" "^0.1.0"
     "@gnosis.pm/util-contracts" "^2.0.0"
     dotenv "^6.2.0"
-    solc "0.5.0"
 
 got@^6.7.1:
   version "6.7.1"
@@ -5810,9 +5814,9 @@ nan@2.10.0:
   integrity sha512-bAdJv7fBLhWC+/Bls0Oza+mvTaNQtP+1RyhhhvD95pgUJz6XM5IzgmxOkItJ9tkoCiplvAnXI1tNmmUD/eScyA==
 
 nan@^2.0.8, nan@^2.11.0, nan@^2.2.1, nan@^2.9.2:
-  version "2.12.1"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.12.1.tgz#7b1aa193e9aa86057e3c7bbd0ac448e770925552"
-  integrity sha512-JY7V6lRkStKcKTvHO5NVSQRv+RV+FIL5pvDoLiAtSL9pKlC5x9PKQcZDsq7m4FO4d57mkhC6Z+QhAh3Jdk5JFw==
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.13.0.tgz#7bdfc27dd3c060c46e60b62c72b74012d1a4cd68"
+  integrity sha512-5DDQvN0luhXdut8SCwzm/ZuAX2W+fwhqNzfq7CZ+OJzQ6NwpcqmIGyLD1R8MEt7BeErzcsI0JLr4pND2pNp2Cw==
 
 nanomatch@^1.2.9:
   version "1.2.13"
@@ -7513,7 +7517,7 @@ solc@0.5.0:
     semver "^5.5.0"
     yargs "^11.0.0"
 
-solc@^0.5.0, solc@^0.5.2:
+solc@^0.5.0:
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.6.tgz#13015328c61c188b96ef2c2889d73ac705195fba"
   integrity sha512-BuvrLwOSAGEUbE4jffLBcO9Vm8OVgxImE5qFTHzjH2n+RqBHeqDDOY0gU4LvGWsA6ttjADJyRriF9Pp0vjIq2g==
@@ -8080,6 +8084,16 @@ truffle@^4.1.15:
     mocha "^4.1.0"
     original-require "1.0.1"
     solc "0.4.25"
+
+truffle@^5.0.2:
+  version "5.0.8"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.8.tgz#b841b4d9a94dec474b0ece77b1e0644f91cd51d5"
+  integrity sha512-8Sf9GKD6Y99fcHDYQCE9hRxYWm+rpptye4Ez08G8OsaCSsbEqRzyCZf18FdLLL3iWYJZ9S+tA1P0YZVxGDQ2nw==
+  dependencies:
+    app-module-path "^2.2.0"
+    mocha "^4.1.0"
+    original-require "1.0.1"
+    solc "0.5.0"
 
 tslib@^1.9.0:
   version "1.9.3"
