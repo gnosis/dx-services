@@ -4,6 +4,8 @@ const Logger = require('../../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 // const assert = require('assert')
 
+const IDEXING_BATCH_SIZE = 10000
+
 class IndexerService {
   constructor ({
     auctionRepo,
@@ -14,11 +16,23 @@ class IndexerService {
     logger.info('Loading indexer')
   }
 
-  async _indexTokenPairs () {
-    const tokenPairs = await this._auctionRepo.getTokenPairs()
+  async _indexTokenPairs ({
+    fromBlock,
+    toBlock
+  }) {
+    const tokenPairs = await this._auctionRepo.getTokenPairs({
+      fromBlock,
+      toBlock
+    })
 
     tokenPairs.forEach(tokenPair => {
-      logger.info('%O', tokenPair)
+      // logger.info('%O', tokenPair)
+      const {
+        ethInfo,
+        sellToken,
+        buyToken
+      } = tokenPair
+      logger.info('[%d] %s-%s', ethInfo.blockNumber, sellToken, buyToken)
       // TODO: Persist using a new DAO
     })
   }
@@ -142,21 +156,43 @@ class IndexerService {
   async indexEvents ({
     forzeFullIndex = false,
     numConfirmations = 10
-  }) {
-    let filteredBlocks
+  } = {}) {
+    let initalBlock, endBlock
     if (forzeFullIndex) {
-      filteredBlocks = {
-        fromBlock: 0,
-        toBlock: 3840489 // Get last block - X Blocks (confirmations)
-      }
+      // Full sync
+      initalBlock = 0
+      endBlock = 3840489 // Get last block - X Blocks (confirmations)
     } else {
-      filteredBlocks = {
-        fromBlock: 3800000,
-        toBlock: 3840489
-      }
+      // Continue sync
+      initalBlock = 7200000 // Get last processed block from database
+      endBlock = 7374901 // Get last block - X Blocks (confirmations)
     }
+
+    const totalNumBatches = Math.ceil((endBlock - initalBlock) / IDEXING_BATCH_SIZE)
+    let batchNumber = 0
+    for (let fromBlock = initalBlock; fromBlock < endBlock; fromBlock += IDEXING_BATCH_SIZE) {
+      batchNumber++
+      const toBlock = fromBlock + IDEXING_BATCH_SIZE - 1
+      logger.info('Indexing %d/%d: From block %d to %d', batchNumber, totalNumBatches, fromBlock, toBlock)
+
+      await this._doIndexEvents({
+        fromBlock,
+        toBlock
+      })
+    }
+  }
+
+  async _doIndexEvents ({
+    fromBlock,
+    toBlock
+  }) {
+    const blockRange = {
+      fromBlock,
+      toBlock
+    }
+
     // 1. Index Token Pairs
-    // await this._indexTokenPairs(filteredBlocks)
+    await this._indexTokenPairs(blockRange)
 
     // 2. Index Auctions
     // TODO:

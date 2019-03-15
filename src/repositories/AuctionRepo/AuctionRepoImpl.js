@@ -413,9 +413,14 @@ class AuctionRepoImpl extends Cacheable {
     return Object.keys(this._tokens)
   }
 
-  async getTokenPairs () {
+  async getTokenPairs ({
+    fromBlock = 0,
+    toBlock = 'latest'
+  } = {}) {
     return this._getTokenPairs({
-      event: 'NewTokenPair'
+      event: 'NewTokenPair',
+      fromBlock,
+      toBlock
     })
   }
 
