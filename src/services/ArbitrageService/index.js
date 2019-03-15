@@ -4,21 +4,29 @@ const getArbitrageRepo = require('../../repositories/ArbitrageRepo')
 const getAuctionRepo = require('../../repositories/AuctionRepo')
 const getEthereumRepo = require('../../repositories/EthereumRepo')
 
-let arbitrageService
+let instance, instancePromise
+async function _getInstance () {
+  const [arbitrageRepo, auctionRepo, ethereumRepo] = await Promise.all([
+    getArbitrageRepo(),
+    getAuctionRepo(),
+    getEthereumRepo()
+  ])
+  return new ArbitrageService({
+    arbitrageRepo,
+    auctionRepo,
+    ethereumRepo,
+    markets: conf.MARKETS
+  })
+}
+
 module.exports = async () => {
-  if (!arbitrageService) {
-    const [arbitrageRepo, auctionRepo, ethereumRepo ] = await Promise.all([
-      getArbitrageRepo(),
-      getAuctionRepo(),
-      getEthereumRepo()
-    ])
-    arbitrageService = new ArbitrageService({
-      arbitrageRepo,
-      auctionRepo,
-      ethereumRepo,
-      markets: conf.MARKETS
-    })
+  if (!instance) {
+    if (!instancePromise) {
+      instancePromise = _getInstance()
+    }
+
+    instance = await instancePromise
   }
 
-  return arbitrageService
+  return instance
 }
