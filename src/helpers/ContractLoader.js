@@ -55,14 +55,34 @@ class ContractLoader {
   async _loadArbitrage () {
     const arbitrageContract = this._ethereumClient
       .loadContract(this._contractDefinitions.ArbitrageContract)
-    const arbitrageContractInstance = arbitrageContract.at(this._arbitrageContractAddress.address)
+    let arbitrageContractAddress
+    if (this._arbitrageContractAddress) {
+      arbitrageContractAddress = this._arbitrageContractAddress
+    } else {
+      arbitrageContractAddress = await this._getDeployedAddress(
+        'ArbitrageLocal',
+        arbitrageContract,
+        true
+      )
+    }
+    const arbitrageContractInstance = arbitrageContract.at(arbitrageContractAddress)
     return arbitrageContractInstance
   }
 
   async _loadUniswapFactory () {
     const uniswapFactory = this._ethereumClient
       .loadContract(this._contractDefinitions.UniswapFactory)
-    const uniswapFactoryInstance = uniswapFactory.at(this._uniswapFactoryAddress)
+    let uniswapFactoryAddress
+    if (this._uniswapFactoryAddress) {
+      uniswapFactoryAddress = this._uniswapFactoryAddress
+    } else {
+      uniswapFactoryAddress = await this._getDeployedAddress(
+        'IUniswapFactory',
+        uniswapFactory,
+        true
+      )
+    }
+    const uniswapFactoryInstance = uniswapFactory.at(uniswapFactoryAddress)
     return uniswapFactoryInstance
   }
 

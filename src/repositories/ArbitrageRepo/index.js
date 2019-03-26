@@ -21,9 +21,8 @@ async function _createArbitrageRepo () {
   const contracts = await loadContracts()
 
   // Get ethereum client
-  const getEthereumClient = require('../../getEthereumClient')
+  const getEthereumClient = require('../../helpers/ethereumClient')
   const ethereumClient = await getEthereumClient()
-
 
   // Get ethereum client
   const getEthereumRepo = require('../EthereumRepo')

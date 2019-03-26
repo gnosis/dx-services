@@ -16,9 +16,12 @@ const setupPromise = testSetup()
 let arbitrageBot
 
 beforeAll(async () => {
-  console.log('BEFORE ALL')
-  await setupPromise
-  console.log('setupPromise DONE')
+  try {
+    await setupPromise
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
   arbitrageBot = new ArbitrageBot({
     name: 'ArbitrageBot',
     botAddress: '0x123',
@@ -26,7 +29,6 @@ beforeAll(async () => {
     rules: BUY_LIQUIDITY_RULES,
     notifications: []
   })
-  console.log('arbitrageBot is a ' + typeof arbitrageBot)
 
   jest.useFakeTimers()
 
@@ -35,8 +37,6 @@ beforeAll(async () => {
 })
 
 afterAll(() => {
-  console.log('AFTER ALL')
-  console.log('arbitrageBot is a ' + typeof arbitrageBot)
   arbitrageBot.stop()
 })
 
@@ -73,7 +73,7 @@ test('It should not run arbitrage if already running arbitrage.', () => {
   })
 })
 
-test('It should run when called', () => {
+test('It should run when called', async () => {
   expect.assertions(3)
   // we mock ensureArbitrageLiquidity function
   arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidity)
@@ -88,13 +88,12 @@ test('It should run when called', () => {
   })
 
   // THEN arbitrage is ensured correctly
-  ENSURE_ARBITRAGE.then(result => {
-    expect(result).toBeTruthy()
-  })
+  const result = await ENSURE_ARBITRAGE
+  expect(result).toBeTruthy()
   expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(1)
 })
 
-test('It should handle errors if something goes wrong.', () => {
+test('It should handle errors if something goes wrong.', async () => {
   expect.assertions(3)
   // we mock ensureArbitrageLiquidity function
   arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidityError)
@@ -110,9 +109,8 @@ test('It should handle errors if something goes wrong.', () => {
   })
 
   // THEN liquidity can't be ensured
-  ENSURE_ARBITRAGE.then(result => {
-    expect(result).toBeFalsy()
-  })
+  const result = await ENSURE_ARBITRAGE
+  expect(result).toBeFalsy()
   // THEN handling error function is called
   expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(1)
 })
@@ -130,7 +128,11 @@ function _ensureLiquidity ({ sellToken, buyToken, from }) {
     actualProfit: '0',
     dutchPrice: '0',
     uniswapPrice: '0',
-    tx: {}
+    tx: {
+      receipt: {
+        logs: []
+      }
+    }
   }, {
     type: 'DutchOpportunity',
     arbToken: sellToken,
@@ -139,7 +141,11 @@ function _ensureLiquidity ({ sellToken, buyToken, from }) {
     actualProfit: '0',
     dutchPrice: '0',
     uniswapPrice: '0',
-    tx: {}
+    tx: {
+      receipt: {
+        logs: []
+      }
+    }
   }])
 }
 
