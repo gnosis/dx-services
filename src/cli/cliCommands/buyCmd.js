@@ -31,7 +31,7 @@ function registerCommand ({ cli, logger }) {
         sellToken, buyToken
       })
 
-      logger.info(`Buy %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
+      logger.info(`Buy ${sellToken} using %d %s on ${sellToken}-${buyToken} (%s) using the account %s`,
         amount,
         buyToken,
         'auction ' + auctionIndex,
