@@ -678,13 +678,12 @@ paths:
           type: string
         - name: time
           in: query
-          description: >-
-            An Unix timestamp for a price at any point in time
+          description: |-
+            A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
+
+            ex: *'2018-07-02', 'YYYY-MM-DD'*
           required: false
-          type: integer
-          format: int32
-          minimum: 0
-          default: 0
+          type: string
         - name: requireWhitelisted
           in: query
           description: Require the token to be whitelisted on the DutchX
@@ -717,6 +716,12 @@ paths:
             $ref: '#/definitions/MarketPrice'
         '404':
           description: The token provided is not found
+        '412':
+          description: |-
+            <span class="markdown">
+              DATE_FORMAT:
+              <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
+            </span>
 
 
 
@@ -969,7 +974,7 @@ paths:
             A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format. Required when using
             *toDate*.
 
-            ex: *'2018-07-01', '01-07-2018'*
+            ex: *'2018-07-01', 'YYYY-MM-DD'*
           type: string
         - name: toDate
           in: query
@@ -977,7 +982,7 @@ paths:
             A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format. Required when using
             *fromDate*.
 
-            ex: *'2018-07-02', '02-07-2018'*
+            ex: *'2018-07-02', 'YYYY-MM-DD'*
           type: string
         - name: period
           in: query
