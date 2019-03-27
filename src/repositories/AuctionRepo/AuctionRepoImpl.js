@@ -1349,6 +1349,25 @@ volume: ${state}`)
     })
   }
 
+  getBurnedOwl ({
+    fromBlock,
+    toBlock
+  }) {
+    return ethereumEventHelper
+      .filter({
+        contract: this._tokens.OWL,
+        fromBlock,
+        toBlock,
+        events: [
+          'Burnt'
+        ]
+      })
+      .then(events => this._toEventsData({
+        events,
+        datePropName: 'burnDate'
+      }))
+  }
+
   getAuctionStartScheduledEvents ({
     fromBlock,
     toBlock,
