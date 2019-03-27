@@ -134,7 +134,7 @@ function tokenPairSplit (tokenPair) {
 }
 
 function _parseDate (dateStr, format, errorMessage) {
-  const date = format ? moment(dateStr, format) : moment(dateStr)
+  const date = format ? moment(dateStr, format) : moment(dateStr, moment.ISO_8601)
 
   if (!date.isValid()) {
     const error = new Error('Invalid date format' + errorMessage)
