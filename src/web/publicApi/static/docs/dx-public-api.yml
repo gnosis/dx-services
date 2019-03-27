@@ -950,6 +950,8 @@ paths:
         * or, the `period`, with one of the following values: `today`,
           `yesterday`, `week`, `last-week`, `current-week`
 
+        The use of `fromDate` and `toDate` is **limited to a 15 days time period**. Otherwise an error will be returned
+
 
         **It returns**:
         * `auctionIndex`: Auction index of the cleared auction
@@ -1016,6 +1018,8 @@ paths:
               </ul>
               DATE_FORMAT:
               <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
+              MAX_NUM_DAYS_EXCEEDED:
+              <ul><li>Only a range of 15 days is allowed between 'toDate' and 'fromDate'</li></ul>
             </span>
 
 
