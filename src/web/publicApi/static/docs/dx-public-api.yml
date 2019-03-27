@@ -691,13 +691,12 @@ paths:
           type: string
         - name: time
           in: query
-          description: >-
-            An Unix timestamp for a price at any point in time
+          description: |-
+            A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
+
+            ex: *'2018-07-02', 'YYYY-MM-DD'*
           required: false
-          type: integer
-          format: int32
-          minimum: 0
-          default: 0
+          type: string
         - name: requireWhitelisted
           in: query
           description: Require the token to be whitelisted on the DutchX
@@ -742,8 +741,11 @@ paths:
               </ul>
               INVALID_NUMBER_OF_AUCTIONS:
               <ul><li>`numberOfAuctions` value isn't between 1 and 61,
-              the equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.</li></ul>
+              the equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.</li></ul>            
+              DATE_FORMAT:
+              <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
             </span>
+
 
 
 
@@ -971,6 +973,8 @@ paths:
         * or, the `period`, with one of the following values: `today`,
           `yesterday`, `week`, `last-week`, `current-week`
 
+        The use of `fromDate` and `toDate` is **limited to a 15 days time period**. Otherwise an error will be returned
+
 
         **It returns**:
         * `auctionIndex`: Auction index of the cleared auction
@@ -995,7 +999,7 @@ paths:
             A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format. Required when using
             *toDate*.
 
-            ex: *'2018-07-01', '01-07-2018'*
+            ex: *'2018-07-01', 'YYYY-MM-DD'*
           type: string
         - name: toDate
           in: query
@@ -1003,7 +1007,7 @@ paths:
             A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format. Required when using
             *fromDate*.
 
-            ex: *'2018-07-02', '02-07-2018'*
+            ex: *'2018-07-02', 'YYYY-MM-DD'*
           type: string
         - name: period
           in: query
@@ -1037,6 +1041,8 @@ paths:
               </ul>
               DATE_FORMAT:
               <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
+              MAX_NUM_DAYS_EXCEEDED:
+              <ul><li>Only a range of 15 days is allowed between 'toDate' and 'fromDate'</li></ul>
             </span>
 
 

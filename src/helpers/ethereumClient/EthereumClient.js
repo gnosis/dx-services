@@ -283,7 +283,9 @@ class EthereumClient extends Cacheable {
       formatUtil.formatDateTimeWithSeconds(date)
     )
     const latestBlock = await this.getBlock('latest')
-    const latestBlockNumber = latestBlock.number
+    // We substract 5 blocks assuming 15secs by block that means 1 min and 15 secs delay
+    // This way we try to avoid colliding with posible reorgs when checking data
+    const latestBlockNumber = latestBlock.number - 5
 
     return this._getFirstBlockAfterDate({
       date,
@@ -300,7 +302,9 @@ class EthereumClient extends Cacheable {
       formatUtil.formatDateTimeWithSeconds(date)
     )
     const latestBlock = await this.getBlock('latest')
-    const latestBlockNumber = latestBlock.number
+    // We substract 5 blocks assuming 15secs by block that means 1 min and 15 secs delay
+    // This way we try to avoid colliding with posible reorgs when checking data
+    const latestBlockNumber = latestBlock.number - 5
 
     return this._getFirstBlockAfterDate({
       date,
