@@ -75,17 +75,17 @@ const BLOCK_TEST_CASES = [{
 }, {
   blockNumber: 99,
   deltaTime: -3,
-  expectedLastBlockBefore: 98,
-  expectedFirstBlockAfter: 99
+  expectedLastBlockBefore: 94,
+  expectedFirstBlockAfter: null
 }, {
   blockNumber: 99,
   deltaTime: 0,
-  expectedLastBlockBefore: 99,
-  expectedFirstBlockAfter: 99
+  expectedLastBlockBefore: 94,
+  expectedFirstBlockAfter: null
 }, {
   blockNumber: 99,
   deltaTime: 3,
-  expectedLastBlockBefore: 99,
+  expectedLastBlockBefore: 94,
   expectedFirstBlockAfter: null
 }]
 
