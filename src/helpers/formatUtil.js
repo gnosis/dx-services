@@ -115,13 +115,25 @@ function formatMarketDescriptor ({ tokenA, tokenB }) {
 }
 
 function tokenPairSplit (tokenPair) {
-  // Split and set uppercase just in case is set with symbols
-  let splittedPair = tokenPair.toLowerCase().startsWith('0x')
-    ? tokenPair.split('-')
-    : tokenPair.toUpperCase().split('-')
+  // Split token pair string
+  let splittedPair = tokenPair.split('-')
+
+  const _handleSymbolOrHexToken = splitted => {
+    return splitted.map(token => {
+      let parsedToken = token
+      if (token.toLowerCase().startsWith('0x')) {
+        // In case is HEX make sure 0x is lowercase (parity issues)
+        parsedToken = token.replace('0X', '0x')
+      } else {
+        // In case is symbol set to uppercase
+        parsedToken = token.toUpperCase()
+      }
+      return parsedToken
+    })
+  }
 
   if (splittedPair.length === 2) {
-    const [sellToken, buyToken] = splittedPair
+    const [sellToken, buyToken] = _handleSymbolOrHexToken(splittedPair)
     return {
       sellToken,
       buyToken
