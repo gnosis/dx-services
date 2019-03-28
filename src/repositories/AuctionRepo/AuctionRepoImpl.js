@@ -1916,17 +1916,27 @@ volume: ${state}`)
   }
 
   async _getTokenAddress (token, check = false) {
+    let tokenAddress
     if (HEXADECIMAL_REGEX.test(token)) {
-      return token
+      tokenAddress = token
+    } else {
+      tokenAddress = this._getTokenContractBySymbol(token).address
+      if (check) {
+        const isApprovedToken = await this.isApprovedToken({ tokenAddress })
+
+        if (!isApprovedToken) {
+          throw Error(`${token} is not an approved token`)
+        }
+      }
     }
 
-    const tokenAddress = this._getTokenContractBySymbol(token).address
-    if (check) {
-      const isApprovedToken = await this.isApprovedToken({ token })
-
-      if (!isApprovedToken) {
-        throw Error(`${token} is not an approved token`)
-      }
+    // Check that the address returns some code. Parity returns a hard error if no contract in given address: VM Execution error
+    const code = await this._ethereumClient.getCode(tokenAddress)
+    if (code === '0x') {
+      const error = new Error(`Token address ${tokenAddress} is not valid. Check that it is a token address.`)
+      error.type = 'TOKEN_ADDRESS_NOT_FOUND'
+      error.status = 404
+      throw error
     }
 
     return tokenAddress
