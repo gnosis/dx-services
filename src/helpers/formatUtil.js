@@ -116,9 +116,10 @@ function formatMarketDescriptor ({ tokenA, tokenB }) {
 
 function tokenPairSplit (tokenPair) {
   // Split and set uppercase just in case is set with symbols
-  let splittedPair = tokenPair.startsWith('0x')
+  let splittedPair = tokenPair.toLowerCase().startsWith('0x')
     ? tokenPair.split('-')
     : tokenPair.toUpperCase().split('-')
+
   if (splittedPair.length === 2) {
     const [sellToken, buyToken] = splittedPair
     return {
