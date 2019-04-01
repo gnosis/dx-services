@@ -2415,7 +2415,7 @@ volume: ${state}`)
 }
 
 function toFraction ([ numerator, denominator ]) {
-  console.log('toFracton', numerator.toString(10), denominator.toString(10))
+  // console.log('toFracton', numerator.toString(10), denominator.toString(10))
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {
     return null

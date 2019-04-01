@@ -12,11 +12,9 @@ class ArbitrageRepoImpl extends Cacheable {
     // Cache
     cacheConf,
     // Gas
-    defaultGas = 6700000,
+    // defaultGas = 6700000,
     gasPriceDefault = 'fast', // safeLow, average, fast
     // Retry
-    transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
-    gasRetryIncrement = 1.2,
     overFastPriceFactor = 1,
     gasEstimationCorrectionFactor = 2
   }) {
@@ -29,16 +27,13 @@ class ArbitrageRepoImpl extends Cacheable {
 
     this._ethereumRepo = ethereumRepo
     this._ethereumClient = ethereumClient
-    this._defaultGas = defaultGas
-    this._transactionRetryTime = transactionRetryTime
-    this._gasRetryIncrement = gasRetryIncrement
+    // this._defaultGas = defaultGas
     this._overFastPriceFactor = overFastPriceFactor
     this._gasEstimationCorrectionFactor = gasEstimationCorrectionFactor
     this._gasPriceDefault = gasPriceDefault
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
-    this._dx = contracts.dx
     this._arbitrage = contracts.arbitrageContract
     this._uniswapFactory = contracts.uniswapFactory
     this._uniswapExchange = contracts.uniswapExchange
@@ -111,8 +106,8 @@ class ArbitrageRepoImpl extends Cacheable {
   async getUniswapBalances ({ buyToken, sellToken }) {
     const { etherToken, tokenTokenAddress } = this.whichTokenIsEth(buyToken, sellToken)
     let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenTokenAddress)
-    const ether_balance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
-    const token_balance = await this._depositToken.tokenBalanceOf({
+    const etherBalance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
+    const tokenBalance = await this._ethereumRepo.tokenBalanceOf({
       tokenAddress: tokenTokenAddress,
       account: uniswapExchangeAddress
     })
@@ -123,13 +118,13 @@ class ArbitrageRepoImpl extends Cacheable {
       // then sellerToken is tokenToken... so tokenToken is used as inputToken
       // that will be exchanged for etherToken outputToken
       return {
-        input_balance: token_balance,
-        output_balance: ether_balance
+        input_balance: tokenBalance,
+        output_balance: etherBalance
       }
     } else {
       return {
-        input_balance: ether_balance,
-        output_balance: token_balance
+        input_balance: etherBalance,
+        output_balance: tokenBalance
       }
     }
   }
@@ -141,7 +136,7 @@ class ArbitrageRepoImpl extends Cacheable {
       params: [token, amount]
     })
   }
-  
+
   async claimBuyerFunds ({ token, auctionId, from }) {
     return this._doTransaction({
       operation: 'claimBuyerFunds',

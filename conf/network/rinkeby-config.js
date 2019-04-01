@@ -18,7 +18,7 @@ if (env === 'pre' || env === 'pro') {
   OMG_TOKEN_ADDRESS = null
 
   UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
-  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4']
+  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4'].address
 } else if (env === 'dev') {
   // Rinkeby: dev
   //  We use a different DX contract than the one defined in the NPM package
@@ -29,7 +29,7 @@ if (env === 'pre' || env === 'pro') {
   GNO_TOKEN_ADDRESS = GNO_NETWORKS['TokenGNO']['4'].address
 
   UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
-  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4']
+  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4'].address
 
   // Old ones
   // RDN_TOKEN_ADDRESS = '0x7e2331beaec0ded82866f4a1388628322c8d5af0'
@@ -39,7 +39,7 @@ if (env === 'pre' || env === 'pro') {
   DX_CONTRACT_ADDRESS = null
   DX_HELPER_ADDRESS = null
   UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
-  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4']
+  ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['ArbitrageRinkeby']['4'].address
   DX_HELPER_ADDRESS = null
   RDN_TOKEN_ADDRESS = '0x3615757011112560521536258c1e7325ae3b48ae'
   OMG_TOKEN_ADDRESS = '0x00df91984582e6e96288307e9c2f20b38c8fece9'

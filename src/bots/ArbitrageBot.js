@@ -9,7 +9,7 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const BOT_TYPE = 'ArbitrageLiquidityBot'
 // const getAddress = require('../helpers/getAddress')
-const getEthereumClient = require('../getEthereumClient')
+const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
 const getSlackRepo = require('../repositories/SlackRepo')

@@ -13,8 +13,6 @@ async function loadContracts () {
   if (!contracts) {
     const {
       CONTRACT_DEFINITIONS,
-      UNISWAP_FACTORY_ADDRESS,
-      ARBITRAGE_CONTRACT_ADDRESS,
       DX_CONTRACT_ADDRESS,
       DX_HELPER_ADDRESS,
       GNO_TOKEN_ADDRESS,
@@ -25,8 +23,6 @@ async function loadContracts () {
     let instanceArgs = {
       ethereumClient,
       contractDefinitions: CONTRACT_DEFINITIONS,
-      uniswapFactoryAddress: UNISWAP_FACTORY_ADDRESS,
-      arbitrageContractAddress: ARBITRAGE_CONTRACT_ADDRESS,
       dxContractAddress: DX_CONTRACT_ADDRESS,
       dxHelperAddress: DX_HELPER_ADDRESS,
       gnoToken: GNO_TOKEN_ADDRESS,

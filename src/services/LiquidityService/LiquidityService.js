@@ -780,7 +780,7 @@ keeps happening`
       } else {
         inputAmount = inputAmount.add(spendIncrement)
       }
-      console.log('end input_amount', input_amount.toString(10))
+      // console.log('end input_amount', inputAmount.toString(10))
     }
     return inputAmount
   }

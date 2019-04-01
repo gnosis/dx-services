@@ -7,7 +7,6 @@ const CONTRACT_DEFINITIONS = {
   UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange',
   UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
 
-
   GnosisStandardToken: CONTRACTS_BASE_DIR + '/GnosisStandardToken',
 
   StandardToken: CONTRACTS_BASE_DIR + '/StandardToken',
@@ -15,7 +14,6 @@ const CONTRACT_DEFINITIONS = {
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
   DutchExchangeHelper: CONTRACTS_BASE_DIR + '/DutchExchangeHelper',
-  UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
   EtherToken: CONTRACTS_BASE_DIR + '/EtherToken',
   TokenFRT: CONTRACTS_BASE_DIR + '/TokenFRT',
   TokenFRTProxy: CONTRACTS_BASE_DIR + '/TokenFRTProxy',

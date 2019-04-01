@@ -12,8 +12,6 @@ class ContractLoader {
     contractDefinitions,
     dxContractAddress,
     dxHelperAddress,
-    uniswapFactoryAddress,
-    arbitrageContractAddress,
     gnoToken,
     erc20TokenAddresses,
     contractsBaseDir
@@ -25,8 +23,6 @@ class ContractLoader {
 
     this._ethereumClient = ethereumClient
     this._contractDefinitions = contractDefinitions
-    this._arbitrageContractAddress = arbitrageContractAddress
-    this._uniswapFactoryAddress = uniswapFactoryAddress
     this._dxContractAddress = dxContractAddress
     this._dxHelperAddress = dxHelperAddress
     this._gnoTokenAddress = gnoToken
@@ -35,13 +31,9 @@ class ContractLoader {
   }
 
   async loadContracts () {
-    const [ dx, erc20TokenContracts, arbitrageContract, uniswapFactory, uniswapExchange ] = await Promise.all([
+    const [ dx, erc20TokenContracts ] = await Promise.all([
       this._loadDx(),
-      this._loadTokenContracts(),
-      this._loadArbitrage(),
-      this._loadUniswapFactory(),
-      this._loadEmptyUniswapExchange()
-
+      this._loadTokenContracts()
     ])
 
     const [dxHelper, dxContracts] = await Promise.all([
@@ -49,26 +41,7 @@ class ContractLoader {
       this._loadDxContracts(dx)
     ])
 
-    return { dx, dxHelper, ...dxContracts, erc20TokenContracts, arbitrageContract, uniswapFactory, uniswapExchange }
-  }
-
-  async _loadArbitrage () {
-    const arbitrageContract = this._ethereumClient
-      .loadContract(this._contractDefinitions.ArbitrageContract)
-    const arbitrageContractInstance = arbitrageContract.at(this._arbitrageContractAddress.address)
-    return arbitrageContractInstance
-  }
-
-  async _loadUniswapFactory () {
-    const uniswapFactory = this._ethereumClient
-      .loadContract(this._contractDefinitions.UniswapFactory)
-    const uniswapFactoryInstance = uniswapFactory.at(this._uniswapFactoryAddress)
-    return uniswapFactoryInstance
-  }
-
-  async _loadEmptyUniswapExchange () {
-    return this._ethereumClient
-      .loadContract(this._contractDefinitions.UniswapExchange)
+    return { dx, dxHelper, ...dxContracts, erc20TokenContracts }
   }
 
   async _loadDx () {
