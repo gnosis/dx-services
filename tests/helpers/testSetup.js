@@ -30,9 +30,10 @@ const baseConfig = {
 
 // const balanceProps = ['token', 'balance']
 
-async function getContracts ({ ethereumClient, auctionRepo }) {
+async function getContracts ({ ethereumClient, auctionRepo, dxPriceOracle }) {
   return {
     dx: auctionRepo._dx,
+    dxPriceOracle: dxPriceOracle._dxPriceOracle,
     priceOracle: auctionRepo._priceOracle,
     tokens: auctionRepo._tokens,
     // the following address are just for debuging porpouses

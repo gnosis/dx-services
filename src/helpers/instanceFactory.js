@@ -15,6 +15,7 @@ const getEthereumClient = require('../helpers/ethereumClient')
 // Repos
 const getArbitrageRepo = require('../repositories/ArbitrageRepo')
 const getAuctionRepo = require('../repositories/AuctionRepo')
+const getDxPriceOracleRepo = require('../repositories/DxPriceOracleRepo')
 const getPriceRepo = require('../repositories/PriceRepo')
 const getEthereumRepo = require('../repositories/EthereumRepo')
 const getSlackRepo = require('../repositories/SlackRepo')
@@ -53,6 +54,7 @@ async function createInstances ({
   // Repos
   const arbitrageRepo = await getArbitrageRepo()
   const auctionRepo = await getAuctionRepo()
+  const dxPriceOracle = await getDxPriceOracleRepo()
   const priceRepo = await getPriceRepo()
   const ethereumRepo = await getEthereumRepo()
 
@@ -98,6 +100,7 @@ async function createInstances ({
   if (test) {
     // For testing is handy to return also the repos, client, etc
     instances = Object.assign({}, instances, {
+      dxPriceOracle,
       priceRepo,
       arbitrageRepo,
       auctionRepo,

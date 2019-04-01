@@ -38,5 +38,4 @@ function initEnv () {
       }
     }
   }
-  console.log('')
 }

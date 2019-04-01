@@ -118,13 +118,13 @@ class ArbitrageRepoImpl extends Cacheable {
       // then sellerToken is tokenToken... so tokenToken is used as inputToken
       // that will be exchanged for etherToken outputToken
       return {
-        input_balance: tokenBalance,
-        output_balance: etherBalance
+        inputBalance: tokenBalance,
+        outputBalance: etherBalance
       }
     } else {
       return {
-        input_balance: etherBalance,
-        output_balance: tokenBalance
+        inputBalance: etherBalance,
+        outputBalance: tokenBalance
       }
     }
   }

@@ -31,6 +31,7 @@ class PublicApiServer extends Server {
     // Get routes
     const mainRoutes = require('../main-routes')(services, this._cacheTimeouts)
     const testRoutes = require('../test-routes')(services)
+    const tokensRoutes = require('../tokens-routes')(services, this._cacheTimeouts)
     const marketsRoutes = require('../markets-routes')(services, this._cacheTimeouts)
     const auctionsRoutes = require('../auctions-routes')(services, this._cacheTimeouts)
     const accountsRoutes = require('../accounts-routes')(services, this._cacheTimeouts)
@@ -49,6 +50,8 @@ class PublicApiServer extends Server {
     app.use('/api', createRouter(mainRoutes))
     app.use('/api/test', createRouter(testRoutes))
 
+    // Tokens routes
+    app.use('/api/v1/tokens', createRouter(tokensRoutes))
     // Markets routes
     app.use('/api/v1/markets', createRouter(marketsRoutes))
     // Auctions routes

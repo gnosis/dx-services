@@ -1,7 +1,7 @@
 // const NETWORKS = require('../../node_modules/@gnosis.pm/dx-contracts/networks.json')
 const NETWORKS_DEV = require('../../node_modules/@gnosis.pm/dx-contracts/networks-dev.json')
 const GNO_NETWORKS = require('../../node_modules/@gnosis.pm/gno-token/networks.json')
-const ARBITRAGE_NETWORKS = require('../../node_modules/@okwme/arbitrage/networks.json')
+const ARBITRAGE_NETWORKS = require('../../node_modules/@gnosis.pm/dx-uniswap-arbitrage/networks.json')
 
 const env = process.env.NODE_ENV
 let DX_CONTRACT_ADDRESS, DX_HELPER_ADDRESS, RDN_TOKEN_ADDRESS, OMG_TOKEN_ADDRESS, GNO_TOKEN_ADDRESS, UNISWAP_FACTORY_ADDRESS, ARBITRAGE_CONTRACT_ADDRESS
