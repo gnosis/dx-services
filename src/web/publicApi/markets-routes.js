@@ -137,7 +137,8 @@ function createRoutes ({ dxInfoService, reportService },
     get (req, res) {
       const token = req.params.token
       const time = req.query.time !== undefined
-        ? req.query.time : DEFAULT_ORACLE_TIME
+        ? formatUtil.parseDateIso(req.query.time).getTime() / 1000
+        : DEFAULT_ORACLE_TIME
       const maximumTimePeriod = req.query.maximumTimePeriod !== undefined
         ? req.query.maximumTimePeriod : DEFAULT_MAXIMUM_TIME_PERIOD
       const requireWhitelisted = req.query.requireWhitelisted !== undefined

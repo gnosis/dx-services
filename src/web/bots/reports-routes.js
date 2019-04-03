@@ -67,7 +67,8 @@ function _assertMaxNumDaysAllowed (fromDate, toDate, maxNumberOfDays) {
 
   // logger.debug('numDaysDifference: ', numDaysDifference)
   if (numDaysDifference > AUCTIONS_REPORT_MAX_NUM_DAYS) {
-    const error = new Error("'toDate' must be greater than 'fromDate")
+    const error = new Error('Only a range of ' + AUCTIONS_REPORT_MAX_NUM_DAYS +
+      ' days is allowed between \'toDate\' and \'fromDate\'')
     error.type = 'MAX_NUM_DAYS_EXCEEDED'
     error.data = {
       fromDate,
