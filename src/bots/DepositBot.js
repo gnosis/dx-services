@@ -115,8 +115,8 @@ class DepositBot extends Bot {
       balanceOfTokensPromise
     ])
 
-    logger.debug('Balances of ether: %O', balanceOfEther)
-    logger.debug('Balances of tokens: %O', balanceOfTokens)
+    logger.debug('Balances of ether: %s', balanceOfEther)
+    logger.debug('Balances of tokens: %O', balanceOfTokens.map(({ token, amount }) => `${token}: ${amount}`).join(', '))
 
     return [balanceOfEther, balanceOfTokens]
   }
@@ -183,7 +183,7 @@ class DepositBot extends Bot {
     threshold
   }) {
     const weiReserveAmount = numberUtil.toWei(threshold)
-    logger.debug('Wei reserve amount for token %s: %O', token, weiReserveAmount)
+    logger.debug('Wei reserve amount for token %s: %s', token, weiReserveAmount)
     if (amount.greaterThan(weiReserveAmount)) {
       // We have tokens to deposit
       const amountToDeposit = amount.minus(weiReserveAmount)
