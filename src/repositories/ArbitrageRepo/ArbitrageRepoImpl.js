@@ -4,6 +4,8 @@ const logger = new Logger(loggerNamespace)
 const Cacheable = require('../../helpers/Cacheable')
 const assert = require('assert')
 
+const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
+
 class ArbitrageRepoImpl extends Cacheable {
   constructor ({
     ethereumRepo,
@@ -69,62 +71,84 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async getEthToTokenInputPrice (token, amount) {
-    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(token)
-    let uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
+    const tokenAddress = this._getTokenAddress(token)
+    const uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenAddress)
+    const uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
     return uniswapExchangeInstance.getEthToTokenInputPrice(amount)
   }
 
   async getTokenToEthInputPrice (token, amount) {
-    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(token)
-    let uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
+    const tokenAddress = this._getTokenAddress(token)
+    const uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenAddress)
+    const uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
     return uniswapExchangeInstance.getTokenToEthInputPrice(amount)
   }
 
-  whichTokenIsEth (tokenA, tokenB) {
-    assert(
-      tokenB.toLowerCase() === this._tokens.WETH.address.toLowerCase() ||
-      tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ||
-      tokenB === 'WETH' ||
-      tokenA === 'WETH'
-      ,
-      'Not prepared to do ERC20 to ERC20 arbitrage ')
-
+  _assertOneTokenIsEth ({ sellToken, buyToken }) {
     const etherTokenAddress = this._tokens.WETH.address
-    let etherToken, tokenToken, tokenTokenAddress
-    if (tokenB === 'WETH' || tokenA === 'WETH') {
-      etherToken = tokenA === 'WETH' ? tokenA : tokenB
-      tokenToken = etherToken === tokenA ? tokenB : tokenA
-      tokenTokenAddress = this._tokens[tokenToken].address
-    } else {
-      etherToken = tokenA.toLowerCase() === this._tokens.WETH.address.toLowerCase() ? tokenA : tokenB
-      tokenToken = etherToken === tokenA ? tokenB : tokenA
-      tokenTokenAddress = tokenToken
-    }
-    return { etherToken, tokenToken, etherTokenAddress, tokenTokenAddress }
+    // At least one of the tokens must be WETH
+    assert(
+      sellToken.toLowerCase() === etherTokenAddress.toLowerCase() ||
+      buyToken.toLowerCase() === etherTokenAddress.toLowerCase() ||
+      sellToken === 'WETH' ||
+      buyToken === 'WETH',
+      'Not prepared to do ERC20 to ERC20 arbitrage ')
   }
 
-  async getUniswapBalances ({ buyToken, sellToken }) {
-    const { etherToken, tokenTokenAddress } = this.whichTokenIsEth(buyToken, sellToken)
-    let uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenTokenAddress)
+  _getTokenContractBySymbol (token) {
+    const tokenContract = this._tokens[token]
+    if (!tokenContract) {
+      const knownTokens = Object.keys(this._tokens)
+      const error = new Error(`Unknown token ${token}. Known tokens are ${knownTokens}. Otherwise use the token address`)
+      error.type = 'UNKNOWN_TOKEN'
+      error.status = 404
+      throw error
+    }
+    return tokenContract
+  }
+
+  _getTokenAddress (token) {
+    if (HEXADECIMAL_REGEX.test(token)) {
+      return token
+    }
+
+    const tokenAddress = this._getTokenContractBySymbol(token).address
+
+    return tokenAddress
+  }
+
+  isTokenEth (token) {
+    return token === 'WETH' ||
+      token.toLowerCase() === this._tokens.WETH.address.toLowerCase()
+  }
+
+  async getUniswapBalances ({ sellToken, buyToken }) {
+    this._assertOneTokenIsEth({ sellToken, buyToken })
+
+    // After asserting that one token is ETH we check if ETH is the sellToken
+    const isSellTokenEth = this.isTokenEth(sellToken)
+    const token = isSellTokenEth ? buyToken : sellToken
+    const tokenAddress = this._getTokenAddress(token)
+    const uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenAddress)
+    // We get etherBalance and tokenBalance
     const etherBalance = await this._ethereumClient.balanceOf(uniswapExchangeAddress)
     const tokenBalance = await this._ethereumRepo.tokenBalanceOf({
-      tokenAddress: tokenTokenAddress,
+      tokenAddress: tokenAddress,
       account: uniswapExchangeAddress
     })
-    // buyerToken is exchanged for sellerToken, sellerToken is inputToken, buyerToken is outputToken
+    // buyToken is exchanged for sellToken, sellToken is inputToken, buyToken is outputToken
 
-    if (buyToken.toLowerCase() === etherToken.toLowerCase()) {
-      // if buyerToken is etherToken
-      // then sellerToken is tokenToken... so tokenToken is used as inputToken
-      // that will be exchanged for etherToken outputToken
-      return {
-        inputBalance: tokenBalance,
-        outputBalance: etherBalance
-      }
-    } else {
+    if (isSellTokenEth) {
+      // if sellToken is etherToken then buyToken is tokenToken.
+      // etherToken is used as inputToken that will be exchanged for tokenToken outputToken
       return {
         inputBalance: etherBalance,
         outputBalance: tokenBalance
+      }
+    } else {
+      return {
+        inputBalance: tokenBalance,
+        outputBalance: etherBalance
       }
     }
   }

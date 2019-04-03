@@ -1734,7 +1734,7 @@ volume: ${state}`)
   async getPriceInEth ({ token, cacheTime }) {
     assert(token, 'The token is required')
 
-    if (token.toLowerCase() === this._tokens.WETH.address) {
+    if (token.toLowerCase() === this._tokens.WETH.address || token === 'WETH') {
       return {
         numerator: numberUtil.toBigNumber(1),
         denominator: numberUtil.toBigNumber(1)

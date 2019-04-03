@@ -47,31 +47,11 @@ async function _loadUniswapFactory ({
   return uniswapFactoryInstance
 }
 
-// async _loadEmptyUniswapExchange () {
-//   return this._ethereumClient
-//     .loadContract(this._contractDefinitions.UniswapExchange)
-
-async function _loadArbitrageContracts ({
-  ethereumClient, contractDefinitions, arbitrageContractAddress, uniswapFactoryAddress
+async function _loadEmptyUniswapExchange ({
+  ethereumClient, contractDefinitions
 }) {
-  // const arbitrageContract = ethereumClient
-  //   .loadContract(contractDefinitions.ArbitrageContract)
-  const arbitrageContractInstance = _loadArbitrageContract({
-    ethereumClient, contractDefinitions, arbitrageContractAddress
-  })
-  // arbitrageContract.at(arbitrageContractAddress)
-
-  // const uniswapFactory = ethereumClient
-  //   .loadContract(contractDefinitions.UniswapFactory)
-  const uniswapFactoryInstance = _loadUniswapFactory({
-    ethereumClient, contractDefinitions, uniswapFactoryAddress
-  })
-  // uniswapFactory.at(uniswapFactoryAddress)
-
-  const uniswapExchange = ethereumClient
+  return ethereumClient
     .loadContract(contractDefinitions.UniswapExchange)
-
-  return [ arbitrageContractInstance, uniswapFactoryInstance, uniswapExchange ]
 }
 
 async function _createArbitrageRepo () {
@@ -104,12 +84,20 @@ async function _createArbitrageRepo () {
     DEFAULT_GAS_PRICE_USED
   } = conf
 
-  const [ arbitrageContract, uniswapFactory, uniswapExchange ] = await _loadArbitrageContracts({
-    ethereumClient,
-    contractDefinitions: CONTRACT_DEFINITIONS,
-    uniswapFactoryAddress: UNISWAP_FACTORY_ADDRESS,
-    arbitrageContractAddress: ARBITRAGE_CONTRACT_ADDRESS
-  })
+  const [ arbitrageContract, uniswapFactory, uniswapExchange ] = await Promise.all([
+    _loadArbitrageContract({
+      ethereumClient,
+      contractDefinitions: CONTRACT_DEFINITIONS,
+      arbitrageContractAddress: ARBITRAGE_CONTRACT_ADDRESS }),
+    _loadUniswapFactory({
+      ethereumClient,
+      contractDefinitions: CONTRACT_DEFINITIONS,
+      uniswapFactoryAddress: UNISWAP_FACTORY_ADDRESS
+    }),
+    _loadEmptyUniswapExchange({
+      ethereumClient, contractDefinitions: CONTRACT_DEFINITIONS
+    })
+  ])
 
   contracts = { ...contracts, arbitrageContract, uniswapFactory, uniswapExchange }
 
