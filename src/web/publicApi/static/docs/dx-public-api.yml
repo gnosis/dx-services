@@ -387,9 +387,9 @@ paths:
         wait until the auction is over (so he can claim the full amount).
 
 
-        Something important about this price, is that **it's not symetrical**. 
-        At the begining of the auction, both are double the closing price. The 
-        only time when this price is symetrical, it's exactly after 6 hours, 
+        Something important about this price, is that **it's not symetrical**.
+        At the begining of the auction, both are double the closing price. The
+        only time when this price is symetrical, it's exactly after 6 hours,
         because it's when the prices meet.
 
 
@@ -588,7 +588,7 @@ paths:
           type: integer
           format: int32
           minimum: 1
-          maximum: 100
+          maximum: 61
           default: 9
           required: false
           description: >-
@@ -665,7 +665,8 @@ paths:
         in the DutchX. By default is `true`.
 
         * **maximumTimePeriod**: The maximum time lapse between the first and the last auction.
-        By default is `388800` this is `4.5` days in seconds.
+        By default is `388800` this is `4.5` days in seconds. The minimum value is '1' second
+        and the maximum value is `1296000`, equivalent to `15` days in seconds
 
 
         If it's not possible to get a price meeting the requirements, it will return `null`.
@@ -709,13 +710,15 @@ paths:
           required: false
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1296000
           default: 388800
         - name: numberOfAuctions
           in: query
           type: integer
           format: int32
           minimum: 1
-          maximum: 100
+          maximum: 61
           default: 9
           required: false
           description: >-
@@ -731,6 +734,14 @@ paths:
         '412':
           description: |-
             <span class="markdown">
+              INVALID_MAXIMUM_TIME_PERIOD:
+              <ul>
+                <li>`maximumTimePeriod` value is not between 1 and
+                1296000, the equivalent to 2 weeks in seconds.</li>
+              </ul>
+              INVALID_NUMBER_OF_AUCTIONS:
+              <ul><li>`numberOfAuctions` value isn't between 1 and 61,
+              the equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.</li></ul>            
               DATE_FORMAT:
               <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
             </span>

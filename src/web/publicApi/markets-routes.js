@@ -8,8 +8,10 @@ const DEFAULT_MAX_PAGE_SIZE = 50
 
 const DEFAULT_NUMBER_OF_AUCTIONS = 9
 const DEFAULT_ORACLE_TIME = 0
-const DEFAULT_MAXIMUM_TIME_PERIOD = 388800 // '4.5 days'
+const DEFAULT_MAXIMUM_TIME_PERIOD = 388800 // 4.5 days
 const DEFAULT_REQUIRED_WHITELISTED = true
+const TWO_WEEKS_IN_SECONDS = 1296000 // 15 days
+const DEFAULT_MAX_NUMBER_OF_AUCTIONS = 61 // 15 days of auctions running continously and odd to make it safe
 
 function createRoutes ({ dxInfoService, reportService },
   { short: CACHE_TIMEOUT_SHORT,
@@ -143,6 +145,20 @@ function createRoutes ({ dxInfoService, reportService },
         ? req.query.requireWhitelisted : DEFAULT_REQUIRED_WHITELISTED
       const numberOfAuctions = req.query.numberOfAuctions !== undefined
         ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+
+      if (!_isValueInRange(maximumTimePeriod, 0, TWO_WEEKS_IN_SECONDS)) {
+        const error = new Error('Invalid `maximumTimePeriod`. This value should be between 1 and 1296000, equivalent to 2 weeks in seconds.')
+        error.type = 'INVALID_MAXIMUM_TIME_PERIOD'
+        error.status = 412
+        throw error
+      }
+      if (!_isValueInRange(numberOfAuctions, 1, DEFAULT_MAX_NUMBER_OF_AUCTIONS)) {
+        const error = new Error('Invalid `numberOfAuctions`. This value should be between 1 and ' +
+          DEFAULT_MAX_NUMBER_OF_AUCTIONS + ', equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.')
+        error.type = 'INVALID_NUMBER_OF_AUCTIONS'
+        error.status = 412
+        throw error
+      }
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getOraclePriceCustom({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
     }
@@ -155,6 +171,13 @@ function createRoutes ({ dxInfoService, reportService },
       const auctionIndex = req.query.auctionIndex
       const numberOfAuctions = req.query.numberOfAuctions !== undefined
         ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+      if (!_isValueInRange(numberOfAuctions, 1, DEFAULT_MAX_NUMBER_OF_AUCTIONS)) {
+        const error = new Error('Invalid `numberOfAuctions`. This value should be between 1 and ' +
+          DEFAULT_MAX_NUMBER_OF_AUCTIONS + ', equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.')
+        error.type = 'INVALID_NUMBER_OF_AUCTIONS'
+        error.status = 412
+        throw error
+      }
       addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
       return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
     }
@@ -233,6 +256,10 @@ function createRoutes ({ dxInfoService, reportService },
 
 function _isValidCount (count) {
   return count > 0 && count <= DEFAULT_MAX_PAGE_SIZE
+}
+
+function _isValueInRange (value, minValue, maxValue) {
+  return minValue <= value && value <= maxValue
 }
 
 module.exports = createRoutes
