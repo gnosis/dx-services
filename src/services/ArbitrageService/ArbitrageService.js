@@ -22,26 +22,22 @@ class ArbitrageService {
     this._markets = markets
   }
 
-  getAddress () {
-    return this._auctionRepo.address
-  }
-
   async ethToken () {
     return this._auctionRepo.ethToken()
   }
 
-  async manualTrigger() {
+  async manualTrigger () {
     await this._arbitrageRepo
   }
 
   async depositToken ({ token, amount, from }) {
     return this._arbitrageRepo.depositToken({ token, amount, from })
   }
-  
+
   async uniswapOpportunity ({ arbToken, amount, from }) {
     return this._arbitrageRepo.uniswapOpportunity({ arbToken, amount, from })
   }
-  
+
   async transferOwnership ({ address, from }) {
     return this._arbitrageRepo.transferOwnership({ address, from })
   }
@@ -73,48 +69,53 @@ class ArbitrageService {
     return this._arbitrageRepo.dutchOpportunity({ arbToken, amount, from })
   }
 
-  async getContractEtherBalance() {
+  async getContractEtherBalance () {
     const account = this._arbitrageRepo.getArbitrageAddress()
     const contractBalance = await this._ethereumRepo.balanceOf({ account })
     return numberUtil.fromWei(contractBalance)
   }
 
-  async getBalance(token) {
-    const account = this._arbitrageRepo.getArbitrageAddress()
-    let tokenAddress, contractBalance
-    tokenAddress = !token ? await this._auctionRepo.ethToken() : token
-    const tokenInfo = await this._ethereumRepo.tokenGetInfo({tokenAddress})
+  async getArbitrageAddress () {
+    return this._arbitrageRepo.getArbitrageAddress()
+  }
 
+  async getBalance ({ token, address }) {
+    const account = !address
+      ? this._arbitrageRepo.getArbitrageAddress()
+      : address
+    const tokenAddress = !token
+      ? await this._auctionRepo.ethToken()
+      : await this._auctionRepo.getTokenAddress({ token })
+    const tokenInfo = await this._ethereumRepo.tokenGetInfo({ tokenAddress })
 
+    let contractBalance
     if (!token) {
       contractBalance = await this._ethereumRepo.balanceOf({ account })
       contractBalance = numberUtil.fromWei(contractBalance)
-      contractBalance += ' Eth'
+      contractBalance += ' ETH'
     } else {
-      contractBalance = await this._ethereumRepo.tokenBalanceOf({tokenAddress, account})
+      contractBalance = await this._ethereumRepo.tokenBalanceOf({ tokenAddress, account })
       contractBalance = numberUtil.toDecimal(contractBalance, tokenInfo.decimals || 0)
       contractBalance += ' ' + tokenInfo.symbol
     }
 
-    let dutchBalance = await this._auctionRepo.getBalance ({ token: tokenAddress, address: account })
+    let dutchBalance = await this._auctionRepo.getBalance({ token: tokenAddress, address: account })
     dutchBalance = numberUtil.toDecimal(dutchBalance, tokenInfo.decimals || 0)
     dutchBalance += ' ' + tokenInfo.symbol
 
-    return {contractBalance, dutchBalance}
+    return { contractBalance, dutchBalance }
   }
 
-  async depositEther({
+  async depositEther ({
     amount,
     from
   }) {
-    return await this._arbitrageRepo.depositEther({amount, from})
+    return this._arbitrageRepo.depositEther({ amount, from })
   }
 
-
-  async getOwner() {
+  async getOwner () {
     return this._arbitrageRepo.getOwner()
   }
-
 }
 
 module.exports = ArbitrageService

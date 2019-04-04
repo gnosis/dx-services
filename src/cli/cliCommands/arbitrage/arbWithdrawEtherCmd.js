@@ -1,12 +1,14 @@
+
 const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbWithdrawTransferEther <amount>',
-    'Withdraw WETH from dutchX, convert to Ether and transfer to owner address',
+    'arb-withdraw-ether <amount>',
+    'Withdraw WETH from DutchX and convert to ETH',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
     }, async function (argv) {
@@ -20,15 +22,14 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      logger.info(`Transfer %d Weth from DutchX, convert to Ether and transfer to owner account %s`,
-      amount,
-      from
+      logger.info(`Transfer %d Weth from DutchX and convert to Ether`,
+        amount
       )
-      const withdrawTransfer = await arbitrageService.withdrawEtherThenTransfer({
-        amount: amount * 1e18,
+      const withdrawTransfer = await arbitrageService.withdrawEther({
+        amount: toWei(amount),
         from
       })
-      logger.info('The withdrawEtherThenTransfer tx was succesful. Transaction: %s', withdrawTransfer.tx)
+      logger.info('The withdrawEther tx was succesful. Transaction: %s', withdrawTransfer.tx)
     })
 }
 

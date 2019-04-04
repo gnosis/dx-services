@@ -1,11 +1,11 @@
-const cliUtils = require('../helpers/cliUtils')
+const cliUtils = require('../../helpers/cliUtils')
 
-const getAddress = require('../../helpers/getAddress')
-const getArbitrageService = require('../../services/ArbitrageService')
+const getAddress = require('../../../helpers/getAddress')
+const getArbitrageService = require('../../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbClaimBuyerFunds <token> <auctionId>',
+    'arb-claim-buyer-funds <token> <auctionId>',
     'Claim buyer funds from an auction on the dutchX',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)

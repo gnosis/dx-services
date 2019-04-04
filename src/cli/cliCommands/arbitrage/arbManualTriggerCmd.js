@@ -1,13 +1,13 @@
-const cliUtils = require('../helpers/cliUtils')
+const cliUtils = require('../../helpers/cliUtils')
 
-const getAddress = require('../../helpers/getAddress')
-const getArbitrageService = require('../../services/ArbitrageService')
-const getLiquidityService = require('../../services/LiquidityService')
+const getAddress = require('../../../helpers/getAddress')
+const getArbitrageService = require('../../../services/ArbitrageService')
+const getLiquidityService = require('../../../services/LiquidityService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbManualTrigger <token>',
-    'Attempt an arbitrage',
+    'arb-manual-trigger <token>',
+    'Manually launch an arbitrage check',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
     }, async function (argv) {

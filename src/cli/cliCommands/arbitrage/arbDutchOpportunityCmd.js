@@ -1,11 +1,12 @@
-const cliUtils = require('../helpers/cliUtils')
+const cliUtils = require('../../helpers/cliUtils')
+const { toWei } = require('../../../helpers/numberUtil')
 
-const getAddress = require('../../helpers/getAddress')
-const getArbitrageService = require('../../services/ArbitrageService')
+const getAddress = require('../../../helpers/getAddress')
+const getArbitrageService = require('../../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbDutchOpportunity <token> <amount>',
+    'arb-dutch-opportunity <token> <amount>',
     'Execute a Dutch Opportunity transaction with Arbitrage contract',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
@@ -22,16 +23,14 @@ function registerCommand ({ cli, logger }) {
       ])
 
       logger.info(`Arbitrage %d WETH on the DutchX for token %s using the account %s`,
-      amount,
-      token,
-      from
+        amount, token, from
       )
       const dutchResult = await arbitrageService.dutchOpportunity({
         arbToken: token,
-        amount: amount * 1e18,
+        amount: toWei(amount),
         from
       })
-      logger.info('The dutchOpportunity was succesful. Transaction: %s', dutchResult.tx)
+      logger.info('The dutchOpportunity was successful. Transaction: %s', dutchResult.tx)
     })
 }
 

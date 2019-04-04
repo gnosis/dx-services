@@ -1,12 +1,13 @@
-const cliUtils = require('../helpers/cliUtils')
+const cliUtils = require('../../helpers/cliUtils')
+const { toWei, fromWei } = require('../../../helpers/numberUtil')
 
-const getAddress = require('../../helpers/getAddress')
-const getArbitrageService = require('../../services/ArbitrageService')
+const getAddress = require('../../../helpers/getAddress')
+const getArbitrageService = require('../../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbTransferEther <amount>',
-    'Transfer Arbitrage contract Eth to contract owner (amount = 0 transfers total balance)',
+    'arb-transfer-ether <amount>',
+    'Transfer ETH from Arbitrage contract to contract owner (amount = 0 transfers total balance)',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
     }, async function (argv) {
@@ -23,20 +24,20 @@ function registerCommand ({ cli, logger }) {
       const balance = await arbitrageService.getContractEtherBalance()
 
       if (balance.eq(0)) {
-        logger.error('Can\'t transfer Eth balance of 0 from arbitrage contract')
+        logger.error('Can\'t transfer ETH balance. There is only %d in arbitrage contract',
+          balance)
         return
       }
 
       if (amount.eq(0) || amount.gt(balance)) {
-        amount = balance / 1e18
+        amount = fromWei(balance)
       }
 
       logger.info(`Transfer %d Eth from Arbitrage contract to owner account %s`,
-      amount,
-      from
+        amount, from
       )
       const transferEtherResult = await arbitrageService.transferEther({
-        amount: amount * 1e18,
+        amount: toWei(amount),
         from
       })
       logger.info('The transferEther tx was succesful. Transaction: %s', transferEtherResult.tx)

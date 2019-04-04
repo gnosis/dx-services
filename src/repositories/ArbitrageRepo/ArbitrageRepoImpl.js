@@ -1,4 +1,4 @@
-const loggerNamespace = 'dx-service:repositories:AuctionRepoImpl'
+const loggerNamespace = 'dx-service:repositories:ArbitrageRepoImpl'
 const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const Cacheable = require('../../helpers/Cacheable')
@@ -154,26 +154,32 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async transferToken ({ token, amount, from }) {
+    const tokenAddress = this._getTokenAddress(token)
+
     return this._doTransaction({
       operation: 'transferToken',
       from,
-      params: [token, amount]
+      params: [tokenAddress, amount]
     })
   }
 
   async claimBuyerFunds ({ token, auctionId, from }) {
+    const tokenAddress = this._getTokenAddress(token)
+
     return this._doTransaction({
       operation: 'claimBuyerFunds',
       from,
-      params: [token, auctionId]
+      params: [tokenAddress, auctionId]
     })
   }
 
   async withdrawToken ({ token, amount, from }) {
+    const tokenAddress = this._getTokenAddress(token)
+
     return this._doTransaction({
       operation: 'withdrawToken',
       from,
-      params: [token, amount]
+      params: [tokenAddress, amount]
     })
   }
 
@@ -232,10 +238,12 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async depositToken ({ token, amount, from }) {
+    const tokenAddress = this._getTokenAddress(token)
+
     return this._doTransaction({
       operation: 'depositToken',
       from,
-      params: [token, amount]
+      params: [tokenAddress, amount]
     })
   }
 
@@ -302,8 +310,6 @@ class ArbitrageRepoImpl extends Cacheable {
     })
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
-
-    await this._arbitrage[operation].call(...params, { from, value })
 
     const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice

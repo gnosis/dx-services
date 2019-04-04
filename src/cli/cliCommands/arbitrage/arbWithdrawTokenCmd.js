@@ -1,12 +1,14 @@
+
 const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arbDepositToken <amount> <token>',
-    'Deposit any token in the contract to the dx',
+    'arb-withdraw-token <amount> <token>',
+    'Withdraw token from DutchX',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
       cliUtils.addPositionalByName('token', yargs)
@@ -21,17 +23,15 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      logger.info(`Deposit %d Token (%s) using the account %s`,
-      amount,
-      token,
-      from
+      logger.info(`Withdraw %d token (%s) from DutchX `,
+        amount, token
       )
-      const depositResult = await arbitrageService.depositToken({
+      const withdrawTransfer = await arbitrageService.withdrawToken({
+        amount: toWei(amount),
         token,
-        amount: amount * 1e18,
         from
       })
-      logger.info('The deposit was succesful. Transaction: %s', depositResult.tx)
+      logger.info('The withdrawToken tx was successful. Transaction: %s', withdrawTransfer.tx)
     })
 }
 
