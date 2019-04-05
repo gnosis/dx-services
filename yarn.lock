@@ -156,13 +156,14 @@
     truffle "^5.0.2"
     truffle-hdwallet-provider "^1.0.2"
 
-"@gnosis.pm/dx-uniswap-arbitrage@git+https://github.com/gnosis/dx-uniswap-arbitrage#80094abed528ff0535a05be4c42ee3b4e2c974b2":
-  version "0.1.2"
-  resolved "git+https://github.com/gnosis/dx-uniswap-arbitrage#80094abed528ff0535a05be4c42ee3b4e2c974b2"
+"@gnosis.pm/dx-uniswap-arbitrage@0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-uniswap-arbitrage/-/dx-uniswap-arbitrage-0.1.4.tgz#c98a59dd410197aaaf1a766827d9ec2176652be3"
+  integrity sha512-Y417N6/c9nuyTsq7bfF4aYyLnWaCZtVW1QagKrJoRJN7ouBIZe9NGER1zbeubnmYyjm7bYH2oXIHR/WR12WLOA==
   dependencies:
     "@gnosis.pm/mock-contract" "^3.0.7"
     solc "^0.5.2"
-    web3-provider-engine "^14.1.0"
+    web3-provider-engine "^14.2.0"
 
 "@gnosis.pm/gno-token@^2.0.0":
   version "2.0.0"
@@ -8365,7 +8366,7 @@ walker@~1.0.5:
   dependencies:
     makeerror "1.0.x"
 
-web3-provider-engine@^14.0.5, web3-provider-engine@^14.1.0:
+web3-provider-engine@^14.0.5, web3-provider-engine@^14.1.0, web3-provider-engine@^14.2.0:
   version "14.2.0"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-14.2.0.tgz#2efec157b2c429c5c674c079aea96b0a06de8b3d"
   integrity sha512-sfLH5VhGjJrJJT5WcF8aGehcIKRUQ553q9tjQkkLaKU2AaLsRcwffnnWvrgeTkmKSf0y9dwkDTa48RVp+GUCSg==

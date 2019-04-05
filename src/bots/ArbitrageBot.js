@@ -7,11 +7,10 @@ const assert = require('assert')
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
-const BOT_TYPE = 'ArbitrageLiquidityBot'
-// const getAddress = require('../helpers/getAddress')
+const BOT_TYPE = 'ArbitrageBot'
 const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
-const getLiquidityService = require('../services/LiquidityService')
+const getArbitrageService = require('../services/ArbitrageService')
 const getSlackRepo = require('../repositories/SlackRepo')
 
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
@@ -23,13 +22,11 @@ class ArbitrageBot extends Bot {
     botAddress,
     accountIndex,
     markets,
-    rules,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name, BOT_TYPE)
     assert(markets, 'markets is required')
-    // assert(rules, 'arbitrageRules is required')
     assert(notifications, 'notifications is required')
     assert(checkTimeInMilliseconds, 'checkTimeInMilliseconds is required')
 
@@ -50,7 +47,6 @@ class ArbitrageBot extends Bot {
     }
 
     this._markets = markets
-    this._rules = rules
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
@@ -64,17 +60,17 @@ class ArbitrageBot extends Bot {
     const [
       ethereumClient,
       eventBus,
-      liquidityService,
+      arbitrageService,
       slackRepo
     ] = await Promise.all([
       getEthereumClient(),
       getEventBus(),
-      getLiquidityService(),
+      getArbitrageService(),
       getSlackRepo()
     ])
     this._ethereumClient = ethereumClient
     this._eventBus = eventBus
-    this._liquidityService = liquidityService
+    this._arbitrageService = arbitrageService
     this._slackRepo = slackRepo
 
     // Set bot address
@@ -105,20 +101,19 @@ class ArbitrageBot extends Bot {
       buyToken,
       msg: "Doing a routine check. Let's see if we need to arbitrage"
     })
-    return this._ensureArbitrageLiquidity({
+    return this._arbitrageCheck({
       sellToken,
       buyToken,
       from: this._botAddress
     })
   }
 
-  async _ensureArbitrageLiquidity ({ sellToken, buyToken, from }) {
+  async _arbitrageCheck ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
-    const arbitrageRules = this._rules
     try {
-      liquidityWasEnsured = await this._liquidityService
-        .ensureArbitrageLiquidity({ sellToken, buyToken, from, arbitrageRules })
+      liquidityWasEnsured = await this._arbitrageService
+        .checkUniswapArbitrage({ sellToken, buyToken, from })
         .then(successfulArbitrages => {
           let liquidityWasEnsured = successfulArbitrages.length > 0
           if (liquidityWasEnsured) {
