@@ -216,18 +216,22 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async dutchOpportunity ({ arbToken, amount, from }) {
+    const tokenAddress = this._getTokenAddress(arbToken)
+
     return this._doTransaction({
       operation: 'dutchOpportunity',
       from,
-      params: [arbToken, amount]
+      params: [tokenAddress, amount]
     })
   }
 
   async uniswapOpportunity ({ arbToken, amount, from }) {
+    const tokenAddress = this._getTokenAddress(arbToken)
+
     return this._doTransaction({
       operation: 'uniswapOpportunity',
       from,
-      params: [arbToken, amount]
+      params: [tokenAddress, amount]
     })
   }
 

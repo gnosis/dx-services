@@ -1,11 +1,11 @@
-const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
+const debug = require('debug')('DEBUG-dx-service:repositories:ArbitrageRepoMock')
 debug.log = console.debug.bind(console)
 
 const BigNumber = require('bignumber.js')
 
 const auctionsMockData = require('../../../tests/data/auctions')
 
-class AuctionRepoMock {
+class ArbitrageRepoMock {
   constructor ({
     auctions,
     balances,
@@ -496,4 +496,4 @@ class AuctionRepoMock {
   }
 }
 
-module.exports = AuctionRepoMock
+module.exports = ArbitrageRepoMock
