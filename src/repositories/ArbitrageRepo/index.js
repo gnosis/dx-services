@@ -1,3 +1,10 @@
+const loggerNamespace = 'dx-service:repositories:ArbitrageRepo'
+const Logger = require('../../helpers/Logger')
+const logger = new Logger(loggerNamespace)
+
+const environment = process.env.NODE_ENV
+const isLocal = environment === 'local'
+const assert = require('assert')
 const conf = require('../../../conf')
 
 let arbitrageRepo
@@ -9,6 +16,30 @@ module.exports = async () => {
   return arbitrageRepo
 }
 
+async function _getDeployedAddress (contractName, contract, enforceLocalOnly = true) {
+  if (enforceLocalOnly) {
+    assert(
+      isLocal,
+      `Getting the deployed address from the truffle contract \
+is only avaliable in LOCAL. Environment = ${environment}`
+    )
+  }
+
+  return contract
+    .deployed()
+    .then(contractInstance => contractInstance.address)
+    .catch(error => {
+      logger.error({
+        msg: 'Error loading the contract address from "%s": %s',
+        params: [contractName, error.toString()],
+        error
+      })
+
+      // Rethrow error after logging
+      throw error
+    })
+}
+
 async function _loadArbitrageContract ({
   ethereumClient, contractDefinitions, arbitrageContractAddress
 }) {
@@ -18,7 +49,7 @@ async function _loadArbitrageContract ({
   if (arbitrageContractAddress) {
     localArbitrageContractAddress = arbitrageContractAddress
   } else {
-    localArbitrageContractAddress = await this._getDeployedAddress(
+    localArbitrageContractAddress = await _getDeployedAddress(
       'ArbitrageLocal',
       arbitrageContract,
       true
@@ -37,7 +68,7 @@ async function _loadUniswapFactory ({
   if (uniswapFactoryAddress) {
     localUniswapFactoryAddress = uniswapFactoryAddress
   } else {
-    localUniswapFactoryAddress = await this._getDeployedAddress(
+    localUniswapFactoryAddress = await _getDeployedAddress(
       'IUniswapFactory',
       uniswapFactory,
       true
