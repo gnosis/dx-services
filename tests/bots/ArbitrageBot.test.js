@@ -26,7 +26,6 @@ beforeAll(async () => {
     name: 'ArbitrageBot',
     botAddress: '0x123',
     markets: MARKETS,
-    rules: BUY_LIQUIDITY_RULES,
     notifications: []
   })
 
@@ -41,11 +40,11 @@ afterAll(() => {
 })
 
 test('It should do a routine check.', async () => {
-  // we mock ensureArbitrageLiquidity function
-  arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidity)
-  const ENSURE_ARBITRAGE_FN = arbitrageBot._liquidityService.ensureArbitrageLiquidity
+  // we mock checkUniswapArbitrage function
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_ensureLiquidity)
+  const ENSURE_ARBITRAGE_FN = arbitrageBot._arbitrageService.checkUniswapArbitrage
 
-  // GIVEN a never called ensureArbitrageLiquidity function
+  // GIVEN a never called checkUniswapArbitrage function
   expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(0)
 
   // WHEN we wait for an expected time
@@ -57,13 +56,13 @@ test('It should do a routine check.', async () => {
 
 test('It should not run arbitrage if already running arbitrage.', () => {
   expect.assertions(1)
-  // we mock ensureArbitrageLiquidity function
-  arbitrageBot._liquidityService.ensureArbitrageLiquidity = _concurrentLiquidityEnsured
+  // we mock checkUniswapArbitrage function
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = _concurrentLiquidityEnsured
 
   // GIVEN a running bot
 
   // WHEN we buy remaining liquidity
-  const ENSURE_ARBITRAGE = arbitrageBot._ensureArbitrageLiquidity({
+  const ENSURE_ARBITRAGE = arbitrageBot._arbitrageCheck({
     buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
   })
 
@@ -75,15 +74,15 @@ test('It should not run arbitrage if already running arbitrage.', () => {
 
 test('It should run when called', async () => {
   expect.assertions(3)
-  // we mock ensureArbitrageLiquidity function
-  arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidity)
-  const ENSURE_ARBITRAGE_FN = arbitrageBot._liquidityService.ensureArbitrageLiquidity
+  // we mock checkUniswapArbitrage function
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_ensureLiquidity)
+  const ENSURE_ARBITRAGE_FN = arbitrageBot._arbitrageService.checkUniswapArbitrage
 
   // GIVEN never arbitrage
   expect(ENSURE_ARBITRAGE_FN).toHaveBeenCalledTimes(0)
 
   // WHEN we arbitrage
-  const ENSURE_ARBITRAGE = arbitrageBot._ensureArbitrageLiquidity({
+  const ENSURE_ARBITRAGE = arbitrageBot._arbitrageCheck({
     buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
   })
 
@@ -95,8 +94,8 @@ test('It should run when called', async () => {
 
 test('It should handle errors if something goes wrong.', async () => {
   expect.assertions(3)
-  // we mock ensureArbitrageLiquidity function
-  arbitrageBot._liquidityService.ensureArbitrageLiquidity = jest.fn(_ensureLiquidityError)
+  // we mock checkUniswapArbitrage function
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_ensureLiquidityError)
   arbitrageBot._handleError = jest.fn(arbitrageBot._handleError)
   const HANDLE_ERROR_FN = arbitrageBot._handleError
 
@@ -104,7 +103,7 @@ test('It should handle errors if something goes wrong.', async () => {
   expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(0)
 
   // WHEN we ensure liquidity but an error is thrown
-  const ENSURE_ARBITRAGE = arbitrageBot._ensureArbitrageLiquidity({
+  const ENSURE_ARBITRAGE = arbitrageBot._arbitrageCheck({
     buyToken: 'RDN', sellToken: 'WETH', from: '0x123'
   })
 
