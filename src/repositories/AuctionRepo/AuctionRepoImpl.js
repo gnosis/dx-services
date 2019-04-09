@@ -1891,8 +1891,7 @@ volume: ${state}`)
   _getTokenContractBySymbol (token) {
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
-      const knownTokens = Object.keys(this._tokens)
-      const error = new Error(`Unknown token ${token}. Known tokens are ${knownTokens}. Otherwise use the token address`)
+      const error = new Error(`Unknown token ${token}. For convenience only WETH symbol is supported. Otherwise use the token address`)
       error.type = 'UNKNOWN_TOKEN'
       error.status = 404
       throw error
@@ -1907,12 +1906,6 @@ volume: ${state}`)
       const contract = this._tokens[tokenSymbol]
       return contract.address === tokenAddress
     })
-  }
-
-  _getTokenContractByAddress (tokenAddress) {
-    const tokenSymbol = this._getTokenSymbolByAddress(tokenAddress)
-
-    return tokenSymbol ? this._tokens[tokenSymbol] : null
   }
 
   async _getTokenAddress (token, check = false) {

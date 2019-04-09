@@ -1,6 +1,8 @@
 const numberUtil = require('./numberUtil')
 const moment = require('moment')
 
+const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
+
 const DATE_FORMAT = 'D/MM/YY'
 const DATE_FORMAT_FOR_PARSING = 'D/MM/YYYY' // Accepts 2 and 4 digits years
 const TIME_FORMAT = 'H:mm'
@@ -121,7 +123,7 @@ function tokenPairSplit (tokenPair) {
   const _handleSymbolOrHexToken = splitted => {
     return splitted.map(token => {
       let parsedToken = token
-      if (token.toLowerCase().startsWith('0x')) {
+      if (isHexAddress({ token })) {
         // In case is HEX make sure 0x is lowercase (parity issues)
         parsedToken = token.replace('0X', '0x')
       } else {
@@ -139,10 +141,24 @@ function tokenPairSplit (tokenPair) {
       buyToken
     }
   } else {
-    const error = new Error('Invalid token pair format. Valid format is <sellToken>-<buyToken>')
+    const error = new Error('Invalid token pair format. Valid format is <sellTokenAddress>-<buyTokenAddress>')
     error.type = 'INVALID_TOKEN_FORMAT'
     error.status = 412
     throw error
+  }
+}
+
+function isHexAddress ({ token, forceError = false }) {
+  if (HEXADECIMAL_REGEX.test(token)) {
+    return true
+  } else {
+    if (forceError) {
+      const error = new Error('Invalid token format. Expected Hex Address')
+      error.type = 'INVALID_TOKEN_FORMAT'
+      error.status = 412
+      throw error
+    }
+    return false
   }
 }
 
@@ -177,6 +193,7 @@ module.exports = {
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,
+  isHexAddress,
   parseDate,
   parseDateTime,
   parseDateIso,
