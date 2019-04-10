@@ -558,7 +558,7 @@ paths:
 
 
 
-  '/markets/{token}-WETH/prices/simple-median':
+  '/markets/{tokenAddress}-WETH/prices/simple-median':
     get:
       tags:
         - Prices
@@ -594,7 +594,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: token
+        - name: tokenAddress
           in: path
           description: >-
             A token address string for selecting the desired token
@@ -624,7 +624,7 @@ paths:
           description: The token provided is not found
 
 
-  '/markets/{token}-WETH/prices/safe-median':
+  '/markets/{tokenAddress}-WETH/prices/safe-median':
     get:
       tags:
         - Prices
@@ -654,7 +654,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: token
+        - name: tokenAddress
           in: path
           description: >-
             A token address string for selecting the desired token
@@ -669,7 +669,7 @@ paths:
           description: The token provided is not found
 
 
-  '/markets/{token}-WETH/prices/custom-median':
+  '/markets/{tokenAddress}-WETH/prices/custom-median':
     get:
       tags:
         - Prices
@@ -704,7 +704,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: token
+        - name: tokenAddress
           in: path
           description: >-
             A token address string for selecting the desired token
