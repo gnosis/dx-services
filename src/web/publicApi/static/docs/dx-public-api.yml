@@ -181,9 +181,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -227,9 +230,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -272,9 +278,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -311,9 +320,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -406,9 +418,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -449,9 +464,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: count
@@ -512,9 +530,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: auctionIndex
@@ -788,9 +809,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: auctionIndex
@@ -843,9 +867,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -887,9 +914,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -936,9 +966,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -1020,17 +1053,28 @@ paths:
             example: today
         - name: tokenPair
           in: query
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           type: string
       responses:
         '200':
           description: successful operation
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/AuctionSummary'
+            required:
+              - data
+              - pagination
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/AuctionSummary'
+              pagination:
+                $ref: '#/definitions/PaginationObject'
         '412':
           description: |-
             <span class="markdown">
@@ -1133,9 +1177,12 @@ paths:
           type: string
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -1243,9 +1290,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1282,9 +1332,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1338,9 +1391,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1377,9 +1433,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
+          description: |-
             A token pair addresses string for selecting the desired market
-            {tokenAAddress}-{tokenBAddress}
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress

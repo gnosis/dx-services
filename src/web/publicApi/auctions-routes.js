@@ -20,6 +20,7 @@ function createRoutes ({ dxInfoService, auctionService },
       const fromDateStr = req.query.fromDate
       const toDateStr = req.query.toDate
       const period = req.query.period
+      const count = req.query.count
       const { sellToken, buyToken } = req.query.tokenPair
         ? _tokenPairSplit(req.query.tokenPair)
         : { sellToken: undefined, buyToken: undefined }
