@@ -7,7 +7,7 @@ const ARBITRAGE_CONTRACT_ADDRESS = ARBITRAGE_NETWORKS['Arbitrage']['1']['address
 
 module.exports = {
   NETWORK: 'mainnet', // 1
-  ETHEREUM_RPC_URL: 'https://mainnet.infura.io',
+  ETHEREUM_RPC_URL: 'https://mainnet.infura.io/v3/9408f47dedf04716a03ef994182cf150',
 
   // Gas price feed
   URL_GAS_PRICE_FEED_GAS_STATION,

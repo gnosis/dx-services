@@ -181,9 +181,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -196,7 +199,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
 
@@ -227,9 +230,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -245,7 +251,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/current-index':
@@ -272,9 +278,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -288,7 +297,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/auction-start':
@@ -311,9 +320,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -327,7 +339,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
 
@@ -387,9 +399,9 @@ paths:
         wait until the auction is over (so he can claim the full amount).
 
 
-        Something important about this price, is that **it's not symetrical**. 
-        At the begining of the auction, both are double the closing price. The 
-        only time when this price is symetrical, it's exactly after 6 hours, 
+        Something important about this price, is that **it's not symetrical**.
+        At the begining of the auction, both are double the closing price. The
+        only time when this price is symetrical, it's exactly after 6 hours,
         because it's when the prices meet.
 
 
@@ -406,9 +418,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -421,7 +436,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/prices/closing':
@@ -449,9 +464,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: count
@@ -486,7 +504,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/prices/closing/{auctionIndex}':
@@ -512,9 +530,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: auctionIndex
@@ -533,11 +554,11 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
 
-  '/markets/{token}-WETH/prices/simple-median':
+  '/markets/{tokenAddress}-WETH/prices/simple-median':
     get:
       tags:
         - Prices
@@ -573,7 +594,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: token
+        - name: tokenAddress
           in: path
           description: >-
             A token address string for selecting the desired token
@@ -588,7 +609,7 @@ paths:
           type: integer
           format: int32
           minimum: 1
-          maximum: 100
+          maximum: 61
           default: 9
           required: false
           description: >-
@@ -603,7 +624,7 @@ paths:
           description: The token provided is not found
 
 
-  '/markets/{token}-WETH/prices/safe-median':
+  '/markets/{tokenAddress}-WETH/prices/safe-median':
     get:
       tags:
         - Prices
@@ -633,7 +654,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: token
+        - name: tokenAddress
           in: path
           description: >-
             A token address string for selecting the desired token
@@ -648,7 +669,7 @@ paths:
           description: The token provided is not found
 
 
-  '/markets/{token}-WETH/prices/custom-median':
+  '/markets/{tokenAddress}-WETH/prices/custom-median':
     get:
       tags:
         - Prices
@@ -665,7 +686,8 @@ paths:
         in the DutchX. By default is `true`.
 
         * **maximumTimePeriod**: The maximum time lapse between the first and the last auction.
-        By default is `388800` this is `4.5` days in seconds.
+        By default is `388800` this is `4.5` days in seconds. The minimum value is '1' second
+        and the maximum value is `1296000`, equivalent to `15` days in seconds
 
 
         If it's not possible to get a price meeting the requirements, it will return `null`.
@@ -682,7 +704,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: token
+        - name: tokenAddress
           in: path
           description: >-
             A token address string for selecting the desired token
@@ -690,13 +712,12 @@ paths:
           type: string
         - name: time
           in: query
-          description: >-
-            An Unix timestamp for a price at any point in time
+          description: |-
+            A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
+
+            ex: *'2018-07-02', 'YYYY-MM-DD'*
           required: false
-          type: integer
-          format: int32
-          minimum: 0
-          default: 0
+          type: string
         - name: requireWhitelisted
           in: query
           description: Require the token to be whitelisted on the DutchX
@@ -710,13 +731,15 @@ paths:
           required: false
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1296000
           default: 388800
         - name: numberOfAuctions
           in: query
           type: integer
           format: int32
           minimum: 1
-          maximum: 100
+          maximum: 61
           default: 9
           required: false
           description: >-
@@ -729,6 +752,20 @@ paths:
             $ref: '#/definitions/MarketPrice'
         '404':
           description: The token provided is not found
+        '412':
+          description: |-
+            <span class="markdown">
+              INVALID_MAXIMUM_TIME_PERIOD:
+              <ul>
+                <li>`maximumTimePeriod` value is not between 1 and
+                1296000, the equivalent to 2 weeks in seconds.</li>
+              </ul>
+              INVALID_NUMBER_OF_AUCTIONS:
+              <ul><li>`numberOfAuctions` value isn't between 1 and 61,
+              the equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.</li></ul>
+              DATE_FORMAT:
+              <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
+            </span>
 
 
 
@@ -772,9 +809,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: auctionIndex
@@ -793,7 +833,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/sell-volume':
@@ -827,9 +867,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -842,7 +885,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/sell-volume-next':
@@ -871,9 +914,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -886,7 +932,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAADdress}-{tokenBAddress}
 
 
   '/markets/{tokenPair}/buy-volume':
@@ -920,9 +966,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -935,7 +984,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
 
@@ -956,6 +1005,8 @@ paths:
         * `fromDate` and `toDate` in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
         * or, the `period`, with one of the following values: `today`,
           `yesterday`, `week`, `last-week`, `current-week`
+
+        The use of `fromDate` and `toDate` is **limited to a 15 days time period**. Otherwise an error will be returned
 
 
         **It returns**:
@@ -981,7 +1032,7 @@ paths:
             A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format. Required when using
             *toDate*.
 
-            ex: *'2018-07-01', '01-07-2018'*
+            ex: *'2018-07-01', 'YYYY-MM-DD'*
           type: string
         - name: toDate
           in: query
@@ -989,7 +1040,7 @@ paths:
             A date string using [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format. Required when using
             *fromDate*.
 
-            ex: *'2018-07-02', '02-07-2018'*
+            ex: *'2018-07-02', 'YYYY-MM-DD'*
           type: string
         - name: period
           in: query
@@ -1002,17 +1053,28 @@ paths:
             example: today
         - name: tokenPair
           in: query
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           type: string
       responses:
         '200':
           description: successful operation
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/AuctionSummary'
+            required:
+              - data
+              - pagination
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/AuctionSummary'
+              pagination:
+                $ref: '#/definitions/PaginationObject'
         '412':
           description: |-
             <span class="markdown">
@@ -1023,6 +1085,8 @@ paths:
               </ul>
               DATE_FORMAT:
               <ul><li>Invalid date format. The required format is a valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format</li></ul>
+              MAX_NUM_DAYS_EXCEEDED:
+              <ul><li>Only a range of 15 days is allowed between 'toDate' and 'fromDate'</li></ul>
             </span>
 
 
@@ -1033,7 +1097,7 @@ paths:
   # ===========================================================================
 
 
-  '/accounts/{accountAddress}/tokens/{tokenSymbol}':
+  '/accounts/{accountAddress}/tokens/{tokenAddress}':
     get:
       tags:
         - Account balances
@@ -1064,9 +1128,9 @@ paths:
           description: Account address
           required: true
           type: string
-        - name: tokenSymbol
+        - name: tokenAddress
           in: path
-          description: Symbol of an approved token
+          description: The address of the token we want to check balance
           required: true
           type: string
       responses:
@@ -1075,7 +1139,7 @@ paths:
           schema:
             type: object
         '404':
-          description: Unknown token symbol
+          description: Unknown token address
 
 
   '/accounts/{accountAddress}/balances/{tokenPair}/claimable-tokens':
@@ -1113,9 +1177,12 @@ paths:
           type: string
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
       responses:
@@ -1140,7 +1207,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/accounts/{accountAddress}/current-liquidity-contribution-ratio':
@@ -1223,9 +1290,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1243,7 +1313,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/seller':
@@ -1262,9 +1332,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1288,7 +1361,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/accounts/{accountAddress}/balances/{tokenPair}/buyer':
@@ -1318,9 +1391,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1338,7 +1414,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
   '/accounts/{accountAddress}/balances/{tokenPair}/auctions/{auctionIndex}/buyer':
@@ -1357,9 +1433,12 @@ paths:
       parameters:
         - name: tokenPair
           in: path
-          description: >-
-            A token pair string for selecting the desired market
-            {tokenA}-{tokenB}
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
           required: true
           type: string
         - name: accountAddress
@@ -1383,7 +1462,7 @@ paths:
         '412':
           description: >-
             Invalid token format. Token pair format is not compilant with
-            {tokenA}-{tokenB}. Ex. weth-rdn
+            {tokenAAddress}-{tokenBAddress}
 
 
 definitions:
