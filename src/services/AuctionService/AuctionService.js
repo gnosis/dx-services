@@ -32,7 +32,8 @@ class AuctionService {
     this._markets = markets
   }
 
-  async getAuctionsReportInfo ({ fromDate, toDate, sellToken, buyToken, account }) {
+  async getAuctionsReportInfo ({
+    fromDate, toDate, sellToken, buyToken, account, count }) {
     _assertDatesOverlap(fromDate, toDate)
 
     return new Promise((resolve, reject) => {
@@ -68,7 +69,20 @@ class AuctionService {
           if (error) {
             reject(error)
           } else {
-            resolve(auctions)
+            resolve({
+              data: auctions,
+              pagination: {
+                endingBefore: null,
+                startingAfter: null,
+                limit: 0,
+                order: [{
+                  param: 'auctionStart',
+                  direction: 'ASC'
+                }],
+                previousUri: null,
+                nextUri: null
+              }
+            })
           }
         }
       })
@@ -99,7 +113,6 @@ class AuctionService {
         fromBlock, toBlock
       })
 
-    // console.log(auctions)
     let markets
     const getMarketsFromFilteredAuctions = (tokenPairs, { sellToken, buyToken }) => {
       const [tokenA, tokenB] = getTokenOrder(sellToken, buyToken)
@@ -111,20 +124,24 @@ class AuctionService {
       }
       return tokenPairs
     }
+
     if (!sellToken || !buyToken) {
       // Remove the unknown markets
-      auctions = auctions.filter(({ sellTokenSymbol, buyTokenSymbol }) => {
-        return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
-      })
+      // auctions = auctions.filter(({ sellTokenSymbol, buyTokenSymbol }) => {
+      //   return this._isKnownMarket(sellTokenSymbol, buyTokenSymbol)
+      // })
       markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
     } else {
       // Remove unnecesary auctions
       auctions = auctions.filter(({ sellToken: auctionSellToken, sellTokenSymbol, buyToken: auctionBuyToken, buyTokenSymbol }) => {
-        const [tokenA, tokenB] = getTokenOrder(sellToken, buyToken)
-        const [auctionTokenA, auctionTokenB] = getTokenOrder(auctionSellToken, auctionBuyToken)
-        const [tokenASymbol, tokenBSymbol] = getTokenOrder(sellTokenSymbol, buyTokenSymbol)
-        return (auctionTokenA === tokenA || tokenASymbol === tokenA) &&
-          (auctionTokenB === tokenB || tokenBSymbol === tokenB)
+        // // passed sellToken matchs auction sellToken address or symbol
+        return ((sellToken === auctionSellToken || sellToken === sellTokenSymbol) &&
+          // passed buyToken matchs auction buyToken address or symbol
+          (buyToken === auctionBuyToken || buyToken === buyTokenSymbol)) ||
+          // passed buyToken matchs auction sellToken address or symbol
+          ((buyToken === auctionSellToken || buyToken === sellTokenSymbol) &&
+          // passed sellToken matchs auction buyToken address or symbol
+          (sellToken === auctionBuyToken || sellToken === buyTokenSymbol))
       })
       markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
     }

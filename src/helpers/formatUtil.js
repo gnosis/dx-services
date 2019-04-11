@@ -1,6 +1,8 @@
 const numberUtil = require('./numberUtil')
 const moment = require('moment')
 
+const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
+
 const DATE_FORMAT = 'D/MM/YY'
 const DATE_FORMAT_FOR_PARSING = 'D/MM/YYYY' // Accepts 2 and 4 digits years
 const TIME_FORMAT = 'H:mm'
@@ -115,26 +117,53 @@ function formatMarketDescriptor ({ tokenA, tokenB }) {
 }
 
 function tokenPairSplit (tokenPair) {
-  // Split and set uppercase just in case is set with symbols
-  let splittedPair = tokenPair.startsWith('0x')
-    ? tokenPair.split('-')
-    : tokenPair.toUpperCase().split('-')
+  // Split token pair string
+  let splittedPair = tokenPair.split('-')
+
+  const _handleSymbolOrHexToken = splitted => {
+    return splitted.map(token => {
+      let parsedToken = token
+      if (isHexAddress({ token })) {
+        // In case is HEX make sure 0x is lowercase (parity issues)
+        parsedToken = token.replace('0X', '0x')
+      } else {
+        // In case is symbol set to uppercase
+        parsedToken = token.toUpperCase()
+      }
+      return parsedToken
+    })
+  }
+
   if (splittedPair.length === 2) {
-    const [sellToken, buyToken] = splittedPair
+    const [sellToken, buyToken] = _handleSymbolOrHexToken(splittedPair)
     return {
       sellToken,
       buyToken
     }
   } else {
-    const error = new Error('Invalid token pair format. Valid format is <sellToken>-<buyToken>')
+    const error = new Error('Invalid token pair format. Valid format is <sellTokenAddress>-<buyTokenAddress>')
     error.type = 'INVALID_TOKEN_FORMAT'
     error.status = 412
     throw error
   }
 }
 
+function isHexAddress ({ token, forceError = false }) {
+  if (HEXADECIMAL_REGEX.test(token)) {
+    return true
+  } else {
+    if (forceError) {
+      const error = new Error('Invalid token format. Expected Hex Address')
+      error.type = 'INVALID_TOKEN_FORMAT'
+      error.status = 412
+      throw error
+    }
+    return false
+  }
+}
+
 function _parseDate (dateStr, format, errorMessage) {
-  const date = format ? moment(dateStr, format) : moment(dateStr)
+  const date = format ? moment(dateStr, format) : moment(dateStr, moment.ISO_8601)
 
   if (!date.isValid()) {
     const error = new Error('Invalid date format' + errorMessage)
@@ -164,6 +193,7 @@ module.exports = {
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,
+  isHexAddress,
   parseDate,
   parseDateTime,
   parseDateIso,
