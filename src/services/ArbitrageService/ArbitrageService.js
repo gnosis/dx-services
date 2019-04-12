@@ -436,7 +436,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       // const expectedProfit = uniswapExpected.sub(amount)
       uniswapPrice = uniswapExpected.div(amount)
       dutchPrice = numberUtil.toBigNumber(1).div(amount.mul(dutchPrice).div(amountAfterFee))
-      auctionLogger.info({
+      auctionLogger.debug({
         sellToken,
         buyToken,
         msg: 'Making a DutchX opportunity transaction: \n%O',
@@ -466,7 +466,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       auctionLogger.info({
         sellToken,
         buyToken,
-        msg: 'Completed a dutchX opportunity: \n%O',
+        msg: 'Completed a DutchX opportunity: \n%O',
         params: [{
           balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
           balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Eth',
@@ -581,7 +581,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     if (amount.gt(0) && expectedProfitInUsd.gt(minimumProfitInUsd)) {
       dutchPrice = amount.mul(dutchPrice).div(amountAfterFee)
       uniswapPrice = tokenAmount.div(amount)
-      auctionLogger.info({
+      auctionLogger.debug({
         sellToken,
         buyToken,
         msg: 'Making an Uniswap opportunity transaction: \n%O',
