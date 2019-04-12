@@ -1,23 +1,21 @@
-
 const cliUtils = require('../helpers/cliUtils')
-const { toWei } = require('../../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
-const getArbitrageContractAddress = require('../../helpers/getArbitrageContractAddress')
+const getArbitrageContractAddress = require('../helpers/getArbitrageContractAddress')
 const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-withdraw-ether <amount> [--arbitrageContractAddress arbitrageAddress]',
-    'Withdraw WETH from DutchX and convert to ETH',
+    'arb-manual-trigger <token> [--arbitrageContractAddress arbitrageAddress]',
+    'Manually launch an arbitrage check',
     yargs => {
-      cliUtils.addPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('token', yargs)
       yargs.option('arbitrageAddress', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { amount, arbitrageAddress } = argv
+      const { token, arbitrageAddress } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -29,20 +27,24 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
+      const ethToken = await arbitrageService.ethToken()
+
       let arbitrageContractAddress = arbitrageAddress
       if (!arbitrageAddress) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
-      logger.info(`Transfer %d WETH from DutchX and convert to ETH`,
-        amount
-      )
-      const withdrawTransfer = await arbitrageService.withdrawEther({
-        amount: toWei(amount),
-        from,
-        arbitrageContractAddress
-      })
-      logger.info('The withdrawEther tx was successful. Transaction: %s', withdrawTransfer.tx)
+      try {
+        const arbitrageResult = await arbitrageService.checkUniswapArbitrage({
+          sellToken: token,
+          buyToken: ethToken,
+          from,
+          arbitrageContractAddress
+        })
+        logger.info(`The arbitrage transaction${arbitrageResult.length > 0 ? 's were' : 'was'} succesful. %o`, arbitrageResult)
+      } catch (error) {
+        logger.error('The arbitrage was NOT succesful.', error)
+      }
     })
 }
 

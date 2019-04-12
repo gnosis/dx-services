@@ -1,7 +1,7 @@
 // const cliUtils = require('../../helpers/cliUtils')
 
-const getAddress = require('../../../helpers/getAddress')
-const getArbitrageService = require('../../../services/ArbitrageService')
+const getAddress = require('../../helpers/getAddress')
+const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(

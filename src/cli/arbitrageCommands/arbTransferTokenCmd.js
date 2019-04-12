@@ -1,10 +1,10 @@
-const cliUtils = require('../../helpers/cliUtils')
-const { toWei, fromWei } = require('../../../helpers/numberUtil')
+const cliUtils = require('../helpers/cliUtils')
+const { toWei, fromWei } = require('../../helpers/numberUtil')
 
-const getAddress = require('../../../helpers/getAddress')
-const getArbitrageContractAddress = require('../../helpers/getArbitrageContractAddress')
-const getArbitrageService = require('../../../services/ArbitrageService')
-const getDxInfoService = require('../../../services/DxInfoService')
+const getAddress = require('../../helpers/getAddress')
+const getArbitrageContractAddress = require('../helpers/getArbitrageContractAddress')
+const getArbitrageService = require('../../services/ArbitrageService')
+const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(

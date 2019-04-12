@@ -1,17 +1,17 @@
 const cliUtils = require('../helpers/cliUtils')
-const { toWei } = require('../../../helpers/numberUtil')
+const { toWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
-const getArbitrageContractAddress = require('../../helpers/getArbitrageContractAddress')
+const getArbitrageContractAddress = require('../helpers/getArbitrageContractAddress')
 const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-uniswap-opportunity <token> <amount> [--arbitrageContractAddress arbitrageAddress]',
-    'Execute a Uniswap Opportunity transaction with Arbitrage contract',
+    'arb-deposit-token <amount> <token> [--arbitrageContractAddress arbitrageAddress]',
+    'Deposit any token in the arbitrage contract to the DutchX',
     yargs => {
-      cliUtils.addPositionalByName('token', yargs)
       cliUtils.addPositionalByName('amount', yargs)
+      cliUtils.addPositionalByName('token', yargs)
       yargs.option('arbitrageAddress', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
@@ -34,17 +34,16 @@ function registerCommand ({ cli, logger }) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
-      logger.info(`Arbitrage %d ETH on Uniswap for token %s using the account %s`,
-        amount, token, from
+      logger.info(`Deposit %d %s in contract %s using the account %s`,
+        amount, token, arbitrageContractAddress, from
       )
-
-      const uniswapResult = await arbitrageService.uniswapOpportunity({
-        arbToken: token,
+      const depositResult = await arbitrageService.depositToken({
+        token,
         amount: toWei(amount),
         from,
         arbitrageContractAddress
       })
-      logger.info('The uniswapOpportunity was successful. Transaction: %s', uniswapResult.tx)
+      logger.info('The deposit was successful. Transaction: %s', depositResult.tx)
     })
 }
 

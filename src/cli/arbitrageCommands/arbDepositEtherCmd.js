@@ -1,14 +1,14 @@
-const cliUtils = require('../../helpers/cliUtils')
-const { toWei } = require('../../../helpers/numberUtil')
+const cliUtils = require('../helpers/cliUtils')
+const { toWei } = require('../../helpers/numberUtil')
 
-const getAddress = require('../../../helpers/getAddress')
-const getArbitrageContractAddress = require('../../helpers/getArbitrageContractAddress')
-const getArbitrageService = require('../../../services/ArbitrageService')
+const getAddress = require('../../helpers/getAddress')
+const getArbitrageContractAddress = require('../helpers/getArbitrageContractAddress')
+const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-withdraw-transfer-ether <amount> [--arbitrageContractAddress arbitrageAddress]',
-    'Withdraw WETH from DutchX, convert to ETH and transfer to owner address',
+    'arb-deposit-ether <amount> [--arbitrageContractAddress arbitrageAddress]',
+    'Deposit any Ether in the contract to the DutchX as WETH',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
       yargs.option('arbitrageAddress', {
@@ -33,15 +33,19 @@ function registerCommand ({ cli, logger }) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
-      logger.info(`Withdraw %d WETH from DutchX, convert to ETH and transfer to owner account %s`,
-        amount, from
+      const balance =
+        await arbitrageService.getContractEtherBalance({ arbitrageContractAddress })
+
+      logger.info(`Deposit %d ETH from owner plus balance of %d ETH already in \
+contract %s as WETH using the account %s`,
+      amount, balance.toString(10), arbitrageContractAddress, from
       )
-      const withdrawTransfer = await arbitrageService.withdrawEtherThenTransfer({
+      const depositResult = await arbitrageService.depositEther({
         amount: toWei(amount),
         from,
         arbitrageContractAddress
       })
-      logger.info('The withdrawEtherThenTransfer tx was successful. Transaction: %s', withdrawTransfer.tx)
+      logger.info('The deposit was successful. Transaction: %s', depositResult.tx)
     })
 }
 

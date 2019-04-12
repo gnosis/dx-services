@@ -1,24 +1,23 @@
 
 const cliUtils = require('../helpers/cliUtils')
-const { toWei } = require('../../../helpers/numberUtil')
+const { toWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
-const getArbitrageContractAddress = require('../../helpers/getArbitrageContractAddress')
+const getArbitrageContractAddress = require('../helpers/getArbitrageContractAddress')
 const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-withdraw-token <amount> <token> [--arbitrageContractAddress arbitrageAddress]',
-    'Withdraw token from DutchX',
+    'arb-withdraw-ether <amount> [--arbitrageContractAddress arbitrageAddress]',
+    'Withdraw WETH from DutchX and convert to ETH',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
-      cliUtils.addPositionalByName('token', yargs)
       yargs.option('arbitrageAddress', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { amount, token, arbitrageAddress } = argv
+      const { amount, arbitrageAddress } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -35,16 +34,15 @@ function registerCommand ({ cli, logger }) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
-      logger.info(`Withdraw %d token (%s) from DutchX `,
-        amount, token
+      logger.info(`Transfer %d WETH from DutchX and convert to ETH`,
+        amount
       )
-      const withdrawTransfer = await arbitrageService.withdrawToken({
+      const withdrawTransfer = await arbitrageService.withdrawEther({
         amount: toWei(amount),
-        token,
         from,
         arbitrageContractAddress
       })
-      logger.info('The withdrawToken tx was successful. Transaction: %s', withdrawTransfer.tx)
+      logger.info('The withdrawEther tx was successful. Transaction: %s', withdrawTransfer.tx)
     })
 }
 
