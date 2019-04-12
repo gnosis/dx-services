@@ -6,8 +6,8 @@ const assert = require('assert')
 const numberUtil = require('../../helpers/numberUtil')
 
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
-const UNISWAP_TO_DUTCH_GAS_COST_ESTIMATE = 559830
-const DUTCH_TO_UNISWAP_GAS_COST_ESTIMATE = 565134
+const UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE = 559830
+const DUTCHX_TO_UNISWAP_GAS_COST_ESTIMATE = 565134
 
 class ArbitrageService {
   constructor ({
@@ -31,11 +31,18 @@ class ArbitrageService {
   }
 
   async checkUniswapArbitrage ({
-    sellToken, buyToken, from, minimumProfitInUsd = 0, waitToReleaseTheLock = false }) {
+    sellToken,
+    buyToken,
+    from,
+    arbitrageContractAddress,
+    minimumProfitInUsd = 0,
+    waitToReleaseTheLock = false
+  }) {
     return this._checkArbitrageAux({
       sellToken,
       buyToken,
       from,
+      arbitrageContractAddress,
       minimumProfitInUsd,
       waitToReleaseTheLock,
       arbitrageCheckName: 'uniswap'
@@ -46,6 +53,7 @@ class ArbitrageService {
     sellToken,
     buyToken,
     from,
+    arbitrageContractAddress,
     minimumProfitInUsd,
     arbitrageCheckName,
     waitToReleaseTheLock
@@ -115,6 +123,7 @@ check should be done`,
         tokenA: sellToken,
         tokenB: buyToken,
         from,
+        arbitrageContractAddress,
         minimumProfitInUsd
       })
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
@@ -126,7 +135,8 @@ check should be done`,
     return boughtOrSoldTokensPromise
   }
 
-  async _doCheckArbitrageUniswap ({ tokenA, tokenB, from, minimumProfitInUsd }) {
+  async _doCheckArbitrageUniswap ({
+    tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd }) {
     const results = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
 
@@ -144,6 +154,7 @@ check should be done`,
       buyToken: tokenB,
       auctionIndex,
       from,
+      arbitrageContractAddress,
       minimumProfitInUsd
     })
 
@@ -153,6 +164,7 @@ check should be done`,
       buyToken: tokenA,
       auctionIndex,
       from,
+      arbitrageContractAddress,
       minimumProfitInUsd
     })
 
@@ -167,14 +179,16 @@ check should be done`,
     // just gained Ether. Keep doing this until there is no more arbitrage
     // (no results) then return all results
     if (results.length > 0) {
-      let more = await this._doCheckArbitrageUniswap({ tokenA, tokenB, from, minimumProfitInUsd })
+      let more = await this._doCheckArbitrageUniswap({
+        tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd })
       if (more.length) results.push(...more)
     }
 
     return results
   }
 
-  async _getPricesAndAttemptArbitrage ({ buyToken, sellToken, auctionIndex, from, minimumProfitInUsd }) {
+  async _getPricesAndAttemptArbitrage ({
+    buyToken, sellToken, auctionIndex, from, arbitrageContractAddress, minimumProfitInUsd }) {
     const {
       sellVolume,
       isClosed,
@@ -231,12 +245,13 @@ check should be done`,
 
         // next we check our arbitrage contract Ether balance
         // to see what the maximum amount we can spend is
-        const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
+        // const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
+
         // Get etherToken address
         const etherTokenAddress = await this._auctionRepo.getTokenAddress({ token: 'WETH' })
         let maxEtherToSpend = await this._auctionRepo.getBalance({
           token: etherTokenAddress,
-          address: arbitrageAddress
+          address: arbitrageContractAddress
         })
 
         if (maxEtherToSpend.eq(0)) {
@@ -244,7 +259,7 @@ check should be done`,
             sellToken,
             buyToken,
             msg: `Ether balance (${etherTokenAddress}) is zero on account \
-${arbitrageAddress} (Arbitrage contract) using DutchX contract \
+${arbitrageContractAddress} (Arbitrage contract) using DutchX contract \
 ${this._auctionRepo._dx.address} Please deposit Ether`
           })
           return null
@@ -265,7 +280,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
               outputBalance,
               dutchPrice,
               etherTokenAddress,
-              arbitrageAddress,
+              arbitrageContractAddress,
               minimumProfitInUsd
             })
           } else if (this._arbitrageRepo.isTokenEth(sellToken)) {
@@ -284,7 +299,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
               outputBalance,
               dutchPrice,
               etherTokenAddress,
-              arbitrageAddress,
+              arbitrageContractAddress,
               minimumProfitInUsd
             })
           }
@@ -324,10 +339,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     let gasAmount
     switch (attempt) {
       case 'dutchAttempt':
-        gasAmount = DUTCH_TO_UNISWAP_GAS_COST_ESTIMATE
+        gasAmount = DUTCHX_TO_UNISWAP_GAS_COST_ESTIMATE
         break
       case 'uniswapAttempt':
-        gasAmount = UNISWAP_TO_DUTCH_GAS_COST_ESTIMATE
+        gasAmount = UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE
         break
     }
     return numberUtil.toBigNumber(gasAmount).mul(fastGasPrice)
@@ -343,7 +358,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     outputBalance,
     dutchPrice,
     etherTokenAddress,
-    arbitrageAddress,
+    arbitrageContractAddress,
     minimumProfitInUsd
   }) {
     // gasCosts is the amount of profit needed from the arbitrage to pay for gas costs
@@ -439,12 +454,13 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       let tx = await this._arbitrageRepo.dutchOpportunity({
         arbToken: sellToken,
         amount,
-        from
+        from,
+        arbitrageContractAddress
       })
 
       let balanceAfter = await this._auctionRepo.getBalance({
         token: etherTokenAddress,
-        address: arbitrageAddress
+        address: arbitrageContractAddress
       })
       const actualProfit = balanceAfter.sub(maxEtherToSpend)
       auctionLogger.info({
@@ -481,7 +497,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     outputBalance,
     dutchPrice,
     etherTokenAddress,
-    arbitrageAddress,
+    arbitrageContractAddress,
     minimumProfitInUsd
   }) {
     // gasCosts is the amount of profit needed from the arbitrage to pay for gas costs
@@ -579,12 +595,13 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       let tx = await this._arbitrageRepo.uniswapOpportunity({
         arbToken: buyToken,
         amount,
-        from
+        from,
+        arbitrageContractAddress
       })
 
       let balanceAfter = await this._auctionRepo.getBalance({
         token: etherTokenAddress,
-        address: arbitrageAddress
+        address: arbitrageContractAddress
       })
       const actualProfit = balanceAfter.sub(maxEtherToSpend)
       auctionLogger.info({
@@ -616,6 +633,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
   // numerator: uint256 = inputReserve * outputAmount * 1000
   // denominator: uint256 = (outputReserve - outputAmount) * 997
   // return numerator / denominator + 1
+  // TODO remove fee as constant
   getOutputPrice (outputAmount, inputReserve, outputReserve) {
     assert(inputReserve.gt(0), 'Input reserve must be greater than 0')
     assert(outputReserve.gt(0), 'Output reserve must be greater than 0')
@@ -630,6 +648,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
   //   numerator: uint256 = inputAmountWithFee * outputReserve
   //   denominator: uint256 = (inputReserve * 1000) + inputAmountWithFee
   //   return numerator / denominator
+  // TODO remove fee as constant
   getInputPrice (inputAmount, inputReserve, outputReserve) {
     assert(inputReserve.gt(0), 'Input reserve must be greater than 0')
     assert(outputReserve.gt(0), 'Output reserve must be greater than 0')
@@ -661,6 +680,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // potentially destroying the profit
     // const spendIncrementSmall = 1e3
     // const spendIncrementLarge = 1e17
+    // TODO set constants
     let spendIncrement = numberUtil.toBigNumber(1e18)
     const spendIncrementMin = numberUtil.toBigNumber(1e3)
 
@@ -716,56 +736,55 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     return dutchSpendAmount
   }
 
+  // ------------------------------------------------------------------------
+  // ---------    Arbitrage repository interaction functions     ------------
+  // ------------------------------------------------------------------------
   async ethToken () {
     return this._auctionRepo.ethToken()
   }
 
-  async manualTrigger () {
-    await this._arbitrageRepo
+  async depositToken ({ token, amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.depositToken({ token, amount, from, arbitrageContractAddress })
   }
 
-  async depositToken ({ token, amount, from }) {
-    return this._arbitrageRepo.depositToken({ token, amount, from })
+  async uniswapOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.uniswapOpportunity({ arbToken, amount, from, arbitrageContractAddress })
   }
 
-  async uniswapOpportunity ({ arbToken, amount, from }) {
-    return this._arbitrageRepo.uniswapOpportunity({ arbToken, amount, from })
+  async transferOwnership ({ arbitrageAddress, from }) {
+    return this._arbitrageRepo.transferOwnership({ arbitrageAddress, from })
   }
 
-  async transferOwnership ({ address, from }) {
-    return this._arbitrageRepo.transferOwnership({ address, from })
+  async withdrawEther ({ amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.withdrawEther({ amount, from, arbitrageContractAddress })
   }
 
-  async withdrawEther ({ amount, from }) {
-    return this._arbitrageRepo.withdrawEther({ amount, from })
+  async withdrawToken ({ token, amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.withdrawToken({ token, amount, from, arbitrageContractAddress })
+  }
+  async claimBuyerFunds ({ token, auctionId, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.claimBuyerFunds({ token, auctionId, from, arbitrageContractAddress })
   }
 
-  async withdrawToken ({ token, amount, from }) {
-    return this._arbitrageRepo.withdrawToken({ token, amount, from })
-  }
-  async claimBuyerFunds ({ token, auctionId, from }) {
-    return this._arbitrageRepo.claimBuyerFunds({ token, auctionId, from })
+  async withdrawEtherThenTransfer ({ amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.withdrawEtherThenTransfer({ amount, from, arbitrageContractAddress })
   }
 
-  async withdrawEtherThenTransfer ({ amount, from }) {
-    return this._arbitrageRepo.withdrawEtherThenTransfer({ amount, from })
+  async transferEther ({ amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.transferEther({ amount, from, arbitrageContractAddress })
   }
 
-  async transferEther ({ amount, from }) {
-    return this._arbitrageRepo.transferEther({ amount, from })
+  async transferToken ({ token, amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.transferToken({ token, amount, from, arbitrageContractAddress })
   }
 
-  async transferToken ({ token, amount, from }) {
-    return this._arbitrageRepo.transferToken({ token, amount, from })
+  async dutchOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.dutchOpportunity({ arbToken, amount, from, arbitrageContractAddress })
   }
 
-  async dutchOpportunity ({ arbToken, amount, from }) {
-    return this._arbitrageRepo.dutchOpportunity({ arbToken, amount, from })
-  }
-
-  async getContractEtherBalance () {
-    const account = this._arbitrageRepo.getArbitrageAddress()
-    const contractBalance = await this._ethereumRepo.balanceOf({ account })
+  async getContractEtherBalance ({ arbitrageContractAddress }) {
+    const contractBalance =
+      await this._ethereumRepo.balanceOf({ arbitrageContractAddress })
     return numberUtil.fromWei(contractBalance)
   }
 
@@ -773,10 +792,9 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     return this._arbitrageRepo.getArbitrageAddress()
   }
 
-  async getBalance ({ token, address }) {
-    const account = !address
-      ? this._arbitrageRepo.getArbitrageAddress()
-      : address
+  async getBalance ({ token, arbitrageContractAddress }) {
+    const account = arbitrageContractAddress
+
     const tokenAddress = !token
       ? await this._auctionRepo.ethToken()
       : await this._auctionRepo.getTokenAddress({ token })
@@ -800,15 +818,12 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     return { contractBalance, dutchBalance }
   }
 
-  async depositEther ({
-    amount,
-    from
-  }) {
-    return this._arbitrageRepo.depositEther({ amount, from })
+  async depositEther ({ amount, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.depositEther({ amount, from, arbitrageContractAddress })
   }
 
-  async getOwner () {
-    return this._arbitrageRepo.getOwner()
+  async getOwner ({ arbitrageContractAddress }) {
+    return this._arbitrageRepo.getOwner({ arbitrageContractAddress })
   }
 
   _getAuctionLockName (operation, sellToken, buyToken, from) {

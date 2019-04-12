@@ -1,32 +1,37 @@
 const cliUtils = require('../../helpers/cliUtils')
 
+const getArbitrageContractAddress = require('../../helpers/getArbitrageContractAddress')
 const getArbitrageService = require('../../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-get-balance [token] [--address address]',
+    'arb-get-balance [token] [--arbitrageContractAddress arbitrageAddress]',
     'Get the arbitrage contract balance of any token (blank token for Ether)',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
-      yargs.option('address', {
+      yargs.option('arbitrageAddress', {
         type: 'string',
-        describe: 'Allow to specify an arbitrage contract address'
+        describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { token, address } = argv
+      const { token, arbitrageAddress } = argv
       const [
+        confArbitrageContractAddress,
         arbitrageService
       ] = await Promise.all([
+        getArbitrageContractAddress(),
         getArbitrageService()
       ])
-      const logAddress = !address
-        ? await arbitrageService.getArbitrageAddress()
-        : address
+
+      let arbitrageContractAddress = arbitrageAddress
+      if (!arbitrageAddress) {
+        arbitrageContractAddress = confArbitrageContractAddress
+      }
 
       logger.info(`Checking balance of %s contract as well as on the DutchX`,
-        logAddress)
+        arbitrageContractAddress)
       const { contractBalance, dutchBalance } =
-        await arbitrageService.getBalance({ token, address })
+        await arbitrageService.getBalance({ token, arbitrageContractAddress })
 
       logger.info('Contract: %s', contractBalance.toString(10))
       logger.info('DutchX: %s', dutchBalance.toString(10))

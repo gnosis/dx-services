@@ -6,11 +6,16 @@ const assert = require('assert')
 
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
 
+// Caches the arbitrage contracts once loaded
+const ARBITRAGE_CONTRACT_CACHE = {}
+
 class ArbitrageRepoImpl extends Cacheable {
   constructor ({
     ethereumRepo,
     ethereumClient,
     contracts,
+    arbitrageContractAbi,
+    localArbitrageAddress,
     // Cache
     cacheConf,
     // Gas
@@ -36,7 +41,8 @@ class ArbitrageRepoImpl extends Cacheable {
     this._BLOCKS_MINED_IN_24H = ethereumClient.toBlocksFromSecondsEst(24 * 60 * 60)
 
     // Contracts
-    this._arbitrage = contracts.arbitrageContract
+    this._arbitrageContractAbi = arbitrageContractAbi
+    this._localArbitrageAddress = localArbitrageAddress
     this._uniswapFactory = contracts.uniswapFactory
     this._uniswapExchange = contracts.uniswapExchange
     this._tokens = Object.assign({
@@ -46,10 +52,10 @@ class ArbitrageRepoImpl extends Cacheable {
       OWL: contracts.owl
     }, contracts.erc20TokenContracts)
 
-    logger.debug({
-      msg: `Arbitrage contract in address %s`,
-      params: [ this._arbitrage.address ]
-    })
+    // logger.debug({
+    //   msg: `Arbitrage contract in address %s`,
+    //   params: [ this._arbitrage.address ]
+    // })
 
     this.ready = Promise.resolve()
     Object.keys(this._tokens).forEach(token => {
@@ -63,6 +69,17 @@ class ArbitrageRepoImpl extends Cacheable {
 
   getArbitrageAddress () {
     return this._arbitrage.address
+  }
+
+  _loadArbitrageContract ({ arbitrageContractAddress }) {
+    let ArbitrageContract = ARBITRAGE_CONTRACT_CACHE[arbitrageContractAddress]
+    if (!ArbitrageContract) {
+      ArbitrageContract = this._arbitrageContractAbi
+
+      ARBITRAGE_CONTRACT_CACHE[arbitrageContractAddress] = ArbitrageContract
+    }
+
+    return ArbitrageContract.at(arbitrageContractAddress)
   }
 
   async getUniswapExchange (uniswapExchangeAddress) {
@@ -153,108 +170,122 @@ class ArbitrageRepoImpl extends Cacheable {
     }
   }
 
-  async transferToken ({ token, amount, from }) {
+  async transferToken ({ token, amount, from, arbitrageContractAddress }) {
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
       operation: 'transferToken',
       from,
+      arbitrageContractAddress,
       params: [tokenAddress, amount]
     })
   }
 
-  async claimBuyerFunds ({ token, auctionId, from }) {
+  async claimBuyerFunds ({ token, auctionId, from, arbitrageContractAddress }) {
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
       operation: 'claimBuyerFunds',
       from,
+      arbitrageContractAddress,
       params: [tokenAddress, auctionId]
     })
   }
 
-  async withdrawToken ({ token, amount, from }) {
+  async withdrawToken ({ token, amount, from, arbitrageContractAddress }) {
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
       operation: 'withdrawToken',
       from,
+      arbitrageContractAddress,
       params: [tokenAddress, amount]
     })
   }
 
-  async withdrawEther ({ amount, from }) {
+  async withdrawEther ({ amount, from, arbitrageContractAddress }) {
     return this._doTransaction({
       operation: 'withdrawEther',
       from,
+      arbitrageContractAddress,
       params: [amount]
     })
   }
 
-  async withdrawEtherThenTransfer ({ amount, from }) {
+  async withdrawEtherThenTransfer ({ amount, from, arbitrageContractAddress }) {
     return this._doTransaction({
       operation: 'withdrawEtherThenTransfer',
       from,
+      arbitrageContractAddress,
       params: [amount]
     })
   }
 
-  async transferEther ({ amount, from }) {
+  async transferEther ({ amount, from, arbitrageContractAddress }) {
     return this._doTransaction({
       operation: 'transferEther',
       from,
+      arbitrageContractAddress,
       params: [amount]
     })
   }
 
-  async transferOwnership ({ address, from }) {
+  async transferOwnership ({ arbitrageAddress, from }) {
     return this._doTransaction({
       operation: 'transferOwnership',
       from,
-      params: [address]
+      arbitrageContractAddress: arbitrageAddress,
+      params: [arbitrageAddress]
     })
   }
 
-  async dutchOpportunity ({ arbToken, amount, from }) {
+  async dutchOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
     const tokenAddress = this._getTokenAddress(arbToken)
 
     return this._doTransaction({
       operation: 'dutchOpportunity',
       from,
+      arbitrageContractAddress,
       params: [tokenAddress, amount]
     })
   }
 
-  async uniswapOpportunity ({ arbToken, amount, from }) {
+  async uniswapOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
     const tokenAddress = this._getTokenAddress(arbToken)
 
     return this._doTransaction({
       operation: 'uniswapOpportunity',
       from,
+      arbitrageContractAddress,
       params: [tokenAddress, amount]
     })
   }
 
-  async getOwner () {
+  async getOwner ({ arbitrageContractAddress }) {
+    assert(arbitrageContractAddress, 'The arbitrageContractAddress is required')
+
     return this._doCall({
-      operation: 'owner'
+      operation: 'owner',
+      arbitrageContractAddress
     })
   }
 
-  async depositToken ({ token, amount, from }) {
+  async depositToken ({ token, amount, from, arbitrageContractAddress }) {
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
       operation: 'depositToken',
       from,
+      arbitrageContractAddress,
       params: [tokenAddress, amount]
     })
   }
 
-  async depositEther ({ amount, from }) {
+  async depositEther ({ amount, from, arbitrageContractAddress }) {
     return this._doTransaction({
       operation: 'depositEther',
       from,
+      arbitrageContractAddress,
       value: amount
     })
   }
@@ -300,7 +331,14 @@ class ArbitrageRepoImpl extends Cacheable {
     return operation + ':' + params.join('-')
   }
 
-  async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params, value }) {
+  async _doTransaction ({
+    operation,
+    from,
+    gasPrice: gasPriceParam,
+    arbitrageContractAddress,
+    params,
+    value
+  }) {
     value = value || '0'
     params = params || []
     logger.info({
@@ -349,6 +387,7 @@ class ArbitrageRepoImpl extends Cacheable {
         params,
         gas,
         gasPriceParam,
+        arbitrageContractAddress,
         nonce: undefined,
         value
       })
@@ -384,27 +423,29 @@ class ArbitrageRepoImpl extends Cacheable {
     from,
     params,
     gas,
+    arbitrageContractAddress,
     gasPriceParam, // if manually set
     nonce,
     value
   }) {
-    return this
-      ._arbitrage[operation](...params, {
-        from,
-        gas,
-        gasPrice,
-        value
-      }).then(result => {
-        resolve(result)
-      }).catch(error => {
-        logger.error({
-          msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Value: %d. Error: %s',
-          params: [ operation, from, params, gas, gasPrice, value, error ],
-          error
-        })
+    const arbitrage = this._loadArbitrageContract({ arbitrageContractAddress })
 
-        reject(error)
+    return arbitrage[operation](...params, {
+      from,
+      gas,
+      gasPrice,
+      value
+    }).then(result => {
+      resolve(result)
+    }).catch(error => {
+      logger.error({
+        msg: 'Error on transaction "%s", from "%s". Params: [%s]. Gas: %d, GasPrice: %d. Value: %d. Error: %s',
+        params: [ operation, from, params, gas, gasPrice, value, error ],
+        error
       })
+
+      reject(error)
+    })
   }
 }
 

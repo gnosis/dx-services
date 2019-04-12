@@ -40,23 +40,21 @@ is only avaliable in LOCAL. Environment = ${environment}`
     })
 }
 
-async function _loadArbitrageContract ({
-  ethereumClient, contractDefinitions, arbitrageContractAddress
+async function _loadArbitrageContractAbi ({
+  ethereumClient, contractDefinitions
 }) {
-  const arbitrageContract = ethereumClient
+  return ethereumClient
     .loadContract(contractDefinitions.ArbitrageContract)
-  let localArbitrageContractAddress
-  if (arbitrageContractAddress) {
-    localArbitrageContractAddress = arbitrageContractAddress
-  } else {
-    localArbitrageContractAddress = await _getDeployedAddress(
-      'ArbitrageLocal',
-      arbitrageContract,
-      true
-    )
-  }
-  const arbitrageContractInstance = arbitrageContract.at(localArbitrageContractAddress)
-  return arbitrageContractInstance
+}
+
+async function _loadLocalArbitrageAddress ({
+  arbitrageContract
+}) {
+  return _getDeployedAddress(
+    'ArbitrageLocal',
+    arbitrageContract,
+    true
+  )
 }
 
 async function _loadUniswapFactory ({
@@ -106,20 +104,20 @@ async function _createArbitrageRepo () {
 
   const {
     CACHE,
+    NETWORK,
     CONTRACT_DEFINITIONS,
     UNISWAP_FACTORY_ADDRESS,
-    ARBITRAGE_CONTRACT_ADDRESS,
     // DEFAULT_GAS,
     OVER_FAST_PRICE_FACTOR,
     GAS_ESTIMATION_CORRECTION_FACTOR,
     DEFAULT_GAS_PRICE_USED
   } = conf
 
-  const [ arbitrageContract, uniswapFactory, uniswapExchange ] = await Promise.all([
-    _loadArbitrageContract({
+  const [ arbitrageContractAbi, uniswapFactory, uniswapExchange ] = await Promise.all([
+    _loadArbitrageContractAbi({
       ethereumClient,
-      contractDefinitions: CONTRACT_DEFINITIONS,
-      arbitrageContractAddress: ARBITRAGE_CONTRACT_ADDRESS }),
+      contractDefinitions: CONTRACT_DEFINITIONS
+    }),
     _loadUniswapFactory({
       ethereumClient,
       contractDefinitions: CONTRACT_DEFINITIONS,
@@ -130,12 +128,21 @@ async function _createArbitrageRepo () {
     })
   ])
 
-  contracts = { ...contracts, arbitrageContract, uniswapFactory, uniswapExchange }
+  let localArbitrageAddress
+  if (NETWORK === 'ganache') {
+    localArbitrageAddress = await _loadLocalArbitrageAddress({
+      arbitrageContract: arbitrageContractAbi
+    })
+  }
+
+  contracts = { ...contracts, uniswapFactory, uniswapExchange }
 
   return new ArbitrageRepo({
     ethereumRepo,
     ethereumClient,
     contracts,
+    arbitrageContractAbi,
+    localArbitrageAddress,
 
     // Cache
     cacheConf: CACHE,

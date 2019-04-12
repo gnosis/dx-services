@@ -1,16 +1,19 @@
-const cliUtils = require('../../helpers/cliUtils')
+// const cliUtils = require('../../helpers/cliUtils')
 
 const getAddress = require('../../../helpers/getAddress')
 const getArbitrageService = require('../../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-transfer-ownership <address>',
+    'arb-transfer-ownership <arbitrageAddress>',
     'Transfer ownership of the Arbitrage contract',
     yargs => {
-      cliUtils.addPositionalByName('address', yargs)
+      yargs.positional('arbitrageAddress', {
+        type: 'string',
+        describe: 'The arbitrage contract address to use'
+      })
     }, async function (argv) {
-      const { address } = argv
+      const { arbitrageAddress } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -21,10 +24,10 @@ function registerCommand ({ cli, logger }) {
       ])
 
       logger.info(`Transfer ownership of contract to %s from the account %s`,
-        address, from
+        arbitrageAddress, from
       )
       const transferOwnership = await arbitrageService.transferOwnership({
-        address,
+        arbitrageAddress,
         from
       })
       logger.info('The transferOwnership tx was succesful. Transaction: %s', transferOwnership.tx)
