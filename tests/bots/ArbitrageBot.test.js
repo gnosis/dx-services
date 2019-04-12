@@ -9,8 +9,6 @@ const MARKETS = [
   { tokenA: 'WETH', tokenB: 'OMG' }
 ]
 
-const BUY_LIQUIDITY_RULES = []
-
 const setupPromise = testSetup()
 
 let arbitrageBot
@@ -26,6 +24,7 @@ beforeAll(async () => {
     name: 'ArbitrageBot',
     botAddress: '0x123',
     markets: MARKETS,
+    arbitrageContractAddress: '0x234',
     notifications: []
   })
 
@@ -41,7 +40,7 @@ afterAll(() => {
 
 test('It should do a routine check.', async () => {
   // we mock checkUniswapArbitrage function
-  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_ensureLiquidity)
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_checkArbitrage)
   const ENSURE_ARBITRAGE_FN = arbitrageBot._arbitrageService.checkUniswapArbitrage
 
   // GIVEN a never called checkUniswapArbitrage function
@@ -57,7 +56,7 @@ test('It should do a routine check.', async () => {
 test('It should not run arbitrage if already running arbitrage.', () => {
   expect.assertions(1)
   // we mock checkUniswapArbitrage function
-  arbitrageBot._arbitrageService.checkUniswapArbitrage = _concurrentLiquidityEnsured
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = _concurrentArbitrageCheck
 
   // GIVEN a running bot
 
@@ -75,7 +74,7 @@ test('It should not run arbitrage if already running arbitrage.', () => {
 test('It should run when called', async () => {
   expect.assertions(3)
   // we mock checkUniswapArbitrage function
-  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_ensureLiquidity)
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_checkArbitrage)
   const ENSURE_ARBITRAGE_FN = arbitrageBot._arbitrageService.checkUniswapArbitrage
 
   // GIVEN never arbitrage
@@ -95,7 +94,7 @@ test('It should run when called', async () => {
 test('It should handle errors if something goes wrong.', async () => {
   expect.assertions(3)
   // we mock checkUniswapArbitrage function
-  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_ensureLiquidityError)
+  arbitrageBot._arbitrageService.checkUniswapArbitrage = jest.fn(_arbitrageCheckError)
   arbitrageBot._handleError = jest.fn(arbitrageBot._handleError)
   const HANDLE_ERROR_FN = arbitrageBot._handleError
 
@@ -114,11 +113,11 @@ test('It should handle errors if something goes wrong.', async () => {
   expect(HANDLE_ERROR_FN).toHaveBeenCalledTimes(1)
 })
 
-function _concurrentLiquidityEnsured ({ sellToken, buyToken, from }) {
+function _concurrentArbitrageCheck ({ sellToken, buyToken, from }) {
   return Promise.resolve([])
 }
 
-function _ensureLiquidity ({ sellToken, buyToken, from }) {
+function _checkArbitrage ({ sellToken, buyToken, from }) {
   return Promise.resolve([{
     type: 'UniswapOpportunity',
     arbToken: buyToken,
@@ -148,6 +147,6 @@ function _ensureLiquidity ({ sellToken, buyToken, from }) {
   }])
 }
 
-function _ensureLiquidityError ({ sellToken, buyToken, from }) {
+function _arbitrageCheckError ({ sellToken, buyToken, from }) {
   throw Error('This is an EXPECTED test error')
 }
