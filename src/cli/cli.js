@@ -60,18 +60,6 @@ async function run () {
   // Dx Management commands
   require('./cliCommands/addTokenPairCmd')(commandParams)
 
-  // Arbitrage commands
-  // require('./cliCommands/arbTransferOwnership')(commandParams) // onlyOwner
-  require('./cliCommands/arbitrage/arbManualTriggerCmd')(commandParams)
-  require('./cliCommands/arbitrage/arbGetBalanceCmd')(commandParams)
-  // require('./cliCommands/arbitrage/arbDepositEtherCmd')(commandParams)
-  // require('./cliCommands/arbitrage/arbDepositTokenCmd')(commandParams) // onlyOwner
-  // require('./cliCommands/arbitrage/arbWithdrawTransferEtherCmd')(commandParams) // onlyOwner
-  // require('./cliCommands/arbitrage/arbTransferEtherCmd')(commandParams) // onlyOwner
-  // require('./cliCommands/arbitrage/arbTransferTokenCmd')(commandParams) // onlyOwner
-  // require('./cliCommands/arbitrage/arbUniswapOpportunityCmd')(commandParams)
-  // require('./cliCommands/arbitrage/arbDutchOpportunityCmd')(commandParams)
-
   // Setup commands (we might need to move this ones to `setup` cli)
   // add-token-pair, add-funding-for-test-user,...
   const width = Math.min(100, yargs.terminalWidth())

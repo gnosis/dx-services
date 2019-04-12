@@ -7,16 +7,16 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-transfer-ether <amount> [--arbitrageContractAddress arbitrageAddress]',
+    'transfer-ether <amount> [--arbitrage-contract address]',
     'Transfer ETH from Arbitrage contract to contract owner (amount = 0 transfers total balance)',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
-      yargs.option('arbitrageAddress', {
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { amount, arbitrageAddress } = argv
+      const { amount, arbitrageContract } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -28,8 +28,8 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
@@ -42,7 +42,7 @@ function registerCommand ({ cli, logger }) {
       }
 
       let transferAmount = amount
-      if (amount.eq(0) || amount.gt(balance)) {
+      if (amount === 0 || balance.lt(amount)) {
         transferAmount = fromWei(balance)
       }
 

@@ -5,16 +5,16 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-get-balance [token] [--arbitrageContractAddress arbitrageAddress]',
+    'get-balance [token] [--arbitrage-contract address]',
     'Get the arbitrage contract balance of any token (blank token for Ether)',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
-      yargs.option('arbitrageAddress', {
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { token, arbitrageAddress } = argv
+      const { token, arbitrageContract } = argv
       const [
         confArbitrageContractAddress,
         arbitrageService
@@ -23,8 +23,8 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 

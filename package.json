@@ -41,6 +41,7 @@
     "cli-kovan": "NETWORK=kovan node src/cli/cli.js",
     "cli-mainnet": "MARKETS=RDN-WETH,OMG-WETH,DAI-WETH RDN_TOKEN_ADDRESS=0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6 OMG_TOKEN_ADDRESS=0xd26114cd6EE289AccF82350c8d8487fedB8A0C07 DAI_TOKEN_ADDRESS=0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359 NETWORK=mainnet node src/cli/cli.js",
     "cli2": "node tests/playground/cli/bot-cli.js",
+    "arb-cli-rinkeby": "ENV_PATH=env/env-rinkeby node src/cli/arb-cli.js",
     "time": "watch -n 5 'npm run cli2 -- --time 0.1'",
     "time-slow": "watch -n 10 'npm run cli2 -- --time 0.1'",
     "time-fast": "watch -n 1 'npm run cli2 -- --time 0.2'",

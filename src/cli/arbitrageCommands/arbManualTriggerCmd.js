@@ -6,16 +6,20 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-manual-trigger <token> [--arbitrageContractAddress arbitrageAddress]',
+    'manual-trigger <token> [--arbitrage-contract address] [--minimum-usd-profit profit]',
     'Manually launch an arbitrage check',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
-      yargs.option('arbitrageAddress', {
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
+      yargs.option('minimum-usd-profit', {
+        type: 'string',
+        describe: 'The minimum USD expected profit to trigger arbitrage'
+      })
     }, async function (argv) {
-      const { token, arbitrageAddress } = argv
+      const { token, arbitrageContract, minimumUsdProfit } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -29,8 +33,8 @@ function registerCommand ({ cli, logger }) {
 
       const ethToken = await arbitrageService.ethToken()
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
@@ -39,9 +43,11 @@ function registerCommand ({ cli, logger }) {
           sellToken: token,
           buyToken: ethToken,
           from,
-          arbitrageContractAddress
+          arbitrageContractAddress,
+          minimumProfitInUsd: minimumUsdProfit
         })
-        logger.info(`The arbitrage transaction${arbitrageResult.length > 0 ? 's were' : 'was'} succesful. %o`, arbitrageResult)
+        logger.info(`The arbitrage transaction \
+${arbitrageResult.length > 0 ? 's were' : 'was'} successful. %o`, arbitrageResult)
       } catch (error) {
         logger.error('The arbitrage was NOT succesful.', error)
       }

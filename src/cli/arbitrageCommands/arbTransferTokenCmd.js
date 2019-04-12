@@ -8,17 +8,17 @@ const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-transfer-token <amount> <token> [--arbitrageContractAddress arbitrageAddress]',
+    'transfer-token <amount> <token> [--arbitrage-contract address]',
     'Transfer token balance from Arbitrage contract to contract owner (amount = 0 transfers total balance)',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
       cliUtils.addPositionalByName('token', yargs)
-      yargs.option('arbitrageAddress', {
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { amount, token, arbitrageAddress } = argv
+      const { amount, token, arbitrageContract } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -32,8 +32,8 @@ function registerCommand ({ cli, logger }) {
         getDxInfoService()
       ])
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
       const tokenBalance = await dxInfoService.getAccountBalanceForTokenNotDeposited({
@@ -47,7 +47,7 @@ function registerCommand ({ cli, logger }) {
 
       // TODO: check token decimals
       let transferAmount = amount
-      if (amount.eq(0) || amount.gt(tokenBalance)) {
+      if (amount === 0 || tokenBalance.lt(amount)) {
         transferAmount = fromWei(tokenBalance)
       }
 

@@ -7,16 +7,16 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-withdraw-transfer-ether <amount> [--arbitrageContractAddress arbitrageAddress]',
+    'withdraw-transfer-ether <amount> [--arbitrage-contract address]',
     'Withdraw WETH from DutchX, convert to ETH and transfer to owner address',
     yargs => {
       cliUtils.addPositionalByName('amount', yargs)
-      yargs.option('arbitrageAddress', {
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { amount, arbitrageAddress } = argv
+      const { amount, arbitrageContract } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -28,8 +28,8 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 

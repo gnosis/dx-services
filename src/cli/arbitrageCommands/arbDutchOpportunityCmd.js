@@ -7,17 +7,17 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-dutch-opportunity <token> <amount> [--arbitrageContractAddress arbitrageAddress]',
-    'Execute a Dutch Opportunity transaction with Arbitrage contract',
+    'dutch-opportunity <token> <amount> [--arbitrage-contract address]',
+    'Execute a DutchX Opportunity transaction with Arbitrage contract',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
       cliUtils.addPositionalByName('amount', yargs)
-      yargs.option('arbitrageAddress', {
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { amount, token, arbitrageAddress } = argv
+      const { amount, token, arbitrageContract } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -29,8 +29,8 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 

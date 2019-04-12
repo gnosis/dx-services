@@ -744,47 +744,56 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
   }
 
   async depositToken ({ token, amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.depositToken({ token, amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.depositToken({
+      token, amount, from, arbitrageContractAddress })
   }
 
   async uniswapOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.uniswapOpportunity({ arbToken, amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.uniswapOpportunity({
+      arbToken, amount, from, arbitrageContractAddress })
   }
 
-  async transferOwnership ({ arbitrageAddress, from }) {
-    return this._arbitrageRepo.transferOwnership({ arbitrageAddress, from })
+  async transferOwnership ({ newOwner, arbitrageAddress, from }) {
+    return this._arbitrageRepo.transferOwnership({ newOwner, arbitrageAddress, from })
   }
 
   async withdrawEther ({ amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.withdrawEther({ amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.withdrawEther({
+      amount, from, arbitrageContractAddress })
   }
 
   async withdrawToken ({ token, amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.withdrawToken({ token, amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.withdrawToken({
+      token, amount, from, arbitrageContractAddress })
   }
-  async claimBuyerFunds ({ token, auctionId, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.claimBuyerFunds({ token, auctionId, from, arbitrageContractAddress })
+  async claimBuyerFunds ({ token, auctionIndex, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.claimBuyerFunds({
+      token, auctionIndex, from, arbitrageContractAddress })
   }
 
   async withdrawEtherThenTransfer ({ amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.withdrawEtherThenTransfer({ amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.withdrawEtherThenTransfer({
+      amount, from, arbitrageContractAddress })
   }
 
   async transferEther ({ amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.transferEther({ amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.transferEther({
+      amount, from, arbitrageContractAddress })
   }
 
   async transferToken ({ token, amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.transferToken({ token, amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.transferToken({
+      token, amount, from, arbitrageContractAddress })
   }
 
   async dutchOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
-    return this._arbitrageRepo.dutchOpportunity({ arbToken, amount, from, arbitrageContractAddress })
+    return this._arbitrageRepo.dutchOpportunity({
+      arbToken, amount, from, arbitrageContractAddress })
   }
 
   async getContractEtherBalance ({ arbitrageContractAddress }) {
     const contractBalance =
-      await this._ethereumRepo.balanceOf({ arbitrageContractAddress })
+      await this._ethereumRepo.balanceOf({ account: arbitrageContractAddress })
     return numberUtil.fromWei(contractBalance)
   }
 

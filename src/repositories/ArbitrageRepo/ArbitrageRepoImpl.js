@@ -171,6 +171,10 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async transferToken ({ token, amount, from, arbitrageContractAddress }) {
+    assert(token, 'The token param is required')
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
@@ -181,18 +185,26 @@ class ArbitrageRepoImpl extends Cacheable {
     })
   }
 
-  async claimBuyerFunds ({ token, auctionId, from, arbitrageContractAddress }) {
+  async claimBuyerFunds ({ token, auctionIndex, from, arbitrageContractAddress }) {
+    assert(token, 'The token param is required')
+    assert(from, 'The from param is required')
+    assert(auctionIndex, 'The auctionId is required')
+
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
       operation: 'claimBuyerFunds',
       from,
       arbitrageContractAddress,
-      params: [tokenAddress, auctionId]
+      params: [tokenAddress, auctionIndex]
     })
   }
 
   async withdrawToken ({ token, amount, from, arbitrageContractAddress }) {
+    assert(token, 'The token param is required')
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
@@ -204,6 +216,9 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async withdrawEther ({ amount, from, arbitrageContractAddress }) {
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     return this._doTransaction({
       operation: 'withdrawEther',
       from,
@@ -213,6 +228,9 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async withdrawEtherThenTransfer ({ amount, from, arbitrageContractAddress }) {
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     return this._doTransaction({
       operation: 'withdrawEtherThenTransfer',
       from,
@@ -222,6 +240,9 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async transferEther ({ amount, from, arbitrageContractAddress }) {
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     return this._doTransaction({
       operation: 'transferEther',
       from,
@@ -230,16 +251,24 @@ class ArbitrageRepoImpl extends Cacheable {
     })
   }
 
-  async transferOwnership ({ arbitrageAddress, from }) {
+  async transferOwnership ({ newOwner, arbitrageAddress, from }) {
+    assert(newOwner, 'The newOwner param is required')
+    assert(arbitrageAddress, 'The arbitrageAddress is required')
+    assert(from, 'The from param is required')
+
     return this._doTransaction({
       operation: 'transferOwnership',
       from,
       arbitrageContractAddress: arbitrageAddress,
-      params: [arbitrageAddress]
+      params: [newOwner]
     })
   }
 
   async dutchOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
+    assert(arbToken, 'The arbToken param is required')
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     const tokenAddress = this._getTokenAddress(arbToken)
 
     return this._doTransaction({
@@ -251,6 +280,10 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async uniswapOpportunity ({ arbToken, amount, from, arbitrageContractAddress }) {
+    assert(arbToken, 'The arbToken param is required')
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     const tokenAddress = this._getTokenAddress(arbToken)
 
     return this._doTransaction({
@@ -271,6 +304,10 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async depositToken ({ token, amount, from, arbitrageContractAddress }) {
+    assert(token, 'The token param is required')
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     const tokenAddress = this._getTokenAddress(token)
 
     return this._doTransaction({
@@ -282,6 +319,9 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async depositEther ({ amount, from, arbitrageContractAddress }) {
+    assert(from, 'The from param is required')
+    assert(amount >= 0, 'The amount is required')
+
     return this._doTransaction({
       operation: 'depositEther',
       from,
@@ -341,7 +381,7 @@ class ArbitrageRepoImpl extends Cacheable {
   }) {
     value = value || '0'
     params = params || []
-    logger.info({
+    logger.debug({
       msg: '_doTransaction: \n%O',
       params: [
         operation,
@@ -353,22 +393,24 @@ class ArbitrageRepoImpl extends Cacheable {
 
     let gasPricePromise = this._getGasPrices(gasPriceParam)
 
+    const arbitrage = await this._loadArbitrageContract({ arbitrageContractAddress })
+
     const [ gasPrices, estimatedGas ] = await Promise.all([
       // Get gasPrice
       gasPricePromise,
 
       // Estimate gas
-      this._arbitrage[operation]
+      arbitrage[operation]
         .estimateGas(...params, { from, value })
     ])
 
     const { initialGasPrice, fastGasPrice } = gasPrices
 
-    logger.info({
+    logger.debug({
       msg: '_doTransaction. Estimated gas for "%s": %d',
       params: [ operation, estimatedGas ]
     })
-    logger.info({
+    logger.debug({
       msg: 'Initial gas price is set to %d by %s',
       params: [ initialGasPrice, this._gasPriceDefault ]
     })
@@ -428,7 +470,7 @@ class ArbitrageRepoImpl extends Cacheable {
     nonce,
     value
   }) {
-    const arbitrage = this._loadArbitrageContract({ arbitrageContractAddress })
+    const arbitrage = await this._loadArbitrageContract({ arbitrageContractAddress })
 
     return arbitrage[operation](...params, {
       from,

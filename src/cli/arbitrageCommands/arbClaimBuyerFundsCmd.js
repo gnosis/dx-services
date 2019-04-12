@@ -6,17 +6,17 @@ const getArbitrageService = require('../../services/ArbitrageService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
-    'arb-claim-buyer-funds <token> <auctionId> [--arbitrageContractAddress arbitrageAddress]',
-    'Claim buyer funds from an auction on the dutchX',
+    'claim-buyer-funds <token> <auction-index> [--arbitrage-contract address]',
+    'Claim buyer funds from an auction on the DutchX',
     yargs => {
       cliUtils.addPositionalByName('token', yargs)
-      cliUtils.addPositionalByName('auctionId', yargs)
-      yargs.option('arbitrageAddress', {
+      cliUtils.addPositionalByName('auction-index', yargs)
+      yargs.option('arbitrage-contract', {
         type: 'string',
         describe: 'The arbitrage contract address to use'
       })
     }, async function (argv) {
-      const { token, auctionId, arbitrageAddress } = argv
+      const { token, auctionIndex, arbitrageContract } = argv
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         from,
@@ -28,18 +28,18 @@ function registerCommand ({ cli, logger }) {
         getArbitrageService()
       ])
 
-      let arbitrageContractAddress = arbitrageAddress
-      if (!arbitrageAddress) {
+      let arbitrageContractAddress = arbitrageContract
+      if (!arbitrageContract) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
       logger.info(`Claim buyer funds of token %s on the DutchX for auction %d`,
         token,
-        auctionId
+        auctionIndex
       )
       const claimBuyerFunds = await arbitrageService.claimBuyerFunds({
         token,
-        auctionId,
+        auctionIndex,
         from,
         arbitrageContractAddress
       })
