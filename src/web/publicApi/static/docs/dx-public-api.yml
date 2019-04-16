@@ -679,8 +679,9 @@ paths:
         **median of the specified number of auctions**. In adition to the token
         and the number of auction you can specify:
 
-        * **time**: Written as Unix timestamp to check the oracle price in a past time.
-        By default is `0`, this means it will use current time.
+        * **time**: A date string to check the oracle price in a past time using
+        [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
+        If no time selected it will check current time.
 
         * **requireWhitelisted**: if you require to check if the token have been whitelisted
         in the DutchX. By default is `true`.
