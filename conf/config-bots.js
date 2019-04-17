@@ -1,5 +1,5 @@
 // Just some defaults. Overrided on custom config or by env varible (see index.js)
-const { MARKETS, TOKENS } = require('./developConstants')
+const { MARKETS, TOKENS, ARBITRAGE_CONTRACT_ADDRESS } = require('./developConstants')
 const BOT_MARKETS = MARKETS
 const BOT_TOKENS = TOKENS
 
@@ -52,12 +52,13 @@ const BUY_BOT_MAIN = {
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
 
-const ARB_BOT = {
+const ARBITRAGE_BOT = {
   name: 'Arbitrage bot',
   factory: 'src/bots/ArbitrageBot',
   markets: BOT_MARKETS,
   accountIndex: MAIN_BOT_ACCOUNT,
-  // rules: BUY_LIQUIDITY_RULES_DEFAULT,
+  arbitrageContractAddress: ARBITRAGE_CONTRACT_ADDRESS,
+  minimumProfitInUsd: 5,
   notifications,
   checkTimeInMilliseconds: 60 * 1000 // 60s
 }
@@ -162,7 +163,7 @@ module.exports = {
     BUY_BOT_MAIN,
     SELL_BOT_MAIN,
     BALANCE_CHECK_BOT,
-    ARB_BOT,
+    ARBITRAGE_BOT,
     // DEPOSIT_BOT,
     // CLAIM_BOT,
     HIGH_SELL_VOLUME_BOT,
