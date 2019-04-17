@@ -31,7 +31,7 @@ class ContractLoader {
   }
 
   async loadContracts () {
-    const [dx, erc20TokenContracts] = await Promise.all([
+    const [ dx, erc20TokenContracts ] = await Promise.all([
       this._loadDx(),
       this._loadTokenContracts()
     ])

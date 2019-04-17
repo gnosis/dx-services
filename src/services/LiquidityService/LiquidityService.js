@@ -14,6 +14,7 @@ const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_
 class LiquidityService {
   constructor ({
     // repos
+    arbitrageRepo,
     auctionRepo,
     ethereumRepo,
     priceRepo,
@@ -21,11 +22,13 @@ class LiquidityService {
     // config
     buyLiquidityRulesDefault
   }) {
+    assert(arbitrageRepo, '"arbitrageRepo" is required')
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(priceRepo, '"priceRepo" is required')
     assert(buyLiquidityRulesDefault, '"buyLiquidityRulesDefault" is required')
 
+    this._arbitrageRepo = arbitrageRepo
     this._auctionRepo = auctionRepo
     this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo
@@ -128,7 +131,7 @@ class LiquidityService {
 
     const that = this
     const releaseLock = soldOrBoughtTokens => {
-      // Clear concurrency lock and resolve proise
+      // Clear concurrency lock and resolve promise
       const isError = soldOrBoughtTokens instanceof Error
       // TODO: Review
 
