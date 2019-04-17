@@ -1,4 +1,4 @@
-// const testSetup = require('../helpers/testSetup')
+const testSetup = require('../helpers/testSetup')
 // const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 // const auctionRepoMock = new AuctionRepoMock({})
 //
@@ -10,11 +10,15 @@
 //
 // const auctionsMockData = require('../data/auctions')
 // const clone = require('lodash.clonedeep')
-//
+
+const numberUtil = require('../../src/helpers/numberUtil')
+const { toWei, fromWei } = numberUtil
 // const BigNumber = require('bignumber.js')
-//
-// const setupPromise = testSetup()
-//
+
+const setupPromise = testSetup()
+
+const UNISWAP_FEE = 0.003 // 0.3%
+
 // test('It should ensureSellLiquidity', async () => {
 //   const { liquidityService } = await setupPromise
 //
@@ -93,7 +97,7 @@
 //   expect(ensureLiquidityState).toMatchObject(expectedBotBuy)
 // })
 //
-test.skip('It should detect concurrency when checking arbitrage', async () => {
+// test.skip('It should detect concurrency when checking arbitrage', async () => {
   // const { arbitrageService } = await setupPromise
   //
   // // GIVEN a not RUNNING auction, without enough sell liquidiy
@@ -123,4 +127,88 @@ test.skip('It should detect concurrency when checking arbitrage', async () => {
   // // THEN expect 2 calls to dutchOpportunity function ensuring liquidity to both sides
   // // of the token pair
   // expect(dutchOpportunity.mock.calls.length).toBe(2)
+// })
+
+test('It should return the expected input price (output token amount) in Uniswap', async () => {
+  const { arbitrageService } = await setupPromise
+
+  // GIVEN two input prices and amount
+  // Simulate sellToken/buyToken price to be 1000 / 3 and we buy with 1 buyToken
+  const INPUT_TOKENA = 1
+  const INPUT_RESERVEA = 3
+  const OUTPUT_RESERVEA = 1000
+  const INPUT_TOKENA_WEI = toWei(INPUT_TOKENA)
+  const INPUT_RESERVEA_WEI = toWei(INPUT_RESERVEA)
+  const OUTPUT_RESERVEA_WEI = toWei(OUTPUT_RESERVEA)
+
+  // Simulate sellToken/buyToken price to be 60000 / 100 and buy using 10 buyToken
+  const INPUT_TOKENB = 10
+  const INPUT_RESERVEB = 100
+  const OUTPUT_RESERVEB = 60000
+  const INPUT_TOKENB_WEI = toWei(INPUT_TOKENB)
+  const INPUT_RESERVEB_WEI = toWei(INPUT_RESERVEB)
+  const OUTPUT_RESERVEB_WEI = toWei(OUTPUT_RESERVEB)
+
+  // WHEN we check the expected amount to receive
+  // getInputPrice is max tokens received in exchange of inputTokens
+  const inputPrice1 = arbitrageService.getInputPrice(
+    INPUT_TOKENA_WEI, INPUT_RESERVEA_WEI, OUTPUT_RESERVEA_WEI)
+  const inputPrice2 = arbitrageService.getInputPrice(
+    INPUT_TOKENB_WEI, INPUT_RESERVEB_WEI, OUTPUT_RESERVEB_WEI)
+
+  // THEN
+  const inputAmountAAfterFee = INPUT_TOKENA * (1 - UNISWAP_FEE)
+  const expectedInputPrice1 = (OUTPUT_RESERVEA * inputAmountAAfterFee /
+    (INPUT_RESERVEA + inputAmountAAfterFee))
+
+  const inputAmountBAfterFee = INPUT_TOKENB * (1 - UNISWAP_FEE)
+  const expectedInputPrice2 = (OUTPUT_RESERVEB * inputAmountBAfterFee /
+    (INPUT_RESERVEB + inputAmountBAfterFee))
+
+  expect(fromWei(inputPrice1).toFixed(4)).toBe(expectedInputPrice1.toFixed(4))
+  expect(fromWei(inputPrice2).toFixed(4)).toBe(expectedInputPrice2.toFixed(4))
+})
+
+test('It should return the expected output price (input token amount) in Uniswap', async () => {
+  const { arbitrageService } = await setupPromise
+
+  // GIVEN two output prices and amount
+  // Simulate sellToken/buyToken price to be 1000 / 3 and we want to get 400 buyToken
+  const DESIRED_OUTPUT_TOKENA = 400
+  const INPUT_RESERVEA = 3
+  const OUTPUT_RESERVEA = 1000
+  const DESIRED_OUTPUT_TOKENA_WEI = toWei(DESIRED_OUTPUT_TOKENA)
+  const INPUT_RESERVEA_WEI = toWei(INPUT_RESERVEA)
+  const OUTPUT_RESERVEA_WEI = toWei(OUTPUT_RESERVEA)
+
+  // Simulate sellToken/buyToken price to be 60000 / 100 and we want to get 20000 buyToken
+  const DESIRED_OUTPUT_TOKENB = 20000
+  const INPUT_RESERVEB = 100
+  const OUTPUT_RESERVEB = 60000
+  const DESIRED_OUTPUT_TOKENB_WEI = toWei(DESIRED_OUTPUT_TOKENB)
+  const INPUT_RESERVEB_WEI = toWei(INPUT_RESERVEB)
+  const OUTPUT_RESERVEB_WEI = toWei(OUTPUT_RESERVEB)
+
+  // WHEN we check the amount we have to add in Uniswap to get the desired token quantity
+  // getOutputPrice is tokens to use in Uniswap to receive the outputTokens amount
+  const outputPrice1 = arbitrageService.getOutputPrice(
+    DESIRED_OUTPUT_TOKENA_WEI, INPUT_RESERVEA_WEI, OUTPUT_RESERVEA_WEI)
+  const outputPrice2 = arbitrageService.getOutputPrice(
+    DESIRED_OUTPUT_TOKENB_WEI, INPUT_RESERVEB_WEI, OUTPUT_RESERVEB_WEI)
+
+  // THEN we check we receive the expected result
+  const expectedOutputPrice1 = (INPUT_RESERVEA * DESIRED_OUTPUT_TOKENA /
+    (OUTPUT_RESERVEA - DESIRED_OUTPUT_TOKENA)) *
+    (1 + UNISWAP_FEE)
+  const expectedOutputPrice2 = (INPUT_RESERVEB * DESIRED_OUTPUT_TOKENB /
+    (OUTPUT_RESERVEB - DESIRED_OUTPUT_TOKENB)) *
+    (1 + UNISWAP_FEE)
+
+  // console.log(expectedOutputPrice1)
+  // console.log(expectedOutputPrice2)
+  // console.log(fromWei(arbitrageService.getInputPrice(toWei(expectedOutputPrice1.toString()), INPUT_RESERVEA_WEI, OUTPUT_RESERVEA_WEI)).toFixed(4))
+  // console.log(fromWei(arbitrageService.getInputPrice(toWei(expectedOutputPrice2.toString()), INPUT_RESERVEB_WEI, OUTPUT_RESERVEB_WEI)).toFixed(4))
+
+  expect(fromWei(outputPrice1).toFixed(4)).toBe(expectedOutputPrice1.toFixed(4))
+  expect(fromWei(outputPrice2).toFixed(4)).toBe(expectedOutputPrice2.toFixed(4))
 })

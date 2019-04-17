@@ -9,6 +9,11 @@ const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_
 const UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE = 559830
 const DUTCHX_TO_UNISWAP_GAS_COST_ESTIMATE = 565134
 
+const INITIAL_SPEND_INCREMENT = numberUtil.toBigNumber(1e18) // Used to increment the spend amount in DutchX
+const MINIMUM_SPEND_INCREMENT = numberUtil.toBigNumber(1e3) // Used as minimum valid increment to check spend amount in DutchX
+
+const UNISWAP_FEE = 0.003
+
 class ArbitrageService {
   constructor ({
     arbitrageRepo,
@@ -550,7 +555,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // to find out how much the tokens cost in Ether on Uniswap.
     let amount = this.getOutputPrice(tokenAmount, inputBalance, outputBalance)
 
-    // how much Ether would be returned after selling the token on dutchX
+    // how much Ether would be returned after selling the token on DutchX
     let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({
       sellToken, buyToken, auctionIndex, amount: tokenAmount, from, owlAllowance, owlBalance, ethUSDPrice })
     const dutchXExpected = amountAfterFee.div(dutchPrice)
@@ -630,31 +635,29 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
 
   // def getOutputPrice(outputAmount: uint256, inputReserve: uint256, outputReserve: uint256) -> uint256:
   // assert inputReserve > 0 and outputReserve > 0
-  // numerator: uint256 = inputReserve * outputAmount * 1000
-  // denominator: uint256 = (outputReserve - outputAmount) * 997
-  // return numerator / denominator + 1
-  // TODO remove fee as constant
+  // numerator: uint256 = inputReserve * outputAmount
+  // denominator: uint256 = outputReserve - outputAmount
+  // return numerator / denominator * 1.003 [(1 + 0.03) add 0.3% Uniswap Fee]
   getOutputPrice (outputAmount, inputReserve, outputReserve) {
     assert(inputReserve.gt(0), 'Input reserve must be greater than 0')
     assert(outputReserve.gt(0), 'Output reserve must be greater than 0')
-    const numerator = inputReserve.mul(outputAmount).mul(1000)
-    const denominator = outputReserve.sub(outputAmount).mul(997)
-    return numerator.div(denominator).add(1)
+    const numerator = inputReserve.mul(outputAmount)
+    const denominator = outputReserve.sub(outputAmount)
+    return numerator.div(denominator).mul(numberUtil.ONE.plus(UNISWAP_FEE))
   }
 
   // def getInputPrice(inputAmount: uint256, inputReserve: uint256, outputReserve: uint256) -> uint256:
   //   assert inputReserve > 0 and outputReserve > 0
-  //   inputAmountWithFee: uint256 = inputAmount * 997
+  //   inputAmountWithFee: uint256 = inputAmount * 0.997 [(1 - 0.003) 0.3% Uniswap Fee]
   //   numerator: uint256 = inputAmountWithFee * outputReserve
-  //   denominator: uint256 = (inputReserve * 1000) + inputAmountWithFee
+  //   denominator: uint256 = inputReserve + inputAmountWithFee
   //   return numerator / denominator
-  // TODO remove fee as constant
   getInputPrice (inputAmount, inputReserve, outputReserve) {
     assert(inputReserve.gt(0), 'Input reserve must be greater than 0')
     assert(outputReserve.gt(0), 'Output reserve must be greater than 0')
-    const inputAmountWithFee = inputAmount.mul(997)
+    const inputAmountWithFee = inputAmount.mul(numberUtil.ONE.minus(UNISWAP_FEE))
     const numerator = inputAmountWithFee.mul(outputReserve)
-    const denominator = inputReserve.mul(1000).add(inputAmountWithFee)
+    const denominator = inputReserve.add(inputAmountWithFee)
     return numerator.div(denominator)
   }
 
@@ -680,9 +683,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // potentially destroying the profit
     // const spendIncrementSmall = 1e3
     // const spendIncrementLarge = 1e17
-    // TODO set constants
-    let spendIncrement = numberUtil.toBigNumber(1e18)
-    const spendIncrementMin = numberUtil.toBigNumber(1e3)
+    let spendIncrement = INITIAL_SPEND_INCREMENT
+    const spendIncrementMin = MINIMUM_SPEND_INCREMENT
 
     // let initialize the amount we want to spend (spendAmount) to initial increment
     let dutchSpendAmount = spendIncrement
