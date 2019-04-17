@@ -202,7 +202,7 @@ class EthereumClient extends Cacheable {
   }
 
   async getCode (address) {
-    return this.doCall({ propName: 'eth.getCode', params: [address] })
+    return this.doCall({ propName: 'eth.getCode', params: [address], cacheTime: this._cacheTimeLong })
   }
 
   async geLastBlockTime () {

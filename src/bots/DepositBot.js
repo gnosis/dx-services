@@ -26,7 +26,8 @@ class DepositBot extends Bot {
     tokens,
     notifications,
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
-    inactivityPeriods = []
+    inactivityPeriods = [],
+    etherReserveAmount = ETHER_RESERVE_AMOUNT
   }) {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
@@ -54,6 +55,7 @@ class DepositBot extends Bot {
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
     this._inactivityPeriods = inactivityPeriods
+    this._etherReserveAmount = etherReserveAmount
 
     this._lastCheck = null
     this._lastDeposit = null
@@ -149,7 +151,7 @@ class DepositBot extends Bot {
         token: 'ETH',
         amount: balanceOfEther,
         accountAddress: account,
-        threshold: ETHER_RESERVE_AMOUNT
+        threshold: this._etherReserveAmount
       })
 
       // Deposit TOKENS
