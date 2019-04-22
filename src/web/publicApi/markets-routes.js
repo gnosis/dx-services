@@ -38,6 +38,15 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
+  routes.push({
+    path: '/:tokenPair/state-details',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getMarketDetails(tokenPair)
+    }
+  })
+
   // TODO DEPRECATED transitioning to markets/{tokenPair}/prices/running
   routes.push({
     path: '/:tokenPair/price',
