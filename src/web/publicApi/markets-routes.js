@@ -151,7 +151,7 @@ function createRoutes ({ dxInfoService, reportService },
       const maximumTimePeriod = req.query.maximumTimePeriod !== undefined
         ? req.query.maximumTimePeriod : DEFAULT_MAXIMUM_TIME_PERIOD
       const requireWhitelisted = req.query.requireWhitelisted !== undefined
-        ? req.query.requireWhitelisted : DEFAULT_REQUIRED_WHITELISTED
+        ? req.query.requireWhitelisted === 'true' : DEFAULT_REQUIRED_WHITELISTED
       const numberOfAuctions = req.query.numberOfAuctions !== undefined
         ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
 
