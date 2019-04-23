@@ -7,7 +7,8 @@ class BotsService {
   constructor ({
     auctionRepo,
     ethereumRepo,
-    markets
+    markets,
+    safes = []
   }) {
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
@@ -16,6 +17,7 @@ class BotsService {
     this._auctionRepo = auctionRepo
     this._ethereumRepo = ethereumRepo
     this._markets = markets
+    this._safes = safes
     this._bots = []
 
     // About info
@@ -73,6 +75,10 @@ class BotsService {
         }, botInfo)
       })
     )
+  }
+
+  async getSafes () {
+    return this._safes
   }
 }
 
