@@ -1,6 +1,6 @@
 {
   "name": "@gnosis.pm/dx-services",
-  "version": "2.1.1-DEV",
+  "version": "2.2.0-DEV",
   "description": "",
   "main": "src/runPublicApi.js",
   "directories": {
@@ -71,7 +71,7 @@
   "license": "MIT",
   "dependencies": {
     "@gnosis.pm/dx-contracts": "2.0.0",
-    "@gnosis.pm/dx-price-oracle": "0.2.0",
+    "@gnosis.pm/dx-price-oracle": "0.2.1",
     "@gnosis.pm/dx-uniswap-arbitrage": "0.1.4",
     "@gnosis.pm/owl-token": "2.0.0",
     "@gnosis.pm/util-contracts": "2.0.0",

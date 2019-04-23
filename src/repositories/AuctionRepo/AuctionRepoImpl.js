@@ -1939,6 +1939,7 @@ volume: ${state}`)
     return {
       buyVolume,
       sellVolume,
+      auctionStart,
       hasAuctionStarted,
       closingPrice,
       isClosed,

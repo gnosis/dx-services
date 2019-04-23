@@ -5,8 +5,8 @@ node_js:
 services:
 - docker
 before_install:
-- docker pull trufflesuite/ganache-cli:v6.2.5
-- docker run -d -p 8545:8545 --net host trufflesuite/ganache-cli:v6.2.5 -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500000000000000'
+- docker pull trufflesuite/ganache-cli:v6.4.1
+- docker run -d -p 8545:8545 --net host trufflesuite/ganache-cli:v6.4.1 -d --mnemonic 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --defaultBalanceEther '500000000000000'
 install:
   - docker build -t dx-services .
 script:
