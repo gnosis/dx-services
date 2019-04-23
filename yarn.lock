@@ -148,10 +148,10 @@
     "@gnosis.pm/owl-token" "^2.0.0"
     "@gnosis.pm/util-contracts" "^2.0.0"
 
-"@gnosis.pm/dx-price-oracle@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-price-oracle/-/dx-price-oracle-0.2.0.tgz#942e58ed8ec6783562f55cd00948bf73345c384c"
-  integrity sha512-vcmSX2H9J1jcw5J3Ejm9V9eqFh/CXeBeM5ZdKWzrkRK89RMq2tdc9CAHpSUHiDnhHC7Orl3tHSe/dFJap6jpxg==
+"@gnosis.pm/dx-price-oracle@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/dx-price-oracle/-/dx-price-oracle-0.2.1.tgz#3866b39eec470865c2a6e2bfdfc9427707dc475d"
+  integrity sha512-aEGGeF+vq34IZechjcmlh1Rs5pYZlLpHG8ztxbtuMU1kN3tzqIU5Ahw7/zNsC7IorbF/RSYu1o4XAZOgzeK0SA==
   dependencies:
     truffle "^5.0.2"
     truffle-hdwallet-provider "^1.0.2"
