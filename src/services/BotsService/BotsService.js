@@ -68,6 +68,7 @@ class BotsService {
         const botInfo = await bot.getInfo()
         return Object.assign({
           name: bot.name,
+          type: bot.type,
           startTime: bot.startTime
         }, botInfo)
       })
