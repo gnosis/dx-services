@@ -1062,12 +1062,12 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
   async _assertMinimumFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
     // get the funded value in USD
     let fundedValueUSD
-    if (tokenA === 'WETH') {
+    if (this.isTokenEth(tokenA)) {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenA,
         amount: actualAFunding
       })
-    } else if (tokenB === 'WETH') {
+    } else if (this.isTokenEth(tokenB)) {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenB,
         amount: actualBFunding
@@ -1141,7 +1141,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
       params: [token, ethUsdPrice]
     })
     let amountInETH
-    if (token === 'WETH') {
+    if (this.isTokenEth(token)) {
       amountInETH = amountBN
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
@@ -1168,7 +1168,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     let amountInETH = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
-    if (token === 'WETH') {
+    if (this.isTokenEth(token)) {
       amountInToken = amountInETH
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
@@ -1874,6 +1874,11 @@ volume: ${state}`)
 
   async getMagnoliaToken () {
     return this._tokens['MGN']
+  }
+
+  isTokenEth (token) {
+    return token === 'WETH' ||
+      token.toLowerCase() === this._tokens.WETH.address.toLowerCase()
   }
 
   _hasClosingPrice ({ sellToken, buyToken, auctionIndex }) {
