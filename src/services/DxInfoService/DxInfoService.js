@@ -457,6 +457,10 @@ class DxInfoService {
     return this._getTokenInfoByAddress(magnoliaToken.address)
   }
 
+  isTokenEth (token) {
+    return this._auctionRepo.isTokenEth(token)
+  }
+
   async getTokenAddress (token) {
     return this._auctionRepo.getTokenAddress({ token })
   }
