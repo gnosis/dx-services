@@ -237,7 +237,7 @@ check should be done`,
 
         let uniswapPrice = outputBalance.div(inputBalance) // buyToken per sellToken
 
-        auctionLogger.info({
+        auctionLogger.debug({
           sellToken,
           buyToken,
           msg: 'Start the buy attempt in DutchX (dutchAttempt): %s \nCurrent prices: \n%O',
@@ -311,7 +311,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         }
         // this will be reached if the amount returned from getDutchSpendAmount
         // was 0 on either opportunity or DutchX price is greater than Uniswap Price
-        auctionLogger.info({
+        auctionLogger.debug({
           sellToken,
           buyToken,
           msg: 'No arbitrage opportunity'
@@ -319,7 +319,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         return null
       } else {
         // The auction is CLOSED or THEORETICALY CLOSED
-        auctionLogger.info({
+        auctionLogger.debug({
           sellToken,
           buyToken,
           msg: 'The auction is already closed: \n%O',
@@ -331,7 +331,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       }
     } else {
       // No sell volume
-      auctionLogger.info({
+      auctionLogger.debug({
         sellToken,
         buyToken,
         msg: 'The auction doesn\'t have any sell volume, so there\'s nothing to buy'
@@ -381,7 +381,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
 
     let uniswapPrice = outputBalance.div(inputBalance) // buyToken per sellToken
 
-    auctionLogger.info({
+    auctionLogger.debug({
       sellToken,
       buyToken,
       msg: 'Attempt Dutch Opportunity with `maxEtherToSpend` = %d ETH',
@@ -421,7 +421,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       amount: expectedProfit
     })
 
-    auctionLogger.info({
+    auctionLogger.debug({
       sellToken,
       buyToken,
       msg: 'Data to evaluate DutchX Opportunity: \n %O',
@@ -520,7 +520,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
 
     let uniswapPrice = outputBalance.div(inputBalance) // buyToken per sellToken
 
-    auctionLogger.info({
+    auctionLogger.debug({
       sellToken,
       buyToken,
       msg: 'Attempt Uniswap Opportunity with `maxEtherToSpend` = %d ETH',
@@ -566,7 +566,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       amount: expectedProfit
     })
 
-    auctionLogger.info({
+    auctionLogger.debug({
       sellToken,
       buyToken,
       msg: 'Check Uniswap opportunity: \n%O',
