@@ -237,23 +237,10 @@ check should be done`,
 
         let uniswapPrice = outputBalance.div(inputBalance) // buyToken per sellToken
 
-        auctionLogger.debug({
-          sellToken,
-          buyToken,
-          msg: 'Start the buy attempt in DutchX (dutchAttempt): %s \nCurrent prices: \n%O',
-          params: [
-            dutchAttempt, {
-              theoreticalUniswapPrice: uniswapPrice.toString(10) + ` ${buyToken} per ${sellToken}`,
-              theoreticalDutchPrice: dutchPrice.toString(10) + ` ${buyToken} per ${sellToken}`
-            }]
-        })
-
-        // next we check our arbitrage contract Ether balance
-        // to see what the maximum amount we can spend is
-        // const arbitrageAddress = this._arbitrageRepo.getArbitrageAddress()
-
         // Get etherToken address
         const etherTokenAddress = await this._auctionRepo.getTokenAddress({ token: 'WETH' })
+        // next we check our arbitrage contract Ether balance
+        // to see what the maximum amount we can spend is
         let maxEtherToSpend = await this._auctionRepo.getBalance({
           token: etherTokenAddress,
           address: arbitrageContractAddress
@@ -272,6 +259,17 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
 
         // If DutchX prices are lower than Uniswap prices
         if (dutchPrice.lt(uniswapPrice)) {
+          auctionLogger.debug({
+            sellToken,
+            buyToken,
+            msg: 'Start the buy attempt in DutchX (dutchAttempt): %s \nCurrent prices: \n%O',
+            params: [
+              dutchAttempt, {
+                theoreticalUniswapPrice: uniswapPrice.toString(10) + ` ${buyToken} per ${sellToken}`,
+                theoreticalDutchPrice: dutchPrice.toString(10) + ` ${buyToken} per ${sellToken}`
+              }]
+          })
+
           // dutchOpportunity
           // We buy the ERC20 token in the DutchX
           if (dutchAttempt) {
