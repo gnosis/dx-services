@@ -727,7 +727,21 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       // amountAfterFeeUniswap is buyerToken
       let amountAfterFeeUniswap = this.getInputPrice(
         uniswapSpendAmount, inputBalance, outputBalance)
-      let uniswapPrice = amountAfterFeeUniswap.div(uniswapSpendAmount)
+
+      // if we take the price as amountAfterFeeUniswap / uniswapSpendAmount, it will be the total price for the entire purchase.
+      // This purchase may be cheaper than the total price for a purchase on dutchX, but may also result in pushing the final
+      // uniswap price above the current dutchX price. This would mean that part of the purchase made was at a loss. This strategy
+      // would be good if the goal was to maximize volume. However if the goal is to maximize profit, purchases made on uniswap should
+      // only occur up to the point that the current exact price of uniswap is at or below the dutchX price.
+
+      let maximizeVolume = true
+      let uniswapPrice
+      if (maximizeVolume) {
+        uniswapPrice = amountAfterFeeUniswap.div(uniswapSpendAmount)
+      } else {
+        // maximize profit
+        uniswapPrice = uniswapSpendAmount.add(inputBalance).div(outputBalance.add(amountAfterFeeUniswap))
+      }
 
       if (dutchPriceWithFee.gt(uniswapPrice)) {
         isOpportunity = false
