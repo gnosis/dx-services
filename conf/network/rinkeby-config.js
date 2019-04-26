@@ -17,7 +17,7 @@ if (env === 'pre' || env === 'pro') {
   RDN_TOKEN_ADDRESS = null
   OMG_TOKEN_ADDRESS = null
 
-  UNISWAP_FACTORY_ADDRESS = null
+  UNISWAP_FACTORY_ADDRESS = '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36'
 } else if (env === 'dev') {
   // Rinkeby: dev
   //  We use a different DX contract than the one defined in the NPM package
