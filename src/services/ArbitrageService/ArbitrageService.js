@@ -827,6 +827,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     return { contractBalance, dutchBalance }
   }
 
+  async approveToken ({ token, allowance, from, arbitrageContractAddress }) {
+    return this._arbitrageRepo.approveToken({ token, allowance, from, arbitrageContractAddress })
+  }
+
   async depositEther ({ amount, from, arbitrageContractAddress }) {
     return this._arbitrageRepo.depositEther({ amount, from, arbitrageContractAddress })
   }

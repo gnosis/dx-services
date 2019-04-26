@@ -20,6 +20,7 @@ async function run () {
   const commandParams = { cli, logger }
 
   // Arbitrage commands
+  require('./arbitrageCommands/arbApproveOwlCmd')(commandParams) // onlyOwner
   require('./arbitrageCommands/arbClaimBuyerFundsCmd')(commandParams) // onlyOwner
   require('./arbitrageCommands/arbDepositEtherCmd')(commandParams)
   require('./arbitrageCommands/arbDepositTokenCmd')(commandParams) // onlyOwner
