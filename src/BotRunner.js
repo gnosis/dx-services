@@ -30,15 +30,15 @@ class BotRunner {
     this._dxInfoService = dxInfoService
 
     // Initialize Bots and API
-    this._bots = await this._createBots()
-    botsService.setBots(this._bots)
+    this._initBots = await this._createBots()
 
     // Check if the WatchEventBot is defined (is required for some bots)
-    const watchEventsBotExists = this._bots.some(bot => {
+    // botsService.setBots(this._initBots)
+    const watchEventsBotExists = this._initBots.some(bot => {
       return bot.type === 'WatchEventsBot'
     })
     assert(watchEventsBotExists, 'WATCH_EVENTS_BOT is mandatory')
-    logger.info('Initialized %d bots', this._bots.length)
+    logger.info('Initialized %d bots', this._initBots.length)
 
     // Initialize the bots API Server
     if (this._runApiServer) {
@@ -58,7 +58,7 @@ class BotRunner {
     await this._notifyStart(version)
 
     // Run all the bots
-    await Promise.all(this._bots.map(bot => bot.start()))
+    await Promise.all(this._initBots.map(bot => bot.start()))
     logger.info({ msg: 'All bots are ready' })
 
     // Run Bots Api server
@@ -78,9 +78,9 @@ class BotRunner {
     }
 
     // Stop the bots
-    if (this._bots) {
+    if (this._initBots) {
       logger.info({ msg: 'Stopping the bots' })
-      await Promise.all(this._bots.map(async bot => bot.stop()))
+      await Promise.all(this._initBots.map(async bot => bot.stop()))
     }
 
     logger.info({ msg: 'App is ready to shut down' })
