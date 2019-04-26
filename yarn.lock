@@ -196,6 +196,16 @@
     solc "^0.5.0"
     truffle-hdwallet-provider "0.0.7-beta.1"
 
+"@gnosis.pm/safe-modules@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-modules/-/safe-modules-0.1.0.tgz#9663582f39e4595d541b1bd556467ba167877d56"
+  integrity sha512-yyOOvOxOsEXIaMRgeFftErabQciUH1Z+D2lkF4GLU9XHgDEM0L8Yf6XQ5+H3jgvY7LyANZQOCxCpzVf6rmlevQ==
+  dependencies:
+    "@gnosis.pm/safe-contracts" "^0.1.0"
+    "@gnosis.pm/util-contracts" "^2.0.0"
+    dotenv "^6.2.0"
+    openzeppelin-solidity "^2.0.0"
+
 "@gnosis.pm/util-contracts@2.0.0", "@gnosis.pm/util-contracts@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@gnosis.pm/util-contracts/-/util-contracts-2.0.0.tgz#562b14a2d6cb4a59189476dd0f6aaeba5f65abe2"
@@ -2711,10 +2721,10 @@ eslint-plugin-import@^2.17.2:
     read-pkg-up "^2.0.0"
     resolve "^1.10.0"
 
-eslint-plugin-jest@^22.4.1:
-  version "22.4.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-22.4.1.tgz#a5fd6f7a2a41388d16f527073b778013c5189a9c"
-  integrity sha512-gcLfn6P2PrFAVx3AobaOzlIEevpAEf9chTpFZz7bYfc7pz8XRv7vuKTIE4hxPKZSha6XWKKplDQ0x9Pq8xX2mg==
+eslint-plugin-jest@^22.5.1:
+  version "22.5.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-22.5.1.tgz#a31dfe9f9513c6af7c17ece4c65535a1370f060b"
+  integrity sha512-c3WjZR/HBoi4GedJRwo2OGHa8Pzo1EbSVwQ2HFzJ+4t2OoYM7Alx646EH/aaxZ+9eGcPiq0FT0UGkRuFFx2FHg==
 
 eslint-plugin-node@^8.0.1:
   version "8.0.1"
@@ -3607,14 +3617,6 @@ globals@^9.18.0:
   version "9.18.0"
   resolved "https://registry.yarnpkg.com/globals/-/globals-9.18.0.tgz#aa3896b3e69b487f17e31ed2143d69a8e30c2d8a"
   integrity sha512-S0nG3CLEQiY/ILxqtztTWH/3iRRdyBLw6KMDxnKMchrtbj2OFmehVh0WUCfW3DUrIgx/qFrJPICrq4Z4sTR9UQ==
-
-"gnosis-safe-modules@git+https://github.com/gnosis/safe-modules.git#feature/dx-module-refactor":
-  version "0.0.1"
-  resolved "git+https://github.com/gnosis/safe-modules.git#e55ff523b49e37e80395ef4de054645168366819"
-  dependencies:
-    "@gnosis.pm/safe-contracts" "^0.1.0"
-    "@gnosis.pm/util-contracts" "^2.0.0"
-    dotenv "^6.2.0"
 
 got@^6.7.1:
   version "6.7.1"

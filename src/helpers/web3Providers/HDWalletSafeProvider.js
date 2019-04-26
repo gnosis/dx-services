@@ -131,7 +131,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         default:
           throw new Error('Unknown safe module type: ' + moduleType)
       }
-      const moduleABI = require('gnosis-safe-modules/build/contracts/' + contractName)
+      const moduleABI = require('@gnosis.pm/safe-modules/build/contracts/' + contractName)
       SafeModuleContract = truffleContract(moduleABI)
       // SafeModuleContract.setProvider(this)
 
