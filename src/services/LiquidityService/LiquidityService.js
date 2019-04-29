@@ -203,25 +203,28 @@ check should be done`,
   }
 
   async getBalancesErc20 ({ tokens, address }) {
-    // todo
-    // const balancesPromises = tokens.map(async token => {
-    //   const amount = await this._auctionRepo.getBalance({ token, address })
-    //   let amountInUSD = await this._auctionRepo
-    //     .getPriceInUSD({
-    //       token,
-    //       amount
-    //     })
+    const balancesPromises = tokens.map(async token => {
+      const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
 
-    //   // Round USD to 2 decimals
-    //   amountInUSD = numberUtil.roundDown(amountInUSD)
+      const amount = await this._ethereumRepo.tokenBalanceOf({
+        tokenAddress,
+        account: address
+      })
 
-    //   return {
-    //     token, amount, amountInUSD
-    //   }
-    // })
+      let amountInUSD = await this._auctionRepo.getPriceInUSD({
+        token,
+        amount
+      })
 
-    // return Promise.all(balancesPromises)
-    return []
+      // Round USD to 2 decimals
+      amountInUSD = numberUtil.roundDown(amountInUSD)
+
+      return {
+        token, amount, amountInUSD
+      }
+    })
+
+    return Promise.all(balancesPromises)
   }
 
   async _doEnsureSellLiquidity ({

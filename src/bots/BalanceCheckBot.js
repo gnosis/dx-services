@@ -127,12 +127,14 @@ class BalanceCheckBot extends Bot {
       } = await this._getAllBalances()
 
       // Check if the account has ETHER below the minimum amount
-      if (balanceOfEther < this._minimumAmountForEther) {
-        this._lastWarnNotification = new Date()
-        // Notify lack of ether
-        this._notifyLackOfEther(balanceOfEther, this._botAddressForEther, this._minimumAmountForEther)
-      } else {
-        logger.debug('The account %s has enough Ether', this._botAddressForEther)
+      if (this._minimumAmountForEther > 0) {
+        if (balanceOfEther < this._minimumAmountForEther) {
+          this._lastWarnNotification = new Date()
+          // Notify lack of ether
+          this._notifyLackOfEther(balanceOfEther, this._botAddressForEther, this._minimumAmountForEther)
+        } else {
+          logger.debug('The account %s has enough Ether', this._botAddressForEther)
+        }
       }
 
       // Check if there are enough tokens in the DutchX
@@ -205,6 +207,7 @@ class BalanceCheckBot extends Bot {
       tokens: this._tokens,
       minimumAmountForEther: this._minimumAmountForEther,
       minimumAmountInUsdForToken: this._minimumAmountInUsdForToken,
+      minimumAmountInUsdForTokenBalance: this._minimumAmountInUsdForTokenBalance,
       lastCheck: this._lastCheck,
       lastWarnNotification: this._lastWarnNotification,
       lastError: this._lastError,
@@ -217,23 +220,23 @@ class BalanceCheckBot extends Bot {
   async _getAllBalances () {
     // Get ETH balance
     let balanceOfEtherPromise
-    if (this._minimumAmountForEther) {
+    if (this._minimumAmountForEther > 0) {
       balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
         account: this._botAddressForEther
       })
     } else {
-      balanceOfEtherPromise = Promise.resolve()
+      balanceOfEtherPromise = Promise.resolve(null)
     }
 
     // Get DutchX balance of ERC20 tokens
     let dxBalanceOfTokensPromise
-    if (this.minimumAmountInUsdForToken > 0) {
+    if (this._minimumAmountInUsdForToken > 0) {
       dxBalanceOfTokensPromise = this._liquidityService.getBalancesDx({
         tokens: this._tokens,
         address: this._botAddressForTokens
       })
     } else {
-      dxBalanceOfTokensPromise = Promise.resolve()
+      dxBalanceOfTokensPromise = Promise.resolve(null)
     }
 
     // Get balance for ERC20 tokens
@@ -244,10 +247,14 @@ class BalanceCheckBot extends Bot {
         address: this._botAddressForTokens
       })
     } else {
-      erc20BalanceOfTokensPromise = Promise.resolve()
+      erc20BalanceOfTokensPromise = Promise.resolve(null)
     }
 
-    const [balanceOfEther, dxBalanceOfTokens, erc20BalanceOfTokens] = Promise.all([
+    const [
+      balanceOfEther,
+      dxBalanceOfTokens,
+      erc20BalanceOfTokens
+    ] = await Promise.all([
       balanceOfEtherPromise,
       dxBalanceOfTokensPromise,
       erc20BalanceOfTokensPromise
