@@ -15,8 +15,6 @@ const getLiquidityService = require('../services/LiquidityService')
 const getDxInfoService = require('../services/DxInfoService')
 const getSlackRepo = require('../repositories/SlackRepo')
 
-const MINIMUM_AMOUNT_IN_USD_FOR_TOKENS = process.env.BALANCE_CHECK_THRESHOLD_USD || 5000 // $5000
-
 const checkTimeMinutes = process.env.BALANCE_BOT_CHECK_TIME_MINUTES || 15 // 15 min
 const slackThresholdMinutes = process.env.BALANCE_BOT_SLACK_THESHOLD_MINUTES || (4 * 60) // 4h
 const PERIODIC_CHECK_MILLISECONDS = checkTimeMinutes * 60 * 1000
@@ -29,10 +27,11 @@ class BalanceCheckBot extends Bot {
     accountIndex,
     botAddressForEther,
     botAddressForTokens,
-    tokens,
-    notifications,
-    minimumAmountForEther,
-    minimumAmountInUsdForToken
+    tokens = [],
+    notifications = [],
+    minimumAmountForEther = 0.7,
+    minimumAmountInUsdForToken = 5000,
+    minimumAmountInUsdForTokenBalance = 0
   }) {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
@@ -54,6 +53,7 @@ class BalanceCheckBot extends Bot {
     this._notifications = notifications
     this._minimumAmountForEther = minimumAmountForEther * 1e18 // all balances are compared in WEI
     this._minimumAmountInUsdForToken = minimumAmountInUsdForToken
+    this._minimumAmountInUsdForTokenBalance = minimumAmountInUsdForTokenBalance
 
     this._lastCheck = null
     this._lastWarnNotification = null
@@ -118,46 +118,62 @@ class BalanceCheckBot extends Bot {
 
   async _checkBalance () {
     this._lastCheck = new Date()
-    let botHasEnoughTokens
+    let botHasEnoughTokens = true
     try {
-      // Get ETH balance
-      const balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
-        account: this._botAddressForEther
-      })
-
-      // Get balance of ERC20 tokens
-      const balanceOfTokensPromise = this._liquidityService.getBalances({
-        tokens: this._tokens,
-        address: this._botAddressForTokens
-      })
-
-      const [balanceOfEther, balanceOfTokens] = await Promise.all([
-        balanceOfEtherPromise,
-        balanceOfTokensPromise
-      ])
+      const {
+        balanceOfEther,
+        dxBalanceOfTokens,
+        erc20BalanceOfTokens
+      } = await this._getAllBalances()
 
       // Check if the account has ETHER below the minimum amount
       if (balanceOfEther < this._minimumAmountForEther) {
         this._lastWarnNotification = new Date()
         // Notify lack of ether
         this._notifyLackOfEther(balanceOfEther, this._botAddressForEther, this._minimumAmountForEther)
-      }
-
-      // Check if there are tokens below the minimum amount
-      const minimumAmountInUsdForToken = this._minimumAmountInUsdForToken ||
-        MINIMUM_AMOUNT_IN_USD_FOR_TOKENS
-      const tokenBelowMinimum = balanceOfTokens.filter(balanceInfo => {
-        return balanceInfo.amountInUSD.lessThan(minimumAmountInUsdForToken)
-      })
-
-      if (tokenBelowMinimum.length > 0) {
-        // Notify lack of tokens
-        this._notifyLackOfTokens(tokenBelowMinimum, this._botAddressForTokens, minimumAmountInUsdForToken)
       } else {
-        logger.debug('Everything is fine for account: %s', this._botAddressForTokens)
+        logger.debug('The account %s has enough Ether', this._botAddressForEther)
       }
 
-      botHasEnoughTokens = true
+      // Check if there are enough tokens in the DutchX
+      if (this._minimumAmountInUsdForToken > 0) {
+        const dxTokenBelowMinimum = dxBalanceOfTokens.filter(balanceInfo => {
+          return balanceInfo.amountInUSD.lessThan(this._minimumAmountInUsdForToken)
+        })
+
+        if (dxTokenBelowMinimum.length > 0) {
+          // Notify lack of tokens in DutchX
+          this._notifyLackOfTokens(
+            'DutchX balance',
+            dxTokenBelowMinimum,
+            this._botAddressForTokens,
+            this._minimumAmountInUsdForToken
+          )
+          botHasEnoughTokens = false
+        } else {
+          logger.debug('The account %s has enough tokens in the DutchX', this._botAddressForTokens)
+        }
+      }
+
+      // Check if there are enough tokens (ERC20 contract)
+      if (this._minimumAmountInUsdForTokenBalance > 0) {
+        const erc20TokenBelowMinimum = erc20BalanceOfTokens.filter(balanceInfo => {
+          return balanceInfo.amountInUSD.lessThan(this._minimumAmountInUsdForTokenBalance)
+        })
+
+        if (erc20TokenBelowMinimum.length > 0) {
+          // Notify lack of tokens in DutchX
+          this._notifyLackOfTokens(
+            'ERC20 balance',
+            erc20TokenBelowMinimum,
+            this._botAddressForTokens,
+            this._minimumAmountInUsdForTokenBalance
+          )
+          botHasEnoughTokens = false
+        } else {
+          logger.debug('The account %s has enough balance in the ERC20 contract', this._botAddressForTokens)
+        }
+      }
     } catch (error) {
       this.lastError = new Date()
       botHasEnoughTokens = false
@@ -195,6 +211,52 @@ class BalanceCheckBot extends Bot {
       notifications: this._notifications,
       lastSlackEtherBalanceNotification: this._lastSlackEtherBalanceNotification,
       lastSlackTokenBalanceNotification: this._lastSlackTokenBalanceNotification
+    }
+  }
+
+  async _getAllBalances () {
+    // Get ETH balance
+    let balanceOfEtherPromise
+    if (this._minimumAmountForEther) {
+      balanceOfEtherPromise = this._dxInfoService.getBalanceOfEther({
+        account: this._botAddressForEther
+      })
+    } else {
+      balanceOfEtherPromise = Promise.resolve()
+    }
+
+    // Get DutchX balance of ERC20 tokens
+    let dxBalanceOfTokensPromise
+    if (this.minimumAmountInUsdForToken > 0) {
+      dxBalanceOfTokensPromise = this._liquidityService.getBalancesDx({
+        tokens: this._tokens,
+        address: this._botAddressForTokens
+      })
+    } else {
+      dxBalanceOfTokensPromise = Promise.resolve()
+    }
+
+    // Get balance for ERC20 tokens
+    let erc20BalanceOfTokensPromise
+    if (this._minimumAmountInUsdForTokenBalance) {
+      erc20BalanceOfTokensPromise = this._liquidityService.getBalancesErc20({
+        tokens: this._tokens,
+        address: this._botAddressForTokens
+      })
+    } else {
+      erc20BalanceOfTokensPromise = Promise.resolve()
+    }
+
+    const [balanceOfEther, dxBalanceOfTokens, erc20BalanceOfTokens] = Promise.all([
+      balanceOfEtherPromise,
+      dxBalanceOfTokensPromise,
+      erc20BalanceOfTokensPromise
+    ])
+
+    return {
+      balanceOfEther,
+      dxBalanceOfTokens,
+      erc20BalanceOfTokens
     }
   }
 
@@ -255,7 +317,7 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  _notifyLackOfTokens (tokenBelowMinimum, accountsDescription, minimumAmountInUsdForToken) {
+  _notifyLackOfTokens (balanceType, tokenBelowMinimum, accountsDescription, minimumAmountInUsdForToken) {
     // Notify which tokens are below the minimum value
     this._lastWarnNotification = new Date()
     const tokenBelowMinimumValue = tokenBelowMinimum.map(balanceInfo => {
@@ -265,7 +327,7 @@ class BalanceCheckBot extends Bot {
       })
     })
 
-    const message = `The bot account has tokens below the ${minimumAmountInUsdForToken} USD worth of value`
+    const message = `The ${balanceType} is below the ${minimumAmountInUsdForToken} USD worth of value`
     const tokenNames = tokenBelowMinimum.map(balanceInfo => balanceInfo.token).join(', ')
     let fields = tokenBelowMinimumValue.map(({ token, amount, amountInUSD }) => ({
       title: token,

@@ -182,7 +182,7 @@ check should be done`,
     return boughtOrSoldTokensPromise
   }
 
-  async getBalances ({ tokens, address }) {
+  async getBalancesDx ({ tokens, address }) {
     const balancesPromises = tokens.map(async token => {
       const amount = await this._auctionRepo.getBalance({ token, address })
       let amountInUSD = await this._auctionRepo
@@ -200,6 +200,28 @@ check should be done`,
     })
 
     return Promise.all(balancesPromises)
+  }
+
+  async getBalancesErc20 ({ tokens, address }) {
+    // todo
+    // const balancesPromises = tokens.map(async token => {
+    //   const amount = await this._auctionRepo.getBalance({ token, address })
+    //   let amountInUSD = await this._auctionRepo
+    //     .getPriceInUSD({
+    //       token,
+    //       amount
+    //     })
+
+    //   // Round USD to 2 decimals
+    //   amountInUSD = numberUtil.roundDown(amountInUSD)
+
+    //   return {
+    //     token, amount, amountInUSD
+    //   }
+    // })
+
+    // return Promise.all(balancesPromises)
+    return []
   }
 
   async _doEnsureSellLiquidity ({
