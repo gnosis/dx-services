@@ -202,7 +202,7 @@ check should be done`,
     return Promise.all(balancesPromises)
   }
 
-  async getBalancesErc20 ({ tokens, address }) {
+  async getBalancesErc20 ({ tokens, address, getAmountUsd = true }) {
     const balancesPromises = tokens.map(async token => {
       const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
 
@@ -211,13 +211,16 @@ check should be done`,
         account: address
       })
 
-      let amountInUSD = await this._auctionRepo.getPriceInUSD({
-        token,
-        amount
-      })
+      let amountInUSD
+      if (getAmountUsd) {
+        amountInUSD = await this._auctionRepo.getPriceInUSD({
+          token,
+          amount
+        })
 
-      // Round USD to 2 decimals
-      amountInUSD = numberUtil.roundDown(amountInUSD)
+        // Round USD to 2 decimals
+        amountInUSD = numberUtil.roundDown(amountInUSD)
+      }
 
       return {
         token, amount, amountInUSD
