@@ -9,7 +9,6 @@ const Cacheable = require('../../helpers/Cacheable')
 // const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
 
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
-
 const assert = require('assert')
 
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
@@ -27,8 +26,6 @@ class AuctionRepoImpl extends Cacheable {
     contracts,
     // Cache
     cacheConf,
-    // Gas
-    defaultGas = 6700000,
     gasPriceDefault = 'fast', // safeLow, average, fast
     // Retry
     transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
@@ -44,7 +41,6 @@ class AuctionRepoImpl extends Cacheable {
     assert(contracts, '"contracts" is required')
 
     this._ethereumClient = ethereumClient
-    this._defaultGas = defaultGas
     this._transactionRetryTime = transactionRetryTime
     this._gasRetryIncrement = gasRetryIncrement
     this._overFastPriceFactor = overFastPriceFactor
@@ -2423,7 +2419,7 @@ volume: ${state}`)
   }
 }
 
-function toFraction ([ numerator, denominator ]) {
+function toFraction ([numerator, denominator]) {
   // console.log('toFracton', numerator.toString(10), denominator.toString(10))
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {

@@ -10,6 +10,8 @@ const sendTxWithUniqueNonce = require('../sendTxWithUniqueNonce')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
+const DEFAULT_GAS_TX = 30000
+const DEFAULT_EXTRA_GAS_SAFE_TX = 50000
 
 const logger = new Logger('dx-service:web3Providers:safe')
 
@@ -36,7 +38,8 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     shareNonce = true,
     blockForNonceCalculation = 'pending',
     safes = [],
-    defaultGas = 300000
+    defaultGas = DEFAULT_GAS_TX,
+    defaultExtraGasSafeTx = DEFAULT_EXTRA_GAS_SAFE_TX
   }) {
     const accountCredentials = privateKeys || mnemonic
     let numAddresses = privateKeys ? privateKeys.length : numAddressesAux
@@ -64,6 +67,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
     this._blockForNonceCalculation = blockForNonceCalculation
     this._defaultGas = defaultGas
+    this._defaultExtraGasSafeTx = defaultExtraGasSafeTx
     this._defaultFrom = this.getAccounts()[0]
     this._web3 = new Web3(this)
   }
@@ -224,9 +228,15 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       const {
         from,
         to,
+        gas: originalGas = this._defaultGas,
         value = 0,
         data
       } = txDetails
+
+      let gas = (typeof originalGas === 'string') ? parseInt(originalGas) : originalGas
+      gas += this._defaultExtraGasSafeTx
+
+      console.log(txDetails)
 
       const safe = this._safesByAddress[from]
 
@@ -246,6 +256,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       } = safe
 
       const executeWhitelistedCallData = moduleContract.executeWhitelisted.request(to, value, data)
+
       const moduleData = executeWhitelistedCallData.params[0].data
       logger.debug(`Send transaction using the safe module:
         Original tx:
@@ -266,7 +277,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
           'to': safeModuleAddress,
           'value': 0,
           'data': moduleData,
-          'gas': this._defaultGas // TODO: Add gas on top of the one in the TX
+          'gas': gas
         }, ...extraParams]
       }, ...extraArguments]
 
