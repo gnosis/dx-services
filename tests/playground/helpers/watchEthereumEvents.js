@@ -14,8 +14,8 @@ function run ({
   const filter = ethereumEventHelper.watch({
     name: 'DX',
     contract: dx,
-    fromBlock: 0, // 'latest'
-    toBlock: 'latest',
+    fromBlock: 0,
+    toBlock: -5,
     callback (error, event) {
       if (error) {
         console.error(error)

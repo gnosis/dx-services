@@ -1367,7 +1367,7 @@ volume: ${state}`)
 
   async getSellOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1386,7 +1386,7 @@ volume: ${state}`)
 
   async getBuyOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1438,7 +1438,7 @@ volume: ${state}`)
 
   async getFees ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     primaryToken,
     secondarToken,
     auctionIndex,
@@ -1568,7 +1568,7 @@ volume: ${state}`)
 
   async _getOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1605,7 +1605,7 @@ volume: ${state}`)
 
   async _getTokenPairs ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     event
@@ -1629,7 +1629,7 @@ volume: ${state}`)
 
   async getClearedAuctions ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex
@@ -1657,7 +1657,7 @@ volume: ${state}`)
 
   async getClaimedFundsSeller ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1676,7 +1676,7 @@ volume: ${state}`)
 
   async getClaimedFundsBuyer ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1696,7 +1696,7 @@ volume: ${state}`)
   async _getClaimedFundsAux ({
     eventName,
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
