@@ -14,7 +14,8 @@ async function _getInstance () {
   return new BotsService({
     auctionRepo,
     ethereumRepo,
-    markets: conf.MARKETS
+    markets: conf.MARKETS,
+    safes: conf.SAFES
   })
 }
 

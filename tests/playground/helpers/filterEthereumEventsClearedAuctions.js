@@ -21,7 +21,7 @@ function run ({
         'AuctionCleared'
       ],
       fromBlock: 0,
-      toBlock: 'latest'
+      toBlock: -5
     })
     .then(events => {
       debug('%d events:', events.length)

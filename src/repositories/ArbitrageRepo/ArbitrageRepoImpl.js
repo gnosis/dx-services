@@ -303,6 +303,21 @@ class ArbitrageRepoImpl extends Cacheable {
     })
   }
 
+  async approveToken ({ token, allowance, from, arbitrageContractAddress }) {
+    assert(token, 'The token param is required')
+    assert(from, 'The from param is required')
+    assert(allowance >= 0, 'The allowance is required')
+
+    const tokenAddress = this._getTokenAddress(token)
+
+    return this._doTransaction({
+      operation: 'approveToken',
+      from,
+      arbitrageContractAddress,
+      params: [ tokenAddress, allowance ]
+    })
+  }
+
   async depositToken ({ token, amount, from, arbitrageContractAddress }) {
     assert(token, 'The token param is required')
     assert(from, 'The from param is required')

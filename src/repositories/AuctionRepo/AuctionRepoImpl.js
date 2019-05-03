@@ -9,7 +9,6 @@ const Cacheable = require('../../helpers/Cacheable')
 // const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
 
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
-
 const assert = require('assert')
 
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
@@ -27,8 +26,6 @@ class AuctionRepoImpl extends Cacheable {
     contracts,
     // Cache
     cacheConf,
-    // Gas
-    defaultGas = 6700000,
     gasPriceDefault = 'fast', // safeLow, average, fast
     // Retry
     transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
@@ -44,7 +41,6 @@ class AuctionRepoImpl extends Cacheable {
     assert(contracts, '"contracts" is required')
 
     this._ethereumClient = ethereumClient
-    this._defaultGas = defaultGas
     this._transactionRetryTime = transactionRetryTime
     this._gasRetryIncrement = gasRetryIncrement
     this._overFastPriceFactor = overFastPriceFactor
@@ -1066,12 +1062,12 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
   async _assertMinimumFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
     // get the funded value in USD
     let fundedValueUSD
-    if (tokenA === 'WETH') {
+    if (this.isTokenEth(tokenA)) {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenA,
         amount: actualAFunding
       })
-    } else if (tokenB === 'WETH') {
+    } else if (this.isTokenEth(tokenB)) {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenB,
         amount: actualBFunding
@@ -1145,7 +1141,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
       params: [token, ethUsdPrice]
     })
     let amountInETH
-    if (token === 'WETH') {
+    if (this.isTokenEth(token)) {
       amountInETH = amountBN
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
@@ -1172,7 +1168,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     let amountInETH = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
-    if (token === 'WETH') {
+    if (this.isTokenEth(token)) {
       amountInToken = amountInETH
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
@@ -1371,7 +1367,7 @@ volume: ${state}`)
 
   async getSellOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1390,7 +1386,7 @@ volume: ${state}`)
 
   async getBuyOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1442,7 +1438,7 @@ volume: ${state}`)
 
   async getFees ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     primaryToken,
     secondarToken,
     auctionIndex,
@@ -1572,7 +1568,7 @@ volume: ${state}`)
 
   async _getOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1609,7 +1605,7 @@ volume: ${state}`)
 
   async _getTokenPairs ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     event
@@ -1633,7 +1629,7 @@ volume: ${state}`)
 
   async getClearedAuctions ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex
@@ -1661,7 +1657,7 @@ volume: ${state}`)
 
   async getClaimedFundsSeller ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1680,7 +1676,7 @@ volume: ${state}`)
 
   async getClaimedFundsBuyer ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1700,7 +1696,7 @@ volume: ${state}`)
   async _getClaimedFundsAux ({
     eventName,
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1734,7 +1730,7 @@ volume: ${state}`)
   async getPriceInEth ({ token, cacheTime }) {
     assert(token, 'The token is required')
 
-    if (token.toLowerCase() === this._tokens.WETH.address || token === 'WETH') {
+    if (this.isTokenEth(token)) {
       return {
         numerator: numberUtil.toBigNumber(1),
         denominator: numberUtil.toBigNumber(1)
@@ -1939,6 +1935,7 @@ volume: ${state}`)
     return {
       buyVolume,
       sellVolume,
+      auctionStart,
       hasAuctionStarted,
       closingPrice,
       isClosed,
@@ -1948,6 +1945,11 @@ volume: ${state}`)
 
   async getMagnoliaToken () {
     return this._tokens['MGN']
+  }
+
+  isTokenEth (token) {
+    return token === 'WETH' ||
+      token.toLowerCase() === this._tokens.WETH.address.toLowerCase()
   }
 
   _hasClosingPrice ({ sellToken, buyToken, auctionIndex }) {
@@ -2417,7 +2419,7 @@ volume: ${state}`)
   }
 }
 
-function toFraction ([ numerator, denominator ]) {
+function toFraction ([numerator, denominator]) {
   // console.log('toFracton', numerator.toString(10), denominator.toString(10))
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {

@@ -5,6 +5,7 @@ const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
 const schedule = require('node-schedule')
+const CLAIM_EVERY_4H = '00  02,06,10,14,18,22  *  *  *'
 
 const BOT_TYPE = 'ClaimBot'
 const getEthereumClient = require('../helpers/ethereumClient')
@@ -19,8 +20,8 @@ class ClaimBot extends Bot {
     accountIndex,
     markets,
     notifications,
-    cronSchedule,
-    autoClaimAuctions
+    cronSchedule = CLAIM_EVERY_4H,
+    autoClaimAuctions = 90
   }) {
     super(name, BOT_TYPE)
     assert(markets, 'markets is required')

@@ -22,7 +22,7 @@ function run ({
         'NewBuyOrder'
       ],
       fromBlock: 0,
-      toBlock: 'latest',
+      toBlock: -5,
       filters: {
         user: botAccount
       }

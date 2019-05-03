@@ -38,6 +38,13 @@ function createRoutes ({ botsService }) {
     }
   })
 
+  routes.push({
+    path: '/v1/safes',
+    get (req, res) {
+      return botsService.getSafes()
+    }
+  })
+
   return routes
 }
 

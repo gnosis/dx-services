@@ -69,7 +69,7 @@ async function _loadUniswapFactory ({
     localUniswapFactoryAddress = await _getDeployedAddress(
       'IUniswapFactory',
       uniswapFactory,
-      true
+      false
     )
   }
   const uniswapFactoryInstance = uniswapFactory.at(localUniswapFactoryAddress)

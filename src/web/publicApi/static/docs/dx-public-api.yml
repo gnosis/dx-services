@@ -167,7 +167,7 @@ paths:
       tags:
         - Markets and supported tokens
       summary: Check if market exists
-      description: >
+      description: >-
           Check if a given token pair has been listed in the DutchX protocol.
 
 
@@ -211,20 +211,30 @@ paths:
     get:
       tags:
         - Auction state
-      summary: Market state
+      summary: General market state
       description: |-
-        Returns the current state of the requested market
+        Returns the current state of the requested market.
 
-        This can be any of:
-        - `RUNNING` - Auction is currently ongoing.
+
+        The result will be the general market state for the market, so it will be
+        refering to both of the concurrent auctions: A-B and B-A
+
+
+        It can be one of the following values:
+        - `RUNNING` - Both auctions are currently ongoing.
         - `WAITING_FOR_FUNDING` - Sell volume has not reached the threshold to start
         - `WAITING_FOR_AUCTION_TO_START` - Sell volume threshold was reached and auction should start in next 10 minutes
-        - `ONE_AUCTION_HAS_CLOSED` - Auction is running and one of the auction sides is already closed
-        - `PENDING_CLOSE_THEORETICAL` - Auction reached a price wich fits with the sell and buy volume but needs to be closed
+        - `ONE_AUCTION_HAS_CLOSED` - One of the auctions it's running, the other is already closed
+        - `PENDING_CLOSE_THEORETICAL` - All the sell volume has been bought, so
+          the auction is closed, and the price is determined.
+          However **it's not officially closed until the clearing process is done**.
+          Since DutchX protocol is running in the blockchain, someone
+          has to trigger the clearing by executing a sell order, buy order or claim action
+          to do the clearing.
 
 
         For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
-      operationId: getMarketDetails
+      operationId: getMarketState
       produces:
         - application/json
       parameters:
@@ -252,6 +262,61 @@ paths:
           description: >-
             Invalid token format. Token pair format is not compilant with
             {tokenAAddress}-{tokenBAddress}
+
+
+  '/markets/{tokenPair}/state-details':
+    get:
+      tags:
+        - Auction state
+      summary: Market state details
+      description: |-
+        Returns the current state details of the requested market.
+
+        Aditionally, it includes information about both sides of the current auction,
+        so for a token `A-B`, it will include the details for auction `A-B`
+        (`auction` property) and `B-A` (`auctionOpp` property).
+
+        The `state` can be one of the following values:
+        - `RUNNING` - Both auctions are currently ongoing.
+        - `WAITING_FOR_FUNDING` - Sell volume has not reached the threshold to start
+        - `WAITING_FOR_AUCTION_TO_START` - Sell volume threshold was reached and auction should start in next 10 minutes
+        - `ONE_AUCTION_HAS_CLOSED` - One of the auctions it's running, the other is already closed
+        - `PENDING_CLOSE_THEORETICAL` - All the sell volume has been bought, so
+          the auction is closed, and the price is determined.
+          However **it's not officially closed until the clearing process is done**.
+          Since DutchX protocol is running in the blockchain, someone
+          has to trigger the clearing by executing a sell order, buy order or claim action
+          to do the clearing.
+
+        For more information on DutchX protocol: [https://dutchx.readthedocs.io/en/latest/mechanism.html](https://dutchx.readthedocs.io/en/latest/mechanism.html)
+      operationId: getMarketDetails
+      produces:
+        - application/json
+      parameters:
+        - name: tokenPair
+          in: path
+          description: |-
+            A token pair addresses string for selecting the desired market
+            {tokenAAddress}-{tokenBAddress}.
+
+            For convenience WETH is recognized also by symbol. ex:
+            WETH-{tokenBAddress}, {tokenAAddress}-WETH
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/MarketState'
+        '404':
+          description: There is an unknown token in the token pair
+        '412':
+          description: >-
+            Invalid token format. Token pair format is not compilant with
+            {tokenAAddress}-{tokenBAddress}
+
+
+
 
 
   '/markets/{tokenPair}/current-index':
@@ -679,8 +744,9 @@ paths:
         **median of the specified number of auctions**. In adition to the token
         and the number of auction you can specify:
 
-        * **time**: Written as Unix timestamp to check the oracle price in a past time.
-        By default is `0`, this means it will use current time.
+        * **time**: A date string to check the oracle price in a past time using
+        [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date format.
+        If no time selected it will check current time.
 
         * **requireWhitelisted**: if you require to check if the token have been whitelisted
         in the DutchX. By default is `true`.
@@ -1535,6 +1601,94 @@ definitions:
         type: number
         format: double
 
+  MarketState:
+    type: object
+    required:
+      - isValidTokenPair
+      - state
+      - isSellTokenApproved
+      - isBuyTokenApproved
+      - auctionIndex
+      - auctionStart
+      - auction
+      - auctionOpp
+
+    properties:
+      isValidTokenPair:
+        type: boolean
+      state:
+        type: string
+      isSellTokenApproved:
+        type: boolean
+      isBuyTokenApproved:
+        type: boolean
+      auctionIndex:
+        type: integer
+        format: int32
+      auctionStart:
+        type: string
+        format: date-time
+      auction:
+        $ref: '#/definitions/AuctionState'
+      auctionOpp:
+        $ref: '#/definitions/AuctionState'
+
+  AuctionState:
+    type: object
+    required:
+      - sellVolume
+      - buyVolume
+      - isClosed
+      - isTheoreticalClosed
+      - closingPrice
+      - price
+      - fundingInUSD
+      - buyVolumesInSellTokens
+      - priceRelationshipPercentage
+      - boughtPercentage
+      - outstandingVolume
+    properties:
+      sellVolume:
+        type: number
+      buyVolume:
+        type: number
+      isClosed:
+        type: boolean
+      isTheoreticalClosed:
+        type: boolean
+      closingPrice:
+        type: object
+        properties:
+          numerator:
+            type: number
+            format: double
+          denominator:
+            type: number
+            format: double
+      price:
+        type: object
+        properties:
+          numerator:
+            type: number
+            format: double
+          denominator:
+            type: number
+            format: double
+      fundingInUSD:
+        type: number
+        format: double
+      buyVolumesInSellTokens:
+        type: number
+        format: double
+      priceRelationshipPercentage:
+        type: number
+        format: double
+      boughtPercentage:
+        type: number
+        format: double
+      outstandingVolume:
+        type: number
+        format: double
 
   AuctionSummary:
     type: object
