@@ -4,7 +4,7 @@ testSetup()
   .then(run)
   .catch(console.error)
 
-function run ({
+function run({
   auctionRepo
 }) {
   const account = process.env.ACCOUNT
@@ -13,7 +13,7 @@ function run ({
   return auctionRepo
     .getFees({
       fromBlock: 0,
-      toBlock: 'latest',
+      toBlock = -5,
       user: account
     })
     .then(claimedFunds => {
