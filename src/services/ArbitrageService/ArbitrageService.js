@@ -41,6 +41,7 @@ class ArbitrageService {
     from,
     arbitrageContractAddress,
     minimumProfitInUsd = 0,
+    maximizeVolume = false,
     waitToReleaseTheLock = false
   }) {
     return this._checkArbitrageAux({
@@ -49,6 +50,7 @@ class ArbitrageService {
       from,
       arbitrageContractAddress,
       minimumProfitInUsd,
+      maximizeVolume,
       waitToReleaseTheLock,
       arbitrageCheckName: 'uniswap'
     })
@@ -60,6 +62,7 @@ class ArbitrageService {
     from,
     arbitrageContractAddress,
     minimumProfitInUsd,
+    maximizeVolume,
     arbitrageCheckName,
     waitToReleaseTheLock
   }) {
@@ -129,7 +132,8 @@ check should be done`,
         tokenB: buyToken,
         from,
         arbitrageContractAddress,
-        minimumProfitInUsd
+        minimumProfitInUsd,
+        maximizeVolume
       })
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
       boughtOrSoldTokensPromise
@@ -141,7 +145,7 @@ check should be done`,
   }
 
   async _doCheckArbitrageUniswap ({
-    tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd }) {
+    tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume }) {
     const results = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
 
@@ -160,7 +164,8 @@ check should be done`,
       auctionIndex,
       from,
       arbitrageContractAddress,
-      minimumProfitInUsd
+      minimumProfitInUsd,
+      maximizeVolume
     })
 
     // tokenB-tokenA: Get soldTokens
@@ -170,7 +175,8 @@ check should be done`,
       auctionIndex,
       from,
       arbitrageContractAddress,
-      minimumProfitInUsd
+      minimumProfitInUsd,
+      maximizeVolume
     })
 
     if (soldTokensA) {
@@ -185,7 +191,7 @@ check should be done`,
     // (no results) then return all results
     if (results.length > 0) {
       let more = await this._doCheckArbitrageUniswap({
-        tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd })
+        tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume })
       if (more.length) results.push(...more)
     }
 
@@ -193,7 +199,7 @@ check should be done`,
   }
 
   async _getPricesAndAttemptArbitrage ({
-    buyToken, sellToken, auctionIndex, from, arbitrageContractAddress, minimumProfitInUsd }) {
+    buyToken, sellToken, auctionIndex, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume }) {
     const {
       sellVolume,
       isClosed,
@@ -281,6 +287,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
               auctionIndex,
               from,
               maxEtherToSpend,
+              maximizeVolume,
               inputBalance,
               outputBalance,
               dutchPrice,
@@ -300,6 +307,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
               auctionIndex,
               from,
               maxEtherToSpend,
+              maximizeVolume,
               inputBalance,
               outputBalance,
               dutchPrice,
@@ -359,6 +367,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     auctionIndex,
     from,
     maxEtherToSpend,
+    maximizeVolume,
     inputBalance,
     outputBalance,
     dutchPrice,
@@ -397,6 +406,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       maxToSpend: maxEtherToSpend,
       inputBalance, // sellToken balance
       outputBalance, // buyToken balance
+      maximizeVolume,
       from,
       sellToken,
       buyToken,
@@ -497,6 +507,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     buyToken,
     auctionIndex,
     from,
+    maximizeVolume,
     maxEtherToSpend,
     inputBalance,
     outputBalance,
@@ -541,6 +552,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       maxToSpend,
       inputBalance, // sellToken balance
       outputBalance, // buyToken balance
+      maximizeVolume,
       // Params to check user fee
       from,
       sellToken,
@@ -666,6 +678,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     inputBalance, // sellToken balance
     outputBalance, // buyToken balance
     dutchPrice,
+    maximizeVolume,
     // Params to check user fee
     from,
     sellToken,
@@ -733,8 +746,6 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       // uniswap price above the current dutchX price. This would mean that part of the purchase made was at a loss. This strategy
       // would be good if the goal was to maximize volume. However if the goal is to maximize profit, purchases made on uniswap should
       // only occur up to the point that the current exact price of uniswap is at or below the dutchX price.
-
-      let maximizeVolume = true
       let uniswapPrice
       if (maximizeVolume) {
         uniswapPrice = amountAfterFeeUniswap.div(uniswapSpendAmount)
