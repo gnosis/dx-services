@@ -226,71 +226,26 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       const [txDetails, ...extraParams] = txObject.params
 
       const {
-        from,
-        to,
-        gas: originalGas = this._defaultGas,
-        value = 0,
-        data
+        from
       } = txDetails
-
-      let gas = (typeof originalGas === 'string') ? parseInt(originalGas) : originalGas
-      gas += this._defaultExtraGasSafeTx
 
       console.log(txDetails)
 
       const safe = this._safesByAddress[from]
+      const operator = this._safesByOperator[from]
 
       // TODO: Allow to send transaction directly with the operator
       //  - Normally transactions with the mulstisig as the "from" address
       //  - It might be an interesting adition to allow to provide the operator
       //    as the "from". In this case, the tx is sent without the module
 
-      if (!safe) {
-        throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
-      }
-
-      const {
-        moduleContract,
-        safeModuleAddress,
-        operatorAddress
-      } = safe
-
-      const executeWhitelistedCallData = moduleContract.executeWhitelisted.request(to, value, data)
-
-      const moduleData = executeWhitelistedCallData.params[0].data
-      logger.debug(`Send transaction using the safe module:
-        Original tx:
-          To: ${to}
-          Value: ${value}
-          Original Data: ${data}
-        Safe Module: ${safeModuleAddress}
-          Operator: ${operatorAddress}
-          Data: ${moduleData}`)
-
-      // Rewrite the transaction so it's sent to the safe instead
-      const safeTxArguments = [{
-        ...txObject,
-
-        // Override params
-        params: [{
-          'from': operatorAddress,
-          'to': safeModuleAddress,
-          'value': 0,
-          'data': moduleData,
-          'gas': gas
-        }, ...extraParams]
-      }, ...extraArguments]
-
-      // TODO: Remove
-      logger.debug('Send transaction: %O', safeTxArguments)
-      logger.debug('Transaction - params: ', safeTxArguments[0].params)
-
-      if (!NONCE_LOCK_DISABLED) {
-        return this._sendTxWithUniqueNonce(...safeTxArguments)
+      if (safe) {
+        return this._rewriteSendTransactionForSafe({ safe, txArguments: arguments })
+      } else if (operator) {
+        // It's a known operator trying to perform a transaction
+        return super.sendAsync(...arguments)
       } else {
-        logger.trace('Send transaction: %o', safeTxArguments)
-        this._resetNonceCache()
-        return super.sendAsync(...safeTxArguments)
+        throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
       }
     } else if (method === 'eth_accounts') {
       logger.trace('Get accounts')
@@ -309,6 +264,66 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     } else {
       logger.trace('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)
+    }
+  }
+
+  _rewriteSendTransactionForSafe ({ safe, txArguments }) {
+    // Get Safe Module contract data
+    const [txObject, ...extraArguments] = txArguments
+    const [txDetails, ...extraParams] = txObject.params
+
+    const {
+      moduleContract,
+      safeModuleAddress,
+      operatorAddress
+    } = safe
+
+    const {
+      to,
+      gas: originalGas = this._defaultGas,
+      value = 0,
+      data
+    } = txDetails
+
+    let gas = (typeof originalGas === 'string') ? parseInt(originalGas) : originalGas
+    gas += this._defaultExtraGasSafeTx
+
+    const executeWhitelistedCallData = moduleContract.executeWhitelisted.request(to, value, data)
+
+    const moduleData = executeWhitelistedCallData.params[0].data
+    logger.debug(`Send transaction using the safe module:
+      Original tx:
+        To: ${to}
+        Value: ${value}
+        Original Data: ${data}
+      Safe Module: ${safeModuleAddress}
+        Operator: ${operatorAddress}
+        Data: ${moduleData}`)
+
+    // Rewrite the transaction so it's sent to the safe instead
+    const safeTxArguments = [{
+      ...txObject,
+
+      // Override params
+      params: [{
+        'from': operatorAddress,
+        'to': safeModuleAddress,
+        'value': 0,
+        'data': moduleData,
+        'gas': gas
+      }, ...extraParams]
+    }, ...extraArguments]
+
+    // TODO: Remove
+    logger.debug('Send transaction: %O', safeTxArguments)
+    logger.debug('Transaction - params: ', safeTxArguments[0].params)
+
+    if (!NONCE_LOCK_DISABLED) {
+      return this._sendTxWithUniqueNonce(...safeTxArguments)
+    } else {
+      logger.trace('Send transaction: %o', safeTxArguments)
+      this._resetNonceCache()
+      return super.sendAsync(...safeTxArguments)
     }
   }
 
