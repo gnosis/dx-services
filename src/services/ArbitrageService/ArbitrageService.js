@@ -405,6 +405,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       inputBalance, // sellToken balance
       outputBalance, // buyToken balance
       maximizeVolume,
+      gasCosts,
       from,
       sellToken,
       buyToken,
@@ -551,6 +552,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       inputBalance, // sellToken balance
       outputBalance, // buyToken balance
       maximizeVolume,
+      gasCosts,
       // Params to check user fee
       from,
       sellToken,
@@ -677,6 +679,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     outputBalance, // buyToken balance
     dutchPrice,
     maximizeVolume,
+    gasCosts,
     // Params to check user fee
     from,
     sellToken,
@@ -724,9 +727,17 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({
         sellToken, buyToken, auctionIndex, amount: dutchSpendAmount, from, owlAllowance, owlBalance, ethUSDPrice })
 
+      
+      let amountAfterFeeAndGas
+      if (sellToken === etherTokenAddress) {
+        amountAfterFeeAndGas = amountAfterFee.sub(gasCosts)
+      } else {
+
+      }
+
       // if you were to claim your buy right away it would be that amountAfterFee
       // times the current price
-      let dutchPriceWithFee = dutchSpendAmount.mul(dutchPrice).div(amountAfterFee)
+      let dutchPriceWithFee = dutchSpendAmount.mul(dutchPrice).div(amountAfterFeeAndGas)
 
       // spendAmount is a buyToken. buyToken is traded for sellToken
       // sellToken is inputToken, outputToken is buyToken
@@ -749,7 +760,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         uniswapPrice = amountAfterFeeUniswap.div(uniswapSpendAmount)
       } else {
         // maximize profit
-        uniswapPrice = uniswapSpendAmount.add(inputBalance).div(outputBalance.add(amountAfterFeeUniswap))
+        uniswapPrice = (amountAfterFeeUniswap.add(outputBalance)).div(inputBalance.add(uniswapSpendAmount))
       }
 
       if (dutchPriceWithFee.gt(uniswapPrice)) {
@@ -766,6 +777,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
   // ------------------------------------------------------------------------
   async ethToken () {
     return this._auctionRepo.ethToken()
+  }
+
+  async owner (arbitrageAddress) {
+    return this._arbitrageRepo.owner(arbitrageAddress)
   }
 
   async depositToken ({ token, amount, from, arbitrageContractAddress }) {
