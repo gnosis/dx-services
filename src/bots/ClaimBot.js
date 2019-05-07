@@ -113,7 +113,6 @@ class ClaimBot extends Bot {
         claimBuyerTransactionResult
       } = result
       this._lastClaim = new Date()
-      logger.info('Claimed for address %s. Result: %o', this._botAddress, claimAmounts)
       if (claimSellerTransactionResult) {
         logger.info('Claim as seller transaction: %s', claimSellerTransactionResult.tx)
       }
@@ -123,6 +122,7 @@ class ClaimBot extends Bot {
 
       claimAmounts.forEach(amount => {
         if (amount) {
+          logger.info('Claimed for address %s. Amounts: %o', this._botAddress, amount)
           this._notifyClaimedTokens(amount, this._markets, this._botAddress)
         }
       })
