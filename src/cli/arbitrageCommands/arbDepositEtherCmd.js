@@ -33,7 +33,6 @@ function registerCommand ({ cli, logger }) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
 
-
       const balance =
         await arbitrageService.getContractEtherBalance({ arbitrageContractAddress })
 

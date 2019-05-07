@@ -208,14 +208,17 @@ test('It should return the expected output price (input token amount) in Uniswap
   expect(fromWei(outputPrice2).toFixed(4)).toBe(expectedOutputPrice2.toFixed(4))
 })
 
-test.skip('It should return the expected dutch spend amount', async () => {
+test('It should return the expected dutch spend amount', async () => {
   const { arbitrageService } = await setupPromise
 
   // GIVEN a not RUNNING auction, without enough sell liquidiy
   // we mock the auction repo
   arbitrageService._auctionRepo.getCurrentAuctionPriceWithFees =
     jest.fn(async ({ amount }) => {
-      return amount.sub(amount.mul('5').div('1000'))
+      return {
+        closesAuction: false,
+        amountAfterFee: amount.sub(amount.mul('5').div('1000'))
+      }
     })
 
   // GIVEN two markets with this conditions

@@ -33,7 +33,6 @@ function registerCommand ({ cli, logger }) {
         arbitrageContractAddress = confArbitrageContractAddress
       }
       
-      console.log({arbitrageContractAddress})
       const owner = await arbitrageService.owner(arbitrageContractAddress)
 
         logger.info(`Owner of arbitrage contract is ${owner}`)
