@@ -21,7 +21,7 @@ const PERIODIC_CHECK_MILLISECONDS = checkTimeMinutes * 60 * 1000
 const MINIMUM_TIME_BETWEEN_SLACK_NOTIFICATIONS = slackThresholdMinutes * 60 * 1000
 
 class BalanceCheckBot extends Bot {
-  constructor({
+  constructor ({
     name,
     botAddress,
     accountIndex,
@@ -64,7 +64,7 @@ class BalanceCheckBot extends Bot {
     this._lastSlackTokenBalanceNotification = null
   }
 
-  async _doInit() {
+  async _doInit () {
     logger.debug('Init Balance Check Bot: ' + this.name)
     const [
       ethereumClient,
@@ -104,7 +104,7 @@ class BalanceCheckBot extends Bot {
     delete this._botAddress
   }
 
-  async _doStart() {
+  async _doStart () {
     logger.debug({ msg: 'Initialized bot: ' + this.name })
 
     // Check the bots balance periodically
@@ -114,11 +114,11 @@ class BalanceCheckBot extends Bot {
     }, PERIODIC_CHECK_MILLISECONDS)
   }
 
-  async _doStop() {
+  async _doStop () {
     logger.debug({ msg: 'Bot stopped: ' + this.name })
   }
 
-  async _checkBalance() {
+  async _checkBalance () {
     this._lastCheck = new Date()
     let botHasEnoughTokens = true
     try {
@@ -208,7 +208,7 @@ class BalanceCheckBot extends Bot {
     return botHasEnoughTokens
   }
 
-  async getInfo() {
+  async getInfo () {
     let addresses
     if (this._botAddressForEther === this._botAddressForTokens) {
       addresses = {
@@ -239,7 +239,7 @@ class BalanceCheckBot extends Bot {
     }
   }
 
-  async _getAllBalances() {
+  async _getAllBalances () {
     // Get ETH balance
     let balanceOfEtherPromise
     if (this._minimumAmountForEther > 0) {
@@ -306,7 +306,7 @@ class BalanceCheckBot extends Bot {
     }
   }
 
-  _notifyLackOfEther(balanceOfEther, account, minimumAmountForEther) {
+  _notifyLackOfEther (balanceOfEther, account, minimumAmountForEther) {
     const minimumAmount = minimumAmountForEther * 1e-18
     const balance = balanceOfEther.div(1e18).valueOf()
 
@@ -343,7 +343,7 @@ class BalanceCheckBot extends Bot {
                       value: numberUtil.roundDown(balance, 4) + ' ETH',
                       short: false
                     }, {
-                      title: 'Bot account',
+                      title: this.name,
                       value: account,
                       short: false
                     }
@@ -363,7 +363,7 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  _notifyLackOfTokens(balanceType, tokenBelowMinimum, accountsDescription, minimumAmounForToken, amountInUsd = true) {
+  _notifyLackOfTokens (balanceType, tokenBelowMinimum, accountsDescription, minimumAmounForToken, amountInUsd = true) {
     // Notify which tokens are below the minimum value
     this._lastWarnNotification = new Date()
     const tokenBelowMinimumValue = tokenBelowMinimum.map(balanceInfo => {
@@ -382,7 +382,7 @@ class BalanceCheckBot extends Bot {
     }))
 
     fields = [].concat({
-      title: 'Bot account',
+      title: this.name,
       value: accountsDescription,
       short: false
     }, fields)
@@ -429,7 +429,7 @@ class BalanceCheckBot extends Bot {
     })
   }
 
-  async _notifyToSlack({ channel, name, lastNotificationVariableName, message }) {
+  async _notifyToSlack ({ channel, name, lastNotificationVariableName, message }) {
     const now = new Date()
     const lastNotification = this[lastNotificationVariableName]
 
