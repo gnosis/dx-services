@@ -9,8 +9,8 @@ const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_
 const UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE = 559830
 const DUTCHX_TO_UNISWAP_GAS_COST_ESTIMATE = 565134
 
-const INITIAL_SPEND_INCREMENT = numberUtil.toBigNumber(1e18) // Used to increment the spend amount in DutchX
-const MINIMUM_SPEND_INCREMENT = numberUtil.toBigNumber(1e3) // Used as minimum valid increment to check spend amount in DutchX
+const INITIAL_SPEND_INCREMENT = numberUtil.toBigNumber(1e17) // Used to increment the spend amount in DutchX
+const MINIMUM_SPEND_INCREMENT = numberUtil.toBigNumber(1e6) // Used as minimum valid increment to check spend amount in DutchX
 
 const UNISWAP_FEE = 0.003
 
@@ -41,7 +41,7 @@ class ArbitrageService {
     from,
     arbitrageContractAddress,
     minimumProfitInUsd = 0,
-    maximizeVolume = false,
+    maximizeVolume = true,
     waitToReleaseTheLock = false
   }) {
     return this._checkArbitrageAux({
@@ -412,18 +412,23 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       auctionIndex,
       owlAllowance,
       owlBalance,
-      ethUSDPrice
+      ethUSDPrice,
+      etherTokenAddress
     })
 
-    let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({
+    let {closesAuction, amountAfterFee} = await this._auctionRepo.getCurrentAuctionPriceWithFees({
       sellToken, buyToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice })
     const tokensExpectedFromDutch = amountAfterFee.div(dutchPrice)
+
+    if (closesAuction) {
+      amount = amountAfterFee
+    }
 
     // how much Ether would be returned after selling the sellToken on Uniswap
     let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(
       sellToken, tokensExpectedFromDutch.toString(10))
 
-    const expectedProfit = uniswapExpected.sub(amount).sub(gasCosts)
+    const expectedProfit = uniswapExpected.sub(amount)//.sub(gasCosts)
 
     const expectedProfitInUsd = await this._auctionRepo.getPriceInUSD({
       token: buyToken,
@@ -437,10 +442,12 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       params: [{
         amount: numberUtil.fromWei(amount).toString(10),
         amountAfterFee: numberUtil.fromWei(amountAfterFee).toString(10),
+        closesAuction,
+        // gasCosts: numberUtil.fromWei(gasCosts).toString(10) + ' ETH',
         tokensExpectedFromDutch: numberUtil.fromWei(tokensExpectedFromDutch).toString(10),
         uniswapExpected: numberUtil.fromWei(uniswapExpected).toString(10),
         expectedProfit: numberUtil.fromWei(expectedProfit).toString(10),
-        expectedProfitInUsd: expectedProfitInUsd.toString(10)
+        expectedProfitInUsd: expectedProfitInUsd.toString(10) + ' USD'
       }]
     })
 
@@ -458,11 +465,17 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
           balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
           amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
           uniswapExpected: numberUtil.fromWei(uniswapExpected).toString(10) + ' Eth',
-          tokensExpectedFromDutch: tokensExpectedFromDutch.toString(10) + ' Tokens',
+          tokensExpectedFromDutch: numberUtil.fromWei(tokensExpectedFromDutch).toString(10) + ' Tokens',
           expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' Eth',
           uniswapPrice: uniswapPrice.toString(10) + ' WEI / token',
           dutchPrice: dutchPrice.toString(10) + ' WEI / token'
         }]
+      })
+
+
+      let balanceBefore = await this._auctionRepo.getBalance({
+        token: etherTokenAddress,
+        address: arbitrageContractAddress
       })
 
       let tx = await this._arbitrageRepo.dutchOpportunity({
@@ -482,20 +495,21 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         buyToken,
         msg: 'Completed a DutchX opportunity: \n%O',
         params: [{
-          balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
-          balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Eth',
-          actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' Eth',
-          actualProfit: actualProfit.toString(10) + ' Wei'
+          balanceBefore: numberUtil.fromWei(balanceBefore).toString(10) + ' Weth',
+          balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Weth',
+          actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' weth',
+          actualProfit: actualProfit.toString(10) + ' Weth Wei',
+          actualProfitUSD: numberUtil.fromWei(actualProfit).mul(ethUSDPrice).toString(10) + ' USD'
         }]
       })
       return {
         type: 'DutchOpportunity',
         arbToken: sellToken,
-        amount,
-        expectedProfit,
-        actualProfit,
-        dutchPrice,
-        uniswapPrice,
+        amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
+        expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' weth',
+        actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' weth',
+        dutchPrice: dutchPrice.toString(10) + ' WEI / token',
+        uniswapPrice: uniswapPrice.toString(10) + ' WEI / token',
         tx
       }
     }
@@ -553,14 +567,15 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       outputBalance, // buyToken balance
       maximizeVolume,
       gasCosts,
-      // Params to check user fee
+      // Params to check user feeCheck Uni
       from,
       sellToken,
       buyToken,
       auctionIndex,
       owlAllowance,
       owlBalance,
-      ethUSDPrice
+      ethUSDPrice,
+      etherTokenAddress
     })
     // now we have the amount to use as buyToken on DutchX, but we actually
     // need the amount of Ether to spend on Uniswap. To get this we need
@@ -568,10 +583,15 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     let amount = this.getOutputPrice(tokenAmount, inputBalance, outputBalance)
 
     // how much Ether would be returned after selling the token on DutchX
-    let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({
+    let {closesAuction, amountAfterFee} = await this._auctionRepo.getCurrentAuctionPriceWithFees({
       sellToken, buyToken, auctionIndex, amount: tokenAmount, from, owlAllowance, owlBalance, ethUSDPrice })
     const dutchXExpected = amountAfterFee.div(dutchPrice)
-    const expectedProfit = dutchXExpected.sub(amount).sub(gasCosts)
+
+    if (closesAuction) {
+      amount = amountAfterFee
+    }
+
+    const expectedProfit = dutchXExpected.sub(amount)//.sub(gasCosts)
 
     const expectedProfitInUsd = await this._auctionRepo.getPriceInUSD({
       token: sellToken,
@@ -587,9 +607,9 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
           tokenAmount: numberUtil.fromWei(tokenAmount).toString(10) + ` ${buyToken}`,
           amount: numberUtil.fromWei(amount).toString(10) + ' ETH',
           dutchExpected: numberUtil.fromWei(dutchXExpected).toString(10) + ' ETH',
-          gasCosts: numberUtil.fromWei(gasCosts).toString(10) + ' ETH',
+          // gasCosts: numberUtil.fromWei(gasCosts).toString(10) + ' ETH',
           expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' ETH',
-          expectedProfitInUsd: expectedProfitInUsd
+          expectedProfitInUsd: expectedProfitInUsd.toString(10) + ' USD'
         }
       ]
     })
@@ -604,8 +624,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         msg: 'Making an Uniswap opportunity transaction: \n%O',
         params: [{
           balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' ETH',
-          dutchPrice: dutchPrice + ' WEI / token',
-          uniswapPrice: uniswapPrice + ' WEI / token'
+          dutchPrice: dutchPrice.toString(10) + ' WEI / token',
+          uniswapPrice: uniswapPrice.toString(10) + ' WEI / token'
         }]
       })
 
@@ -629,17 +649,19 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
           balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' ETH',
           balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' ETH',
           actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' ETH',
-          actualProfitWei: actualProfit.toString(10) + ' Wei'
+          actualProfitWei: actualProfit.toString(10) + ' Wei',
+          actualProfitUSD: numberUtil.fromWei(actualProfit).mul(ethUSDPrice).toString(10) + ' USD'
         }]
       })
       return {
         type: 'UniswapOpportunity',
         arbToken: buyToken,
-        amount,
-        expectedProfit,
-        actualProfit,
-        dutchPrice,
-        uniswapPrice,
+        tokenAmount: numberUtil.fromWei(tokenAmount).toString(10) + ` ${buyToken}`,
+        amount: numberUtil.fromWei(amount).toString(10) + ' ETH',
+        expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' ETH',
+        actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' ETH',
+        dutchPrice: dutchPrice.toString(10) + ' WEI / token',
+        uniswapPrice: uniswapPrice.toString(10) + ' WEI / token',
         tx
       }
     }
@@ -687,8 +709,13 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     auctionIndex,
     owlAllowance,
     owlBalance,
-    ethUSDPrice
+    ethUSDPrice,
+    etherTokenAddress
   }) {
+    // console.log('dutchPrice', dutchPrice.toString(10))
+    // console.log('inputBalance', inputBalance.toString(10))
+    // console.log('outputBalance', outputBalance.toString(10))
+    // console.log({sellToken, buyToken, etherTokenAddress})
     // these must be positive amounts.
     // it is also worth considering making the small increment rather large because
     // it is too precise, the profit margin may disappear between the time it is
@@ -705,6 +732,9 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     let isOpportunity = true
     let isFinalPrice = false
 
+    // console.log({dutchSpendAmount: dutchSpendAmount.toString(10)})
+    // console.log({maxToSpend: maxToSpend.toString(10)})
+    // console.log('dutchSpendAmount is gt maxtospend', dutchSpendAmount.gt(maxToSpend) )
     // want to loop through smaller and smaller spending increments
     // stop when maxToSpend is hit or when the increment price is too small
     while (!isFinalPrice) {
@@ -722,23 +752,40 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         }
       }
 
+      // console.log({dutchSpendAmount: numberUtil.fromWei(dutchSpendAmount).toString(10)})
       // when you spend some amount, part is removed as liquidity contribution.
       // Your buy is recorded as only the reduced amount.
-      let amountAfterFee = await this._auctionRepo.getCurrentAuctionPriceWithFees({
+      let {closesAuction, amountAfterFee} = await this._auctionRepo.getCurrentAuctionPriceWithFees({
         sellToken, buyToken, auctionIndex, amount: dutchSpendAmount, from, owlAllowance, owlBalance, ethUSDPrice })
-
       
-      let amountAfterFeeAndGas
-      if (sellToken === etherTokenAddress) {
-        amountAfterFeeAndGas = amountAfterFee.sub(gasCosts)
-      } else {
-
+      // console.log({closesAuction, amountAfterFee: amountAfterFee.toString(10)})
+      
+      let amountAfterFeeAndGas = amountAfterFee
+      // i'm the buyer i'm buying with buytoken
+      // if buyToken is Ether it's a dutchOpportunity
+      // the amount being returned will be in Ether
+      if (buyToken === etherTokenAddress) {
+        amountAfterFeeAndGas = amountAfterFee//.sub(gasCosts)
       }
 
+      // console.log({amountAfterFeeAndGas: numberUtil.fromWei(amountAfterFeeAndGas).toString(10)})
       // if you were to claim your buy right away it would be that amountAfterFee
       // times the current price
-      let dutchPriceWithFee = dutchSpendAmount.mul(dutchPrice).div(amountAfterFeeAndGas)
-
+      let dutchPriceWithFee
+      // if your buy closes the auction there is no fee
+      if (closesAuction) {
+        // if you're using Ether to buy Token on the dutch x (dutchOpportunity)
+        // and there is no fee reducing your amount
+        // the price is calculated for after you've also paid the gasCosts in Ether
+        if (buyToken === etherTokenAddress) {
+          dutchPriceWithFee = amountAfterFee.mul(dutchPrice).div(amountAfterFee)//.sub(gasCosts))
+        } else {
+          dutchPriceWithFee = dutchPrice
+        }
+      } else {
+        dutchPriceWithFee = dutchSpendAmount.mul(dutchPrice).div(amountAfterFeeAndGas)
+      }
+      // console.log({dutchPriceWithFee: dutchPriceWithFee.toString(10)})
       // spendAmount is a buyToken. buyToken is traded for sellToken
       // sellToken is inputToken, outputToken is buyToken
       // uniswapSpendAmount is sellToken, outputAmount is inputToken
@@ -750,6 +797,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       let amountAfterFeeUniswap = this.getInputPrice(
         uniswapSpendAmount, inputBalance, outputBalance)
 
+      // console.log({amountAfterFeeUniswap: numberUtil.fromWei(amountAfterFeeUniswap).toString(10)})
       // if we take the price as amountAfterFeeUniswap / uniswapSpendAmount, it will be the total price for the entire purchase.
       // This purchase may be cheaper than the total price for a purchase on dutchX, but may also result in pushing the final
       // uniswap price above the current dutchX price. This would mean that part of the purchase made was at a loss. This strategy
@@ -763,18 +811,23 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         uniswapPrice = (amountAfterFeeUniswap.add(outputBalance)).div(inputBalance.add(uniswapSpendAmount))
       }
 
+      // console.log({uniswapPrice: uniswapPrice.toString(10)})
       if (dutchPriceWithFee.gt(uniswapPrice)) {
         isOpportunity = false
       } else {
         dutchSpendAmount = dutchSpendAmount.add(spendIncrement)
       }
     }
+    // console.log({dutchSpendAmount: numberUtil.fromWei(dutchSpendAmount).toString(10)})
     return dutchSpendAmount
   }
 
   // ------------------------------------------------------------------------
   // ---------    Arbitrage repository interaction functions     ------------
   // ------------------------------------------------------------------------
+  async balanceOf (address) {
+    return this._ethereumRepo.balanceOf({account:address})
+  }
   async ethToken () {
     return this._auctionRepo.ethToken()
   }

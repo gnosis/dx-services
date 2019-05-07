@@ -4,7 +4,7 @@ module.exports =
   // UNI
   tokenA: {
     address: '0x9f544a3fc3d1045e6ec49d4ecef6dcd700457165',
-    funding: 0.3
+    funding: 10
   },
   // WETH
   tokenB: {

@@ -46,8 +46,26 @@ function registerCommand ({ cli, logger }) {
           arbitrageContractAddress,
           minimumProfitInUsd: minimumUsdProfit
         })
-        logger.info(`The arbitrage transaction \
-${arbitrageResult.length > 0 ? 's were' : 'was'} successful. %o`, arbitrageResult)
+        let executions = arbitrageResult.length
+        logger.info(`${executions} arbitrage trans0xd54b47f8e6a1b97f3a84f63c867286272b273b7caction(s) \
+${executions !== 1 ? 'were' : 'was'} successfully executed. %O`, arbitrageResult)
+
+        // vv Uncomment to see logs
+        // if (executions > 0) {
+        //   arbitrageResult.map(r => {
+        //     r.tx.receipt.logs.map(l => {
+        //       console.log('l:', l)
+        //     })
+        //     r.tx.logs.map(l => {
+        //       console.log(l)
+        //       // console.log(l.args)
+        //       if (l.args.profit) {
+        //         console.log('Profit', l.args.profit.toString(10))
+        //       }
+        //     })
+        //   })
+        // }
+
       } catch (error) {
         logger.error('The arbitrage was NOT succesful.', error)
       }
