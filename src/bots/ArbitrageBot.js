@@ -121,7 +121,8 @@ class ArbitrageBot extends Bot {
     try {
       liquidityWasEnsured = await this._arbitrageService
         .checkUniswapArbitrage({
-          sellToken, buyToken, from, arbitrageContractAddress, minimumProfitInUsd })
+          sellToken, buyToken, from, arbitrageContractAddress, minimumProfitInUsd
+        })
         .then(successfulArbitrages => {
           let liquidityWasEnsured = successfulArbitrages.length > 0
           if (liquidityWasEnsured) {
@@ -266,7 +267,7 @@ class ArbitrageBot extends Bot {
       sellToken,
       buyToken,
       msg: 'There was an error running an arbitrage with the account %s: %s',
-      params: [ this._botAddress, error ],
+      params: [this._botAddress, error],
       error
     })
   }
@@ -274,6 +275,8 @@ class ArbitrageBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
+      arbitrageContractAddress: this._arbitrageContractAddress,
+      minimumProfitInUsd: this._minimumProfitInUsd,
       lastCheck: this._lastCheck,
       lastBuy: this._lastBuy,
       lastError: this._lastError,
