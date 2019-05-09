@@ -33,15 +33,27 @@ function registerCommand ({ cli, logger }) {
         account = accountFromConfig
       }
 
+      const tokenOwl = {
+        symbol: 'OWL',
+        tokenAddress: contracts.owl.address
+      }
+
       logger.info(`\n**********  Balance for ${account}  **********\n`)
-      const [ balanceETH, lockedFrt, currentLiqContributionLevel ] = await Promise.all([
+      const [ balanceETH, lockedFrt, currentLiqContributionLevel, owlBalances ] = await Promise.all([
         dxInfoService.getBalanceOfEther({ account }),
         contracts.mgn.lockedTokenBalances(account),
-        dxInfoService.getCurrentFeeRatio({ address: account })
+        dxInfoService.getCurrentFeeRatio({ address: account }),
+        _getBalance({
+          account,
+          token: tokenOwl,
+          dxInfoService,
+          dxAddress: contracts.dx.address
+        })
       ])
 
       logger.info('\tACCOUNT: %s', account)
       logger.info('\tBALANCE: %d ETH', formatUtil.formatFromWei(balanceETH))
+      logger.info('\tOWL BALANCE: %d OWL', formatUtil.formatFromWei(owlBalances.amount))
       logger.info('\tLocked FRT: %d MGN', formatUtil.formatFromWei(lockedFrt))
       logger.info('\tLiquidity Contribution Level: %d % ', currentLiqContributionLevel.mul(100))
 
