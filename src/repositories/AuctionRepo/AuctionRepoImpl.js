@@ -1258,15 +1258,20 @@ volume: ${state}`)
     let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
     outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
     let amountAfterFee = amount
+    let closesAuction = false
     if (amount.lt(outstandingVolume)) {
       if (amount.gt(0)) {
         amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice)
       }
     } else {
       amountAfterFee = outstandingVolume
+      closesAuction = true
     }
 
-    return amountAfterFee
+    return {
+      closesAuction,
+      amountAfterFee
+    }
   }
 
   async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice) {

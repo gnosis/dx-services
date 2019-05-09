@@ -12,7 +12,7 @@ const testSetup = require('../helpers/testSetup')
 // const clone = require('lodash.clonedeep')
 
 const numberUtil = require('../../src/helpers/numberUtil')
-const { toWei, fromWei } = numberUtil
+const { toWei, fromWei, toBigNumber } = numberUtil
 // const BigNumber = require('bignumber.js')
 
 const setupPromise = testSetup()
@@ -204,11 +204,76 @@ test('It should return the expected output price (input token amount) in Uniswap
     (OUTPUT_RESERVEB - DESIRED_OUTPUT_TOKENB)) *
     (1 + UNISWAP_FEE)
 
-  // console.log(expectedOutputPrice1)
-  // console.log(expectedOutputPrice2)
-  // console.log(fromWei(arbitrageService.getInputPrice(toWei(expectedOutputPrice1.toString()), INPUT_RESERVEA_WEI, OUTPUT_RESERVEA_WEI)).toFixed(4))
-  // console.log(fromWei(arbitrageService.getInputPrice(toWei(expectedOutputPrice2.toString()), INPUT_RESERVEB_WEI, OUTPUT_RESERVEB_WEI)).toFixed(4))
-
   expect(fromWei(outputPrice1).toFixed(4)).toBe(expectedOutputPrice1.toFixed(4))
   expect(fromWei(outputPrice2).toFixed(4)).toBe(expectedOutputPrice2.toFixed(4))
+})
+
+test('It should return the expected dutch spend amount', async () => {
+  const { arbitrageService } = await setupPromise
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  // we mock the auction repo
+  arbitrageService._auctionRepo.getCurrentAuctionPriceWithFees =
+    jest.fn(async ({ amount }) => {
+      return {
+        closesAuction: false,
+        amountAfterFee: amount.sub(amount.mul('5').div('1000'))
+      }
+    })
+
+  arbitrageService._auctionRepo.getOutstandingVolume =
+    jest.fn(async ({ amount }) => {
+      return toWei(100)
+    })
+
+  // GIVEN two markets with this conditions
+  // inputBalance is sellToken amount and outputBalance is buyToken amount
+  // For market A we simulate to have a price in uniswap of 320 / 20 = 16
+  const MAX_TO_SPEND = toWei(30) // We simulate to have 30 units of Token
+  const INPUT_BALANCEA = toWei(20)
+  const OUTPUT_BALANCEA = toWei(320)
+  const DUTCHX_PRICEA = toBigNumber(9.95)
+  // For market B we simulate to have a price in uniswap of 77 / 462 = 0,166666667
+  const INPUT_BALANCEB = toWei(462)
+  const OUTPUT_BALANCEB = toWei(77)
+  const DUTCHX_PRICEB = toBigNumber(0.0995)
+
+  // WHEN we check the amount we have to spend in DutchX
+  const dutchSpendAmount = await arbitrageService.getDutchSpendAmount({
+    maxToSpend: MAX_TO_SPEND,
+    inputBalance: INPUT_BALANCEA, // sellToken balance
+    outputBalance: OUTPUT_BALANCEA, // buyToken balance
+    dutchPrice: DUTCHX_PRICEA,
+    maximizeVolume: true,
+    // Params to check user fee
+    from: '0x123',
+    sellToken: '',
+    buyToken: '',
+    auctionIndex: 0,
+    owlAllowance: 0,
+    owlBalance: 0,
+    ethUSDPrice: 0
+  })
+
+  const dutchSpendAmount2 = await arbitrageService.getDutchSpendAmount({
+    maxToSpend: MAX_TO_SPEND,
+    inputBalance: INPUT_BALANCEB, // sellToken balance
+    outputBalance: OUTPUT_BALANCEB, // buyToken balance
+    dutchPrice: DUTCHX_PRICEB,
+    maximizeVolume: true,
+    // Params to check user fee
+    from: '0x123',
+    sellToken: '',
+    buyToken: '',
+    auctionIndex: 0,
+    owlAllowance: 0,
+    owlBalance: 0,
+    ethUSDPrice: 0
+  })
+
+  // THEN in this scenario we use all the tokens we have to spend
+  const expectedSpendAmount1 = fromWei(MAX_TO_SPEND)
+  const expectedSpendAmount2 = fromWei(MAX_TO_SPEND)
+  expect(fromWei(dutchSpendAmount).toFixed(4)).toBe(expectedSpendAmount1.toFixed(4))
+  expect(fromWei(dutchSpendAmount2).toFixed(4)).toBe(expectedSpendAmount2.toFixed(4))
 })
