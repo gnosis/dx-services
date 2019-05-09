@@ -221,6 +221,11 @@ test('It should return the expected dutch spend amount', async () => {
       }
     })
 
+  arbitrageService._auctionRepo.getOutstandingVolume =
+    jest.fn(async ({ amount }) => {
+      return toWei(100)
+    })
+
   // GIVEN two markets with this conditions
   // inputBalance is sellToken amount and outputBalance is buyToken amount
   // For market A we simulate to have a price in uniswap of 320 / 20 = 16
