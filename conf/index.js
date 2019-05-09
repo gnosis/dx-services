@@ -15,7 +15,8 @@ const defaultConf = {
   ...require('./config-contracts'),
   ...require('./config-notification'),
   ...require('./config-repos'),
-  ...require('./config-web3')
+  ...require('./config-web3'),
+  ...require('./developConstants')
 }
 
 // Load env conf

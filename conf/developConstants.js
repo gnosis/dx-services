@@ -59,7 +59,7 @@ module.exports = {
   PK: null,
   MARKETS,
   TOKENS,
-  ARBITRAGE_CONTRACT_ADDRESS: '0x0D1Cf17Cde8d82F9b5E225fB8bdD20f124562da3'
+  ARBITRAGE_CONTRACT_ADDRESS: '0xd54b47f8e6a1b97f3a84f63c867286272b273b7c'
   // TODO use only this default values when migration to latest version finished
   // MARKETS: [
   //   { tokenA: 'WETH', tokenB: 'RDN' },
