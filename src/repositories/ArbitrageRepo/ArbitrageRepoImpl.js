@@ -82,9 +82,9 @@ class ArbitrageRepoImpl extends Cacheable {
     return ArbitrageContract.at(arbitrageContractAddress)
   }
 
-  async owner(arbitrageContractAddress) {
-    const arbitrage = this._loadArbitrageContract({arbitrageContractAddress})
-    return await arbitrage.owner.call()
+  async owner (arbitrageContractAddress) {
+    const arbitrage = this._loadArbitrageContract({ arbitrageContractAddress })
+    return arbitrage.owner.call()
   }
 
   async getUniswapExchange (uniswapExchangeAddress) {

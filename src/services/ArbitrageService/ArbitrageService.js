@@ -200,6 +200,12 @@ check should be done`,
 
   async _getPricesAndAttemptArbitrage ({
     buyToken, sellToken, auctionIndex, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume }) {
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 0 - Start getting the prices and attempt arbitrage (before getting auction state)',
+      params: []
+    })
     const {
       sellVolume,
       isClosed,
@@ -220,6 +226,12 @@ check should be done`,
         // it is buyToken per sellToken, so it tells us that
         // price = buyerToken / sellerToken
         // result = buytoken / price
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'Step 1 - Get current auction price in DutchX',
+          params: []
+        })
         const {
           numerator, // buyVolumes[sellToken][buyToken]
           denominator // sellVolumesCurrent[sellToken][buyToken]
@@ -231,10 +243,22 @@ check should be done`,
         })
         const dutchPrice = numerator.div(denominator)
 
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'Step 2 - Check if it is DutchAttempt (is buy token ETH)',
+          params: []
+        })
         // When we buy any token with WETH and then we get WETH back in Uniswap
         // we call it a dutch attempt.
         const dutchAttempt = this._auctionRepo.isTokenEth(buyToken)
 
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'Step 3 - Get current Uniswap balances (uniswap price)',
+          params: []
+        })
         // now we get the current state of the Uniswap exchange for our token pair
         const {
           inputBalance, // our current sellToken on DutchX
@@ -243,6 +267,12 @@ check should be done`,
 
         let uniswapPrice = outputBalance.div(inputBalance) // buyToken per sellToken
 
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'Step 4 - Get ETH token address and get arbitrage contract ETH balance',
+          params: []
+        })
         // Get etherToken address
         const etherTokenAddress = await this._auctionRepo.getTokenAddress({ token: 'WETH' })
         // next we check our arbitrage contract Ether balance
@@ -262,7 +292,14 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
           })
           return null
         }
-
+        auctionLogger.debug({
+          sellToken,
+          buyToken,
+          msg: 'Step 5 - We check if dutchPrice %d is less than uniswapPrice %d',
+          params: [
+            dutchPrice, uniswapPrice
+          ]
+        })
         // If DutchX prices are lower than Uniswap prices
         if (dutchPrice.lt(uniswapPrice)) {
           auctionLogger.debug({
@@ -293,7 +330,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
               arbitrageContractAddress,
               minimumProfitInUsd
             })
-          } else if (this._arbitrageRepo.isTokenEth(sellToken)) {
+          } else if (this._auctionRepo.isTokenEth(sellToken)) {
             // We are the buyer. If the seller token is Ether that means the buyer
             // token is some real token. We use the buyer token to get etherToken from
             // the DutchX. If we want Ether from DutchX, it means we would have bought
@@ -494,21 +531,21 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         buyToken,
         msg: 'Completed a DutchX opportunity: \n%O',
         params: [{
-          balanceBefore: numberUtil.fromWei(balanceBefore).toString(10) + ' Weth',
-          balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' Weth',
-          actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' weth',
-          actualProfit: actualProfit.toString(10) + ' Weth Wei',
+          balanceBefore: numberUtil.fromWei(balanceBefore).toString(10) + ' WETH',
+          balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' WETH',
+          actualProfit: numberUtil.fromWei(actualProfit).toString(10) + ' WETH',
           actualProfitUSD: numberUtil.fromWei(actualProfit).mul(ethUSDPrice).toString(10) + ' USD'
         }]
       })
       return {
         type: 'DutchOpportunity',
-        arbToken: sellToken,
-        amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
-        expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' weth',
-        actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' weth',
-        dutchPrice: dutchPrice.toString(10) + ' WEI / token',
-        uniswapPrice: uniswapPrice.toString(10) + ' WEI / token',
+        sellToken,
+        buyToken,
+        amount,
+        expectedProfit,
+        actualProfit,
+        dutchPrice,
+        uniswapPrice,
         tx
       }
     }
@@ -649,19 +686,19 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
           balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' ETH',
           balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' ETH',
           actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' ETH',
-          actualProfitWei: actualProfit.toString(10) + ' Wei',
           actualProfitUSD: numberUtil.fromWei(actualProfit).mul(ethUSDPrice).toString(10) + ' USD'
         }]
       })
       return {
         type: 'UniswapOpportunity',
-        arbToken: buyToken,
+        sellToken,
+        buyToken,
+        amount,
         tokenAmount: numberUtil.fromWei(tokenAmount).toString(10) + ` ${buyToken}`,
-        amount: numberUtil.fromWei(amount).toString(10) + ' ETH',
-        expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' ETH',
-        actualProfitEth: numberUtil.fromWei(actualProfit).toString(10) + ' ETH',
-        dutchPrice: dutchPrice.toString(10) + ' WEI / token',
-        uniswapPrice: uniswapPrice.toString(10) + ' WEI / token',
+        expectedProfit,
+        actualProfit,
+        dutchPrice,
+        uniswapPrice,
         tx
       }
     }
