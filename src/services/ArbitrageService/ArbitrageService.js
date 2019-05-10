@@ -493,7 +493,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     if (amount.gt(0) && expectedProfitInUsd.gt(minimumProfitInUsd)) {
       // const expectedProfit = uniswapExpected.sub(amount)
       uniswapPrice = uniswapExpected.div(amount)
-      dutchPrice = numberUtil.toBigNumber(1).div(amount.mul(dutchPrice).div(amountAfterFee))
+      dutchPrice = amount.mul(dutchPrice).div(amountAfterFee)
       auctionLogger.debug({
         sellToken,
         buyToken,
@@ -509,29 +509,25 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         }]
       })
 
-      let balanceBefore = await this._auctionRepo.getBalance({
-        token: etherTokenAddress,
-        address: arbitrageContractAddress
-      })
-
-      let tx = await this._arbitrageRepo.dutchOpportunity({
+      const tx = await this._arbitrageRepo.dutchOpportunity({
         arbToken: sellToken,
         amount,
         from,
         arbitrageContractAddress
       })
 
-      let balanceAfter = await this._auctionRepo.getBalance({
+      const balanceAfter = await this._auctionRepo.getBalance({
         token: etherTokenAddress,
         address: arbitrageContractAddress
       })
+
       const actualProfit = balanceAfter.sub(maxEtherToSpend)
       auctionLogger.info({
         sellToken,
         buyToken,
         msg: 'Completed a DutchX opportunity: \n%O',
         params: [{
-          balanceBefore: numberUtil.fromWei(balanceBefore).toString(10) + ' WETH',
+          balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' WETH',
           balanceAfter: numberUtil.fromWei(balanceAfter).toString(10) + ' WETH',
           actualProfit: numberUtil.fromWei(actualProfit).toString(10) + ' WETH',
           actualProfitUSD: numberUtil.fromWei(actualProfit).mul(ethUSDPrice).toString(10) + ' USD'
@@ -653,7 +649,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // if the amount to spend is 0 there is no opportunity
     // otherwise execute the opportunity
     if (amount.gt(0) && expectedProfitInUsd.gt(minimumProfitInUsd)) {
-      dutchPrice = amount.mul(dutchPrice).div(amountAfterFee)
+      dutchPrice = amount.mul(dutchPrice).div(dutchXExpected)
       uniswapPrice = tokenAmount.div(amount)
       auctionLogger.debug({
         sellToken,
@@ -666,14 +662,14 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         }]
       })
 
-      let tx = await this._arbitrageRepo.uniswapOpportunity({
+      const tx = await this._arbitrageRepo.uniswapOpportunity({
         arbToken: buyToken,
         amount,
         from,
         arbitrageContractAddress
       })
 
-      let balanceAfter = await this._auctionRepo.getBalance({
+      const balanceAfter = await this._auctionRepo.getBalance({
         token: etherTokenAddress,
         address: arbitrageContractAddress
       })

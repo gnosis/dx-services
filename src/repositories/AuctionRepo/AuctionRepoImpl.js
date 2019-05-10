@@ -1251,7 +1251,6 @@ volume: ${state}`)
     const cacheTime = 15
     const { numerator, denominator } = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex, cacheTime })
     const sellVolume = await this.getSellVolume({ sellToken, buyToken, cacheTime })
-
     const buyVolume = await this.getBuyVolume({ sellToken, buyToken, cacheTime })
 
     // 10^30 * 10^37 = 10^67
