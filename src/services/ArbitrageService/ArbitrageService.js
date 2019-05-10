@@ -466,7 +466,6 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       sellToken, tokensExpectedFromDutch.toString(10))
 
     const expectedProfit = uniswapExpected.sub(amount)// .sub(gasCosts)
-
     const expectedProfitInUsd = await this._auctionRepo.getPriceInUSD({
       token: buyToken,
       amount: expectedProfit
@@ -499,11 +498,11 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         buyToken,
         msg: 'Making a DutchX opportunity transaction: \n%O',
         params: [{
-          balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' Eth',
-          amount: numberUtil.fromWei(amount).toString(10) + ' Eth',
-          uniswapExpected: numberUtil.fromWei(uniswapExpected).toString(10) + ' Eth',
+          balanceBefore: numberUtil.fromWei(maxEtherToSpend).toString(10) + ' ETH',
+          amount: numberUtil.fromWei(amount).toString(10) + ' ETH',
+          uniswapExpected: numberUtil.fromWei(uniswapExpected).toString(10) + ' ETH',
           tokensExpectedFromDutch: numberUtil.fromWei(tokensExpectedFromDutch).toString(10) + ' Tokens',
-          expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' Eth',
+          expectedProfit: numberUtil.fromWei(expectedProfit).toString(10) + ' ETH',
           uniswapPrice: uniswapPrice.toString(10) + ' WEI / token',
           dutchPrice: dutchPrice.toString(10) + ' WEI / token'
         }]
