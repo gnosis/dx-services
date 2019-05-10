@@ -463,7 +463,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
 
     // how much Ether would be returned after selling the sellToken on Uniswap
     let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(
-      sellToken, tokensExpectedFromDutch.toString(10))
+      sellToken, tokensExpectedFromDutch)
 
     const expectedProfit = uniswapExpected.sub(amount)// .sub(gasCosts)
     const expectedProfitInUsd = await this._auctionRepo.getPriceInUSD({
