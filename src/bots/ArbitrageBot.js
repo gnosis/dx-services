@@ -163,6 +163,7 @@ class ArbitrageBot extends Bot {
       actualProfit,
       dutchPrice,
       uniswapPrice,
+      ethUSDPrice,
       tx
     } = arbitrage
 
@@ -199,6 +200,7 @@ class ArbitrageBot extends Bot {
               actualProfit,
               dutchPrice,
               uniswapPrice,
+              ethUSDPrice,
               tx
             })
           }
@@ -213,7 +215,9 @@ class ArbitrageBot extends Bot {
     })
   }
 
-  _notifyArbitrageSlack ({ channel, type, sellToken, buyToken, amount, expectedProfit, actualProfit, dutchPrice, uniswapPrice, tx }) {
+  _notifyArbitrageSlack ({
+    channel, type, sellToken, buyToken, amount, expectedProfit, actualProfit, dutchPrice, uniswapPrice, ethUSDPrice, tx
+  }) {
     const tokenPairString = sellToken + '/' + buyToken
     this._slackRepo
       .postMessage({
@@ -234,7 +238,7 @@ class ArbitrageBot extends Bot {
                 short: false
               }, {
                 title: 'Tx hash',
-                value: tx.transactionHash,
+                value: tx.hash,
                 short: false
               }, {
                 title: 'Amount spend',
@@ -242,11 +246,11 @@ class ArbitrageBot extends Bot {
                 short: false
               }, {
                 title: 'Expected Profit',
-                value: fromWei(expectedProfit) + ' ETH',
+                value: fromWei(expectedProfit) + ' ETH (' + fromWei(expectedProfit).mul(ethUSDPrice) + ' USD)',
                 short: false
               }, {
                 title: 'Actual Profit',
-                value: fromWei(actualProfit) + ' ETH',
+                value: fromWei(actualProfit) + ' ETH (' + fromWei(actualProfit).mul(ethUSDPrice) + ' USD)',
                 short: false
               }, {
                 title: 'Dutch Price',
