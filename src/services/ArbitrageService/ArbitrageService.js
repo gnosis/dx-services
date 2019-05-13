@@ -453,9 +453,27 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ethUSDPrice
     })
 
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 1 - Get DutchSpendAmount %s',
+      params: [
+        numberUtil.fromWei(amount).toString(10)
+      ]
+    })
+
     let { closesAuction, amountAfterFee } = await this._auctionRepo.getCurrentAuctionPriceWithFees({
       sellToken, buyToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice })
     const tokensExpectedFromDutch = amountAfterFee.div(dutchPrice)
+
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 2 - Get amount after fee %s)',
+      params: [
+        numberUtil.fromWei(amountAfterFee).toString(10)
+      ]
+    })
 
     if (closesAuction) {
       amount = amountAfterFee
@@ -464,6 +482,15 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // how much Ether would be returned after selling the sellToken on Uniswap
     let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(
       sellToken, tokensExpectedFromDutch)
+
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 3 - Get Uniswap expected amount %s',
+      params: [
+        numberUtil.fromWei(uniswapExpected).toString(10)
+      ]
+    })
 
     const expectedProfit = uniswapExpected.sub(amount)// .sub(gasCosts)
     const expectedProfitInUsd = await this._auctionRepo.getPriceInUSD({
@@ -609,10 +636,28 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       owlBalance,
       ethUSDPrice
     })
+
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 1 - Get DutchSpendAmount %s',
+      params: [
+        numberUtil.fromWei(tokenAmount).toString(10)
+      ]
+    })
     // now we have the amount to use as buyToken on DutchX, but we actually
     // need the amount of Ether to spend on Uniswap. To get this we need
     // to find out how much the tokens cost in Ether on Uniswap.
     let amount = this.getOutputPrice(tokenAmount, inputBalance, outputBalance)
+
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 2 - Get Uniswap expected amount %s',
+      params: [
+        numberUtil.fromWei(amount).toString(10)
+      ]
+    })
 
     // how much Ether would I get when buying after fees applied on DutchX
     let { closesAuction, amountAfterFee } = await this._auctionRepo.getCurrentAuctionPriceWithFees({
@@ -623,6 +668,15 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // if (closesAuction) {
     //   amount = amountAfterFee
     // }
+
+    auctionLogger.debug({
+      sellToken,
+      buyToken,
+      msg: 'Step 3 - Get amount after fee %s)',
+      params: [
+        numberUtil.fromWei(amountAfterFee).toString(10)
+      ]
+    })
 
     const expectedProfit = dutchXExpected.sub(amount)// .sub(gasCosts)
 
