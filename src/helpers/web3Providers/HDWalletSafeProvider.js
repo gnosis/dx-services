@@ -57,6 +57,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
     // Configure all the safes, and construct some handy maps
     this._safesByOperator = this._loadSafesByOperator(safes)
+
     this._safesByAddress = Object.values(this._safesByOperator).reduce((acc, safes) => {
       safes.forEach(safe => {
         acc[safe.safeAddress] = safe
@@ -82,36 +83,48 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         safeModuleAddress
       } = safe
       assert(operatorAddressIndex >= 0, `"operatorAddressIndex" is mandatory for running in Safe mode. Offending safe: ${index}`)
-      assert(that.addresses.length >= operatorAddressIndex, `"operatorAddressIndex" cannot be ${operatorAddressIndex}, there's only ${that.addresses.length} addresses in the waller. Offending safe: ${index}`)
-      assert(safeAddress, `"safeAddress" is mandatory for running in Safe mode. Offending safe: ${index}`)
-      assert(safeModuleType, `"moduleType" is mandatory for running in Safe mode. Offending safe: ${index}`)
-      assert(safeModuleAddress, `"safeModuleAddress" is mandatory for running in Safe mode. Offending safe: ${index}`)
+      assert(that.addresses.length > operatorAddressIndex, `"operatorAddressIndex" cannot be ${operatorAddressIndex}, there's only ${that.addresses.length} addresses in the waller. Offending safe: ${index}`)
 
-      const operatorAddress = this.addresses[operatorAddressIndex] // use 1st account in HDWallet
-      logger.debug(`Configuring safe ${index + 1} of ${safes.length}:
-        safeAddress: ${safeAddress}
-        operatorAddress: ${operatorAddress}
-        safeModuleAddress: ${safeModuleAddress}
-        moduleType: ${safeModuleType}`)
+      const operatorAddress = that.addresses[operatorAddressIndex]
+      assert(operatorAddress, `"operatorAddress" cannot get the address number ${operatorAddressIndex}. Offending safe: ${index}`)
 
-      const moduleContract = that._loadSafeModuleContract({
-        moduleType: safeModuleType,
-        safeModuleAddress
-      })
+      if (safeAddress) {
+        assert(safeModuleType, `"moduleType" is mandatory for running in Safe mode. Offending safe: ${index}`)
+        assert(safeModuleAddress, `"safeModuleAddress" is mandatory for running in Safe mode. Offending safe: ${index}`)
 
-      const safeDetails = {
-        id: index,
-        operatorAddress,
-        safeAddress,
-        moduleType: safeModuleType,
-        safeModuleAddress,
-        moduleContract
-      }
+        logger.debug(`Configuring Safe account: ${index + 1} of ${safes.length}:
+          safeAddress: ${safeAddress}
+          operatorAddress: ${operatorAddress}
+          safeModuleAddress: ${safeModuleAddress}
+          moduleType: ${safeModuleType}`)
 
-      if (acc[operatorAddress]) {
-        acc[operatorAddress].push(safeDetails)
+        const moduleContract = that._loadSafeModuleContract({
+          moduleType: safeModuleType,
+          safeModuleAddress
+        })
+
+        const safeDetails = {
+          id: index,
+          operatorAddress,
+          safeAddress,
+          moduleType: safeModuleType,
+          safeModuleAddress,
+          moduleContract
+        }
+
+        if (acc[operatorAddress]) {
+          acc[operatorAddress].push(safeDetails)
+        } else {
+          acc[operatorAddress] = [safeDetails]
+        }
       } else {
-        acc[operatorAddress] = [safeDetails]
+        logger.debug(`Configuring a NON Safe account: ${index + 1} of ${safes.length}
+          operatorAddress: ${operatorAddress}`)
+
+        if (!acc[operatorAddress]) {
+          // Add operator, but without safe
+          acc[operatorAddress] = []
+        }
       }
 
       return acc
@@ -228,8 +241,6 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       const {
         from
       } = txDetails
-
-      console.log(txDetails)
 
       const safe = this._safesByAddress[from]
       const operator = this._safesByOperator[from]
