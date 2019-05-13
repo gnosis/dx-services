@@ -3,6 +3,8 @@ const AuctionLogger = require('../helpers/AuctionLogger')
 const Bot = require('./Bot')
 const Logger = require('../helpers/Logger')
 const assert = require('assert')
+const numberUtil = require('../helpers/numberUtil')
+const { fromWei } = numberUtil
 
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
@@ -153,27 +155,32 @@ class ArbitrageBot extends Bot {
 
   _notifyArbitrage (arbitrage) {
     const {
-      type,
-      arbToken,
+      type: arbType,
+      sellToken,
+      buyToken,
       amount,
       expectedProfit,
       actualProfit,
       dutchPrice,
       uniswapPrice,
+      ethUSDPrice,
       tx
     } = arbitrage
 
     auctionLogger.info({
-      type,
-      arbToken,
-      amount,
-      expectedProfit,
-      actualProfit,
-      dutchPrice,
-      uniswapPrice,
+      sellToken,
+      buyToken,
       tx,
-      msg: `Successful ${type} arbitrage`,
-      params: tx.receipt.logs,
+      msg: `Successful %s arbitrage. Used %d ETH when dutchXPrice was %d and uniswapPrice was %d. Expected profit %d, actual profit was %d`,
+      params: [
+        arbType,
+        fromWei(amount),
+        dutchPrice,
+        uniswapPrice,
+        fromWei(expectedProfit),
+        fromWei(actualProfit),
+        tx.receipt.logs
+      ],
       notify: true
     })
 
@@ -185,13 +192,15 @@ class ArbitrageBot extends Bot {
           if (this._slackRepo.isEnabled()) {
             this._notifyArbitrageSlack({
               channel,
-              type,
-              arbToken,
+              type: arbType,
+              sellToken,
+              buyToken,
               amount,
               expectedProfit,
               actualProfit,
               dutchPrice,
               uniswapPrice,
+              ethUSDPrice,
               tx
             })
           }
@@ -206,7 +215,10 @@ class ArbitrageBot extends Bot {
     })
   }
 
-  _notifyArbitrageSlack ({ channel, type, arbToken, amount, expectedProfit, actualProfit, dutchPrice, uniswapPrice, tx }) {
+  _notifyArbitrageSlack ({
+    channel, type, sellToken, buyToken, amount, expectedProfit, actualProfit, dutchPrice, uniswapPrice, ethUSDPrice, tx
+  }) {
+    const tokenPairString = sellToken + '/' + buyToken
     this._slackRepo
       .postMessage({
         channel,
@@ -222,31 +234,31 @@ class ArbitrageBot extends Bot {
                 short: false
               }, {
                 title: 'Token pair',
-                value: arbToken + '-WETH',
+                value: sellToken + '-' + buyToken,
                 short: false
               }, {
                 title: 'Tx hash',
-                value: tx.transactionHash,
+                value: tx.hash,
                 short: false
               }, {
-                title: 'Amount spend (wei)',
-                value: amount,
+                title: 'Amount spend',
+                value: fromWei(amount) + ' ETH',
                 short: false
               }, {
-                title: 'Expected Profit (wei)',
-                value: expectedProfit,
+                title: 'Expected Profit',
+                value: fromWei(expectedProfit) + ' ETH (' + fromWei(expectedProfit).mul(ethUSDPrice) + ' USD)',
                 short: false
               }, {
-                title: 'Actual Profit (wei)',
-                value: actualProfit,
+                title: 'Actual Profit',
+                value: fromWei(actualProfit) + ' ETH (' + fromWei(actualProfit).mul(ethUSDPrice) + ' USD)',
                 short: false
               }, {
                 title: 'Dutch Price',
-                value: dutchPrice,
+                value: dutchPrice + ' ' + tokenPairString,
                 short: false
               }, {
                 title: 'uniswapPrice',
-                value: uniswapPrice,
+                value: uniswapPrice + ' ' + tokenPairString,
                 short: false
               }
             ],
