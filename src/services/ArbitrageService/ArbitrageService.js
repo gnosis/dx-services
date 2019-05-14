@@ -226,12 +226,6 @@ check should be done`,
         // it is buyToken per sellToken, so it tells us that
         // price = buyerToken / sellerToken
         // result = buytoken / price
-        // auctionLogger.debug({
-        //   sellToken,
-        //   buyToken,
-        //   msg: 'Step 1 - Get current auction price in DutchX',
-        //   params: []
-        // })
         const {
           numerator, // buyVolumes[sellToken][buyToken]
           denominator // sellVolumesCurrent[sellToken][buyToken]
@@ -243,22 +237,10 @@ check should be done`,
         })
         const dutchPrice = numerator.div(denominator)
 
-        // auctionLogger.debug({
-        //   sellToken,
-        //   buyToken,
-        //   msg: 'Step 2 - Check if it is DutchAttempt (is buy token ETH)',
-        //   params: []
-        // })
         // When we buy any token with WETH and then we get WETH back in Uniswap
         // we call it a dutch attempt.
         const dutchAttempt = this._auctionRepo.isTokenEth(buyToken)
 
-        auctionLogger.debug({
-          sellToken,
-          buyToken,
-          msg: 'Step 3 - Get current Uniswap balances (uniswap price)',
-          params: []
-        })
         // now we get the current state of the Uniswap exchange for our token pair
         const {
           inputBalance, // our current sellToken on DutchX
@@ -267,12 +249,6 @@ check should be done`,
 
         let uniswapPrice = outputBalance.div(inputBalance) // buyToken per sellToken
 
-        // auctionLogger.debug({
-        //   sellToken,
-        //   buyToken,
-        //   msg: 'Step 4 - Get ETH token address and get arbitrage contract ETH balance',
-        //   params: []
-        // })
         // Get etherToken address
         const etherTokenAddress = await this._auctionRepo.getTokenAddress({ token: 'WETH' })
         // next we check our arbitrage contract Ether balance
@@ -292,14 +268,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
           })
           return null
         }
-        auctionLogger.debug({
-          sellToken,
-          buyToken,
-          msg: 'Step 5 - We check if dutchPrice %d is less than uniswapPrice %d',
-          params: [
-            dutchPrice, uniswapPrice
-          ]
-        })
+
         // If DutchX prices are lower than Uniswap prices
         if (dutchPrice.lt(uniswapPrice)) {
           auctionLogger.debug({
@@ -469,9 +438,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     auctionLogger.debug({
       sellToken,
       buyToken,
-      msg: 'Step 2 - Get amount after fee %s)',
+      msg: 'Step 2 - Get amountAfterFee = %s and tokensExpectedFromDutch = %s',
       params: [
-        numberUtil.fromWei(amountAfterFee).toString(10)
+        numberUtil.fromWei(amountAfterFee).toString(10),
+        numberUtil.fromWei(tokensExpectedFromDutch).toString(10)
       ]
     })
 
@@ -480,8 +450,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     }
 
     // how much Ether would be returned after selling the sellToken on Uniswap
-    let uniswapExpected = await this._arbitrageRepo.getTokenToEthInputPrice(
-      sellToken, tokensExpectedFromDutch)
+    let uniswapExpected = amount.gt(0)
+      ? await this._arbitrageRepo.getTokenToEthInputPrice(
+        sellToken, tokensExpectedFromDutch)
+      : numberUtil.toBigNumber('0')
 
     auctionLogger.debug({
       sellToken,

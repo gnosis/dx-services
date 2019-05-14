@@ -93,6 +93,9 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async getEthToTokenInputPrice (token, amount) {
+    assert(token, 'The token is required')
+    assert(amount > 0, 'The amount is required and must be greater than 0')
+
     const tokenAddress = this._getTokenAddress(token)
     const uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenAddress)
     const uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
@@ -100,6 +103,9 @@ class ArbitrageRepoImpl extends Cacheable {
   }
 
   async getTokenToEthInputPrice (token, amount) {
+    assert(token, 'The token is required')
+    assert(amount > 0, 'The amount is required and must be greater than 0')
+
     const tokenAddress = this._getTokenAddress(token)
     const uniswapExchangeAddress = await this._uniswapFactory.getExchange.call(tokenAddress)
     const uniswapExchangeInstance = await this.getUniswapExchange(uniswapExchangeAddress)
