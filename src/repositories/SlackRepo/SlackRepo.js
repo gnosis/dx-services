@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { WebClient } = require('@slack/client')
+const { WebClient } = require('@slack/web-api')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
