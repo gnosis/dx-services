@@ -1,6 +1,6 @@
 const DepositBot = require('../../src/bots/DepositBot')
 const testSetup = require('../helpers/testSetup')
-jest.setTimeout(10000)
+jest.setTimeout(15000)
 
 const BigNumber = require('bignumber.js')
 
@@ -8,7 +8,7 @@ const TOKENS = ['WETH', 'RDN']
 
 const setupPromise = testSetup()
 
-let depositBot, setupInstance
+let depositBot
 beforeAll(async () => {
   const { dxInfoService, dxTradeService } = await setupPromise
 

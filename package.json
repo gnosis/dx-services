@@ -111,7 +111,7 @@
     "eslint-plugin-node": "^9.0.0",
     "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
-    "ganache-cli": "^6.4.4-beta.0",
+    "ganache-cli": "^6.4.3",
     "nodemon": "^1.19.0",
     "prettier-standard": "^9.1.1",
     "yamljs": "^0.3.0"

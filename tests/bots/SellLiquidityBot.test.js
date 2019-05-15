@@ -1,7 +1,6 @@
 const SellLiquidityBot = require('../../src/bots/SellLiquidityBot')
 const testSetup = require('../helpers/testSetup')
-
-jest.setTimeout(10000)
+jest.setTimeout(15000)
 
 const BigNumber = require('bignumber.js')
 

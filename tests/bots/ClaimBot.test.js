@@ -1,5 +1,5 @@
 const ClaimBot = require('../../src/bots/ClaimBot')
-jest.setTimeout(10000)
+jest.setTimeout(15000)
 
 const testSetup = require('../helpers/testSetup')
 const setupPromise = testSetup()

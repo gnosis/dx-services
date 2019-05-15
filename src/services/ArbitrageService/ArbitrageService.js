@@ -403,6 +403,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ]
     })
 
+    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
+      sellToken, buyToken, auctionIndex
+    })
+
     // on a dutchOpportunity the maxToSpend remains as maxEtherAmount. In this case is the
     // maximum amount of Ether we should spend on this opportunity to make a profit
     let amount = await this.getDutchSpendAmount({
@@ -475,6 +479,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       buyToken,
       msg: 'Data to evaluate DutchX Opportunity: \n %O',
       params: [{
+        outstandingVolume: numberUtil.fromWei(outstandingVolume).toString(),
         amount: numberUtil.fromWei(amount).toString(10),
         amountAfterFee: numberUtil.fromWei(amountAfterFee).toString(10),
         closesAuction,
@@ -584,6 +589,10 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ]
     })
 
+    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
+      sellToken, buyToken, auctionIndex
+    })
+
     // maxToSpend is referring to the maximum amount of buyTokens on DutchX.
     // when the buyToken is an actual token instead of Ether, it means that
     // maxToSpend will be the result of spending all available Ether on Uniswap.
@@ -663,6 +672,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       msg: 'Check Uniswap opportunity: \n%O',
       params: [
         {
+          outstandingVolume: numberUtil.fromWei(outstandingVolume).toString(),
           tokenAmount: numberUtil.fromWei(tokenAmount).toString(10) + ` ${buyToken}`,
           amount: numberUtil.fromWei(amount).toString(10) + ' ETH',
           dutchExpected: numberUtil.fromWei(dutchXExpected).toString(10) + ' ETH',
