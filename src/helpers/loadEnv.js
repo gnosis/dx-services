@@ -15,10 +15,16 @@ function initEnv () {
 ---------------------- Missing config file ----------------------
   Error configuring ENV vars with file "${ENV_PATH}"
 
-  Make sure you've created the file "${ENV_PATH}" using "${ENV_PATH}.example" as a template
-  i.e)
-        cp ${ENV_PATH}.example ${ENV_PATH}
-        vim ${ENV_PATH}
+  Make sure you've created the file "${ENV_PATH}"
+  
+  You can use one of the following as a template:
+    - env/mainnet.example
+    - env/rinkeby.example
+    - env/kovan.example
+
+  i.e) Create a mainnet config by:
+        cp env/mainnet.example env/mainnet
+        vim env/mainnet
 -----------------------------------------------------------------
 `)
     throw error

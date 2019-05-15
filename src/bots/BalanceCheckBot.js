@@ -314,7 +314,7 @@ class BalanceCheckBot extends Bot {
 
     // Log message
     logger.warn({
-      msg: `[${account}] ` + message,
+      msg: `[${account}] ${message} - ${this.name}`,
       contextData: {
         extra: {
           balanceOfEther: balance,
@@ -389,7 +389,7 @@ class BalanceCheckBot extends Bot {
 
     // Log message
     logger.warn({
-      msg: `[${accountsDescription}] ` + message + ': ' + tokenNames,
+      msg: `[${accountsDescription}] ${message}: ${tokenNames} - ${this.name}`,
       contextData: {
         extra: {
           account: accountsDescription,
