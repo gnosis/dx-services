@@ -42,7 +42,7 @@ test('It should ensureSellLiquidity', async () => {
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', liquidityRules: {}, waitToReleaseTheLock: false
   })
 
   // THEN bot sells in both sides, WETH-OMG and OMG-WETH, the pair market we expect
@@ -206,10 +206,10 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
 
   // WHEN we ensure sell liquidity twice
   let ensureLiquidityPromise1 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', liquidityRules: {}, waitToReleaseTheLock: false
   })
   let ensureLiquidityPromise2 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', liquidityRules: {}, waitToReleaseTheLock: false
   })
 
   await Promise.all([
@@ -231,7 +231,7 @@ test('It should not ensure sell liquidity if auction is not waiting for funding'
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', liquidityRules: {}, waitToReleaseTheLock: false
   })
 
   // THEN we shouldn't be adding funds
@@ -253,7 +253,7 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   try {
     // WHEN we ensure sell liquidity
     await liquidityService.ensureSellLiquidity({
-      sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+      sellToken: 'OMG', buyToken: 'WETH', from: '0x123', liquidityRules: {}, waitToReleaseTheLock: false
     })
   } catch (e) {
     // THEN we get an error becuse we shouldn't ensure liquidity
