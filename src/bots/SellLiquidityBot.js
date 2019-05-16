@@ -12,7 +12,6 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
 const BOT_TYPE = 'SellLiquidityBot'
-const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
@@ -24,8 +23,10 @@ class SellLiquidityBot extends Bot {
     botAddress,
     accountIndex,
     minimumSellVolumeInUsd,
+    balancePercentageToSell,
+    sellOnlyToken,
     markets,
-    botTransactionsSlackChannel,
+    rules,
     notifications,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
@@ -51,6 +52,9 @@ class SellLiquidityBot extends Bot {
     }
 
     this._markets = markets
+    this._balancePercentageToSell = balancePercentageToSell
+    this._sellOnlyToken = sellOnlyToken
+    this._rules = rules
     this._minimumSellVolumeInUsd = minimumSellVolumeInUsd
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
@@ -146,13 +150,19 @@ class SellLiquidityBot extends Bot {
   async _ensureSellLiquidity ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
+    const liquidityRules = this._rules
     try {
       liquidityWasEnsured = await this._liquidityService
         .ensureSellLiquidity({
           sellToken,
           buyToken,
           from,
-          minimumSellVolumeInUsd: this._minimumSellVolumeInUsd
+          liquidityRules: {
+            ...liquidityRules,
+            minimumSellVolumeInUsd: this._minimumSellVolumeInUsd,
+            balancePercentageToSell: this._balancePercentageToSell,
+            sellOnlyToken: this._sellOnlyToken
+          }
         })
         .then(soldTokens => {
           let liquidityWasEnsured = soldTokens.length > 0

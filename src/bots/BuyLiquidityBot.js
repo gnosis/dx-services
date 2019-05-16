@@ -114,10 +114,10 @@ class BuyLiquidityBot extends Bot {
   async _ensureBuyLiquidity ({ sellToken, buyToken, from }) {
     this._lastCheck = new Date()
     let liquidityWasEnsured
-    const buyLiquidityRules = this._rules
+    const liquidityRules = this._rules
     try {
       liquidityWasEnsured = await this._liquidityService
-        .ensureBuyLiquidity({ sellToken, buyToken, from, buyLiquidityRules })
+        .ensureBuyLiquidity({ sellToken, buyToken, from, liquidityRules })
         .then(boughtTokens => {
           let liquidityWasEnsured = boughtTokens.length > 0
           if (liquidityWasEnsured) {

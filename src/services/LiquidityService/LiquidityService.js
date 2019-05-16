@@ -14,7 +14,6 @@ const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_
 class LiquidityService {
   constructor ({
     // repos
-    arbitrageRepo,
     auctionRepo,
     ethereumRepo,
     priceRepo,
@@ -22,13 +21,11 @@ class LiquidityService {
     // config
     buyLiquidityRulesDefault
   }) {
-    assert(arbitrageRepo, '"arbitrageRepo" is required')
     assert(auctionRepo, '"auctionRepo" is required')
     assert(ethereumRepo, '"ethereumRepo" is required')
     assert(priceRepo, '"priceRepo" is required')
     assert(buyLiquidityRulesDefault, '"buyLiquidityRulesDefault" is required')
 
-    this._arbitrageRepo = arbitrageRepo
     this._auctionRepo = auctionRepo
     this._priceRepo = priceRepo
     this._ethereumRepo = ethereumRepo
@@ -62,12 +59,12 @@ class LiquidityService {
     }
   }
 
-  async ensureBuyLiquidity ({ sellToken, buyToken, from, buyLiquidityRules, waitToReleaseTheLock = false }) {
+  async ensureBuyLiquidity ({ sellToken, buyToken, from, liquidityRules, waitToReleaseTheLock = false }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
-      buyLiquidityRules,
+      liquidityRules,
       waitToReleaseTheLock,
       liquidityCheckName: 'buy'
     })
@@ -77,14 +74,14 @@ class LiquidityService {
     sellToken,
     buyToken,
     from,
-    minimumSellVolumeInUsd,
+    liquidityRules,
     waitToReleaseTheLock = true
   }) {
     return this._ensureLiquidityAux({
       sellToken,
       buyToken,
       from,
-      minimumSellVolumeInUsd,
+      liquidityRules,
       liquidityCheckName: 'sell',
       waitToReleaseTheLock
     })
@@ -94,8 +91,7 @@ class LiquidityService {
     sellToken,
     buyToken,
     from,
-    minimumSellVolumeInUsd,
-    buyLiquidityRules,
+    liquidityRules,
     liquidityCheckName,
     waitToReleaseTheLock
   }) {
@@ -103,7 +99,9 @@ class LiquidityService {
     let boughtOrSoldTokensPromise, doEnsureLiquidityFnName, baseLockName,
       messageCurrentCheck, paramsCurrentCheck, minimumSellVolume
     if (liquidityCheckName === 'sell') {
-      minimumSellVolume = minimumSellVolumeInUsd ? numberUtil.toBigNumber(minimumSellVolumeInUsd) : await this._auctionRepo.getThresholdNewAuction()
+      minimumSellVolume = liquidityRules.minimumSellVolumeInUsd
+        ? numberUtil.toBigNumber(liquidityRules.minimumSellVolumeInUsd)
+        : await this._auctionRepo.getThresholdNewAuction()
 
       doEnsureLiquidityFnName = '_doEnsureSellLiquidity'
       baseLockName = 'SELL-LIQUIDITY'
@@ -171,7 +169,7 @@ check should be done`,
         tokenB: buyToken,
         from,
         minimumSellVolume,
-        buyLiquidityRules
+        liquidityRules
       })
       boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
       boughtOrSoldTokensPromise
@@ -234,7 +232,8 @@ check should be done`,
     tokenA,
     tokenB,
     from,
-    minimumSellVolume
+    minimumSellVolume,
+    liquidityRules
   }) {
     const soldTokens = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
@@ -255,11 +254,51 @@ check should be done`,
         tokenA, tokenB, auctionIndex
       })
 
+      let underFundingTokenA, underFundingTokenB
+      let minimumFundingTokenA, minimumFundingTokenB
+      if (liquidityRules.balancePercentageToSell) {
+        // Check if enough funding using percentage of total account balances
+        const { balancePercentageToSell } = liquidityRules
+        const [
+          tokenABalance,
+          tokenBBalance
+        ] = await Promise.all([
+          this._auctionRepo.getBalance({ token: tokenA, address: from }),
+          this._auctionRepo.getBalance({ token: tokenB, address: from })
+        ])
+
+        const tokenAAmount = tokenABalance.mul(balancePercentageToSell.numerator).div(balancePercentageToSell.denominator)
+        const tokenBAmount = tokenBBalance.mul(balancePercentageToSell.numerator).div(balancePercentageToSell.denominator)
+
+        // Get the value of this amounts in USD
+        const [ tokenAAmountUSD, tokenBAmountUSD ] = await Promise.all([
+          this._auctionRepo.getPriceInUSD({ token: tokenA, amount: tokenAAmount }),
+          this._auctionRepo.getPriceInUSD({ token: tokenB, amount: tokenBAmount })
+        ])
+
+        underFundingTokenA = fundingA.lessThan(tokenAAmountUSD)
+        underFundingTokenB = fundingB.lessThan(tokenBAmountUSD)
+        minimumFundingTokenA = tokenAAmountUSD
+        minimumFundingTokenB = tokenBAmountUSD
+      } else {
+        // Check that funding is over minimumSellVolume
+        underFundingTokenA = fundingA.lessThan(minimumSellVolume)
+        underFundingTokenB = fundingB.lessThan(minimumSellVolume)
+
+        minimumFundingTokenA = minimumSellVolume
+        minimumFundingTokenB = minimumSellVolume
+      }
+
+      let fundTokenA = true
+      let fundTokenB = true
+      // Check if we fund only one auction side
+      if (liquidityRules.sellOnlyToken) {
+        fundTokenA = tokenA === liquidityRules.sellOnlyToken
+        fundTokenB = tokenB === liquidityRules.sellOnlyToken
+      }
+
       // Check if we surplus it
-      if (
-        fundingA.lessThan(minimumSellVolume) ||
-        fundingB.lessThan(minimumSellVolume)
-      ) {
+      if (underFundingTokenA || underFundingTokenB) {
         // Not enough liquidity
         auctionLogger.info({
           sellToken: tokenA,
@@ -271,25 +310,25 @@ check should be done`,
 
         let soldTokenAB, soldTokenBA
         // Ensure liquidity for both sides or the side that needs it
-        if (fundingA.lessThan(minimumSellVolume)) {
+        if (underFundingTokenA && fundTokenA) {
           soldTokenAB = await this._sellTokenToCreateLiquidity({
             sellToken: tokenA,
             buyToken: tokenB,
             funding: fundingA,
             auctionIndex,
             from,
-            minimumSellVolume
+            minimumSellVolume: minimumFundingTokenA
           })
           soldTokens.push(soldTokenAB)
         }
-        if (fundingB.lessThan(minimumSellVolume)) {
+        if (underFundingTokenB && fundTokenB) {
           soldTokenBA = await this._sellTokenToCreateLiquidity({
             sellToken: tokenB,
             buyToken: tokenA,
             funding: fundingB,
             auctionIndex,
             from,
-            minimumSellVolume
+            minimumSellVolume: minimumFundingTokenB
           })
           soldTokens.push(soldTokenBA)
         }
@@ -314,8 +353,9 @@ keeps happening`
     return soldTokens
   }
 
-  async _doEnsureBuyLiquidity ({ tokenA, tokenB, from, buyLiquidityRules }) {
+  async _doEnsureBuyLiquidity ({ tokenA, tokenB, from, liquidityRules }) {
     const buyLiquidityResult = []
+    const buyLiquidityRules = liquidityRules
     const auction = { sellToken: tokenA, buyToken: tokenB }
     const auctionIndex = await this._auctionRepo.getAuctionIndex(auction)
 
