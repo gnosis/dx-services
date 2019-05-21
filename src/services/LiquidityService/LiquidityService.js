@@ -254,9 +254,11 @@ check should be done`,
         tokenA, tokenB, auctionIndex
       })
 
+      const sellUsingLiquidityRules = liquidityRules.balancePercentageToSell !== undefined
+
       let underFundingTokenA, underFundingTokenB
       let minimumFundingTokenA, minimumFundingTokenB
-      if (liquidityRules.balancePercentageToSell) {
+      if (sellUsingLiquidityRules) {
         // Check if enough funding using percentage of total account balances
         const { balancePercentageToSell } = liquidityRules
         const [
@@ -278,8 +280,11 @@ check should be done`,
 
         underFundingTokenA = fundingA.lessThan(tokenAAmountUSD)
         underFundingTokenB = fundingB.lessThan(tokenBAmountUSD)
-        minimumFundingTokenA = tokenAAmountUSD
-        minimumFundingTokenB = tokenBAmountUSD
+
+        minimumFundingTokenA = tokenAAmountUSD.greaterThan(minimumSellVolume)
+          ? tokenAAmountUSD : minimumSellVolume
+        minimumFundingTokenB = tokenBAmountUSD.greaterThan(minimumSellVolume)
+          ? tokenBAmountUSD : minimumSellVolume
       } else {
         // Check that funding is over minimumSellVolume
         underFundingTokenA = fundingA.lessThan(minimumSellVolume)
@@ -317,7 +322,8 @@ check should be done`,
             funding: fundingA,
             auctionIndex,
             from,
-            minimumSellVolume: minimumFundingTokenA
+            minimumSellVolume: minimumFundingTokenA,
+            sellUsingLiquidityRules
           })
           soldTokens.push(soldTokenAB)
         }
@@ -328,7 +334,8 @@ check should be done`,
             funding: fundingB,
             auctionIndex,
             from,
-            minimumSellVolume: minimumFundingTokenB
+            minimumSellVolume: minimumFundingTokenB,
+            sellUsingLiquidityRules
           })
           soldTokens.push(soldTokenBA)
         }
@@ -703,11 +710,14 @@ keeps happening`
     funding,
     auctionIndex,
     from,
-    minimumSellVolume
+    minimumSellVolume,
+    sellUsingLiquidityRules
   }) {
     // decide if we sell on the auction A-B or the B-A
     //  * We sell on the auction with more liquidity
-    let amountToSellInUSD = minimumSellVolume.minus(funding)
+    let amountToSellInUSD = sellUsingLiquidityRules
+      ? minimumSellVolume
+      : minimumSellVolume.minus(funding)
 
     // We round up the dollars
     amountToSellInUSD = amountToSellInUSD

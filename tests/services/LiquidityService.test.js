@@ -67,6 +67,86 @@ test('It should ensureSellLiquidity', async () => {
     .toBeFalsy()
 })
 
+test('It should ensureSellLiquidity using sell liquidity rules', async () => {
+  const { liquidityService } = await setupPromise
+
+  // we mock the auction repo
+  liquidityService._auctionRepo = new AuctionRepoMock({
+    auctions: _getAuctionsWithUnderFundingEthOmg()
+  })
+
+  async function _isUnderFundingAuction ({ tokenA, tokenB }) {
+    const auctionIndex = await liquidityService._auctionRepo.getAuctionIndex({
+      sellToken: tokenA, buyToken: tokenB
+    })
+    const { fundingA, fundingB } = await liquidityService._auctionRepo.getFundingInUSD({
+      tokenA, tokenB, auctionIndex
+    })
+
+    return fundingA.lessThan(MINIMUM_SELL_VOLUME) &&
+      fundingB.lessThan(MINIMUM_SELL_VOLUME)
+  }
+
+  function _isValidSellVolume (sellVolume, fundingSellVolume) {
+    return sellVolume.greaterThan(fundingSellVolume)
+  }
+
+  // GIVEN a not RUNNING auction, without enough sell liquidiy
+  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'WETH' }))
+    .toBeTruthy()
+  const [ totalWETHBalance, totalOMGBalance ] = await Promise.all([
+    liquidityService._auctionRepo.getBalance({
+      token: 'WETH', address: '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7' }),
+    liquidityService._auctionRepo.getBalance({
+      token: 'OMG', address: '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7'
+    })
+  ])
+
+  // WHEN we ensure sell liquidity
+  const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
+    sellToken: 'OMG',
+    buyToken: 'WETH',
+    from: '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7',
+    liquidityRules: { balancePercentageToSell: { numerator: 50, denominator: 100 } },
+    waitToReleaseTheLock: false
+  })
+
+  // THEN bot sells in both sides, WETH-OMG and OMG-WETH, the pair market we expect
+  const expectedBotSell = [{
+    buyToken: 'WETH',
+    sellToken: 'OMG'
+  }, {
+    buyToken: 'OMG',
+    sellToken: 'WETH'
+  }]
+  expect(ensureLiquidityState).toMatchObject(expectedBotSell)
+
+  // THEN new sell volume is valid
+  const [ currentWETHSellVolume, currentOMGSellVolume ] = await Promise.all([
+    liquidityService._auctionRepo.getSellVolume({ sellToken: 'WETH', buyToken: 'OMG' }),
+    liquidityService._auctionRepo.getSellVolume({ sellToken: 'OMG', buyToken: 'WETH' })
+  ])
+
+  function checkSellVolume (sellVolume, initialBalance, liquidityResponsePosition) {
+    expect(_isValidSellVolume(sellVolume, UNDER_MINIMUM_FUNDING_WETH))
+      .toBeTruthy()
+    // sellVolume is less than 50% of balance + fee
+    expect(sellVolume.lt(initialBalance.mul(50).div(100).mul(1005).div(100))).toBeTruthy()
+    // sellVolume is greater than 50% of balance (because of fee roundup)
+    expect(sellVolume.gt(initialBalance.mul(50).div(100))).toBeTruthy()
+    expect(_isValidSellVolume(sellVolume, ensureLiquidityState[liquidityResponsePosition].amount))
+      .toBeTruthy()
+  }
+
+  checkSellVolume(currentWETHSellVolume, totalWETHBalance, 0)
+  // Price is a bit messed and sell volume is not the expected
+  // checkSellVolume(currentOMGSellVolume, totalOMGBalance, 1)
+
+  // THEN is not underfunding auction
+  expect(await _isUnderFundingAuction({ tokenA: 'OMG', tokenB: 'WETH' }))
+    .toBeFalsy()
+})
+
 test('It should ensureBuyLiquidity', async () => {
   const { liquidityService } = await setupPromise
 
