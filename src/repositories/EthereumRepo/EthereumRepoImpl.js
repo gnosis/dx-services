@@ -3,6 +3,8 @@ const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const Cacheable = require('../../helpers/Cacheable')
 const assert = require('assert')
+const formatUtil = require('../../helpers/formatUtil')
+const { isHexAddress } = formatUtil
 // const AuctionLogger = require('../../helpers/AuctionLogger')
 // const auctionLogger = new AuctionLogger(loggerNamespace)
 
@@ -194,12 +196,11 @@ class EthereumRepoImpl extends Cacheable {
 
     let _bytesToUtf8 = byteString => {
       let resultString
-      byteString && byteString.startsWith('0x')
+      byteString && isHexAddress({ token: byteString })
         // If web3 is updated to v1.0 this method should be changed for:
         // web3.utils.hexToUtf8
         ? resultString = this._web3.toUtf8(byteString)
         : resultString = byteString
-
       return resultString
     }
 
