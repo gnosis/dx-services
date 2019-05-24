@@ -27,6 +27,7 @@ class ArbitrageBot extends Bot {
     notifications,
     arbitrageContractAddress,
     minimumProfitInUsd = 0,
+    maximizeVolume = true,
     checkTimeInMilliseconds = ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS
   }) {
     super(name, BOT_TYPE)
@@ -55,6 +56,7 @@ class ArbitrageBot extends Bot {
     this._notifications = notifications
     this._arbitrageContractAddress = arbitrageContractAddress
     this._minimumProfitInUsd = minimumProfitInUsd
+    this._maximizeVolume = maximizeVolume
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
 
     this._lastCheck = null
@@ -120,10 +122,11 @@ class ArbitrageBot extends Bot {
     let liquidityWasEnsured
     const arbitrageContractAddress = this._arbitrageContractAddress
     const minimumProfitInUsd = this._minimumProfitInUsd
+    const maximizeVolume = this._maximizeVolume
     try {
       liquidityWasEnsured = await this._arbitrageService
         .checkUniswapArbitrage({
-          sellToken, buyToken, from, arbitrageContractAddress, minimumProfitInUsd
+          sellToken, buyToken, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume
         })
         .then(successfulArbitrages => {
           let liquidityWasEnsured = successfulArbitrages.length > 0
