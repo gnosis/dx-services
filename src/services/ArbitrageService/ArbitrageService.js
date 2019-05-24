@@ -189,11 +189,15 @@ check should be done`,
     // if there are some results, there may be more. Try to run again with the
     // just gained Ether. Keep doing this until there is no more arbitrage
     // (no results) then return all results
-    if (results.length > 0) {
-      let more = await this._doCheckArbitrageUniswap({
-        tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume })
-      if (more.length) results.push(...more)
-    }
+
+    // FIXME this logic is too agresive for Mainnet. (Double transaction issue)
+    // Nodes are slow so they send a transaction with the same amounts twice because state hasn't been updated yet
+
+    // if (results.length > 0) {
+    //   let more = await this._doCheckArbitrageUniswap({
+    //     tokenA, tokenB, from, arbitrageContractAddress, minimumProfitInUsd, maximizeVolume })
+    //   if (more.length) results.push(...more)
+    // }
 
     return results
   }
