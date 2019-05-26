@@ -4,7 +4,7 @@ const numberUtil = require('../../../src/helpers/numberUtil.js')
 
 const EXCHANGE_PRICE_FEED_STRATEGIES_DEFAULT = {
   strategy: 'sequence', // TODO: More strategies can be implemented. i.e. averages, median, ponderated volumes, ...
-  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid', 'idex']
+  feeds: ['binance', 'huobi', 'kraken', 'bitfinex', 'hitbtc', 'liquid', 'idex', 'uniswap']
 }
 
 const EXCHANGE_PRICE_FEED_STRATEGIES = {
@@ -57,6 +57,9 @@ const PRICE_FEEDS = {
   },
   liquid: {
     factory: 'src/repositories/PriceRepo/feeds/PriceRepoLiquid'
+  },
+  uniswap: {
+    factory: 'src/repositories/PriceRepo/feeds/PriceRepoUniswap'
   }
 }
 
