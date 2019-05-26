@@ -17,6 +17,7 @@ class ClaimBot extends Bot {
   constructor ({
     name,
     botAddress,
+    claimAddress,
     accountIndex,
     markets,
     notifications,
@@ -29,6 +30,7 @@ class ClaimBot extends Bot {
     assert(cronSchedule, 'cronSchedule is required')
     assert(autoClaimAuctions, 'autoClaimAuctions are required')
 
+    this._claimAddress = claimAddress
     if (botAddress) {
       // Config using bot address
       assert(botAddress, 'botAddress is required')
@@ -75,6 +77,9 @@ class ClaimBot extends Bot {
 
     // Get bot address
     await this.setAddress()
+    if (!this._claimAddress) {
+      this._claimAddress = this._botAddress
+    }
   }
 
   async _doStart () {
@@ -94,7 +99,11 @@ class ClaimBot extends Bot {
 
   async _doClaim () {
     // Execute the claim
-    logger.info('Claiming from markets %O using address %s', this._markets, this._botAddress)
+    logger.info('Claiming markets %O for account %s%s',
+      this._markets,
+      this._claimAddress,
+      this.botAddress !== this._claimAddress ? ' using operator ' + this.botAddress : ''
+    )
 
     const tokenPairs = this._markets.reduce((markets, { tokenA, tokenB }) => {
       markets.push(
@@ -104,7 +113,8 @@ class ClaimBot extends Bot {
     }, [])
     return this._dxTradeService.claimAll({
       tokenPairs,
-      address: this._botAddress,
+      address: this._claimAddress,
+      fromAddress: this._botAddress,
       lastNAuctions: this._autoClaimAuctions
     }).then(result => {
       const {
@@ -122,18 +132,18 @@ class ClaimBot extends Bot {
 
       claimAmounts.forEach(amount => {
         if (amount) {
-          logger.info('Claimed for address %s. Amounts: %o', this._botAddress, amount)
-          this._notifyClaimedTokens(amount, this._markets, this._botAddress)
+          logger.info('Claimed for address %s. Amounts: %o', this._claimAddress, amount)
+          this._notifyClaimedTokens(amount, this._claimAddress)
         }
       })
       return result
     }).catch(error => {
-      this._handleError(tokenPairs, this._botAddress, error)
+      this._handleError(tokenPairs, this._claimAddress, error)
       return 0
     })
   }
 
-  _notifyClaimedTokens (amount, token, account) {
+  _notifyClaimedTokens (amount, account) {
     const { tokenA, tokenB, totalSellerClaims, totalBuyerClaims } = amount
     const tokenPairString = tokenA + '-' + tokenB
 
@@ -224,7 +234,7 @@ class ClaimBot extends Bot {
   _handleError (tokenPairs, account, error) {
     // Log message
     logger.error({
-      msg: 'There was an error claiming %O with the account %s',
+      msg: 'There was an error claiming %O for account %s',
       params: [tokenPairs, account],
       error
     })
@@ -233,6 +243,7 @@ class ClaimBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
+      claimAddress: this._claimAddress,
       markets: this._markets,
       lastCheck: this._lastCheck,
       lastClaim: this._lastClaim,
