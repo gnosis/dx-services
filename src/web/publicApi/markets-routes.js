@@ -138,6 +138,13 @@ function createRoutes ({ dxInfoService, reportService },
     return dxInfoService.getOraclePrice({ token })
   }
 
+  function _throwMissingWethError () {
+    const error = new Error('Invalid `tokenPair`. At least one of the tokens must be WETH.')
+    error.type = 'INVALID_TOKEN_PAIR'
+    error.status = 412
+    throw error
+  }
+
   routes.push({
     path: '/:tokenPair/prices/safe-median',
     get (req, res) {
@@ -154,10 +161,7 @@ function createRoutes ({ dxInfoService, reportService },
       } else if (isBuyTokenEth) {
         return _safeMedian(req, res, sellToken)
       } else {
-        const error = new Error('Invalid `tokenPair`. At least one of the tokens must be WETH.')
-        error.type = 'INVALID_TOKEN_PAIR'
-        error.status = 412
-        throw error
+        _throwMissingWethError()
       }
     }
   })
@@ -206,10 +210,7 @@ function createRoutes ({ dxInfoService, reportService },
       } else if (isBuyTokenEth) {
         return _customMedian(req, res, sellToken)
       } else {
-        const error = new Error('Invalid `tokenPair`. At least one of the tokens must be WETH.')
-        error.type = 'INVALID_TOKEN_PAIR'
-        error.status = 412
-        throw error
+        _throwMissingWethError()
       }
     }
   })
@@ -245,10 +246,7 @@ function createRoutes ({ dxInfoService, reportService },
       } else if (isBuyTokenEth) {
         return _simpleMedian(req, res, sellToken)
       } else {
-        const error = new Error('Invalid `tokenPair`. At least one of the tokens must be WETH.')
-        error.type = 'INVALID_TOKEN_PAIR'
-        error.status = 412
-        throw error
+        _throwMissingWethError()
       }
     }
   })
