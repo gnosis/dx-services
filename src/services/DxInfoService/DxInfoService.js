@@ -483,6 +483,12 @@ class DxInfoService {
     return this._auctionRepo.getTokenAddress({ token })
   }
 
+  async getTokenInfo (token) {
+    const tokenAddress = await this.getTokenAddress(token)
+
+    return this._getTokenInfoByAddress(tokenAddress)
+  }
+
   async _getTokenInfoByAddress (address) {
     return this._ethereumRepo.tokenGetInfo({ tokenAddress: address })
   }
