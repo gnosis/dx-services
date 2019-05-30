@@ -4,6 +4,7 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const assert = require('assert')
 const numberUtil = require('../../helpers/numberUtil')
+const getOutstandingVolume = require('../helpers/getOutstandingVolume')
 
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 const UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE = 559830
@@ -407,8 +408,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ]
     })
 
-    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
-      sellToken, buyToken, auctionIndex
+    const outstandingVolume = await getOutstandingVolume({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
     })
 
     // on a dutchOpportunity the maxToSpend remains as maxEtherAmount. In this case is the
@@ -593,8 +594,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ]
     })
 
-    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
-      sellToken, buyToken, auctionIndex
+    const outstandingVolume = await getOutstandingVolume({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
     })
 
     // maxToSpend is referring to the maximum amount of buyTokens on DutchX.
@@ -805,8 +806,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // We may have more tokens to spend than tokens left to buy on DutchX.
     // We check the tokens left and set them as maxSpendAmount if is lower than the
     // tokens we have to spend
-    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
-      sellToken, buyToken, auctionIndex
+    const outstandingVolume = await getOutstandingVolume({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
     })
 
     let maxSpendAmount = maxToSpend.gt(outstandingVolume)

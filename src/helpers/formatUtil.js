@@ -86,27 +86,50 @@ function formatBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
 
-function formatFromWei (wei) {
-  if (wei) {
-    return numberUtil.toBigNumber(wei).div(1e18)
+function formatToWei (eth, decimals = 18) {
+  if (eth) {
+    return numberUtil.toWei(eth, decimals)
   } else {
     return null
   }
 }
 
-function formatFraction (fraction, inDecimal = true) {
+function formatFromWei (wei, decimals = 18) {
+  if (wei) {
+    return numberUtil.fromWei(wei, decimals)
+  } else {
+    return null
+  }
+}
+
+function formatPriceWithDecimals ({ price, tokenBDecimals = 18, tokenADecimals = 18 }) {
+  if (!price) {
+    return null
+  } else {
+    const max = Math.max(tokenBDecimals, tokenADecimals)
+    return {
+      numerator: price.numerator.mul(numberUtil.TEN.toPower(max - tokenBDecimals)),
+      denominator: price.denominator.mul(numberUtil.TEN.toPower(max - tokenADecimals))
+    }
+  }
+}
+
+function formatFraction ({ fraction, inDecimal = true, tokenBDecimals = 18, tokenADecimals = 18 }) {
   if (!fraction) {
     return null
   } else {
+    const { numerator, denominator } = formatPriceWithDecimals({
+      price: fraction, tokenBDecimals, tokenADecimals
+    })
     if (inDecimal) {
       // In decimal format
-      const decimalumber = numberUtil.toBigNumberFraction(fraction, true)
+      const decimalumber = numberUtil.toBigNumberFraction({ numerator, denominator }, true)
       return formatNumber(decimalumber)
     } else {
       // In fractional format
-      return formatNumber(fraction.numerator) +
+      return formatNumber(numerator) +
         ' / ' +
-        formatNumber(fraction.denominator)
+        formatNumber(denominator)
     }
   }
 }
@@ -198,7 +221,9 @@ module.exports = {
   parseDateTime,
   parseDateIso,
   formatFromWei,
+  formatToWei,
   formatFraction,
+  formatPriceWithDecimals,
   formatMarketDescriptor,
   tokenPairSplit
 }

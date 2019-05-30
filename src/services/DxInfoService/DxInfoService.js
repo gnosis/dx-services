@@ -27,6 +27,7 @@ const getVersion = require('../../helpers/getVersion')
 const getContractVersions = require('../../helpers/getContractVersions')
 const getAuctionsBalances = require('../helpers/getAuctionsBalances')
 const getClaimableTokens = require('../helpers/getClaimableTokens')
+const getOutstandingVolume = require('../helpers/getOutstandingVolume')
 
 class DxInfoService {
   constructor ({
@@ -200,13 +201,16 @@ class DxInfoService {
 
   async getMarketDetails ({ sellToken, buyToken }) {
     const tokenPair = { sellToken, buyToken }
+
     const [
       isSellTokenApproved,
       isBuyTokenApproved,
       stateInfo,
       state,
       isValidTokenPair,
-      auctionIndex
+      auctionIndex,
+      sellTokenAddress,
+      buyTokenAddress
     ] = await Promise.all([
       this._auctionRepo.isApprovedToken({ token: sellToken }),
       this._auctionRepo.isApprovedToken({ token: buyToken }),
@@ -216,7 +220,17 @@ class DxInfoService {
         tokenA: sellToken,
         tokenB: buyToken
       }),
-      this._auctionRepo.getAuctionIndex(tokenPair)
+      this._auctionRepo.getAuctionIndex(tokenPair),
+      this._auctionRepo.getTokenAddress({ token: sellToken }),
+      this._auctionRepo.getTokenAddress({ token: buyToken })
+    ])
+
+    const [
+      sellTokenInfo,
+      buyTokenInfo
+    ] = await Promise.all([
+      this._getTokenInfoByAddress(sellTokenAddress),
+      this._getTokenInfoByAddress(buyTokenAddress)
     ])
 
     const result = {
@@ -225,7 +239,9 @@ class DxInfoService {
       isSellTokenApproved,
       isBuyTokenApproved,
       auctionIndex: stateInfo.auctionIndex,
-      auctionStart: stateInfo.auctionStart
+      auctionStart: stateInfo.auctionStart,
+      sellTokenInfo,
+      buyTokenInfo
     }
 
     if (isValidTokenPair) {
@@ -329,7 +345,9 @@ class DxInfoService {
 
       if (state.indexOf('WAITING') === -1) {
         // Show outstanding volumen if we are not in a waiting period
-        outstandingVolume = await this._auctionRepo.getOutstandingVolume({
+        outstandingVolume = await getOutstandingVolume({
+          auctionRepo: this._auctionRepo,
+          ethereumRepo: this._ethereumRepo,
           sellToken: tokenA,
           buyToken: tokenB,
           auctionIndex
