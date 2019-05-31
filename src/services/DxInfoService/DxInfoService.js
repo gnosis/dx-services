@@ -21,6 +21,7 @@ const MOCK_PAGINATION = {
 }
 
 const numberUtil = require('../../helpers/numberUtil.js')
+const formatUtil = require('../../helpers/formatUtil.js')
 
 const getGitInfo = require('../../helpers/getGitInfo')
 const getVersion = require('../../helpers/getVersion')
@@ -74,7 +75,20 @@ class DxInfoService {
       buyToken,
       auctionIndex
     })
-    return numberUtil.toBigNumberFraction(closingPrice, true)
+
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(sellToken),
+      this.getTokenInfo(buyToken)
+    ])
+
+    const closingPriceWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: closingPrice, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(closingPriceWithDecimals, true)
   }
 
   async getLastAvaliableClosingPrice ({ sellToken, buyToken, auctionIndex }) {
@@ -83,7 +97,20 @@ class DxInfoService {
       buyToken,
       auctionIndex
     })
-    return numberUtil.toBigNumberFraction(closingPrice, true)
+
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(sellToken),
+      this.getTokenInfo(buyToken)
+    ])
+
+    const closingPriceWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: closingPrice, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(closingPriceWithDecimals, true)
   }
 
   async getClosingPrices ({ sellToken, buyToken, fromAuction, count }) {
@@ -108,6 +135,14 @@ class DxInfoService {
       closingPricesPromises.push(closingPricePromise)
     }
 
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(sellToken),
+      this.getTokenInfo(buyToken)
+    ])
+
     // Get the closing prices
     const closingPrices = await Promise.all(closingPricesPromises)
     const priceIncrementPromises = closingPrices
@@ -123,11 +158,19 @@ class DxInfoService {
           lastClosingPrice = null
         }
 
+        const priceWithDecimals = formatUtil.formatPriceWithDecimals({
+          price: price, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+        })
+
         let priceDecimal = numberUtil
-          .toBigNumberFraction(price, true)
+          .toBigNumberFraction(priceWithDecimals, true)
+
+        const lastClosingPriceWithDecimals = formatUtil.formatPriceWithDecimals({
+          price: lastClosingPrice, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+        })
 
         let lastClosingPriceDecimal = numberUtil
-          .toBigNumberFraction(lastClosingPrice, true)
+          .toBigNumberFraction(lastClosingPriceWithDecimals, true)
 
         let priceIncrement
         if (priceDecimal && lastClosingPriceDecimal !== null) {
@@ -506,9 +549,21 @@ class DxInfoService {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current price' })
 
     const auctionIndex = await this._auctionRepo.getAuctionIndex({ sellToken, buyToken })
-    let currentPrice = await this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
+    const currentPrice = await this._auctionRepo.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex })
 
-    return numberUtil.toBigNumberFraction(currentPrice, true)
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(sellToken),
+      this.getTokenInfo(buyToken)
+    ])
+
+    const currentPriceWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: currentPrice, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(currentPriceWithDecimals, true)
   }
 
   async getAuctionStart ({ sellToken, buyToken }) {
