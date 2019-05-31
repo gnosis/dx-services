@@ -410,8 +410,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ]
     })
 
-    const outstandingVolume = await getOutstandingVolume({
-      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
+    const outstandingVolume = await this.getOutstandingVolume({
+      sellToken, buyToken, auctionIndex
     })
 
     // on a dutchOpportunity the maxToSpend remains as maxEtherAmount. In this case is the
@@ -596,8 +596,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       ]
     })
 
-    const outstandingVolume = await getOutstandingVolume({
-      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
+    const outstandingVolume = await this.getOutstandingVolume({
+      sellToken, buyToken, auctionIndex
     })
 
     // maxToSpend is referring to the maximum amount of buyTokens on DutchX.
@@ -808,8 +808,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // We may have more tokens to spend than tokens left to buy on DutchX.
     // We check the tokens left and set them as maxSpendAmount if is lower than the
     // tokens we have to spend
-    const outstandingVolume = await getOutstandingVolume({
-      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
+    const outstandingVolume = await this.getOutstandingVolume({
+      sellToken, buyToken, auctionIndex
     })
 
     let maxSpendAmount = maxToSpend.gt(outstandingVolume)
@@ -1019,6 +1019,12 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     const sufix = sellToken < buyToken ? sellToken + '-' + buyToken : buyToken + '-' + sellToken
 
     return operation + sufix + from
+  }
+
+  async getOutstandingVolume ({ sellToken, buyToken, auctionIndex }) {
+    return getOutstandingVolume({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
+    })
   }
 
   async getTokenInfo (token) {
