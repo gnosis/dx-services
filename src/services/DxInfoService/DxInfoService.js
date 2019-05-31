@@ -29,6 +29,7 @@ const getContractVersions = require('../../helpers/getContractVersions')
 const getAuctionsBalances = require('../helpers/getAuctionsBalances')
 const getClaimableTokens = require('../helpers/getClaimableTokens')
 const getOutstandingVolume = require('../helpers/getOutstandingVolume')
+const getTokenInfo = require('../helpers/getTokenInfo')
 
 class DxInfoService {
   constructor ({
@@ -272,8 +273,8 @@ class DxInfoService {
       sellTokenInfo,
       buyTokenInfo
     ] = await Promise.all([
-      this._getTokenInfoByAddress(sellTokenAddress),
-      this._getTokenInfoByAddress(buyTokenAddress)
+      this.getTokenInfo(sellTokenAddress),
+      this.getTokenInfo(buyTokenAddress)
     ])
 
     const result = {
@@ -432,8 +433,8 @@ class DxInfoService {
     const RAW_TOKEN_PAIRS = await this._auctionRepo.getTokenPairs()
     const tokenPairsPromises = RAW_TOKEN_PAIRS.map(async ({ sellToken: tokenA, buyToken: tokenB }) => {
       const [ tokenAInfo, tokenBInfo ] = await Promise.all([
-        this._getTokenInfoByAddress(tokenA),
-        this._getTokenInfoByAddress(tokenB)
+        this.getTokenInfo(tokenA),
+        this.getTokenInfo(tokenB)
       ])
       return {
         tokenA: tokenAInfo, tokenB: tokenBInfo
@@ -480,7 +481,7 @@ class DxInfoService {
     }
 
     const tokenPromises = filteredTokenAddresses.map(async address => {
-      return this._getTokenInfoByAddress(address)
+      return this.getTokenInfo(address)
     })
 
     return {
@@ -515,7 +516,7 @@ class DxInfoService {
   async getMagnoliaToken () {
     const magnoliaToken = await this._auctionRepo.getMagnoliaToken()
 
-    return this._getTokenInfoByAddress(magnoliaToken.address)
+    return this.getTokenInfo(magnoliaToken.address)
   }
 
   isTokenEth (token) {
@@ -527,13 +528,8 @@ class DxInfoService {
   }
 
   async getTokenInfo (token) {
-    const tokenAddress = await this.getTokenAddress(token)
-
-    return this._getTokenInfoByAddress(tokenAddress)
-  }
-
-  async _getTokenInfoByAddress (address) {
-    return this._ethereumRepo.tokenGetInfo({ tokenAddress: address })
+    return getTokenInfo({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, token })
   }
 
   // TODO implement
@@ -699,8 +695,8 @@ class DxInfoService {
       } = fee
 
       const [ sellToken, buyToken ] = await Promise.all([
-        this._getTokenInfoByAddress(sellTokenAddress),
-        this._getTokenInfoByAddress(buyTokenAddress)
+        this.getTokenInfo(sellTokenAddress),
+        this.getTokenInfo(buyTokenAddress)
       ])
 
       return {
@@ -750,8 +746,8 @@ class DxInfoService {
       } = claiming
 
       const [ sellToken, buyToken ] = await Promise.all([
-        this._getTokenInfoByAddress(sellTokenAddress),
-        this._getTokenInfoByAddress(buyTokenAddress)
+        this.getTokenInfo(sellTokenAddress),
+        this.getTokenInfo(buyTokenAddress)
       ])
 
       return {
@@ -893,7 +889,7 @@ class DxInfoService {
       }))
 
     let detailedTokenList = await Promise.all(addressesList.map(address => {
-      return this._getTokenInfoByAddress(address)
+      return this.getTokenInfo(address)
     }))
 
     return detailedTokenList

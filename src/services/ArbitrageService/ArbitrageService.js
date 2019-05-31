@@ -4,7 +4,9 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const assert = require('assert')
 const numberUtil = require('../../helpers/numberUtil')
+const formatUtil = require('../../helpers/formatUtil')
 const getOutstandingVolume = require('../helpers/getOutstandingVolume')
+const getTokenInfo = require('../helpers/getTokenInfo')
 
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 const UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE = 559830
@@ -1017,6 +1019,32 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     const sufix = sellToken < buyToken ? sellToken + '-' + buyToken : buyToken + '-' + sellToken
 
     return operation + sufix + from
+  }
+
+  async getTokenInfo (token) {
+    return getTokenInfo({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, token })
+  }
+
+  async getPriceUniswap ({ sellToken, buyToken }) {
+    const {
+      inputBalance: denominator, // our current sellToken on DutchX
+      outputBalance: numerator // our current buyToken on DutchX
+    } = await this._arbitrageRepo.getUniswapBalances({ sellToken, buyToken })
+
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(sellToken),
+      this.getTokenInfo(buyToken)
+    ])
+
+    const priceWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: { numerator, denominator }, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(priceWithDecimals, true) // buyToken per sellToken
   }
 }
 
