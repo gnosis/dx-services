@@ -96,6 +96,18 @@ class ArbitrageService {
       const isError = soldOrBoughtTokens instanceof Error
       // TODO: Review
 
+      auctionLogger.debug({
+        sellToken,
+        buyToken,
+        msg: 'vars for concurrencyCheck',
+        params: {
+          isError,
+          soldOrBoughtTokens,
+          waitToReleaseTheLock,
+          WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS
+        }
+      })
+
       if (isError || soldOrBoughtTokens.length === 0 || !waitToReleaseTheLock) {
         that.concurrencyCheck[lockName] = null
       } else {
@@ -738,6 +750,17 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         ethUSDPrice,
         tx
       }
+    } else {
+      auctionLogger.debug({
+        sellToken,
+        buyToken,
+        msg: 'Stopping the Uniswap opportunity transaction: \n%O',
+        params: [{
+          'amount.gt(0)': amount.gt(0),
+          'expectedProfitInUsd.gt(minimumProfitInUsd)': expectedProfitInUsd.gt(minimumProfitInUsd),
+          'minimumProfitInUsd': minimumProfitInUsd
+        }]
+      })
     }
   }
 
@@ -861,6 +884,13 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
       } else {
         dutchPriceWithFee = dutchSpendAmount.mul(dutchPrice).div(amountAfterFeeAndGas)
       }
+
+      // the dutch auction price will change in the few seconds between this calculation and when the transaction
+      // actually hits the contract. We should add some margin of error to account for this.
+      // 1% is used here
+      // TODO: discuss whether to include
+      // dutchPriceWithFee = dutchPriceWithFee.mul(1.01)
+
       // console.log({dutchPriceWithFee: dutchPriceWithFee.toString(10)})
       // spendAmount is a buyToken. buyToken is traded for sellToken
       // sellToken is inputToken, outputToken is buyToken
@@ -914,6 +944,20 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
 
   async owner (arbitrageAddress) {
     return this._arbitrageRepo.owner(arbitrageAddress)
+  }
+
+  async getUniswapExactPrice ({ token }) {
+    const etherTokenAddress = await this._auctionRepo.getTokenAddress({ token: 'WETH' })
+
+    // now we get the current state of the Uniswap exchange for our token pair
+    const {
+      inputBalance, // our current sellToken on DutchX
+      outputBalance // our current buyToken on DutchX
+    } = await this._arbitrageRepo.getUniswapBalances({ sellToken: token, buyToken: etherTokenAddress })
+
+    let etherPerToken = outputBalance.div(inputBalance) // buyToken per sellToken
+    let tokenPerEther = inputBalance.div(outputBalance)
+    return { etherPerToken, tokenPerEther }
   }
 
   async depositToken ({ token, amount, from, arbitrageContractAddress }) {
