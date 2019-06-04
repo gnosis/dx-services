@@ -98,35 +98,35 @@ const UNISWAP_FEE = 0.003 // 0.3%
 // })
 //
 // test.skip('It should detect concurrency when checking arbitrage', async () => {
-  // const { arbitrageService } = await setupPromise
-  //
-  // // GIVEN a not RUNNING auction, without enough sell liquidiy
-  // // we mock the auction repo
-  // arbitrageService._auctionRepo = new AuctionRepoMock({
-  //   auctions: _getAuctionsWithUnderFundingEthOmg()
-  // })
+// const { arbitrageService } = await setupPromise
+//
+// // GIVEN a not RUNNING auction, without enough sell liquidiy
+// // we mock the auction repo
+// arbitrageService._auctionRepo = new AuctionRepoMock({
+//   auctions: _getAuctionsWithUnderFundingEthOmg()
+// })
 
-  // // we wrap dutchOpportunity with jest mock functionalities
-  // const dutchOpportunity = jest.fn(arbitrageService._arbitrageRepo.dutchOpportunity)
-  // arbitrageService._arbitrageRepo.dutchOpportunity = dutchOpportunity
-  //
-  // // GIVEN no calls to dutchOpportunity function
-  // expect(dutchOpportunity.mock.calls.length).toBe(0)
-  //
-  // // WHEN we ensure sell liquidity twice
-  // let ensureLiquidityPromise1 = arbitrageService.checkUniswapArbitrage({
-  //   sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
-  // let ensureLiquidityPromise2 = arbitrageService.checkUniswapArbitrage({
-  //   sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
-  //
-  // await Promise.all([
-  //   ensureLiquidityPromise1,
-  //   ensureLiquidityPromise2
-  // ])
-  //
-  // // THEN expect 2 calls to dutchOpportunity function ensuring liquidity to both sides
-  // // of the token pair
-  // expect(dutchOpportunity.mock.calls.length).toBe(2)
+// // we wrap dutchOpportunity with jest mock functionalities
+// const dutchOpportunity = jest.fn(arbitrageService._arbitrageRepo.dutchOpportunity)
+// arbitrageService._arbitrageRepo.dutchOpportunity = dutchOpportunity
+//
+// // GIVEN no calls to dutchOpportunity function
+// expect(dutchOpportunity.mock.calls.length).toBe(0)
+//
+// // WHEN we ensure sell liquidity twice
+// let ensureLiquidityPromise1 = arbitrageService.checkUniswapArbitrage({
+//   sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+// let ensureLiquidityPromise2 = arbitrageService.checkUniswapArbitrage({
+//   sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+//
+// await Promise.all([
+//   ensureLiquidityPromise1,
+//   ensureLiquidityPromise2
+// ])
+//
+// // THEN expect 2 calls to dutchOpportunity function ensuring liquidity to both sides
+// // of the token pair
+// expect(dutchOpportunity.mock.calls.length).toBe(2)
 // })
 
 test('It should return the expected input price (output token amount) in Uniswap', async () => {
@@ -209,8 +209,9 @@ test('It should return the expected output price (input token amount) in Uniswap
 })
 
 test('It should return the expected dutch spend amount', async () => {
-  const { arbitrageService } = await setupPromise
+  jest.setTimeout(30000)
 
+  const { arbitrageService } = await setupPromise
   // GIVEN a not RUNNING auction, without enough sell liquidiy
   // we mock the auction repo
   arbitrageService._auctionRepo.getCurrentAuctionPriceWithFees =
@@ -247,12 +248,13 @@ test('It should return the expected dutch spend amount', async () => {
     maximizeVolume: true,
     // Params to check user fee
     from: '0x123',
-    sellToken: '',
-    buyToken: '',
+    sellToken: 'WETH',
+    buyToken: 'WETH',
     auctionIndex: 0,
     owlAllowance: 0,
     owlBalance: 0,
-    ethUSDPrice: 0
+    ethUSDPrice: 0,
+    minimumProfitInUsd: 1
   })
 
   const dutchSpendAmount2 = await arbitrageService.getDutchSpendAmount({
@@ -263,12 +265,13 @@ test('It should return the expected dutch spend amount', async () => {
     maximizeVolume: true,
     // Params to check user fee
     from: '0x123',
-    sellToken: '',
-    buyToken: '',
+    sellToken: 'WETH',
+    buyToken: 'WETH',
     auctionIndex: 0,
     owlAllowance: 0,
     owlBalance: 0,
-    ethUSDPrice: 0
+    ethUSDPrice: 0,
+    minimumProfitInUsd: 1
   })
 
   // THEN in this scenario we use all the tokens we have to spend
