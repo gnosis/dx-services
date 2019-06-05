@@ -989,7 +989,19 @@ class DxInfoService {
 
     const oraclePrice = await this._dxPriceOracleRepo.getPrice({ token: tokenAddress })
 
-    return numberUtil.toBigNumberFraction(oraclePrice, true)
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(token),
+      this.getTokenInfo('WETH')
+    ])
+
+    const oraclePriceWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: oraclePrice, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(oraclePriceWithDecimals, true)
   }
 
   async getOraclePriceCustom ({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions }) {
@@ -1002,7 +1014,19 @@ class DxInfoService {
     const oraclePriceCustom = await this._dxPriceOracleRepo.getPriceCustom({
       token: tokenAddress, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
 
-    return numberUtil.toBigNumberFraction(oraclePriceCustom, true)
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(token),
+      this.getTokenInfo('WETH')
+    ])
+
+    const oraclePriceCustomWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: oraclePriceCustom, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(oraclePriceCustomWithDecimals, true)
   }
 
   async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
@@ -1020,7 +1044,19 @@ class DxInfoService {
     const oracleSimpleMedian = await this._dxPriceOracleRepo.getPricesAndMedian({
       token: tokenAddress, numberOfAuctions, auctionIndex: checkedAuctionIndex })
 
-    return numberUtil.toBigNumberFraction(oracleSimpleMedian, true)
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(token),
+      this.getTokenInfo('WETH')
+    ])
+
+    const oracleSimpleMedianWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: oracleSimpleMedian, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(oracleSimpleMedianWithDecimals, true)
   }
 
   async getExtraTokens ({ sellToken, buyToken, auctionIndex }) {
