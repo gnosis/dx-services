@@ -11,7 +11,7 @@ const assert = require('assert')
 const MAXIMUM_DX_FEE = 0.005 // 0.5%
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 // Release time if a sell is locked (never commiting because a reorg or transaction loss)
-const EMERGENCY_RELEASE_SELL_LOCK_MILLISECONDS = process.env.EMERGENCY_RELEASE_SELL_LOCK_MILLISECONDS || (15 * 60 * 1000) // 15 min
+const MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS = process.env.MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS || (15 * 60 * 1000) // 15 min
 
 class LiquidityService {
   constructor ({
@@ -170,7 +170,7 @@ check should be done`,
     } else {
       // Ensure liquidity + Create concurrency lock
       this.concurrencyCheck[lockName] = {
-        transaction: this[doEnsureLiquidityFnName]({
+        transactionPromise: this[doEnsureLiquidityFnName]({
           tokenA: sellToken,
           tokenB: buyToken,
           from,
@@ -181,13 +181,13 @@ check should be done`,
           auctionLogger.warn({
             sellToken,
             buyToken,
-            msg: `Concurrency lock had to be released after emergency timeout for %s `,
+            msg: `Concurrency lock had to be released after maximum timeout is reached for %s `,
             params: [liquidityCheckName]
           })
           releaseLock([])
-        }, EMERGENCY_RELEASE_SELL_LOCK_MILLISECONDS)
+        }, MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS)
       }
-      boughtOrSoldTokensPromise = this.concurrencyCheck[lockName].transaction
+      boughtOrSoldTokensPromise = this.concurrencyCheck[lockName].transactionPromise
       boughtOrSoldTokensPromise
         .then(releaseLock)
         .catch(releaseLock)
