@@ -906,7 +906,6 @@ class DxInfoService {
     const rawTokenPairs = await this._auctionRepo.getTokenPairs()
 
     return rawTokenPairs.filter(({ sellToken, buyToken }) => {
-      console.log({ sellToken, buyToken }, sellToken !== ZERO_ADDRESS && buyToken !== ZERO_ADDRESS)
       return sellToken !== ZERO_ADDRESS && buyToken !== ZERO_ADDRESS
     })
   }
