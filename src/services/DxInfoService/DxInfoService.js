@@ -5,6 +5,7 @@ const AuctionLogger = require('../../helpers/AuctionLogger')
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const ENVIRONMENT = process.env.NODE_ENV
 const assert = require('assert')
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 // TODO: Implement real pagination
 //  While there's not too many tokens, we defer the pagination implementation
@@ -336,7 +337,7 @@ class DxInfoService {
       closingPrice
     } = auction
 
-    const [ fundingInUSD, price, closingPriceSafe ] = await Promise.all([
+    const [fundingInUSD, price, closingPriceSafe] = await Promise.all([
       // Get the funding of the market
       this._auctionRepo.getFundingInUSD({
         tokenA, tokenB, auctionIndex
@@ -430,11 +431,12 @@ class DxInfoService {
 
   // TODO implement pagination
   async getMarkets ({ count } = {}) {
-    const RAW_TOKEN_PAIRS = await this._auctionRepo.getTokenPairs()
-    const tokenPairsPromises = RAW_TOKEN_PAIRS.map(async ({ sellToken: tokenA, buyToken: tokenB }) => {
-      const [ tokenAInfo, tokenBInfo ] = await Promise.all([
-        this.getTokenInfo(tokenA),
-        this.getTokenInfo(tokenB)
+    const rawTokenPairs = await this._getRawTokenPairs()
+
+    const tokenPairsPromises = rawTokenPairs.map(async ({ sellToken: tokenA, buyToken: tokenB }) => {
+      const [tokenAInfo, tokenBInfo] = await Promise.all([
+        this.getTokenInfo(tokenA, false),
+        this.getTokenInfo(tokenB, false)
       ])
       return {
         tokenA: tokenAInfo, tokenB: tokenBInfo
@@ -449,7 +451,7 @@ class DxInfoService {
 
   // TODO implement pagination
   async getTokenList ({ count, approved = true } = {}) {
-    const tokenPairs = await this._auctionRepo.getTokenPairs()
+    const tokenPairs = await this._getRawTokenPairs()
     // Filter repeated token addresses
     let tokenAddresses = tokenPairs.reduce((addresses, {
       sellToken,
@@ -481,7 +483,7 @@ class DxInfoService {
     }
 
     const tokenPromises = filteredTokenAddresses.map(async address => {
-      return this.getTokenInfo(address)
+      return this.getTokenInfo(address, false)
     })
 
     return {
@@ -527,13 +529,17 @@ class DxInfoService {
     return this._auctionRepo.getTokenAddress({ token })
   }
 
-  async getTokenInfo (token) {
+  async getTokenInfo (token, raiseErrorIfCantGetInfo = true) {
     return getTokenInfo({
-      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, token })
+      auctionRepo: this._auctionRepo,
+      ethereumRepo: this._ethereumRepo,
+      token,
+      raiseErrorIfCantGetInfo
+    })
   }
 
   // TODO implement
-  async getCurrencies () {}
+  async getCurrencies () { }
 
   async getState ({ sellToken, buyToken }) {
     auctionLogger.debug({ sellToken, buyToken, msg: 'Get current state' })
@@ -672,7 +678,7 @@ class DxInfoService {
     // optional params
     account
   }) {
-    const [ fromBlock, toBlock ] = await Promise.all([
+    const [fromBlock, toBlock] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
       this._ethereumRepo.getLastBlockBeforeDate(toDate)
     ])
@@ -694,7 +700,7 @@ class DxInfoService {
         ethInfo
       } = fee
 
-      const [ sellToken, buyToken ] = await Promise.all([
+      const [sellToken, buyToken] = await Promise.all([
         this.getTokenInfo(sellTokenAddress),
         this.getTokenInfo(buyTokenAddress)
       ])
@@ -720,7 +726,7 @@ class DxInfoService {
     // optional params
     account
   }) {
-    const [ fromBlock, toBlock ] = await Promise.all([
+    const [fromBlock, toBlock] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
       this._ethereumRepo.getLastBlockBeforeDate(toDate)
     ])
@@ -745,7 +751,7 @@ class DxInfoService {
         ethInfo
       } = claiming
 
-      const [ sellToken, buyToken ] = await Promise.all([
+      const [sellToken, buyToken] = await Promise.all([
         this.getTokenInfo(sellTokenAddress),
         this.getTokenInfo(buyTokenAddress)
       ])
@@ -764,7 +770,7 @@ class DxInfoService {
 
     const buyerClaimingDtoPromises = buyerClamings.map(toClaimingDto)
     const sellerClaimingDtoPromises = sellerClamings.map(toClaimingDto)
-    const [ buyer, seller ] = await Promise.all([
+    const [buyer, seller] = await Promise.all([
       Promise.all(buyerClaimingDtoPromises),
       Promise.all(sellerClaimingDtoPromises)
     ])
@@ -787,7 +793,7 @@ class DxInfoService {
     buyToken,
     auctionIndex
   }) {
-    const [ fromBlock, toBlock ] = await Promise.all([
+    const [fromBlock, toBlock] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
       this._ethereumRepo.getLastBlockBeforeDate(toDate)
     ])
@@ -829,7 +835,7 @@ class DxInfoService {
           break
 
         case 'bid':
-        // Get just buy orders
+          // Get just buy orders
           sellOrders = []
           buyOrders = await getBuyOrders()
           break
@@ -839,7 +845,7 @@ class DxInfoService {
       etherPrice = await etherPricePromise
     } else {
       // Get both: sell and buy orders
-      const [ sellOrdersAux, buyOrdersAux, etherPriceAux ] = await Promise.all([
+      const [sellOrdersAux, buyOrdersAux, etherPriceAux] = await Promise.all([
         // Get sell orders
         getSellOrders(),
 
@@ -894,6 +900,15 @@ class DxInfoService {
 
     return detailedTokenList
     // return this._auctionRepo.getTokens()
+  }
+
+  async _getRawTokenPairs () {
+    const rawTokenPairs = await this._auctionRepo.getTokenPairs()
+
+    return rawTokenPairs.filter(({ sellToken, buyToken }) => {
+      console.log({ sellToken, buyToken }, sellToken !== ZERO_ADDRESS && buyToken !== ZERO_ADDRESS)
+      return sellToken !== ZERO_ADDRESS && buyToken !== ZERO_ADDRESS
+    })
   }
 
   async _toOrderDto (orders, etherPrice) {
@@ -1012,7 +1027,8 @@ class DxInfoService {
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
 
     const oraclePriceCustom = await this._dxPriceOracleRepo.getPriceCustom({
-      token: tokenAddress, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
+      token: tokenAddress, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions
+    })
 
     const [
       { decimals: sellTokenDecimals },
@@ -1038,11 +1054,13 @@ class DxInfoService {
 
     const checkedAuctionIndex = !auctionIndex
       ? await this._auctionRepo.getAuctionIndex({
-        sellToken: tokenAddress, buyToken: 'WETH' })
+        sellToken: tokenAddress, buyToken: 'WETH'
+      })
       : auctionIndex
 
     const oracleSimpleMedian = await this._dxPriceOracleRepo.getPricesAndMedian({
-      token: tokenAddress, numberOfAuctions, auctionIndex: checkedAuctionIndex })
+      token: tokenAddress, numberOfAuctions, auctionIndex: checkedAuctionIndex
+    })
 
     const [
       { decimals: sellTokenDecimals },
@@ -1064,8 +1082,8 @@ class DxInfoService {
   }
 
   async notifySlack (message, logger) {
-  //   const message = `Starting Bots and Bots API Server v${version} in \
-  // "${environment}" environment`
+    //   const message = `Starting Bots and Bots API Server v${version} in \
+    // "${environment}" environment`
 
     // Display some basic info
     logger.info(message)
