@@ -9,9 +9,9 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const numberUtil = require('../helpers/numberUtil')
 const formatUtil = require('../helpers/formatUtil')
+const { formatToWei, formatFromWei } = formatUtil
 
 const BOT_TYPE = 'HighSellVolumeBot'
-const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getDxInfoService = require('../services/DxInfoService')
@@ -155,35 +155,42 @@ class HighSellVolumeBot extends Bot {
     const externalPricePromise = this._marketService.getPrice({
       tokenA: sellToken, tokenB: buyToken
     })
-    const [auctionSellVolume, buyTokenBalance, estimatedPrice] =
-      await Promise.all([
-        auctionSellVolumePromise,
-        buyTokenBalancePromise,
-        externalPricePromise
-      ])
+    const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
+    const buyTokenInfoPromise = this._dxInfoService.getTokenInfo(buyToken)
+    const [
+      auctionSellVolume,
+      buyTokenBalance,
+      estimatedPrice,
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }] =
+    await Promise.all([
+      auctionSellVolumePromise,
+      buyTokenBalancePromise,
+      externalPricePromise,
+      sellTokenInfoPromise,
+      buyTokenInfoPromise
+    ])
 
-    const estimatedBuyVolume = auctionSellVolume.mul(numberUtil.toBigNumber(estimatedPrice))
+    const estimatedBuyVolumeInEth = formatFromWei(auctionSellVolume, sellTokenDecimals).mul(numberUtil.toBigNumber(estimatedPrice))
+    const estimatedBuyVolume = formatToWei(estimatedBuyVolumeInEth, buyTokenDecimals)
     logger.debug('Auction sell volume is %s %s and we have %s %s. With last available price %s %s/%s that should mean we need %s %s',
-      formatUtil.formatFromWei(auctionSellVolume), sellToken,
-      formatUtil.formatFromWei(buyTokenBalance), buyToken,
+      formatFromWei(auctionSellVolume, sellTokenDecimals), sellToken,
+      formatFromWei(buyTokenBalance, buyTokenDecimals), buyToken,
       estimatedPrice, sellToken, buyToken,
-      formatUtil.formatFromWei(estimatedBuyVolume), buyToken)
+      formatFromWei(estimatedBuyVolume, buyTokenDecimals), buyToken)
 
     if (estimatedBuyVolume.mul(BALANCE_MARGIN_FACTOR).greaterThan(buyTokenBalance)) {
       logger.debug('We estimate we won`t be able to buy everything')
       this._notifyBalanceBelowEstimate({
-        sellToken, buyToken, from, balance: buyTokenBalance, estimatedBuyVolume
+        sellToken, buyToken, from, balanceInEth: formatFromWei(buyTokenBalance, buyTokenDecimals), estimatedBuyVolumeInEth
       })
     } else {
       logger.debug('We will be able to buy everything')
     }
   }
 
-  _notifyBalanceBelowEstimate ({ sellToken, buyToken, from, balance, estimatedBuyVolume }) {
+  _notifyBalanceBelowEstimate ({ sellToken, buyToken, from, balanceInEth, estimatedBuyVolumeInEth }) {
     // Log low balance tokens
-    const balanceInEth = formatUtil.formatFromWei(balance)
-    const estimatedBuyVolumeInEth = formatUtil.formatFromWei(estimatedBuyVolume)
-
     auctionLogger.warn({
       sellToken,
       buyToken,
