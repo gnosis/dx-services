@@ -2,9 +2,6 @@ const loggerNamespace = 'dx-service:services:AuctionsService'
 const Logger = require('../../helpers/Logger')
 const assert = require('assert')
 
-// const getAddress = require('../helpers/getAddress')
-// this._botAddressPromise = getAddress(0)
-
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../../helpers/formatUtil')
 const dxFilters = require('../../helpers/dxFilters')
@@ -101,7 +98,7 @@ class AuctionService {
   }
 
   async _getAuctionsEventInfo ({ fromDate, toDate, sellToken, buyToken, account, addAuctionInfo }) {
-    const [ fromBlock, toBlock ] = await Promise.all([
+    const [fromBlock, toBlock] = await Promise.all([
       this._ethereumRepo.getFirstBlockAfterDate(fromDate),
       this._ethereumRepo.getLastBlockBeforeDate(toDate)
     ])
@@ -140,8 +137,8 @@ class AuctionService {
           (buyToken === auctionBuyToken || buyToken === buyTokenSymbol)) ||
           // passed buyToken matchs auction sellToken address or symbol
           ((buyToken === auctionSellToken || buyToken === sellTokenSymbol) &&
-          // passed sellToken matchs auction buyToken address or symbol
-          (sellToken === auctionBuyToken || sellToken === buyTokenSymbol))
+            // passed sellToken matchs auction buyToken address or symbol
+            (sellToken === auctionBuyToken || sellToken === buyTokenSymbol))
       })
       markets = auctions.reduce(getMarketsFromFilteredAuctions, [])
     }
@@ -176,7 +173,7 @@ class AuctionService {
     // Get bot orders
     let botSellOrders, botBuyOrders
     if (account) {
-      const [ botSellOrdersAux, botBuyOrdersAux ] = await Promise.all([
+      const [botSellOrdersAux, botBuyOrdersAux] = await Promise.all([
         // Get the bot's sell orders
         this._auctionRepo.getSellOrders({
           fromBlock: fromBlockStartAuctions,
@@ -403,7 +400,7 @@ class AuctionService {
 
   _isKnownMarket (tokenA, tokenB) {
     if (tokenA && tokenB) {
-      const [ sellToken, buyToken ] = getTokenOrder(tokenA, tokenB)
+      const [sellToken, buyToken] = getTokenOrder(tokenA, tokenB)
 
       return this._markets.some(market => {
         return market.tokenA === sellToken &&
