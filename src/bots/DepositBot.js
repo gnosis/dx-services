@@ -184,14 +184,16 @@ class DepositBot extends Bot {
     accountAddress,
     threshold
   }) {
-    const weiReserveAmount = numberUtil.toWei(threshold)
+    const { decimals: tokenDecimals } = await this.getTokenInfo(token)
+
+    const weiReserveAmount = numberUtil.toWei(threshold, tokenDecimals)
     logger.debug('Wei reserve amount for token %s: %s', token, weiReserveAmount)
     if (amount.greaterThan(weiReserveAmount)) {
       // We have tokens to deposit
       const amountToDeposit = amount.minus(weiReserveAmount)
       const tokenToDeposit = token === 'ETH' ? 'WETH' : token
       logger.info('I have to deposit %d %s for account %s',
-        numberUtil.fromWei(amountToDeposit),
+        numberUtil.fromWei(amountToDeposit, tokenDecimals),
         token,
         accountAddress
       )
@@ -204,7 +206,7 @@ class DepositBot extends Bot {
         })
         .then(result => {
           // Notify deposited token
-          this._notifyDepositedTokens(amount, token, accountAddress)
+          this._notifyDepositedTokens(amount, token, accountAddress, tokenDecimals)
           return amount
         })
         .catch(error => {
@@ -217,8 +219,8 @@ class DepositBot extends Bot {
     }
   }
 
-  _notifyDepositedTokens (amount, token, account) {
-    const balance = amount.div(1e18).valueOf()
+  _notifyDepositedTokens (amount, token, account, tokenDecimals) {
+    const balance = numberUtil.fromWei(amount, tokenDecimals).valueOf()
     const depositedTokensString = balance + ' ' + token
 
     const message = 'The bot deposited ' + depositedTokensString + ' into the DutchX'

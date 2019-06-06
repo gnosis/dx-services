@@ -996,7 +996,7 @@ class DxInfoService {
 
   async getOraclePrice ({ token }) {
     if (this.isTokenEth(token)) {
-      return numberUtil.toBigNumber('1')
+      return numberUtil.ONE
     }
 
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
@@ -1020,7 +1020,7 @@ class DxInfoService {
 
   async getOraclePriceCustom ({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions }) {
     if (this.isTokenEth(token)) {
-      return numberUtil.toBigNumber('1')
+      return numberUtil.ONE
     }
 
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
@@ -1046,7 +1046,7 @@ class DxInfoService {
 
   async getOraclePricesAndMedian ({ token, numberOfAuctions, auctionIndex }) {
     if (this.isTokenEth(token)) {
-      return numberUtil.toBigNumber('1')
+      return numberUtil.ONE
     }
 
     const tokenAddress = await this._auctionRepo.getTokenAddress({ token })

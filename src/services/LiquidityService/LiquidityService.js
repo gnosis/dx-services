@@ -386,7 +386,11 @@ keeps happening`
     //  * Is not in theoretical closed state
     if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
-        const [price, currentMarketPrice] = await Promise.all([
+        const [
+          priceWithoutDecimals,
+          currentMarketPrice,
+          { decimals: sellTokenDecimals },
+          { decimals: buyTokenDecimals }] = await Promise.all([
           // Get the current price for the auction
           this._auctionRepo.getCurrentAuctionPrice({
             sellToken,
@@ -402,9 +406,16 @@ keeps happening`
           }).then(price => ({
             numerator: numberUtil.toBigNumber(price.toString()),
             denominator: numberUtil.ONE
-          }))
+          })),
+
+          this.getTokenInfo(sellToken),
+          this.getTokenInfo(buyToken)
         ])
         assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
+
+        const price = formatUtil.formatPriceWithDecimals({
+          price: priceWithoutDecimals, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+        })
 
         auctionLogger.debug({
           sellToken,
@@ -420,8 +431,8 @@ keeps happening`
             auctionIndex,
             from,
             buyLiquidityRules,
-            currentMarketPrice: currentMarketPrice,
-            price: price,
+            currentMarketPrice,
+            price,
             auctionState
           })
         }
