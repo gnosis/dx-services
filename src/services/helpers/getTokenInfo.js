@@ -1,11 +1,21 @@
 async function getTokenInfo ({
   auctionRepo,
   ethereumRepo,
-  token
+  token,
+  raiseErrorIfCantGetInfo = true
 }) {
   const tokenAddress = await auctionRepo.getTokenAddress({ token })
 
-  return ethereumRepo.tokenGetInfo({ tokenAddress })
+  try {
+    const info = await ethereumRepo.tokenGetInfo({ tokenAddress })
+    return info
+  } catch (error) {
+    if (raiseErrorIfCantGetInfo) {
+      throw error
+    }
+
+    return { address: tokenAddress }
+  }
 }
 
 module.exports = getTokenInfo
