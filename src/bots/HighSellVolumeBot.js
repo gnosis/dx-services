@@ -42,6 +42,7 @@ class HighSellVolumeBot extends Bot {
     if (thresholdInUsd) {
       // In thresholdInUsd mode, it'll notify if the sell volue surplus the threshold
       this._thresholdInUsd = thresholdInUsd
+      this._lastNotificationAuctionIndex = {}
     } else if (botAddress) {
       // Config using bot address we'll use to check if it has enough balance
       this._botAddress = botAddress
@@ -151,41 +152,56 @@ class HighSellVolumeBot extends Bot {
   }
 
   async _checkSellVolumeNotGreaterThanThreshold ({ sellToken, buyToken }) {
-    const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
-    const buyTokenInfoPromise = this._dxInfoService.getTokenInfo(buyToken)
-    const sellVolumePromise = this._dxInfoService.getSellVolume({
-      sellToken, buyToken
-    })
+    const lastNotifiedAuctionIndex = this._lastNotificationAuctionIndex[sellToken + '-' + buyToken]
+    const auctionIndex = await this._dxInfoService.getAuctionIndex({ sellToken, buyToken })
 
-    const [
-      sellVolume,
-      { decimals: sellTokenDecimals }
-    ] = await Promise.all([
-      sellVolumePromise,
-      sellTokenInfoPromise,
-      buyTokenInfoPromise
-    ])
+    let checkSellVolume
+    if (lastNotifiedAuctionIndex) {
+      checkSellVolume = lastNotifiedAuctionIndex < auctionIndex
+      logger.debug('Check sell volume for %s-%s? %s. AuctionIndex=%d, LastNotifiedAuctionIndex=%d', sellToken, buyToken, checkSellVolume, auctionIndex, lastNotifiedAuctionIndex)
+    } else {
+      checkSellVolume = true
+      logger.debug('Checking volume for %s-%s', sellToken, buyToken)
+    }
 
-    const sellVolumeInUsd = await this._dxInfoService.getPriceInUSD({
-      token: sellToken,
-      amount: sellVolume
-    })
+    if (checkSellVolume) {
+      const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
+      const buyTokenInfoPromise = this._dxInfoService.getTokenInfo(buyToken)
 
-    const bigSellVolume = sellVolumeInUsd.greaterThan(this._thresholdInUsd)
-    logger.debug('Check if the sell volume for %s-%s is greater than $%d: %s, it\'s $%s (%d %s)',
-      sellToken,
-      buyToken,
-      this._thresholdInUsd,
-      bigSellVolume ? 'Yes' : 'No',
-      numberUtil.round(sellVolumeInUsd),
-      formatFromWei(sellVolume, sellTokenDecimals),
-      sellToken
-    )
-
-    if (bigSellVolume) {
-      this._notifyBigVolume({
-        sellToken, buyToken, sellVolumeInUsd, sellVolume, sellTokenDecimals
+      const sellVolumePromise = this._dxInfoService.getSellVolume({
+        sellToken, buyToken
       })
+
+      const [
+        sellVolume,
+        { decimals: sellTokenDecimals }
+      ] = await Promise.all([
+        sellVolumePromise,
+        sellTokenInfoPromise,
+        buyTokenInfoPromise
+      ])
+
+      const sellVolumeInUsd = await this._dxInfoService.getPriceInUSD({
+        token: sellToken,
+        amount: sellVolume
+      })
+
+      const bigSellVolume = sellVolumeInUsd.greaterThan(this._thresholdInUsd)
+      logger.debug('Check if the sell volume for %s-%s is greater than $%d: %s, it\'s $%s (%d %s)',
+        sellToken,
+        buyToken,
+        this._thresholdInUsd,
+        bigSellVolume ? 'Yes' : 'No',
+        numberUtil.round(sellVolumeInUsd),
+        formatFromWei(sellVolume, sellTokenDecimals),
+        sellToken
+      )
+
+      if (bigSellVolume) {
+        this._notifyBigVolume({
+          sellToken, buyToken, sellVolumeInUsd, sellVolume, sellTokenDecimals, auctionIndex
+        })
+      }
     }
   }
 
@@ -246,16 +262,17 @@ class HighSellVolumeBot extends Bot {
     }
   }
 
-  _notifyBigVolume ({ sellToken, buyToken, sellVolumeInUsd, sellVolume, sellTokenDecimals }) {
+  _notifyBigVolume ({ sellToken, buyToken, sellVolumeInUsd, sellVolume, sellTokenDecimals, auctionIndex }) {
     // Log low balance tokens
     auctionLogger.warn({
       sellToken,
       buyToken,
-      msg: 'Detected a sell volume greater than %s$ for %s-%s: $%d (%d %s)',
+      msg: 'Detected a sell volume greater than %s$ for %s-%s-%d: $%d (%d %s)',
       params: [
         this._thresholdInUsd,
         sellToken,
         buyToken,
+        auctionIndex,
         numberUtil.round(sellVolumeInUsd),
         formatFromWei(sellVolume, sellTokenDecimals),
         sellToken
@@ -274,7 +291,8 @@ class HighSellVolumeBot extends Bot {
               buyToken,
               sellVolumeInUsd,
               sellVolume,
-              sellTokenDecimals
+              sellTokenDecimals,
+              auctionIndex
             })
           }
           break
@@ -285,6 +303,8 @@ class HighSellVolumeBot extends Bot {
           })
       }
     })
+
+    this._lastNotificationAuctionIndex[sellToken + '-' + buyToken] = auctionIndex
   }
 
   _notifyBalanceBelowEstimate ({ sellToken, buyToken, from, balanceInEth, estimatedBuyVolumeInEth }) {
@@ -370,15 +390,16 @@ class HighSellVolumeBot extends Bot {
       })
   }
 
-  _notifyBigVolumeSlack ({ channel, sellToken, buyToken, sellVolumeInUsd, sellVolume, sellTokenDecimals }) {
+  _notifyBigVolumeSlack ({ channel, sellToken, buyToken, sellVolumeInUsd, sellVolume, sellTokenDecimals, auctionIndex }) {
     auctionLogger.warn({
       sellToken,
       buyToken,
-      msg: 'Detected a sell volume greater than %s for %s-%s',
+      msg: 'Detected a sell volume greater than %s for %s-%s-%d',
       params: [
         this._thresholdInUsd,
         sellToken,
-        buyToken
+        buyToken,
+        auctionIndex
       ],
       notify: true
     })
@@ -389,7 +410,7 @@ class HighSellVolumeBot extends Bot {
         attachments: [
           {
             color: 'danger',
-            title: `Detected a sell volume greater than $${this._thresholdInUsd} for ${sellToken}-${buyToken}`,
+            title: `Detected a sell volume greater than $${this._thresholdInUsd} for ${sellToken}-${buyToken}-${auctionIndex}`,
             text: 'The bot has detected a big sell volume.',
             fields: [
               {
