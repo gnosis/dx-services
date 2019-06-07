@@ -7,6 +7,7 @@ const getVersion = require('../../helpers/getVersion')
 const numberUtil = require('../../helpers/numberUtil.js')
 const formatUtil = require('../../helpers/formatUtil.js')
 const assert = require('assert')
+const getTokenInfo = require('../helpers/getTokenInfo')
 
 const MAXIMUM_DX_FEE = 0.005 // 0.5%
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
@@ -408,8 +409,16 @@ keeps happening`
             denominator: numberUtil.ONE
           })),
 
-          this.getTokenInfo(sellToken),
-          this.getTokenInfo(buyToken)
+          getTokenInfo({
+            auctionRepo: this._auctionRepo,
+            ethereumRepo: this._ethereumRepo,
+            token: sellToken
+          }),
+          getTokenInfo({
+            auctionRepo: this._auctionRepo,
+            ethereumRepo: this._ethereumRepo,
+            token: buyToken
+          })
         ])
         assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
 
