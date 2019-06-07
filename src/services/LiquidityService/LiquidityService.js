@@ -430,7 +430,7 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Price: %s, Market price: %s',
-          params: [formatUtil.formatFraction(price), formatUtil.formatFraction(currentMarketPrice)]
+          params: [formatUtil.formatFraction({ price }), formatUtil.formatFraction({ price: currentMarketPrice })]
         })
         if (price) {
           // If there is a price, the auction is running
@@ -518,8 +518,8 @@ keeps happening`
     auctionState
   }) {
     const rules = (buyLiquidityRules || this._buyLiquidityRules).map(({ marketPriceRatio, buyRatio }) => ({
-      marketPriceRatio: formatUtil.formatFraction(marketPriceRatio),
-      buyRatio: formatUtil.formatFraction(buyRatio)
+      marketPriceRatio: formatUtil.formatFraction({ price: marketPriceRatio }),
+      buyRatio: formatUtil.formatFraction({ price: buyRatio })
     }))
     auctionLogger.debug({
       sellToken,
@@ -548,8 +548,8 @@ keeps happening`
         msg: 'We need to ensure that %d % of the buy volume is bought. Market Price: %s, Price: %s, Relation: %d %',
         params: [
           percentageThatShouldBeBought.mul(100).toFixed(2),
-          formatUtil.formatFraction(currentMarketPrice),
-          formatUtil.formatFraction(price),
+          formatUtil.formatFraction({ currentMarketPrice }),
+          formatUtil.formatFraction({ price }),
           _getPriceRatio(price, currentMarketPrice)
             .mul(100)
             .toFixed(2)

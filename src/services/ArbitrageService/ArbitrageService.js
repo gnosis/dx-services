@@ -215,6 +215,7 @@ check should be done`,
     // })
     const {
       sellVolume,
+      hasAuctionStarted,
       isClosed,
       isTheoreticalClosed
     } = await this._auctionRepo.getAuctionState({
@@ -223,11 +224,12 @@ check should be done`,
       auctionIndex
     })
 
-    // // We need to check arbitrage opportunity if:
-    // //  * The auction has sell volume
-    // //  * Is not closed yet
-    // //  * Is not in theoretical closed state
-    if (!sellVolume.isZero()) {
+    // We need to check arbitrage opportunity if:
+    //  * The auction has sell volume
+    //  * The auction has started
+    //  * Is not closed yet
+    //  * Is not in theoretical closed state
+    if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
         // get the current price for our token pair on the dutchX
         // it is buyToken per sellToken, so it tells us that
