@@ -118,8 +118,9 @@ function formatFraction ({ fraction, inDecimal = true, tokenBDecimals = 18, toke
   if (!fraction) {
     return null
   } else {
+    const fractionInBn = numberUtil.toBigNumberFraction(fraction, false)
     const { numerator, denominator } = formatPriceWithDecimals({
-      price: fraction, tokenBDecimals, tokenADecimals
+      price: fractionInBn, tokenBDecimals, tokenADecimals
     })
     if (inDecimal) {
       // In decimal format

@@ -5,7 +5,9 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 const getGitInfo = require('../../helpers/getGitInfo')
 const getVersion = require('../../helpers/getVersion')
 const numberUtil = require('../../helpers/numberUtil.js')
+const { ONE, TEN } = numberUtil
 const formatUtil = require('../../helpers/formatUtil.js')
+const { formatFromWei } = formatUtil
 const assert = require('assert')
 const getTokenInfo = require('../helpers/getTokenInfo')
 
@@ -406,7 +408,7 @@ keeps happening`
             tokenB: buyToken
           }).then(price => ({
             numerator: numberUtil.toBigNumber(price.toString()),
-            denominator: numberUtil.ONE
+            denominator: ONE
           })),
 
           getTokenInfo({
@@ -430,13 +432,15 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Price: %s, Market price: %s',
-          params: [formatUtil.formatFraction({ price }), formatUtil.formatFraction({ price: currentMarketPrice })]
+          params: [formatUtil.formatFraction({ fraction: price }), formatUtil.formatFraction({ fraction: currentMarketPrice })]
         })
         if (price) {
           // If there is a price, the auction is running
           return this._doBuyLiquidityUsingCurrentPrices({
             sellToken,
             buyToken,
+            sellTokenDecimals,
+            buyTokenDecimals,
             auctionIndex,
             from,
             buyLiquidityRules,
@@ -510,6 +514,8 @@ keeps happening`
   async _doBuyLiquidityUsingCurrentPrices ({
     sellToken,
     buyToken,
+    sellTokenDecimals,
+    buyTokenDecimals,
     auctionIndex,
     from,
     buyLiquidityRules,
@@ -518,8 +524,8 @@ keeps happening`
     auctionState
   }) {
     const rules = (buyLiquidityRules || this._buyLiquidityRules).map(({ marketPriceRatio, buyRatio }) => ({
-      marketPriceRatio: formatUtil.formatFraction({ price: marketPriceRatio }),
-      buyRatio: formatUtil.formatFraction({ price: buyRatio })
+      marketPriceRatio: formatUtil.formatFraction({ fraction: marketPriceRatio }),
+      buyRatio: formatUtil.formatFraction({ fraction: buyRatio })
     }))
     auctionLogger.debug({
       sellToken,
@@ -548,8 +554,8 @@ keeps happening`
         msg: 'We need to ensure that %d % of the buy volume is bought. Market Price: %s, Price: %s, Relation: %d %',
         params: [
           percentageThatShouldBeBought.mul(100).toFixed(2),
-          formatUtil.formatFraction({ currentMarketPrice }),
-          formatUtil.formatFraction({ price }),
+          formatUtil.formatFraction({ fraction: currentMarketPrice }),
+          formatUtil.formatFraction({ fraction: price }),
           _getPriceRatio(price, currentMarketPrice)
             .mul(100)
             .toFixed(2)
@@ -557,13 +563,14 @@ keeps happening`
       })
 
       // Get the total sellVolume in buy tokens
-      const sellVolumeInBuyTokes = sellVolume
+      const sellVolumeInBuyTokens = sellVolume
+        .mul(TEN.toPower(buyTokenDecimals - sellTokenDecimals))
         .mul(price.numerator)
         .div(price.denominator)
 
       // Get the buyTokens that should have been bought
       const expectedBuyVolume = percentageThatShouldBeBought
-        .mul(sellVolumeInBuyTokes)
+        .mul(sellVolumeInBuyTokens)
 
       // Get the difference between the buyVolume and the buyVolume that we
       // should have
@@ -571,20 +578,19 @@ keeps happening`
         .minus(buyVolume)
         .ceil()
 
-      // (1 - (sellVolumeInBuyTokes - buyVolume / sellVolumeInBuyTokes)) * 100
-      const boughtPercentage = numberUtil
-        .ONE.minus(
-          sellVolumeInBuyTokes
-            .minus(buyVolume)
-            .div(sellVolumeInBuyTokes)
-        ).mul(100)
+      // (1 - (sellVolumeInBuyTokens - buyVolume / sellVolumeInBuyTokens)) * 100
+      const boughtPercentage = ONE.minus(
+        sellVolumeInBuyTokens
+          .minus(buyVolume)
+          .div(sellVolumeInBuyTokens)
+      ).mul(100)
 
       // Decide if we need to meet the liquidity
       const needToEnsureLiquidity = buyTokensRequiredToMeetLiquidity.greaterThan(0)
 
       if (needToEnsureLiquidity) {
         const buyTokensWithFee = buyTokensRequiredToMeetLiquidity
-          .div(numberUtil.ONE.minus(MAXIMUM_DX_FEE))
+          .div(ONE.minus(MAXIMUM_DX_FEE))
 
         const remainPercentage = percentageThatShouldBeBought
           .mul(100)
@@ -612,7 +618,7 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Posting a buy order for %d %s ($%d)',
-          params: [buyTokensWithFee.div(1e18), buyToken, amountToBuyInUSD]
+          params: [formatFromWei(buyTokensWithFee, buyTokenDecimals), buyToken, amountToBuyInUSD]
         })
         const buyOrder = await this._auctionRepo.postBuyOrder({
           sellToken,
@@ -692,26 +698,34 @@ keeps happening`
     // We round up the dollars
     amountToSellInUSD = amountToSellInUSD
       // We add the maximun fee as an extra amount
-      .div(numberUtil.ONE.minus(MAXIMUM_DX_FEE))
+      .div(ONE.minus(MAXIMUM_DX_FEE))
 
     // Round USD to 2 decimals
     amountToSellInUSD = numberUtil.roundUp(amountToSellInUSD)
 
     // Get the amount to sell in sellToken
-    const amountInSellTokens = (await this._auctionRepo
-      .getPriceFromUSDInTokens({
-        token: sellToken,
-        amountOfUsd: amountToSellInUSD
-      }))
-      // Round up
-      .ceil()
+    const [ amountInSellTokens, { decimals: sellTokenDecimals } ] = await Promise.all([
+      this._auctionRepo
+        .getPriceFromUSDInTokens({
+          token: sellToken,
+          amountOfUsd: amountToSellInUSD
+        }).then(result => {
+          return result.ceil()
+        }),
+
+      getTokenInfo({
+        auctionRepo: this._auctionRepo,
+        ethereumRepo: this._ethereumRepo,
+        token: sellToken
+      })
+    ])
 
     // Sell the missing difference
     auctionLogger.info({
       sellToken,
       buyToken,
       msg: 'Selling %d %s ($%d)',
-      params: [amountInSellTokens.div(1e18), sellToken, amountToSellInUSD]
+      params: [formatFromWei(amountInSellTokens, sellTokenDecimals), sellToken, amountToSellInUSD]
     })
     const sellOrder = await this._auctionRepo.postSellOrder({
       sellToken,
