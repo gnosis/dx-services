@@ -184,7 +184,13 @@ class DepositBot extends Bot {
     accountAddress,
     threshold
   }) {
-    const { decimals: tokenDecimals } = await this.getTokenInfo(token)
+    let tokenDecimals
+    if (token !== 'ETH') {
+      const tokenInfo = await this._dxInfoService.getTokenInfo(token)
+      tokenDecimals = tokenInfo.decimals
+    } else {
+      tokenDecimals = 18
+    }
 
     const weiReserveAmount = numberUtil.toWei(threshold, tokenDecimals)
     logger.debug('Wei reserve amount for token %s: %s', token, weiReserveAmount)
