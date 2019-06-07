@@ -1,7 +1,8 @@
 const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
-
+const EthereumRepoMock = require('../../src/repositories/EthereumRepo/EthereumRepoMock')
+const ethereumRepoMock = new EthereumRepoMock({})
 const PriceRepoMock = require('../../src/repositories/PriceRepo/PriceRepoMock')
 const priceRepo = new PriceRepoMock()
 
@@ -19,6 +20,8 @@ test('It should ensureSellLiquidity', async () => {
   liquidityService._auctionRepo = new AuctionRepoMock({
     auctions: _getAuctionsWithUnderFundingEthOmg()
   })
+  // we mock the ethereum repo
+  liquidityService._ethereumRepo = ethereumRepoMock
 
   async function _isUnderFundingAuction ({ tokenA, tokenB }) {
     const auctionIndex = await liquidityService._auctionRepo.getAuctionIndex({
