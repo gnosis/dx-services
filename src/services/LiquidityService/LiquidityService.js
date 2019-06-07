@@ -13,6 +13,8 @@ const getTokenInfo = require('../helpers/getTokenInfo')
 
 const MAXIMUM_DX_FEE = 0.005 // 0.5%
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
+// Release time if a sell is locked (never commiting because a reorg or transaction loss)
+const MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS = process.env.MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS || (15 * 60 * 1000) // 15 min
 
 class LiquidityService {
   constructor ({
@@ -137,6 +139,7 @@ class LiquidityService {
       // Clear concurrency lock and resolve promise
       const isError = soldOrBoughtTokens instanceof Error
       // TODO: Review
+      clearTimeout(that.concurrencyCheck[lockName].timeout)
 
       if (isError || soldOrBoughtTokens.length === 0 || !waitToReleaseTheLock) {
         that.concurrencyCheck[lockName] = null
@@ -169,14 +172,25 @@ check should be done`,
       boughtOrSoldTokensPromise = Promise.resolve([])
     } else {
       // Ensure liquidity + Create concurrency lock
-      this.concurrencyCheck[lockName] = this[doEnsureLiquidityFnName]({
-        tokenA: sellToken,
-        tokenB: buyToken,
-        from,
-        minimumSellVolume,
-        buyLiquidityRules
-      })
-      boughtOrSoldTokensPromise = this.concurrencyCheck[lockName]
+      this.concurrencyCheck[lockName] = {
+        transactionPromise: this[doEnsureLiquidityFnName]({
+          tokenA: sellToken,
+          tokenB: buyToken,
+          from,
+          minimumSellVolume,
+          buyLiquidityRules
+        }),
+        timeout: setTimeout(() => {
+          auctionLogger.warn({
+            sellToken,
+            buyToken,
+            msg: `Concurrency lock had to be released after maximum timeout is reached for %s `,
+            params: [liquidityCheckName]
+          })
+          releaseLock([])
+        }, MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS)
+      }
+      boughtOrSoldTokensPromise = this.concurrencyCheck[lockName].transactionPromise
       boughtOrSoldTokensPromise
         .then(releaseLock)
         .catch(releaseLock)
