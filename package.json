@@ -81,13 +81,13 @@
     "@gnosis.pm/util-contracts": "2.0.0",
     "@slack/client": "^4.11.0",
     "cors": "^2.8.5",
-    "coveralls": "^3.0.3",
+    "coveralls": "^3.0.4",
     "debug": "^4.1.1",
-    "dotenv": "^7.0.0",
+    "dotenv": "^8.0.0",
     "express": "^4.16.4",
     "git-rev-sync": "^1.12.0",
     "got": "^9.6.0",
-    "jest": "^24.7.1",
+    "jest": "^24.8.0",
     "lodash.clonedeep": "^4.5.0",
     "moment": "^2.24.0",
     "node-cache": "^4.2.0",
@@ -98,7 +98,7 @@
     "truffle-contract": "^3.0.6",
     "truffle-hdwallet-provider": "^1.0.5",
     "web3-provider-engine": "^14.1.0",
-    "yargs": "^13.2.2"
+    "yargs": "^13.2.4"
   },
   "devDependencies": {
     "commander": "^2.20.0",
@@ -106,13 +106,13 @@
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.17.2",
-    "eslint-plugin-jest": "^22.5.1",
-    "eslint-plugin-node": "^9.0.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-jest": "^22.6.4",
+    "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
     "ganache-cli": "^6.4.3",
-    "nodemon": "^1.19.0",
+    "nodemon": "^1.19.1",
     "prettier-standard": "^9.1.1",
     "yamljs": "^0.3.0"
   }
