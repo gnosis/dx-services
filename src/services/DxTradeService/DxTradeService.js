@@ -3,6 +3,7 @@ const Logger = require('../../helpers/Logger')
 const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 const getClaimableTokens = require('../helpers/getClaimableTokens')
+const getTokenInfo = require('../helpers/getTokenInfo')
 
 const numberUtil = require('../../../src/helpers/numberUtil')
 
@@ -152,7 +153,7 @@ class DxTradeService {
       const sumAmounts = claims => {
         return claims.reduce((acc, { amount }) => {
           return acc.add(amount)
-        }, numberUtil.toBigNumber(0))
+        }, numberUtil.ZERO)
       }
       if (sellerClaims.length || buyerClaims.length) {
         const totalSellerClaims = numberUtil.fromWei(sumAmounts(sellerClaims))
@@ -209,8 +210,11 @@ class DxTradeService {
   }
 
   async sendTokens ({ token, amount, fromAddress, toAddress }) {
-    // const amountInWei = numberUtil.toWei(amount)
-    const amountInEther = numberUtil.toBigNumber(amount).div(1e18)
+    const { decimals: tokenDecimals } = await getTokenInfo({
+      auctionRepo: this._auctionRepo,
+      ethereumRepo: this._ethereumRepo,
+      token
+    })
 
     if (token === 'ETH') {
       // In case of the ETH, we make sure we have enough EtherTokens
@@ -230,7 +234,7 @@ class DxTradeService {
     logger.info({
       msg: 'Transfered %d %s from %s to %s. Transaction: %s',
       params: [
-        amountInEther,
+        numberUtil.fromWei(amount, tokenDecimals),
         token,
         fromAddress,
         toAddress,

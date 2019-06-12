@@ -1,6 +1,7 @@
 const addCacheHeader = require('../helpers/addCacheHeader')
 
 // const debug = require('debug')('DEBUG-dx-services:web:api')
+// const info = require('debug')('INFO-dx-services:web:api')
 
 function createRoutes ({ dxInfoService },
   { short: CACHE_TIMEOUT_SHORT,
@@ -16,11 +17,21 @@ function createRoutes ({ dxInfoService },
     }
   })
 
-  // TODO Remove
   routes.push({
     path: '/v1/ping',
     get (req, res) {
       res.status(204).send()
+    }
+  })
+
+  routes.push({
+    path: '/v1/time',
+    get (req, res) {
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+
+      const nowIsoDate = (new Date()).toISOString()
+      // info('Get time: ', nowIsoDate)
+      res.status(200).send(nowIsoDate)
     }
   })
 

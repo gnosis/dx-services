@@ -1,6 +1,6 @@
 {
   "name": "@gnosis.pm/dx-services",
-  "version": "2.3.4",
+  "version": "2.3.6",
   "description": "",
   "main": "src/runPublicApi.js",
   "directories": {
@@ -81,7 +81,7 @@
     "@gnosis.pm/util-contracts": "2.0.1",
     "@slack/web-api": "^5.0.1",
     "cors": "^2.8.5",
-    "coveralls": "^3.0.3",
+    "coveralls": "^3.0.4",
     "debug": "^4.1.1",
     "dotenv": "^8.0.0",
     "express": "^4.16.4",
@@ -106,13 +106,13 @@
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.17.2",
-    "eslint-plugin-jest": "^22.5.1",
-    "eslint-plugin-node": "^9.0.1",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-jest": "^22.6.4",
+    "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
     "ganache-cli": "^6.4.3",
-    "nodemon": "^1.19.0",
+    "nodemon": "^1.19.1",
     "prettier-standard": "^9.1.1",
     "yamljs": "^0.3.0"
   }

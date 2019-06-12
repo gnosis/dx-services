@@ -56,8 +56,8 @@ paths:
         - Markets and supported tokens
       summary: Available tokens
       description: >-
-        Returns an array of **all tokens that are listed** (and hence can be traded)
-        on the DutchX.
+        Returns an array of **all tokens that are listed** on the DutchX.
+        (beware: if a not ERC20 token is listed; wrongly added tokens cannot be traded)
 
 
         All tokens are, at least, listed in an auction with WETH.
@@ -135,6 +135,7 @@ paths:
       summary: Available markets (token pairs)
       description: >-
         Returns an array of all the available markets (auctions) in the DutchX.
+        (beware: if a not ERC20 token is listed; wrongly added tokens cannot be traded)
 
 
         Note that each available token pairing always runs the two opposite auctions

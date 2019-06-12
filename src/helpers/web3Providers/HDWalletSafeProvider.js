@@ -256,7 +256,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         // It's a known operator trying to perform a transaction
         return super.sendAsync(...arguments)
       } else {
-        throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
+        throw new Error(`Unknown safe/operator with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
       }
     } else if (method === 'eth_accounts') {
       logger.trace('Get accounts')
