@@ -102,7 +102,7 @@ class ClaimBot extends Bot {
     logger.info('Claiming markets %O for account %s%s',
       this._markets,
       this._claimAddress,
-      this.botAddress !== this._claimAddress ? ' using operator ' + this.botAddress : ''
+      this._botAddress !== this._claimAddress ? ' using operator ' + this._botAddress : ''
     )
 
     const tokenPairs = this._markets.reduce((markets, { tokenA, tokenB }) => {
