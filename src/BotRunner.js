@@ -5,7 +5,6 @@ const assert = require('assert')
 const path = require('path')
 
 const getDxInfoService = require('./services/DxInfoService')
-const getBotsService = require('./services/BotsService')
 
 // Bot Api
 const getBotsApiServer = require('./web/bots/BotsApiServer')
