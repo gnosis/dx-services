@@ -201,6 +201,11 @@ check should be done`,
 
   async getBalancesDx ({ tokens, address }) {
     const balancesPromises = tokens.map(async token => {
+      const { decimals: tokenDecimals } = await getTokenInfo({
+        auctionRepo: this._auctionRepo,
+        ethereumRepo: this._ethereumRepo,
+        token
+      })
       const amount = await this._auctionRepo.getBalance({ token, address })
       let amountInUSD = await this._auctionRepo
         .getPriceInUSD({
@@ -212,7 +217,7 @@ check should be done`,
       amountInUSD = numberUtil.roundDown(amountInUSD)
 
       return {
-        token, amount, amountInUSD
+        token, amount, amountInUSD, tokenDecimals
       }
     })
 
@@ -221,8 +226,11 @@ check should be done`,
 
   async getBalancesErc20 ({ tokens, address, getAmountUsd = true }) {
     const balancesPromises = tokens.map(async token => {
-      const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
-
+      const { address: tokenAddress, decimals: tokenDecimals } = await getTokenInfo({
+        auctionRepo: this._auctionRepo,
+        ethereumRepo: this._ethereumRepo,
+        token
+      })
       const amount = await this._ethereumRepo.tokenBalanceOf({
         tokenAddress,
         account: address
@@ -240,7 +248,7 @@ check should be done`,
       }
 
       return {
-        token, amount, amountInUSD
+        token, amount, amountInUSD, tokenDecimals
       }
     })
 

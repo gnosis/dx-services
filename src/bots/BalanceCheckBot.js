@@ -7,6 +7,7 @@ const assert = require('assert')
 const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../helpers/ethereumClient')
 const formatUtil = require('../helpers/formatUtil')
+const { formatFromWei } = formatUtil
 const numberUtil = require('../helpers/numberUtil')
 
 const BOT_TYPE = 'BalanceCheckBot'
@@ -368,7 +369,7 @@ class BalanceCheckBot extends Bot {
     this._lastWarnNotification = new Date()
     const tokenBelowMinimumValue = tokenBelowMinimum.map(balanceInfo => {
       return Object.assign(balanceInfo, {
-        amount: balanceInfo.amount.div(1e18).valueOf(),
+        amount: formatFromWei(balanceInfo.amount, balanceInfo.tokenDecimals).valueOf(),
         amountInUSD: balanceInfo.amountInUSD ? balanceInfo.amountInUSD.valueOf() : undefined
       })
     })
