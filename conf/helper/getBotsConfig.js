@@ -2,8 +2,9 @@
 //    getBotsConfig
 // -----------------------------------------------------------------------------
 /*
- * @version 0.1.0
- * @see https://github.com/gnosis/dx-services/tree/master/conf/helper/getBotsConfig.js
+ * @version 0.1.1
+ * @see Last version in https://github.com/gnosis/dx-services/tree/master/conf/helper/getBotsConfig.js
+ *
  */
 
 /**
@@ -26,7 +27,8 @@
  * @param {Object} [buyRules] Defines the rules of the buy bot. By default the
  *  it buys 1/2 (50%) if price changes by -1% and 100% if price changes by -4%,
  *  but it can be overrided with this prop. *
- *
+ * @param {boolean} [checkEnoughBalanceToBuyAll = true] Notifies if the buy bot
+ *  won't be able to buy all the sell volumme
  *
  * @param {boolean} [createSellBot = false] Defines wether to create the sell bot
  *  or not
@@ -45,7 +47,7 @@
  * @property {string} [safeAddress] Specifies the Gnosis Safe address.
  *   Only for Safe setup.
  * @property {SafeModuleType} [safeModuleType] Specifies the Gnosis
- *   Safe module type. "seller" if the bots only sell, or "buyer" if the safe also
+ *   Safe module type. "seller" if the bots only sell, or "complete" if the safe also
  *   buys (note that these are different module implementations, so you have to
  *   make sure this matches the "safeModuleAddress" you provide). Only for Safe
  *   setup.
@@ -122,7 +124,7 @@
 
 /**
 * Safe module type
-* @typedef {"seller", "buyer"} SafeModuleType
+* @typedef {"seller", "complete"} SafeModuleType
 */
 
 /**
@@ -143,7 +145,7 @@
  *
  * @returns {Object} The config of the bots
  */
-function getBotsConfig({
+function getBotsConfig ({
   namePrefix,
   botsSetup,
   aditionalMonitoringAccounts = [],
@@ -154,11 +156,15 @@ function getBotsConfig({
   assert(botsSetup.length > 0, '"botsSetup" must have at least one setup')
 
   const botsConfig = botsSetup.map(config => {
-    const { tokenSymbol, name } = config
+    const {
+      name,
+      tokenSymbol,
+      markets
+    } = config
     return {
       ...config,
       name: name || tokenSymbol,
-      markets: [{
+      markets: markets || [{
         tokenA: 'WETH',
         tokenB: tokenSymbol
       }]
@@ -176,6 +182,19 @@ function getBotsConfig({
 
   const safeBotsConfig = botsConfig
     .filter(config => !!config.safeAddress || !!config.safeModuleAddress)
+
+  // Do some validations for the botsConfig
+  botsConfig.forEach(({
+    name,
+    markets,
+    operatorAddress,
+    operatorAddressIndex
+  }) => {
+    assert(name, `The name is required for the bot config`)
+    assert(markets, `The markets is required. Define Either "markets" or "tokenSymbol"`)
+    assert(operatorAddress, `The operatorAddress is required for the bot config`)
+    assert(operatorAddressIndex >= 0, `The operatorAddressIndex is required for the bot config`)
+  })
 
   // Do some validation for the safe setup
   safeBotsConfig.forEach(({
@@ -207,10 +226,49 @@ function getBotsConfig({
     assert(address || (addressForEther && addressForTokens), `Either the "address" or "addressForEther" "addressForTokens" are required for the aditionalMonitoringAccounts. Review: ${name}`)
   })
 
+  const markets = botsConfig.reduce((acc, { markets = [] }) => {
+    markets.forEach(marketAux => {
+      const market = getOrderedMarket(marketAux)
+      const existingMarket = hasMarket(acc, market)
+
+      if (!existingMarket) {
+        acc.push(market)
+      }
+    })
+
+    return acc
+  }, [])
+
+  const marketsByBigSellvolumeThreshold = botsConfig.reduce((acc, config) => {
+    const {
+      markets = [],
+      bigSellVolumeThresholdInUsd = 5000
+    } = config
+
+    const marketsForThreshold = acc[bigSellVolumeThresholdInUsd]
+    const orderedMarket = markets.map(getOrderedMarket)
+    if (marketsForThreshold) {
+      const newMarkets = orderedMarket.filter(market => !hasMarket(marketsForThreshold, market))
+      acc[bigSellVolumeThresholdInUsd] = marketsForThreshold.concat(newMarkets)
+    } else {
+      acc[bigSellVolumeThresholdInUsd] = orderedMarket
+    }
+
+    return acc
+  }, {})
+
+  // Watch events and notify the event bus
+  //   - Other bots, like the sell bot depends on it
+  const watchEventsBot = {
+    name: namePrefix + ' Watch events bot',
+    markets: markets,
+    factory: 'src/bots/WatchEventsBot'
+  }
+
   // Get the biggest operator index
   const maxOperatorAddressIndex = botsSetup.reduce((acc, { operatorAddressIndex }) => {
     if (operatorAddressIndex) {
-      return Math.max(operatorAddressIndex, acc)
+      return Math.max(operatorAddressIndex + 1, acc)
     } else {
       return acc
     }
@@ -277,7 +335,7 @@ function getBotsConfig({
   /********************************************/
   /*  Helper functions
   /*********************************************/
-  const getTokensFromMarkets = markets => {
+  function getTokensFromMarkets (markets) {
     return markets.reduce((acc, { tokenA, tokenB }) => {
       if (!acc.includes(tokenA)) {
         acc.push(tokenA)
@@ -291,7 +349,7 @@ function getBotsConfig({
     }, [])
   }
 
-  const getOrderedMarket = ({ tokenA: tokenAuxA, tokenB: tokenAuxB }) => {
+  function getOrderedMarket ({ tokenA: tokenAuxA, tokenB: tokenAuxB }) {
     let tokenA, tokenB
     if (tokenAuxA < tokenAuxB) {
       tokenA = tokenAuxA
@@ -369,34 +427,34 @@ function getBotsConfig({
     High Sell Volume bot:
         Notifies if there's a big sell volume (that cannot be bought)
   ********************************************/
-  const highSellVolumeBotsAccountTheshold = botsConfig.map(({
-    name,
-    markets,
-    bigSellVolumeThresholdInUsd = 5000
-  }) => {
-    return {
-      name: namePrefix + ' Big sell volume: ' + name,
-      factory: 'src/bots/HighSellVolumeBot',
-      markets,
-      thresholdInUsd: bigSellVolumeThresholdInUsd,
-      notifications: NOTIFICATIONS_COMMS
-    }
-  })
+  const highSellVolumeBotsAccountTheshold = Object
+    .keys(marketsByBigSellvolumeThreshold)
+    .map(bigSellVolumeThresholdInUsd => {
+      return {
+        name: namePrefix + ' Big sell volume: $' + bigSellVolumeThresholdInUsd,
+        factory: 'src/bots/HighSellVolumeBot',
+        markets: marketsByBigSellvolumeThreshold[bigSellVolumeThresholdInUsd],
+        thresholdInUsd: bigSellVolumeThresholdInUsd,
+        notifications: NOTIFICATIONS_COMMS
+      }
+    })
 
-  const highSellVolumeBotsAccount = buyBotsConfig.map(({
-    name,
-    markets,
-    operatorAddress,
-    safeAddress
-  }) => {
-    return {
-      name: namePrefix + ' BuyLiquidityBot can buy sell volume: ' + name,
-      factory: 'src/bots/HighSellVolumeBot',
+  const highSellVolumeBotsAccount = buyBotsConfig
+    .filter(({ checkEnoughBalanceToBuyAll = true }) => checkEnoughBalanceToBuyAll)
+    .map(({
+      name,
       markets,
-      botAddress: safeAddress || operatorAddress,
-      notifications: notificationsDevops
-    }
-  })
+      operatorAddress,
+      safeAddress
+    }) => {
+      return {
+        name: namePrefix + ' HighSellVolumeBot for BuyBot: ' + name,
+        factory: 'src/bots/HighSellVolumeBot',
+        markets,
+        botAddress: safeAddress || operatorAddress,
+        notifications: notificationsDevops
+      }
+    })
 
   /*******************************************
     Deposit bot:
@@ -624,29 +682,11 @@ function getBotsConfig({
     Helper bots (watch event bots)
   ********************************************/
 
-  const markets = botsConfig.reduce((acc, { markets = [] }) => {
-    markets.forEach(marketAux => {
-      const market = getOrderedMarket(marketAux)
-      const { tokenA, tokenB } = market
-      const existingMarket = acc.some(market => {
-        return market.tokenA === tokenA &&
-          market === tokenB
-      })
-
-      if (!existingMarket) {
-        acc.push(market)
-      }
+  function hasMarket (markets, { tokenA, tokenB }) {
+    return markets.some(market => {
+      return market.tokenA === tokenA &&
+        market === tokenB
     })
-
-    return acc
-  }, [])
-
-  // Watch events and notify the event bus
-  //   - Other bots, like the sell bot depends on it
-  const watchEventsBot = {
-    name: namePrefix + ' Watch events bot',
-    markets: markets,
-    factory: 'src/bots/WatchEventsBot'
   }
 
   /**************************************************************/
@@ -726,7 +766,7 @@ function getBotsConfig({
     PRICE_REPO: priceRepo,
     SAFES: arbitrageBotsConfig,
     BOTS: [watchEventsBot]
-      // .concat(highSellVolumeBotsAccountTheshold)
+    // .concat(highSellVolumeBotsAccountTheshold)
 
       // Sell bots
       .concat(sellBots)
