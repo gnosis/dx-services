@@ -503,9 +503,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // if the amount to spend is 0 there is no opportunity
     // otherwise execute the opportunity
     if (amount.gt(0) && expectedProfitInUsd.gt(minimumProfitInUsd)) {
-      // const expectedProfit = uniswapExpected.sub(amount)
-      uniswapPrice = uniswapExpected.div(amount)
       dutchPrice = amount.mul(dutchPrice).div(amountAfterFee)
+      uniswapPrice = uniswapExpected.div(tokensExpectedFromDutch)
       auctionLogger.debug({
         sellToken,
         buyToken,
@@ -735,7 +734,6 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         sellToken,
         buyToken,
         amount,
-        tokenAmount: numberUtil.fromWei(tokenAmount).toString(10) + ` ${buyToken}`,
         expectedProfit,
         actualProfit,
         dutchPrice,
