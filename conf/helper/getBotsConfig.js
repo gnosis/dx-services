@@ -1,3 +1,5 @@
+const assert = require('assert')
+
 // -----------------------------------------------------------------------------
 //    getBotsConfig
 // -----------------------------------------------------------------------------
@@ -788,3 +790,5 @@ function getBotsConfig ({
       .concat(aditionalMonitoringAccounts)
   }
 }
+
+module.exports = getBotsConfig

@@ -1,5 +1,4 @@
 require('../src/helpers/loadEnv')
-const assert = require('assert')
 
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')
