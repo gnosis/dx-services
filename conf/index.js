@@ -1,4 +1,5 @@
 require('../src/helpers/loadEnv')
+const assert = require('assert')
 
 const SPECIAL_TOKENS = ['WETH', 'MGN', 'OWL', 'GNO']
 const getTokenOrder = require('../src/helpers/getTokenOrder')
@@ -109,7 +110,11 @@ function getConfiguredTokenList (markets) {
     }
   }
 
-  markets.forEach(({ tokenA, tokenB }) => {
+  markets.forEach(({ tokenA, tokenB }, index) => {
+    if (!tokenA || !tokenB) {
+      throw new Error(`Error in market: ${tokenA}-${tokenB}. Index: ` + index)
+    }
+
     addToken(tokenA)
     addToken(tokenB)
   })
@@ -123,6 +128,10 @@ function getTokenAddresParamName (token) {
 
 function getTokenAddresses (tokens, config) {
   return tokens.reduce((tokenAddresses, token) => {
+    if (!token) {
+      throw new Error('One of the token is not specified: [' + tokens.join(', ') + ']')
+    }
+
     const paramName = getTokenAddresParamName(token)
     const address = process.env[paramName] || config[paramName]
     if (address) {
