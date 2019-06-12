@@ -4,7 +4,7 @@ const assert = require('assert')
 //    getBotsConfig
 // -----------------------------------------------------------------------------
 /*
- * @version 0.1.1
+ * @version 0.1.2
  * @see Last version in https://github.com/gnosis/dx-services/tree/master/conf/helper/getBotsConfig.js
  *
  */
@@ -573,16 +573,18 @@ function getBotsConfig ({
     safeAddress,
     minimumAmountInUsdForToken: minimumAmountInUsdForTokenAux,
     minimumAmountForEther = 0.7,
-    minimumAmountForOwl = 300,
+    minimumAmountForOwl: minimumAmountForOwlAux,
     operatorAddress
   }) => {
-    let botName, minimumAmountInUsdForToken
+    let botName, minimumAmountInUsdForToken, minimumAmountForOwl
     if (safeAddress) {
       botName = `${namePrefix} Balance bot: ${name} Operator`
       minimumAmountInUsdForToken = 0 // With the Safe setup, the operator has only Ether (tokens are in the Safe)
+      minimumAmountForOwl = 0
     } else {
       botName = `${namePrefix} Balance bot: ${name}`
       minimumAmountInUsdForToken = minimumAmountInUsdForTokenAux || 5000
+      minimumAmountForOwl = minimumAmountForOwlAux || 300
     }
 
     return {
@@ -785,9 +787,8 @@ function getBotsConfig ({
       .concat(mainBalanceBots)
       .concat(safeBalanceBots)
       .concat(arbitrageContractBalanceBots)
-      .concat(aditionalBalanceBots)
       .concat(uniswapExchangeReservesBalanceBots)
-      .concat(aditionalMonitoringAccounts)
+      .concat(aditionalBalanceBots)
   }
 }
 
