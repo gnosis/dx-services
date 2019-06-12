@@ -652,6 +652,7 @@ keeps happening`
           sellToken,
           buyToken,
           auctionIndex,
+          buyTokenDecimals,
           amount: buyTokensWithFee,
           amountInUSD: amountToBuyInUSD
         }
@@ -759,6 +760,7 @@ keeps happening`
       sellToken,
       buyToken,
       auctionIndex,
+      sellTokenDecimals,
       amount: amountInSellTokens,
       amountInUSD: amountToSellInUSD
     }
