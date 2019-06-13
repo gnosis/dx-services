@@ -569,11 +569,13 @@ keeps happening`
     let buyLiquidityOperation = null
 
     // Get the percentage that should be bought
-    const percentageThatShouldBeBought = this._getPercentageThatShouldBeBought({
+    const buyRule = this._getMatchingBuyRule({
       buyLiquidityRules,
       currentMarketPrice,
       price
     })
+    const percentageThatShouldBeBought = buyRule ? buyRule.buyRatio : numberUtil.ZERO
+    const warnIfNotEnoughBalance = buyRule.warnIfNotEnoughBalance || false
 
     if (!percentageThatShouldBeBought.isZero()) {
       // Get the buy volume, and the expected buyVolume
@@ -690,7 +692,7 @@ keeps happening`
     return buyLiquidityOperation
   }
 
-  _getPercentageThatShouldBeBought ({ buyLiquidityRules, currentMarketPrice, price }) {
+  _getMatchingBuyRule ({ buyLiquidityRules, currentMarketPrice, price }) {
     // Get the relation between prices
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
@@ -708,12 +710,13 @@ keeps happening`
         return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
       })
 
-    // Get the matching rule with the highest
-    //  * note that the rules aresorted by buyRatio (in descendant order)
+    // Get the matching rule with the highest buyRatio
+    //  * note that the rules are sorted by buyRatio (in descendant order)
     const buyRule = rules.find(threshold => {
       return threshold.marketPriceRatio.greaterThanOrEqualTo(priceRatio)
     })
-    return buyRule ? buyRule.buyRatio : numberUtil.ZERO
+
+    return buyRule
   }
 
   async _sellTokenToCreateLiquidity ({
