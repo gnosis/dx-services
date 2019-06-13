@@ -2,6 +2,8 @@ const debug = require('debug')('DEBUG-dx-service:repositories:AuctionRepoMock')
 debug.log = console.debug.bind(console)
 
 const BigNumber = require('bignumber.js')
+const formatUtil = require('../../helpers/formatUtil')
+const { isHexAddress } = formatUtil
 
 const auctionsMockData = require('../../../tests/data/auctions')
 
@@ -183,6 +185,10 @@ class AuctionRepoMock {
   }
 
   async getTokenAddress ({ token }) {
+    if (isHexAddress({ token })) {
+      return token
+    }
+
     switch (token) {
       case 'WETH':
         return '0x123'

@@ -222,7 +222,7 @@ test('It should return the expected dutch spend amount', async () => {
       }
     })
 
-  arbitrageService._auctionRepo.getOutstandingVolume =
+  arbitrageService.getOutstandingVolume =
     jest.fn(async ({ amount }) => {
       return toWei(100)
     })

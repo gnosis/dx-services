@@ -26,6 +26,7 @@ async function run () {
   require('./arbitrageCommands/arbDepositTokenCmd')(commandParams) // onlyOwner
   require('./arbitrageCommands/arbDutchOpportunityCmd')(commandParams) // onlyOwner
   require('./arbitrageCommands/arbGetBalanceCmd')(commandParams)
+  require('./arbitrageCommands/arbGetPriceUniswapCmd')(commandParams)
   require('./arbitrageCommands/arbManualTriggerCmd')(commandParams)
   require('./arbitrageCommands/arbState')(commandParams)
   require('./arbitrageCommands/arbOwner')(commandParams)

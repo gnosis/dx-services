@@ -16,9 +16,11 @@ function registerCommand ({ cli, logger }) {
 
       logger.info(`Get the price of ${amount} ${token} in USD`)
 
+      const { decimals } = await dxInfoService.getTokenInfo(token)
+
       const price = await dxInfoService.getPriceInUSD({
         token,
-        amount: toWei(amount)
+        amount: toWei(amount, decimals)
       })
       logger.info('The current price is: %s %s/USD',
         round(price),

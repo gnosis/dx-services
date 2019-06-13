@@ -3,6 +3,7 @@ const { toWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getDxTradeService = require('../../services/DxTradeService')
+const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
@@ -17,10 +18,12 @@ function registerCommand ({ cli, logger }) {
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         owner,
-        dxTradeService
+        dxTradeService,
+        dxInfoService
       ] = await Promise.all([
         getAddress(DEFAULT_ACCOUNT_INDEX),
-        getDxTradeService()
+        getDxTradeService(),
+        getDxInfoService()
       ])
 
       logger.info(`Send %d %s from %s to %s`,
@@ -29,9 +32,12 @@ function registerCommand ({ cli, logger }) {
         owner,
         account
       )
+
+      const { decimals } = await dxInfoService.getTokenInfo(token)
+
       const sendTokensResult = await dxTradeService.sendTokens({
         token,
-        amount: toWei(amount),
+        amount: toWei(amount, decimals),
         fromAddress: owner,
         toAddress: account
       })

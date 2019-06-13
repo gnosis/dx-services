@@ -1,7 +1,9 @@
 const cliUtils = require('../helpers/cliUtils')
+const { fromWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getLiquidityService = require('../../services/LiquidityService')
+const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
@@ -15,10 +17,12 @@ function registerCommand ({ cli, logger }) {
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         address,
-        liquidityService
+        liquidityService,
+        dxInfoService
       ] = await Promise.all([
         getAddress(DEFAULT_ACCOUNT_INDEX),
-        getLiquidityService()
+        getLiquidityService(),
+        getDxInfoService()
       ])
 
       logger.info(`Ensure the SELL liquidity for ${sellToken}-${buyToken}`)
@@ -28,6 +32,8 @@ function registerCommand ({ cli, logger }) {
         from: address
       })
 
+      const { decimals } = await dxInfoService.getTokenInfo(sellToken)
+
       if (soldTokens.length > 0) {
         soldTokens.forEach(sellOrder => {
           // The bot sold some tokens
@@ -36,7 +42,7 @@ function registerCommand ({ cli, logger }) {
             buyToken,
             msg: "I've sold %d %s (%d USD) to ensure liquidity",
             params: [
-              sellOrder.amount.div(1e18),
+              fromWei(sellOrder.amount, decimals),
               sellOrder.sellToken,
               sellOrder.amountInUSD
             ]

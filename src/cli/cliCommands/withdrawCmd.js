@@ -3,6 +3,7 @@ const { toWei } = require('../../helpers/numberUtil')
 
 const getAddress = require('../../helpers/getAddress')
 const getDxTradeService = require('../../services/DxTradeService')
+const getDxInfoService = require('../../services/DxInfoService')
 
 function registerCommand ({ cli, logger }) {
   cli.command(
@@ -17,10 +18,12 @@ function registerCommand ({ cli, logger }) {
       const DEFAULT_ACCOUNT_INDEX = 0
       const [
         accountAddress,
-        dxTradeService
+        dxTradeService,
+        dxInfoService
       ] = await Promise.all([
         getAddress(DEFAULT_ACCOUNT_INDEX),
-        getDxTradeService()
+        getDxTradeService(),
+        getDxInfoService()
       ])
 
       logger.info(`Withdraw %d %s from the DX for %s`,
@@ -28,12 +31,13 @@ function registerCommand ({ cli, logger }) {
         token,
         accountAddress
       )
-      const depositResult = await dxTradeService.withdraw({
+      const { decimals } = await dxInfoService.getTokenInfo(token)
+      const withdrawResult = await dxTradeService.withdraw({
         token,
-        amount: toWei(amount),
+        amount: toWei(amount, decimals),
         accountAddress
       })
-      logger.info('The withdraw was succesful. Transaction: %s', depositResult.tx)
+      logger.info('The withdraw was succesful. Transaction: %s', withdrawResult.tx)
     })
 }
 

@@ -12,7 +12,6 @@ const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
 const BOT_TYPE = 'SellLiquidityBot'
-const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')

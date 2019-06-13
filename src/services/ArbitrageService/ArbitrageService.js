@@ -4,6 +4,9 @@ const auctionLogger = new AuctionLogger(loggerNamespace)
 
 const assert = require('assert')
 const numberUtil = require('../../helpers/numberUtil')
+const formatUtil = require('../../helpers/formatUtil')
+const getOutstandingVolume = require('../helpers/getOutstandingVolume')
+const getTokenInfo = require('../helpers/getTokenInfo')
 
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 const UNISWAP_TO_DUTCHX_GAS_COST_ESTIMATE = 559830
@@ -224,6 +227,7 @@ check should be done`,
     // })
     const {
       sellVolume,
+      hasAuctionStarted,
       isClosed,
       isTheoreticalClosed
     } = await this._auctionRepo.getAuctionState({
@@ -232,11 +236,12 @@ check should be done`,
       auctionIndex
     })
 
-    // // We need to check arbitrage opportunity if:
-    // //  * The auction has sell volume
-    // //  * Is not closed yet
-    // //  * Is not in theoretical closed state
-    if (!sellVolume.isZero()) {
+    // We need to check arbitrage opportunity if:
+    //  * The auction has sell volume
+    //  * The auction has started
+    //  * Is not closed yet
+    //  * Is not in theoretical closed state
+    if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
         // get the current price for our token pair on the dutchX
         // it is buyToken per sellToken, so it tells us that
@@ -471,9 +476,8 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // if the amount to spend is 0 there is no opportunity
     // otherwise execute the opportunity
     if (amount.gt(0) && expectedProfitInUsd.gt(minimumProfitInUsd)) {
-      // const expectedProfit = uniswapExpected.sub(amount)
-      uniswapPrice = uniswapExpected.div(amount)
       dutchPrice = amount.mul(dutchPrice).div(amountAfterFee)
+      uniswapPrice = uniswapExpected.div(tokensExpectedFromDutch)
       auctionLogger.debug({
         sellToken,
         buyToken,
@@ -677,7 +681,6 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
         sellToken,
         buyToken,
         amount,
-        tokenAmount: numberUtil.fromWei(tokenAmount).toString(10) + ` ${buyToken}`,
         expectedProfit,
         actualProfit,
         dutchPrice,
@@ -700,7 +703,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
   }
 
   async _getExpectedProfit ({ tokenAmount, inputBalance, outputBalance, isDutchXOpportunity, log, amount, sellToken, buyToken, auctionIndex, from, owlAllowance, owlBalance, ethUSDPrice, dutchPrice }) {
-    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
+    const outstandingVolume = await this.getOutstandingVolume({
       sellToken, buyToken, auctionIndex
     })
 
@@ -891,7 +894,7 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // We may have more tokens to spend than tokens left to buy on DutchX.
     // We check the tokens left and set them as maxSpendAmount if is lower than the
     // tokens we have to spend
-    const outstandingVolume = await this._auctionRepo.getOutstandingVolume({
+    const outstandingVolume = await this.getOutstandingVolume({
       sellToken, buyToken, auctionIndex
     })
 
@@ -1134,6 +1137,38 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     const sufix = sellToken < buyToken ? sellToken + '-' + buyToken : buyToken + '-' + sellToken
 
     return operation + sufix + from
+  }
+
+  async getOutstandingVolume ({ sellToken, buyToken, auctionIndex }) {
+    return getOutstandingVolume({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, sellToken, buyToken, auctionIndex
+    })
+  }
+
+  async getTokenInfo (token) {
+    return getTokenInfo({
+      auctionRepo: this._auctionRepo, ethereumRepo: this._ethereumRepo, token })
+  }
+
+  async getPriceUniswap ({ sellToken, buyToken }) {
+    const {
+      inputBalance: denominator, // our current sellToken on DutchX
+      outputBalance: numerator // our current buyToken on DutchX
+    } = await this._arbitrageRepo.getUniswapBalances({ sellToken, buyToken })
+
+    const [
+      { decimals: sellTokenDecimals },
+      { decimals: buyTokenDecimals }
+    ] = await Promise.all([
+      this.getTokenInfo(sellToken),
+      this.getTokenInfo(buyToken)
+    ])
+
+    const priceWithDecimals = formatUtil.formatPriceWithDecimals({
+      price: { numerator, denominator }, tokenADecimals: sellTokenDecimals, tokenBDecimals: buyTokenDecimals
+    })
+
+    return numberUtil.toBigNumberFraction(priceWithDecimals, true) // buyToken per sellToken
   }
 }
 

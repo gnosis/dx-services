@@ -2,6 +2,7 @@ const BigNumber = require('bignumber.js')
 
 const ZERO = new BigNumber(0)
 const ONE = new BigNumber(1)
+const TEN = new BigNumber(10)
 const HUNDRED = new BigNumber(100)
 const TEN_EXP_18 = new BigNumber(1e18)
 
@@ -37,12 +38,12 @@ function isBigNumber (n) {
   return n instanceof BigNumber
 }
 
-function toWei (num) {
-  return toBigNumber(num).mul(TEN_EXP_18)
+function toWei (num, decimals = 18) {
+  return toBigNumber(num).mul(TEN.toPower(decimals))
 }
 
-function fromWei (num) {
-  return toBigNumber(num).div(TEN_EXP_18)
+function fromWei (num, decimals = 18) {
+  return toBigNumber(num).div(TEN.toPower(decimals))
 }
 
 function getPercentage ({ part, total }) {
@@ -106,6 +107,7 @@ module.exports = {
   // some convenience constants
   ONE,
   ZERO,
+  TEN,
   HUNDRED,
   TEN_EXP_18
 }

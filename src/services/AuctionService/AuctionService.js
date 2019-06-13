@@ -2,9 +2,6 @@ const loggerNamespace = 'dx-service:services:AuctionsService'
 const Logger = require('../../helpers/Logger')
 const assert = require('assert')
 
-// const getAddress = require('../helpers/getAddress')
-// this._botAddressPromise = getAddress(0)
-
 const logger = new Logger(loggerNamespace)
 const formatUtil = require('../../helpers/formatUtil')
 const dxFilters = require('../../helpers/dxFilters')
