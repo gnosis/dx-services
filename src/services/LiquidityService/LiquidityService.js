@@ -15,6 +15,7 @@ const MAXIMUM_DX_FEE = 0.005 // 0.5%
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 // Release time if a sell is locked (never commiting because a reorg or transaction loss)
 const MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS = process.env.MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS || (15 * 60 * 1000) // 15 min
+const WARN_CONCURRENT_CHECK_THRESHOLD = process.env.WARN_CONCURRENT_CHECK_THRESHOLD || (10 * 60 * 1000) // 10 min
 
 class LiquidityService {
   constructor ({
@@ -162,17 +163,28 @@ class LiquidityService {
     if (this.concurrencyCheck[lockName]) {
       // We don't do concurrent liquidity checks
       // return that there was no need to sell/buy (empty array of orders)
-      auctionLogger.warn({
+
+      const loggerParams = {
         sellToken,
         buyToken,
         msg: `There is a concurrent %s check going on, so no aditional \
 check should be done`,
         params: [liquidityCheckName]
-      })
+      }
+
+      const lockCreateTime = this.concurrencyCheck[lockName].lockCreateTime
+      const now = new Date()
+      if (now - lockCreateTime > WARN_CONCURRENT_CHECK_THRESHOLD) {
+        auctionLogger.warn(loggerParams)
+      } else {
+        auctionLogger.debug(loggerParams)
+      }
+
       boughtOrSoldTokensPromise = Promise.resolve([])
     } else {
       // Ensure liquidity + Create concurrency lock
       this.concurrencyCheck[lockName] = {
+        lockCreateTime: new Date(),
         transactionPromise: this[doEnsureLiquidityFnName]({
           tokenA: sellToken,
           tokenB: buyToken,
