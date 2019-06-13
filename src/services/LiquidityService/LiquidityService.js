@@ -586,8 +586,11 @@ keeps happening`
       currentMarketPrice,
       price
     })
-    const percentageThatShouldBeBought = buyRule ? buyRule.buyRatio : numberUtil.ZERO
-    const warnIfNotEnoughBalance = buyRule.warnIfNotEnoughBalance || false
+
+    const {
+      buyRatio: percentageThatShouldBeBought = numberUtil.ZERO,
+      warnIfNotEnoughBalance = false
+    } = buyRule || {}
 
     if (!percentageThatShouldBeBought.isZero()) {
       // Get the buy volume, and the expected buyVolume
@@ -637,7 +640,7 @@ keeps happening`
       if (needToEnsureLiquidity) {
         let buyTokensWithFee = buyTokensRequiredToMeetLiquidity
           .div(ONE.minus(MAXIMUM_DX_FEE))
-        const buyTokensWithFeeFormatted = formatFromWei(buyTokensWithFee, buyTokenDecimals)
+        let buyTokensWithFeeFormatted = formatFromWei(buyTokensWithFee, buyTokenDecimals)
 
         const remainPercentage = percentageThatShouldBeBought
           .mul(100)
@@ -651,14 +654,12 @@ keeps happening`
         const balanceBuyTokenFormatted = formatFromWei(balanceBuyToken, buyTokenDecimals)
 
         if (buyTokensWithFee.greaterThan(balanceBuyToken)) {
-          buyTokensWithFee = balanceBuyToken
-
           const loggerParams = {
             sellToken,
             buyToken,
-            msg: 'Not enough balance to ensure %d % of the sell volume is bought. We need to use %s %s, but we have %s %s',
+            msg: 'Not enough balance to buy %d % of the sell volume. We would require %s %s, but we have %s %s',
             params: [
-              boughtPercentage.toFixed(2),
+              percentageThatShouldBeBought.mul(100).toFixed(2),
               buyTokensWithFeeFormatted,
               buyToken,
               balanceBuyTokenFormatted,
@@ -670,6 +671,23 @@ keeps happening`
             auctionLogger.error(loggerParams)
           } else {
             auctionLogger.info(loggerParams)
+          }
+
+          // Buy only with the balance with have
+          buyTokensWithFee = balanceBuyToken
+          buyTokensWithFeeFormatted = formatFromWei(buyTokensWithFee, buyTokenDecimals)
+
+          if (balanceBuyToken.isZero()) {
+            auctionLogger.info({
+              sellToken,
+              buyToken,
+              msg: "There's no %s balance. So we cannot buy",
+              params: [
+                buyToken
+              ]
+            })
+
+            return null // Do not buy
           }
         } else {
           auctionLogger.info({
