@@ -6,6 +6,9 @@ const TEN = new BigNumber(10)
 const HUNDRED = new BigNumber(100)
 const TEN_EXP_18 = new BigNumber(1e18)
 
+const DEFAULT_TOKEN_DECIMALS = 18
+const DEFAULT_DECIMALS = 2
+
 function toBigNumber (num) {
   return isBigNumber(num) ? num : new BigNumber(num.toString())
 }
@@ -29,7 +32,7 @@ function toBigNumberFraction (fraction, inDecimal = true) {
 }
 
 function toDecimal (num, decimal) {
-  return toBigNumber(num).div(10**decimal)
+  return toBigNumber(num).div(10 ** decimal)
 }
 
 function isBigNumber (n) {
@@ -38,12 +41,12 @@ function isBigNumber (n) {
   return n instanceof BigNumber
 }
 
-function toWei (num, decimals = 18) {
-  return toBigNumber(num).mul(TEN.toPower(decimals))
+function toWei (num, decimals) {
+  return toBigNumber(num).mul(TEN.toPower(decimals || DEFAULT_TOKEN_DECIMALS))
 }
 
-function fromWei (num, decimals = 18) {
-  return toBigNumber(num).div(TEN.toPower(decimals))
+function fromWei (num, decimals) {
+  return toBigNumber(num).div(TEN.toPower(decimals || DEFAULT_TOKEN_DECIMALS))
 }
 
 function getPercentage ({ part, total }) {
@@ -73,18 +76,18 @@ function getIncrement ({ oldValue, newValue }) {
   }
 }
 
-function round (number, decimals = 2) {
-  return roundAux(number, decimals, 'round')
+function round (number, decimals) {
+  return roundAux(number, decimals || DEFAULT_DECIMALS, 'round')
 }
-function roundUp (number, decimals = 2) {
-  return roundAux(number, decimals, 'ceil')
+function roundUp (number, decimals) {
+  return roundAux(number, decimals || DEFAULT_DECIMALS, 'ceil')
 }
-function roundDown (number, decimals = 2) {
-  return roundAux(number, decimals, 'floor')
+function roundDown (number, decimals) {
+  return roundAux(number, decimals || DEFAULT_DECIMALS, 'floor')
 }
 
-function roundAux (number, decimals = 2, roundFnName) {
-  const factor = 10 ** decimals
+function roundAux (number, decimals, roundFnName) {
+  const factor = 10 ** (decimals || DEFAULT_DECIMALS)
 
   return toBigNumber(number)
     .mul(factor)[roundFnName]()
