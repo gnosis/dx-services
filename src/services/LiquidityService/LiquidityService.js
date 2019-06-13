@@ -411,38 +411,48 @@ keeps happening`
     //  * Is not in theoretical closed state
     if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
+        // Get the current price for the auction
+        const priceWithoutDecimalsPromise = this._auctionRepo.getCurrentAuctionPrice({
+          sellToken,
+          buyToken,
+          auctionIndex,
+          from
+        })
+
+        // Get the market price
+        const currentMarketPricePromise = this._priceRepo.getPrice({
+          tokenA: sellToken,
+          tokenB: buyToken
+        }).then(price => ({
+          numerator: numberUtil.toBigNumber(price.toString()),
+          denominator: ONE
+        }))
+
+        // Get the decimals for the sell token
+        const sellTokenDecimalsPromise = getTokenInfo({
+          auctionRepo: this._auctionRepo,
+          ethereumRepo: this._ethereumRepo,
+          token: sellToken
+        }).then(({ decimals }) => decimals)
+
+        // Get the decimals for the buy token
+        const buyTokenDecimalsPromise = getTokenInfo({
+          auctionRepo: this._auctionRepo,
+          ethereumRepo: this._ethereumRepo,
+          token: buyToken
+        }).then(({ decimals }) => decimals)
+
+        // Wait for all promises
         const [
           priceWithoutDecimals,
           currentMarketPrice,
-          { decimals: sellTokenDecimals },
-          { decimals: buyTokenDecimals }] = await Promise.all([
-          // Get the current price for the auction
-          this._auctionRepo.getCurrentAuctionPrice({
-            sellToken,
-            buyToken,
-            auctionIndex,
-            from
-          }),
-
-          // Get the market price
-          this._priceRepo.getPrice({
-            tokenA: sellToken,
-            tokenB: buyToken
-          }).then(price => ({
-            numerator: numberUtil.toBigNumber(price.toString()),
-            denominator: ONE
-          })),
-
-          getTokenInfo({
-            auctionRepo: this._auctionRepo,
-            ethereumRepo: this._ethereumRepo,
-            token: sellToken
-          }),
-          getTokenInfo({
-            auctionRepo: this._auctionRepo,
-            ethereumRepo: this._ethereumRepo,
-            token: buyToken
-          })
+          sellTokenDecimals,
+          buyTokenDecimals
+        ] = await Promise.all([
+          priceWithoutDecimalsPromise,
+          currentMarketPricePromise,
+          sellTokenDecimalsPromise,
+          buyTokenDecimalsPromise
         ])
         assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
 
@@ -727,7 +737,7 @@ keeps happening`
     amountToSellInUSD = numberUtil.roundUp(amountToSellInUSD)
 
     // Get the amount to sell in sellToken
-    const [ amountInSellTokens, { decimals: sellTokenDecimals } ] = await Promise.all([
+    const [amountInSellTokens, { decimals: sellTokenDecimals }] = await Promise.all([
       this._auctionRepo
         .getPriceFromUSDInTokens({
           token: sellToken,
