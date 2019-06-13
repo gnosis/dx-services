@@ -4,7 +4,7 @@ const assert = require('assert')
 //    getBotsConfig
 // -----------------------------------------------------------------------------
 /*
- * @version 0.1.2
+ * @version 0.1.3
  * @see Last version in https://github.com/gnosis/dx-services/tree/master/conf/helper/getBotsConfig.js
  *
  */
@@ -323,13 +323,13 @@ function getBotsConfig ({
 
   const notificationsDevops = slackChannels.devops ? [{
     type: 'slack',
-    channel: 'CAX7PRS0J'
+    channel: slackChannels.devops
   }] : []
 
-  const NOTIFICATIONS_COMMS = [{
+  const NOTIFICATIONS_COMMS = slackChannels.comms ? [{
     type: 'slack',
-    channel: 'CKE5NSTHN'
-  }]
+    channel: slackChannels.comms
+  }] : []
 
   const ONE_MINUTE = 60 * 1000 // 60s
   const FIVE_MINUTES = 5 * 60 * 1000 // 5min
