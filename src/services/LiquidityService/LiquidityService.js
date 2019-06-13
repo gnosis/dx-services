@@ -623,22 +623,53 @@ keeps happening`
       const needToEnsureLiquidity = buyTokensRequiredToMeetLiquidity.greaterThan(0)
 
       if (needToEnsureLiquidity) {
-        const buyTokensWithFee = buyTokensRequiredToMeetLiquidity
+        let buyTokensWithFee = buyTokensRequiredToMeetLiquidity
           .div(ONE.minus(MAXIMUM_DX_FEE))
+        const buyTokensWithFeeFormatted = formatFromWei(buyTokensWithFee, buyTokenDecimals)
 
         const remainPercentage = percentageThatShouldBeBought
           .mul(100)
           .minus(boughtPercentage)
 
-        auctionLogger.info({
-          sellToken,
-          buyToken,
-          msg: 'The auction has %d % of the buy volume bought. So we need to buy an extra %d %',
-          params: [
-            boughtPercentage.toFixed(2),
-            remainPercentage.toFixed(2)
-          ]
+        // Check if we have enough balance
+        const balanceBuyToken = await this._auctionRepo.getBalance({
+          token: buyToken,
+          address: from
         })
+        const balanceBuyTokenFormatted = formatFromWei(balanceBuyToken, buyTokenDecimals)
+
+        if (buyTokensWithFee.greaterThan(balanceBuyToken)) {
+          buyTokensWithFee = balanceBuyToken
+
+          const loggerParams = {
+            sellToken,
+            buyToken,
+            msg: 'Not enough balance to ensure %d % of the sell volume is bought. We need to use %s %s, but we have %s %s',
+            params: [
+              boughtPercentage.toFixed(2),
+              buyTokensWithFeeFormatted,
+              buyToken,
+              balanceBuyTokenFormatted,
+              buyToken
+            ]
+          }
+
+          if (warnIfNotEnoughBalance) {
+            auctionLogger.error(loggerParams)
+          } else {
+            auctionLogger.info(loggerParams)
+          }
+        } else {
+          auctionLogger.info({
+            sellToken,
+            buyToken,
+            msg: 'The auction has %d % of the sell volume bought. So we need to buy an extra %d %',
+            params: [
+              boughtPercentage.toFixed(2),
+              remainPercentage.toFixed(2)
+            ]
+          })
+        }
 
         // Get the price in USD for the tokens we are buying
         const amountToBuyInUSD = await this._auctionRepo.getPriceInUSD({
@@ -652,7 +683,11 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Posting a buy order for %d %s ($%d)',
-          params: [formatFromWei(buyTokensWithFee, buyTokenDecimals), buyToken, amountToBuyInUSD]
+          params: [
+            buyTokensWithFeeFormatted,
+            buyToken,
+            amountToBuyInUSD
+          ]
         })
         const buyOrder = await this._auctionRepo.postBuyOrder({
           sellToken,
