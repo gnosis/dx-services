@@ -75,7 +75,8 @@ test('It should ensureBuyLiquidity', async () => {
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
-    auctions: _getAuctionsWhereBotShouldBuyEthRdn()
+    auctions: _getAuctionsWhereBotShouldBuyEthRdn(),
+    balances: BALANCES
   })
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
@@ -110,7 +111,8 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
-    auctions: _getAuctionsWhereBotShouldBuyEthRdn()
+    auctions: _getAuctionsWhereBotShouldBuyEthRdn(),
+    balances: BALANCES
   })
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
@@ -167,7 +169,8 @@ test('It should ensureBuyLiquidity if auction has only one side closed', async (
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
-    auctions: _getAuctionsWithOneSideTheoreticalClosed()
+    auctions: _getAuctionsWithOneSideTheoreticalClosed(),
+    balances: BALANCES
   })
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
@@ -303,11 +306,13 @@ test('It should return token balance for an account', async () => {
   let expectedRdnEthAccountBalance = [{
     amount: new BigNumber('601.112e18'),
     amountInUSD: new BigNumber('2473.57'), // 2473.57588
-    token: 'RDN'
+    token: 'RDN',
+    tokenDecimals: 18
   }, {
     amount: new BigNumber('4.01234e18'),
     amountInUSD: new BigNumber('4020.21'), // 4020.21221108
-    token: 'WETH'
+    token: 'WETH',
+    tokenDecimals: 18
   }]
   expect(rdnEthAccountBalance).toEqual(expectedRdnEthAccountBalance)
 })
@@ -318,6 +323,15 @@ test('It should return token balance for an account', async () => {
 const MINIMUM_SELL_VOLUME = 1000
 
 const UNDER_MINIMUM_FUNDING_WETH = new BigNumber('0.5e18')
+
+const BALANCES = {
+  'RDN': {
+    '0x123': new BigNumber('530.20e18')
+  },
+  'WETH': {
+    '0x123': new BigNumber('2.23154e18')
+  }
+}
 
 async function _hasLowBuyVolume ({ sellToken, buyToken }, auctionRepo) {
   const [buyVolume, sellVolume] = await Promise.all([

@@ -102,7 +102,7 @@ class ClaimBot extends Bot {
     logger.info('Claiming markets %O for account %s%s',
       this._markets,
       this._claimAddress,
-      this.botAddress !== this._claimAddress ? ' using operator ' + this.botAddress : ''
+      this._botAddress !== this._claimAddress ? ' using operator ' + this._botAddress : ''
     )
 
     const tokenPairs = this._markets.reduce((markets, { tokenA, tokenB }) => {
@@ -130,10 +130,9 @@ class ClaimBot extends Bot {
         logger.info('Claim as buyer transaction: %s', claimBuyerTransactionResult.tx)
       }
 
-      claimAmounts.forEach(amount => {
-        if (amount) {
-          logger.info('Claimed for address %s. Amounts: %o', this._claimAddress, amount)
-          this._notifyClaimedTokens(amount, this._claimAddress)
+      claimAmounts.forEach(amountDetails => {
+        if (amountDetails) {
+          this._notifyClaimedTokens(amountDetails, this._claimAddress)
         }
       })
       return result
@@ -147,9 +146,9 @@ class ClaimBot extends Bot {
     const { tokenA, tokenB, totalSellerClaims, totalBuyerClaims } = amount
     const tokenPairString = tokenA + '-' + tokenB
 
-    const message = 'The bot claimed for ' + tokenPairString + ': ' +
+    const message = 'Claimed for ' + tokenPairString + ': ' +
       totalSellerClaims + ' tokens as seller, ' +
-      totalBuyerClaims + ' tokens as buyer'
+      totalBuyerClaims + ' tokens as buyer for ' + account
 
     // Log message
     logger.info({

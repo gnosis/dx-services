@@ -15,6 +15,7 @@ const MAXIMUM_DX_FEE = 0.005 // 0.5%
 const WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS = process.env.WAIT_TO_RELEASE_SELL_LOCK_MILLISECONDS || (2 * 60 * 1000) // 2 min
 // Release time if a sell is locked (never commiting because a reorg or transaction loss)
 const MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS = process.env.MAXIMUM_TRANSACTION_TIME_LOCK_MILLISECONDS || (15 * 60 * 1000) // 15 min
+const WARN_CONCURRENT_CHECK_THRESHOLD = process.env.WARN_CONCURRENT_CHECK_THRESHOLD || (10 * 60 * 1000) // 10 min
 
 class LiquidityService {
   constructor ({
@@ -162,17 +163,28 @@ class LiquidityService {
     if (this.concurrencyCheck[lockName]) {
       // We don't do concurrent liquidity checks
       // return that there was no need to sell/buy (empty array of orders)
-      auctionLogger.warn({
+
+      const loggerParams = {
         sellToken,
         buyToken,
         msg: `There is a concurrent %s check going on, so no aditional \
 check should be done`,
         params: [liquidityCheckName]
-      })
+      }
+
+      const lockCreateTime = this.concurrencyCheck[lockName].lockCreateTime
+      const now = new Date()
+      if (now - lockCreateTime > WARN_CONCURRENT_CHECK_THRESHOLD) {
+        auctionLogger.warn(loggerParams)
+      } else {
+        auctionLogger.debug(loggerParams)
+      }
+
       boughtOrSoldTokensPromise = Promise.resolve([])
     } else {
       // Ensure liquidity + Create concurrency lock
       this.concurrencyCheck[lockName] = {
+        lockCreateTime: new Date(),
         transactionPromise: this[doEnsureLiquidityFnName]({
           tokenA: sellToken,
           tokenB: buyToken,
@@ -201,6 +213,11 @@ check should be done`,
 
   async getBalancesDx ({ tokens, address }) {
     const balancesPromises = tokens.map(async token => {
+      const { decimals: tokenDecimals } = await getTokenInfo({
+        auctionRepo: this._auctionRepo,
+        ethereumRepo: this._ethereumRepo,
+        token
+      })
       const amount = await this._auctionRepo.getBalance({ token, address })
       let amountInUSD = await this._auctionRepo
         .getPriceInUSD({
@@ -212,7 +229,7 @@ check should be done`,
       amountInUSD = numberUtil.roundDown(amountInUSD)
 
       return {
-        token, amount, amountInUSD
+        token, amount, amountInUSD, tokenDecimals
       }
     })
 
@@ -221,8 +238,11 @@ check should be done`,
 
   async getBalancesErc20 ({ tokens, address, getAmountUsd = true }) {
     const balancesPromises = tokens.map(async token => {
-      const tokenAddress = await this._auctionRepo.getTokenAddress({ token })
-
+      const { address: tokenAddress, decimals: tokenDecimals } = await getTokenInfo({
+        auctionRepo: this._auctionRepo,
+        ethereumRepo: this._ethereumRepo,
+        token
+      })
       const amount = await this._ethereumRepo.tokenBalanceOf({
         tokenAddress,
         account: address
@@ -240,7 +260,7 @@ check should be done`,
       }
 
       return {
-        token, amount, amountInUSD
+        token, amount, amountInUSD, tokenDecimals
       }
     })
 
@@ -403,38 +423,48 @@ keeps happening`
     //  * Is not in theoretical closed state
     if (!sellVolume.isZero() && hasAuctionStarted) {
       if (!isClosed && !isTheoreticalClosed) {
+        // Get the current price for the auction
+        const priceWithoutDecimalsPromise = this._auctionRepo.getCurrentAuctionPrice({
+          sellToken,
+          buyToken,
+          auctionIndex,
+          from
+        })
+
+        // Get the market price
+        const currentMarketPricePromise = this._priceRepo.getPrice({
+          tokenA: sellToken,
+          tokenB: buyToken
+        }).then(price => ({
+          numerator: numberUtil.toBigNumber(price.toString()),
+          denominator: ONE
+        }))
+
+        // Get the decimals for the sell token
+        const sellTokenDecimalsPromise = getTokenInfo({
+          auctionRepo: this._auctionRepo,
+          ethereumRepo: this._ethereumRepo,
+          token: sellToken
+        }).then(({ decimals }) => decimals)
+
+        // Get the decimals for the buy token
+        const buyTokenDecimalsPromise = getTokenInfo({
+          auctionRepo: this._auctionRepo,
+          ethereumRepo: this._ethereumRepo,
+          token: buyToken
+        }).then(({ decimals }) => decimals)
+
+        // Wait for all promises
         const [
           priceWithoutDecimals,
           currentMarketPrice,
-          { decimals: sellTokenDecimals },
-          { decimals: buyTokenDecimals }] = await Promise.all([
-          // Get the current price for the auction
-          this._auctionRepo.getCurrentAuctionPrice({
-            sellToken,
-            buyToken,
-            auctionIndex,
-            from
-          }),
-
-          // Get the market price
-          this._priceRepo.getPrice({
-            tokenA: sellToken,
-            tokenB: buyToken
-          }).then(price => ({
-            numerator: numberUtil.toBigNumber(price.toString()),
-            denominator: ONE
-          })),
-
-          getTokenInfo({
-            auctionRepo: this._auctionRepo,
-            ethereumRepo: this._ethereumRepo,
-            token: sellToken
-          }),
-          getTokenInfo({
-            auctionRepo: this._auctionRepo,
-            ethereumRepo: this._ethereumRepo,
-            token: buyToken
-          })
+          sellTokenDecimals,
+          buyTokenDecimals
+        ] = await Promise.all([
+          priceWithoutDecimalsPromise,
+          currentMarketPricePromise,
+          sellTokenDecimalsPromise,
+          buyTokenDecimalsPromise
         ])
         assert(currentMarketPrice, `There is no market price for ${sellToken}-${buyToken}`)
 
@@ -551,11 +581,16 @@ keeps happening`
     let buyLiquidityOperation = null
 
     // Get the percentage that should be bought
-    const percentageThatShouldBeBought = this._getPercentageThatShouldBeBought({
+    const buyRule = this._getMatchingBuyRule({
       buyLiquidityRules,
       currentMarketPrice,
       price
     })
+
+    const {
+      buyRatio: percentageThatShouldBeBought = numberUtil.ZERO,
+      warnIfNotEnoughBalance = false
+    } = buyRule || {}
 
     if (!percentageThatShouldBeBought.isZero()) {
       // Get the buy volume, and the expected buyVolume
@@ -603,22 +638,68 @@ keeps happening`
       const needToEnsureLiquidity = buyTokensRequiredToMeetLiquidity.greaterThan(0)
 
       if (needToEnsureLiquidity) {
-        const buyTokensWithFee = buyTokensRequiredToMeetLiquidity
+        let buyTokensWithFee = buyTokensRequiredToMeetLiquidity
           .div(ONE.minus(MAXIMUM_DX_FEE))
+        let buyTokensWithFeeFormatted = formatFromWei(buyTokensWithFee, buyTokenDecimals)
 
         const remainPercentage = percentageThatShouldBeBought
           .mul(100)
           .minus(boughtPercentage)
 
-        auctionLogger.info({
-          sellToken,
-          buyToken,
-          msg: 'The auction has %d % of the buy volume bought. So we need to buy an extra %d %',
-          params: [
-            boughtPercentage.toFixed(2),
-            remainPercentage.toFixed(2)
-          ]
+        // Check if we have enough balance
+        const balanceBuyToken = await this._auctionRepo.getBalance({
+          token: buyToken,
+          address: from
         })
+        const balanceBuyTokenFormatted = formatFromWei(balanceBuyToken, buyTokenDecimals)
+
+        if (buyTokensWithFee.greaterThan(balanceBuyToken)) {
+          const loggerParams = {
+            sellToken,
+            buyToken,
+            msg: 'Not enough balance to buy %d % of the sell volume. We would require %s %s, but we have %s %s',
+            params: [
+              percentageThatShouldBeBought.mul(100).toFixed(2),
+              buyTokensWithFeeFormatted,
+              buyToken,
+              balanceBuyTokenFormatted,
+              buyToken
+            ]
+          }
+
+          if (warnIfNotEnoughBalance) {
+            auctionLogger.error(loggerParams)
+          } else {
+            auctionLogger.info(loggerParams)
+          }
+
+          // Buy only with the balance with have
+          buyTokensWithFee = balanceBuyToken
+          buyTokensWithFeeFormatted = formatFromWei(buyTokensWithFee, buyTokenDecimals)
+
+          if (balanceBuyToken.isZero()) {
+            auctionLogger.info({
+              sellToken,
+              buyToken,
+              msg: "There's no %s balance. So we cannot buy",
+              params: [
+                buyToken
+              ]
+            })
+
+            return null // Do not buy
+          }
+        } else {
+          auctionLogger.info({
+            sellToken,
+            buyToken,
+            msg: 'The auction has %d % of the sell volume bought. So we need to buy an extra %d %',
+            params: [
+              boughtPercentage.toFixed(2),
+              remainPercentage.toFixed(2)
+            ]
+          })
+        }
 
         // Get the price in USD for the tokens we are buying
         const amountToBuyInUSD = await this._auctionRepo.getPriceInUSD({
@@ -632,7 +713,11 @@ keeps happening`
           sellToken,
           buyToken,
           msg: 'Posting a buy order for %d %s ($%d)',
-          params: [formatFromWei(buyTokensWithFee, buyTokenDecimals), buyToken, amountToBuyInUSD]
+          params: [
+            buyTokensWithFeeFormatted,
+            buyToken,
+            amountToBuyInUSD
+          ]
         })
         const buyOrder = await this._auctionRepo.postBuyOrder({
           sellToken,
@@ -652,6 +737,7 @@ keeps happening`
           sellToken,
           buyToken,
           auctionIndex,
+          buyTokenDecimals,
           amount: buyTokensWithFee,
           amountInUSD: amountToBuyInUSD
         }
@@ -671,7 +757,7 @@ keeps happening`
     return buyLiquidityOperation
   }
 
-  _getPercentageThatShouldBeBought ({ buyLiquidityRules, currentMarketPrice, price }) {
+  _getMatchingBuyRule ({ buyLiquidityRules, currentMarketPrice, price }) {
     // Get the relation between prices
     //  priceRatio = (Pn * Cd) / (Pd * Cn)
     const priceRatio = _getPriceRatio(price, currentMarketPrice)
@@ -689,12 +775,13 @@ keeps happening`
         return thresholdB.buyRatio.comparedTo(thresholdA.buyRatio)
       })
 
-    // Get the matching rule with the highest
-    //  * note that the rules aresorted by buyRatio (in descendant order)
+    // Get the matching rule with the highest buyRatio
+    //  * note that the rules are sorted by buyRatio (in descendant order)
     const buyRule = rules.find(threshold => {
       return threshold.marketPriceRatio.greaterThanOrEqualTo(priceRatio)
     })
-    return buyRule ? buyRule.buyRatio : numberUtil.ZERO
+
+    return buyRule
   }
 
   async _sellTokenToCreateLiquidity ({
@@ -718,7 +805,7 @@ keeps happening`
     amountToSellInUSD = numberUtil.roundUp(amountToSellInUSD)
 
     // Get the amount to sell in sellToken
-    const [ amountInSellTokens, { decimals: sellTokenDecimals } ] = await Promise.all([
+    const [amountInSellTokens, { decimals: sellTokenDecimals }] = await Promise.all([
       this._auctionRepo
         .getPriceFromUSDInTokens({
           token: sellToken,
@@ -759,6 +846,7 @@ keeps happening`
       sellToken,
       buyToken,
       auctionIndex,
+      sellTokenDecimals,
       amount: amountInSellTokens,
       amountInUSD: amountToSellInUSD
     }

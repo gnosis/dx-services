@@ -7,6 +7,9 @@ const assert = require('assert')
 const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 
+const formatUtil = require('../helpers/formatUtil')
+const { formatFromWei } = formatUtil
+
 const BOT_TYPE = 'BuyLiquidityBot'
 const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
@@ -150,12 +153,13 @@ class BuyLiquidityBot extends Bot {
     const {
       sellToken,
       buyToken,
+      buyTokenDecimals,
       amount,
       amountInUSD,
       auctionIndex
     } = buyOrder
     // Log sold tokens
-    const amountInTokens = amount.div(1e18)
+    const amountInTokens = formatFromWei(amount, buyTokenDecimals)
     const boughtTokensString = amountInTokens + ' ' + buyToken
 
     auctionLogger.info({

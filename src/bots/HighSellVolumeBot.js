@@ -165,20 +165,17 @@ class HighSellVolumeBot extends Bot {
     }
 
     if (checkSellVolume) {
-      const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
-      const buyTokenInfoPromise = this._dxInfoService.getTokenInfo(buyToken)
-
       const sellVolumePromise = this._dxInfoService.getSellVolume({
         sellToken, buyToken
       })
+      const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
 
       const [
         sellVolume,
         { decimals: sellTokenDecimals }
       ] = await Promise.all([
         sellVolumePromise,
-        sellTokenInfoPromise,
-        buyTokenInfoPromise
+        sellTokenInfoPromise
       ])
 
       const sellVolumeInUsd = await this._dxInfoService.getPriceInUSD({
