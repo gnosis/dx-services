@@ -42,12 +42,19 @@ async function _sendTransaction ({
 }) {
   accountsLocks[from] = true
   const releaseLock = () => {
-    logger.info('Releasing lock for %s...', from)
+    logger.debug('Releasing lock for %s...', from)
     setTimeout(() => {
       // Check if we have pending transactions
-      if (accountPendingTransactions[from].length > 0) {
+      const pendingTransaction = accountPendingTransactions[from]
+      if (pendingTransaction.length > 0) {
         // Handle the pending transaction: FIFO
-        const transactionParams = accountPendingTransactions[from].shift()
+        const transactionParams = pendingTransaction.shift()
+        logger.info(
+          'One tx ended. %d pending transactions for %s. Submit first in the queue: %o',
+          pendingTransaction.length,
+          from,
+          transactionParams
+        )
         _sendTransaction(transactionParams)
           .catch(_discardError)
       } else {
