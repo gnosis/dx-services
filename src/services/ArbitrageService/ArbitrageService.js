@@ -789,6 +789,17 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     owlBalance,
     ethUSDPrice
   }) {
+    // We may have more tokens to spend than tokens left to buy on DutchX.
+    // We check the tokens left and set them as maxSpendAmount if is lower than the
+    // tokens we have to spend
+    const outstandingVolume = await this.getOutstandingVolume({
+      sellToken, buyToken, auctionIndex
+    })
+
+    const maxSpendAmount = maxToSpend.gt(outstandingVolume)
+      ? outstandingVolume
+      : maxToSpend
+
     // these must be positive amounts.
     // it is also worth considering making the small increment rather large because
     // it is too precise, the profit margin may disappear between the time it is
@@ -797,24 +808,14 @@ ${this._auctionRepo._dx.address} Please deposit Ether`
     // potentially destroying the profit
     // const spendIncrementSmall = 1e3
     // const spendIncrementLarge = 1e17
-    let spendIncrement = INITIAL_SPEND_INCREMENT
+    const adaptativeSpendIncrement = numberUtil.toWei('1', maxSpendAmount.e - 1)
+    let spendIncrement = adaptativeSpendIncrement || INITIAL_SPEND_INCREMENT
     const spendIncrementMin = MINIMUM_SPEND_INCREMENT
 
     // let initialize the amount we want to spend (spendAmount) to initial increment
     let dutchSpendAmount = spendIncrement
     let isOpportunity = true
     let isFinalPrice = false
-
-    // We may have more tokens to spend than tokens left to buy on DutchX.
-    // We check the tokens left and set them as maxSpendAmount if is lower than the
-    // tokens we have to spend
-    const outstandingVolume = await this.getOutstandingVolume({
-      sellToken, buyToken, auctionIndex
-    })
-
-    let maxSpendAmount = maxToSpend.gt(outstandingVolume)
-      ? outstandingVolume
-      : maxToSpend
 
     // console.log({dutchSpendAmount: dutchSpendAmount.toString(10)})
     // console.log({maxToSpend: maxToSpend.toString(10)})
