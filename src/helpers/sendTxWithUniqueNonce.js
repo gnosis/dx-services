@@ -22,7 +22,7 @@ const accountsLocks = {}
 function sendTxWithUniqueNonce (transactionParams) {
   const { from } = transactionParams
   if (accountsLocks[from]) {
-    logger.debug("The account %s is locked. I'll wait for later", from)
+    logger.info("The account %s is locked. I'll wait for later", from)
     if (!accountPendingTransactions[from]) {
       accountPendingTransactions[from] = [transactionParams]
     } else {
