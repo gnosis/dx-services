@@ -21,13 +21,18 @@ const accountsLocks = {}
 
 function sendTxWithUniqueNonce (transactionParams) {
   const { from } = transactionParams
+
+  // Get the queue of pending transaction
+  let pendingTransaction = accountPendingTransactions[from]
+  if (!pendingTransaction) {
+    // Initialize the queue
+    accountPendingTransactions[from] = []
+  }
+
+  // Check if the account has a lock
   if (accountsLocks[from]) {
     logger.info("The account %s is locked. I'll wait for later", from)
-    if (!accountPendingTransactions[from]) {
-      accountPendingTransactions[from] = [transactionParams]
-    } else {
-      accountPendingTransactions[from].push(transactionParams)
-    }
+    accountPendingTransactions[from].push(transactionParams)
   } else {
     logger.debug("I'll do it now")
     _sendTransaction(transactionParams)
@@ -46,12 +51,13 @@ async function _sendTransaction ({
     setTimeout(() => {
       // Check if we have pending transactions
       const pendingTransaction = accountPendingTransactions[from]
-      if (pendingTransaction.length > 0) {
+      const txInQueue = pendingTransaction.length
+      if (txInQueue > 0) {
         // Handle the pending transaction: FIFO
         const transactionParams = pendingTransaction.shift()
         logger.info(
           'One tx ended. %d pending transactions for %s. Submit first in the queue: %o',
-          pendingTransaction.length,
+          txInQueue,
           from,
           transactionParams
         )
