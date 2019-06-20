@@ -18,16 +18,26 @@ const NONCE_INCREMENT_MAX_NUM_CHECKS = 60 || process.env.NONCE_INCREMENT_MAX_NUM
 
 const accountPendingTransactions = {}
 const accountsLocks = {}
+let queueIdCount = 0
 
 function sendTxWithUniqueNonce (transactionParams) {
   const { from } = transactionParams
+
+  // Get the queue of pending transaction
+  let pendingTransaction = accountPendingTransactions[from]
+  if (!pendingTransaction) {
+    // Initialize the queue
+    accountPendingTransactions[from] = []
+  }
+
+  // Check if the account has a lock
   if (accountsLocks[from]) {
-    logger.info("The account %s is locked. I'll wait for later", from)
-    if (!accountPendingTransactions[from]) {
-      accountPendingTransactions[from] = [transactionParams]
-    } else {
-      accountPendingTransactions[from].push(transactionParams)
-    }
+    queueIdCount += 1
+    logger.info("The account %s is locked. I'll wait for later. Queue id %d", from, queueIdCount)
+    accountPendingTransactions[from].push({
+      id: queueIdCount,
+      ...transactionParams
+    })
   } else {
     logger.debug("I'll do it now")
     _sendTransaction(transactionParams)
@@ -46,14 +56,15 @@ async function _sendTransaction ({
     setTimeout(() => {
       // Check if we have pending transactions
       const pendingTransaction = accountPendingTransactions[from]
-      if (pendingTransaction.length > 0) {
+      const txInQueue = pendingTransaction.length
+      if (txInQueue > 0) {
         // Handle the pending transaction: FIFO
         const transactionParams = pendingTransaction.shift()
         logger.info(
-          'One tx ended. %d pending transactions for %s. Submit first in the queue: %o',
-          pendingTransaction.length,
+          'One tx was delivered. %d pending transactions for %s. Submit first in the queue, with id %d',
+          txInQueue,
           from,
-          transactionParams
+          transactionParams.id
         )
         _sendTransaction(transactionParams)
           .catch(_discardError)
