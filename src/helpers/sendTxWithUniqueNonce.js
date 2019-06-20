@@ -95,7 +95,7 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
         getNonceFn(from).then(newNonce => {
           if (count % LOG_EVERY_N_CHECKS === LOG_EVERY_N_CHECKS - 1) {
             // Log only every 10 checks (i.e. If check time is 3s, we log every 30s)
-            logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction[from].length}`)
+            logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${accountPendingTransactions[from].length}`)
           }
           const maxCheckReached = count > NONCE_INCREMENT_MAX_NUM_CHECKS
           if (
