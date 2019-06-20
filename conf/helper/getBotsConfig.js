@@ -4,7 +4,7 @@ const assert = require('assert')
 //    getBotsConfig
 // -----------------------------------------------------------------------------
 /*
- * @version 0.1.3
+ * @version 0.1.6
  * @see Last version in https://github.com/gnosis/dx-services/tree/master/conf/helper/getBotsConfig.js
  *
  */
@@ -137,13 +137,26 @@ const assert = require('assert')
  * @param {string} namePrefix Specifies a prefix that will be added to all bot's
  *  names. Useful for pre-pending version numbers or env info.
  * @param {BotSetup[]} botsSetup List of configs to be used for defining the bots
+ *
  * @param {MonitorBalanceRule[]} [aditionalBalanceBots = []] Defines wether to
  *  create the sell bot
-* @param {Object} [slackChannels = {}] Defines then
- * aditionalBalanceBots,
-  slackChannels
- *  or not
+ * @param {SlackChannels} [slackChannels = {}] Defines the Slack channels for
+ *  the different notifications
  *
+ * @param {Object[]} [buyLiquidityRulesDefault] Defines the default rules to be
+ *  used for the buy bots.
+ * @param {string} [claimCronScheduleDefault] Defines the default claiming times
+ *  for the claiming bots.
+ *
+ * @param {string} [bigSellVolumeThresholdInUsdDefault] Defines the default
+ * threshold for notifying big sell volumes
+ *
+ * @param {boolean} [checkTimeInMillisecondsSellBots = 60000] Check time for
+ *  sell bots
+ * @param {boolean} [checkTimeInMillisecondsBuyBots = 60000] Check time for
+ *  buy bots
+ * @param {boolean} [checkTimeInMillisecondsDepositBots = 300000] Check time for
+ *  deposit bots
  *
  * @returns {Object} The config of the bots
  */
@@ -151,7 +164,40 @@ function getBotsConfig ({
   namePrefix,
   botsSetup,
   aditionalMonitoringAccounts = [],
-  slackChannels = {}
+  slackChannels = {},
+
+  // Some defaults
+  buyLiquidityRulesDefault = [{
+    // Buy 1/2 (50%) at market price
+    marketPriceRatio: { numerator: 1, denominator: 1 },
+    buyRatio: { numerator: 1, denominator: 2 }
+  }, {
+    // Buy the 100% if price changes by -1%
+    marketPriceRatio: { numerator: 99, denominator: 100 },
+    buyRatio: { numerator: 1, denominator: 1 }
+  }],
+
+  bigSellVolumeThresholdInUsdDefault = 5000, // Notify if volume is greater than 5000$
+  claimCronScheduleDefault = '00  02,06,10,14,18,22  *  *  *', // Claim every 4h starting at 2am
+  depositInactivityPeriodsDefault = [
+    { from: '10:00', to: '10:30' },
+    { from: '11:30', to: '12:00' },
+    { from: '15:30', to: '16:00' },
+    { from: '18:30', to: '19:00' }
+  ],
+
+  etherReserveAmountForGas = 2, // Leave 2 ETH for gas for DepositBot when running without the safe setup
+  minimumAmountInUsdForTokenDefault = 5000, // Notify if the accounts fall below 5000$ worth of the token
+  minimumAmountForTokenArbitrage = 100, // Notify if there are less than 100$ in Ether for the Arbitrage contract
+  minimumAmountForOwlDefault = 300, // Notifies if the accounts falls below 150 OWL
+  minimumAmountForOwlArbitrage = 150, // Notifies if the Arbitrage contract falls below 150 OWL
+
+  uniswapReservesMinimumAmountForEther = 20, // Notifies if Uniswap Exchanges has less than 20 Ether
+  uniswapReservesMinimumAmountInUsdForTokenBalance = 3000, // Notifies if Uniswap Exchanges has less than 3000$ in the ERC20 token
+
+  checkTimeInMillisecondsSellBots = 60 * 1000, // Ensure sell liquidity every 60s
+  checkTimeInMillisecondsBuyBots = 60 * 1000, // Ensure buy liquidity every 60s
+  checkTimeInMillisecondsDepositBots = 5 * 60 * 1000 // Check if there's tokens to be deposited every 5 min
 }) {
   assert(namePrefix, '"namePrefix" is mandatory')
   assert(botsSetup, '"botsSetup" is mandatory')
@@ -244,16 +290,18 @@ function getBotsConfig ({
   const marketsByBigSellvolumeThreshold = botsConfig.reduce((acc, config) => {
     const {
       markets = [],
-      bigSellVolumeThresholdInUsd = 5000
+      bigSellVolumeThresholdInUsd = bigSellVolumeThresholdInUsdDefault
     } = config
 
-    const marketsForThreshold = acc[bigSellVolumeThresholdInUsd]
-    const orderedMarket = markets.map(getOrderedMarket)
-    if (marketsForThreshold) {
-      const newMarkets = orderedMarket.filter(market => !hasMarket(marketsForThreshold, market))
-      acc[bigSellVolumeThresholdInUsd] = marketsForThreshold.concat(newMarkets)
-    } else {
-      acc[bigSellVolumeThresholdInUsd] = orderedMarket
+    if (bigSellVolumeThresholdInUsd) {
+      const marketsForThreshold = acc[bigSellVolumeThresholdInUsd]
+      const orderedMarket = markets.map(getOrderedMarket)
+      if (marketsForThreshold) {
+        const newMarkets = orderedMarket.filter(market => !hasMarket(marketsForThreshold, market))
+        acc[bigSellVolumeThresholdInUsd] = marketsForThreshold.concat(newMarkets)
+      } else {
+        acc[bigSellVolumeThresholdInUsd] = orderedMarket
+      }
     }
 
     return acc
@@ -298,24 +346,6 @@ function getBotsConfig ({
   /*  Define some re-usable config for bots
   /*********************************************/
 
-  // Default buy rules
-  const buyLiquidityRulesDefault = [{
-    // Buy 1/2 (50%) if price changes by -1%
-    marketPriceRatio: { numerator: 99, denominator: 100 },
-    buyRatio: { numerator: 1, denominator: 2 }
-  }, {
-    // Buy the 100% if price changes by -4%
-    marketPriceRatio: { numerator: 96, denominator: 100 },
-    buyRatio: { numerator: 1, denominator: 1 }
-  }]
-
-  // Backup buy rules
-  const buyLiquidityRulesBackup = [{
-    // Buy the 100% if price changes by -10%
-    marketPriceRatio: { numerator: 90, denominator: 100 },
-    buyRatio: { numerator: 1, denominator: 1 }
-  }]
-
   const notificationsInfo = slackChannels.info ? [{
     type: 'slack',
     channel: slackChannels.info
@@ -326,13 +356,10 @@ function getBotsConfig ({
     channel: slackChannels.devops
   }] : []
 
-  const NOTIFICATIONS_COMMS = slackChannels.comms ? [{
+  const notificationsComms = slackChannels.comms ? [{
     type: 'slack',
     channel: slackChannels.comms
   }] : []
-
-  const ONE_MINUTE = 60 * 1000 // 60s
-  const FIVE_MINUTES = 5 * 60 * 1000 // 5min
 
   /********************************************/
   /*  Helper functions
@@ -382,48 +409,30 @@ function getBotsConfig ({
       markets,
       botAddress: safeAddress || operatorAddress,
       notifications: notificationsInfo,
-      checkTimeInMilliseconds: ONE_MINUTE
+      checkTimeInMilliseconds: checkTimeInMillisecondsSellBots
     }
   })
 
   /********************************************/
   /*  Buy Bots
   /*********************************************/
-  const buyBots = buyBotsConfig.reduce((acc, safe) => {
-    const {
-      name,
-      markets,
-      operatorAddress,
-      safeAddress,
-      buyRules
-    } = safe
-
-    const botAddress = safeAddress || operatorAddress
-
-    // Add main bot
-    acc.push({
+  const buyBots = buyBotsConfig.map(({
+    name,
+    markets,
+    operatorAddress,
+    safeAddress,
+    buyRules
+  }) => {
+    return {
       name: namePrefix + ' Buy Bot: ' + name,
       factory: 'src/bots/BuyLiquidityBot',
       markets,
-      botAddress,
+      botAddress: safeAddress || operatorAddress,
       rules: buyRules || buyLiquidityRulesDefault,
       notifications: notificationsInfo,
-      checkTimeInMilliseconds: ONE_MINUTE
-    })
-
-    // Add backup bot
-    acc.push({
-      name: namePrefix + ' Backup Buy Bot: ' + name,
-      factory: 'src/bots/BuyLiquidityBot',
-      markets,
-      botAddress,
-      rules: buyRules || buyLiquidityRulesBackup,
-      notifications: notificationsInfo,
-      checkTimeInMilliseconds: ONE_MINUTE
-    })
-
-    return acc
-  }, [])
+      checkTimeInMilliseconds: checkTimeInMillisecondsBuyBots
+    }
+  })
 
   /*******************************************
     High Sell Volume bot:
@@ -437,7 +446,7 @@ function getBotsConfig ({
         factory: 'src/bots/HighSellVolumeBot',
         markets: marketsByBigSellvolumeThreshold[bigSellVolumeThresholdInUsd],
         thresholdInUsd: bigSellVolumeThresholdInUsd,
-        notifications: NOTIFICATIONS_COMMS
+        notifications: notificationsComms
       }
     })
 
@@ -472,11 +481,13 @@ function getBotsConfig ({
   }) => {
     let botAddress, etherReserveAmount
     if (safeAddress) {
+      // Safe setup
       botAddress = safeAddress
       etherReserveAmount = 0 // 0 Ether (deposit all)
     } else {
+      // Non-safe setup
       botAddress = operatorAddress
-      etherReserveAmount = 2 // 2 Ether (leave some Ether for gas)
+      etherReserveAmount = etherReserveAmountForGas // Ether left for gas
     }
 
     return {
@@ -486,13 +497,8 @@ function getBotsConfig ({
       botAddress,
       notifications: notificationsInfo,
       // You can use this to have some time to manually withdraw funds
-      inactivityPeriods: depositInactivityPeriods || [
-        { from: '10:00', to: '10:30' },
-        { from: '11:30', to: '12:00' },
-        { from: '15:30', to: '16:00' },
-        { from: '18:30', to: '19:00' }
-      ],
-      checkTimeInMilliseconds: FIVE_MINUTES,
+      inactivityPeriods: depositInactivityPeriods || depositInactivityPeriodsDefault,
+      checkTimeInMilliseconds: checkTimeInMillisecondsDepositBots,
       etherReserveAmount
     }
   })
@@ -515,7 +521,7 @@ function getBotsConfig ({
       factory: 'src/bots/ClaimBot',
       markets,
       botAddress: safeAddress || operatorAddress,
-      cronSchedule: claimCronSchedule || '00  02,06,10,14,18,22  *  *  *', // Claim schedule. See https://crontab.guru/#0_02,06,10,14,18,22_*_*_*
+      cronSchedule: claimCronSchedule || claimCronScheduleDefault, // Claim schedule. See https://crontab.guru/#0_02,06,10,14,18,22_*_*_*
       autoClaimAuctions: 90, // Number of auctions to look back
       notifications: notificationsInfo
     }
@@ -583,8 +589,8 @@ function getBotsConfig ({
       minimumAmountForOwl = 0
     } else {
       botName = `${namePrefix} Balance bot: ${name}`
-      minimumAmountInUsdForToken = minimumAmountInUsdForTokenAux || 5000
-      minimumAmountForOwl = minimumAmountForOwlAux || 300
+      minimumAmountInUsdForToken = minimumAmountInUsdForTokenAux || minimumAmountInUsdForTokenDefault
+      minimumAmountForOwl = minimumAmountForOwlAux || minimumAmountForOwlDefault
     }
 
     return {
@@ -604,8 +610,8 @@ function getBotsConfig ({
     name,
     markets,
     safeAddress,
-    minimumAmountInUsdForToken = 5000,
-    minimumAmountForOwl = 300
+    minimumAmountInUsdForToken = minimumAmountInUsdForTokenDefault,
+    minimumAmountForOwl = minimumAmountForOwlDefault
   }) => {
     return {
       name: `${namePrefix} Balance bot: ${name} Safe`,
@@ -632,9 +638,9 @@ function getBotsConfig ({
       botAddress: uniswapArbitrageAddress,
       notifications: notificationsDevops,
       minimumAmountForEther: 0, // Ether balance
-      minimumAmountInUsdForToken: 100, // Balance in DutchX
+      minimumAmountInUsdForToken: minimumAmountForTokenArbitrage, // Balance in DutchX
       minimumAmountInUsdForTokenBalance: 0, // ERC20 balance
-      minimumAmountForOwl: 150 // OWL
+      minimumAmountForOwl: minimumAmountForOwlArbitrage // OWL
     }
   })
 
@@ -649,9 +655,9 @@ function getBotsConfig ({
       tokens: [tokenSymbol],
       botAddress: uniswapExchangeAddress,
       notifications: notificationsDevops,
-      minimumAmountForEther: 20, // Balance in DutchX.  20 Ether ≈ 3.000$ (TODO: Allow to specify in USD the Ether too)
+      minimumAmountForEther: uniswapReservesMinimumAmountForEther, // Balance in DutchX.  20 Ether ≈ 3.000$ (TODO: Allow to specify in USD the Ether too)
       minimumAmountInUsdForToken: 0, // Balance in DutchX
-      minimumAmountInUsdForTokenBalance: 3000, // ERC20 balance
+      minimumAmountInUsdForTokenBalance: uniswapReservesMinimumAmountInUsdForTokenBalance, // ERC20 balance
       minimumAmountForOwl: 0
     }
   })
@@ -705,7 +711,7 @@ function getBotsConfig ({
     priceFeedStrategies: {
       'WETH-OMG': {
         strategy: 'sequence',
-        feeds: ['binance', 'huobi', 'bitfinex']
+        feeds: ['huobi', 'binance', 'bitfinex']
       },
       'WETH-RDN': {
         strategy: 'sequence',
@@ -768,7 +774,7 @@ function getBotsConfig ({
     WEB3_PROVIDER: web3Provider,
     MARKETS: markets,
     PRICE_REPO: priceRepo,
-    SAFES: arbitrageBotsConfig,
+    SAFES: botsConfig,
     BOTS: [watchEventsBot]
     // .concat(highSellVolumeBotsAccountTheshold)
 

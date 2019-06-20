@@ -4,8 +4,6 @@ const logger = new Logger('dx-service:helpers:sendTxWithUniqueNonce')
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
 
-const pendingTransaction = []
-
 // This time, is just to allow the transaction
 // to distribute to other nodes. Its triggered after we know it's at list in one
 // node (i.e. important in case of using a pool of nodes)
@@ -18,13 +16,18 @@ const LOG_EVERY_N_CHECKS = 10 || process.env.LOG_EVERY_N_CHECKS
 // wait max 20 * 3000 = 1 min
 const NONCE_INCREMENT_MAX_NUM_CHECKS = 60 || process.env.NONCE_INCREMENT_MAX_NUM_CHECKS
 
-let accountsLocks = {}
+const accountPendingTransactions = {}
+const accountsLocks = {}
 
 function sendTxWithUniqueNonce (transactionParams) {
   const { from } = transactionParams
   if (accountsLocks[from]) {
-    logger.debug("The account %s is locked. I'll wait for later", from)
-    pendingTransaction.push(transactionParams)
+    logger.info("The account %s is locked. I'll wait for later", from)
+    if (!accountPendingTransactions[from]) {
+      accountPendingTransactions[from] = [transactionParams]
+    } else {
+      accountPendingTransactions[from].push(transactionParams)
+    }
   } else {
     logger.debug("I'll do it now")
     _sendTransaction(transactionParams)
@@ -39,12 +42,19 @@ async function _sendTransaction ({
 }) {
   accountsLocks[from] = true
   const releaseLock = () => {
-    logger.info('Releasing lock for %s...', from)
+    logger.debug('Releasing lock for %s...', from)
     setTimeout(() => {
       // Check if we have pending transactions
+      const pendingTransaction = accountPendingTransactions[from]
       if (pendingTransaction.length > 0) {
         // Handle the pending transaction: FIFO
         const transactionParams = pendingTransaction.shift()
+        logger.info(
+          'One tx ended. %d pending transactions for %s. Submit first in the queue: %o',
+          pendingTransaction.length,
+          from,
+          transactionParams
+        )
         _sendTransaction(transactionParams)
           .catch(_discardError)
       } else {
@@ -92,7 +102,7 @@ function _waitForNonceToIncrement (nonce, from, getNonceFn, releaseLock, txPromi
         getNonceFn(from).then(newNonce => {
           if (count % LOG_EVERY_N_CHECKS === LOG_EVERY_N_CHECKS - 1) {
             // Log only every 10 checks (i.e. If check time is 3s, we log every 30s)
-            logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${pendingTransaction.length}`)
+            logger.info(`Checking nonce update for ${from}. Tx nonce: ${nonce}, current nonce: ${newNonce}. Transactions in queue: ${accountPendingTransactions[from].length}`)
           }
           const maxCheckReached = count > NONCE_INCREMENT_MAX_NUM_CHECKS
           if (
