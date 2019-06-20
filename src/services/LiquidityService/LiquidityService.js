@@ -267,11 +267,51 @@ check should be done`,
     return Promise.all(balancesPromises)
   }
 
+  async _getSellLiquidityInUsd ({
+    tokenA,
+    tokenB,
+    auctionIndex,
+    from,
+    considerOnlyLiquidityProvidedByAccount
+  }) {
+    let fundingA, fundingB
+    if (considerOnlyLiquidityProvidedByAccount) {
+      // Consider only the liquidity that the "from" account has provided
+      const {
+        fundingA: fundingAuxA,
+        fundingB: fundingAuxB
+      } = await this._auctionRepo.getFundingInUSDForUser({
+        tokenA,
+        tokenB,
+        auctionIndex,
+        accountAddress: from
+      })
+      fundingA = fundingAuxA
+      fundingB = fundingAuxB
+    } else {
+      // Consider all the overall liquidity
+      const {
+        fundingA: fundingAuxA,
+        fundingB: fundingAuxB
+      } = await this._auctionRepo.getFundingInUSD({
+        tokenA, tokenB, auctionIndex
+      })
+      fundingA = fundingAuxA
+      fundingB = fundingAuxB
+    }
+
+    return {
+      fundingA,
+      fundingB
+    }
+  }
+
   async _doEnsureSellLiquidity ({
     tokenA,
     tokenB,
     from,
-    minimumSellVolume
+    minimumSellVolume,
+    considerOnlyLiquidityProvidedByAccount = true
   }) {
     const soldTokens = []
     const auction = { sellToken: tokenA, buyToken: tokenB }
@@ -283,13 +323,17 @@ check should be done`,
     // Make sure the token pair has been added to the DX
     assert(auctionIndex > 0, `Unknown token pair: ${tokenA}-${tokenB}`)
 
-    // Check if there is a start date
-    if (auctionStart === null) {
-      // We are in a waiting for funding period
-
+    if (auctionStart === null || considerOnlyLiquidityProvidedByAccount) {
       // Get the liquidity and minimum sell volume
-      const { fundingA, fundingB } = await this._auctionRepo.getFundingInUSD({
-        tokenA, tokenB, auctionIndex
+      const {
+        fundingA,
+        fundingB
+      } = await this._getSellLiquidityInUsd({
+        tokenA,
+        tokenB,
+        auctionIndex,
+        from,
+        considerOnlyLiquidityProvidedByAccount
       })
 
       // Check if we surplus it

@@ -1133,6 +1133,42 @@ currentAuctionIndex=${currentAuctionIndex}`)
     }
   }
 
+  async getFundingInUSDForUser ({ tokenA, tokenB, auctionIndex, accountAddress }) {
+    // auctionLogger.debug(tokenA, tokenB, `getFundingInUSDForUser for auction ${auctionIndex} and user ${accountAddress}`)
+
+    const currentAuctionIndex = await this.getAuctionIndex({
+      sellToken: tokenA, buyToken: tokenB
+    })
+
+    if (auctionIndex !== currentAuctionIndex ||
+      auctionIndex !== currentAuctionIndex + 1) {
+      throw new Error(`The sell volume can only be obtained for the current \
+auction or the next one. auctionIndex=${auctionIndex}, \
+currentAuctionIndex=${currentAuctionIndex}`)
+    }
+
+    const [sellVolumeA, sellVolumeB] = await Promise.all([
+      this.getSellerBalance({ sellToken: tokenA, buyToken: tokenB, auctionIndex, address: accountAddress }),
+      this.getSellerBalance({ sellToken: tokenB, buyToken: tokenA, auctionIndex, address: accountAddress })
+    ])
+
+    const [fundingA, fundingB] = await Promise.all([
+      this.getPriceInUSD({
+        token: tokenA,
+        amount: sellVolumeA
+      }),
+      this.getPriceInUSD({
+        token: tokenB,
+        amount: sellVolumeB
+      })
+    ])
+
+    return {
+      fundingA,
+      fundingB
+    }
+  }
+
   async getPriceInUSD ({ token, amount }) {
     const amountBN = numberUtil.toBigNumber(amount)
     const ethUsdPrice = await this.getPriceEthUsd()
