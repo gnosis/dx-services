@@ -16,8 +16,8 @@ const LOG_EVERY_N_CHECKS = 10 || process.env.LOG_EVERY_N_CHECKS
 // wait max 20 * 3000 = 1 min
 const NONCE_INCREMENT_MAX_NUM_CHECKS = 60 || process.env.NONCE_INCREMENT_MAX_NUM_CHECKS
 
-let accountPendingTransactions = {}
-let accountsLocks = {}
+const accountPendingTransactions = {}
+const accountsLocks = {}
 
 function sendTxWithUniqueNonce (transactionParams) {
   const { from } = transactionParams
