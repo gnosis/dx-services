@@ -194,7 +194,7 @@ class ClaimBot extends Bot {
           {
             color: 'good',
             title: 'The bot has claimed for ' + tokenA + '-' + tokenB,
-            text: 'The bot has claimed tokens into the DutchX.',
+            text: 'The bot has claimed tokens from DutchX auctions.',
             fields: [
               {
                 title: 'Bot name',
