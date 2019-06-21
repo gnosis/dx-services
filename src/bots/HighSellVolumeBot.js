@@ -205,57 +205,71 @@ class HighSellVolumeBot extends Bot {
   async _checkBalanceMoreThanSellVolume ({ sellToken, buyToken }) {
     const from = this._botAddress
 
-    logger.debug('Checking if sell volume for %s-%s can be bought by %s', sellToken, buyToken, from)
-    const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
-    const buyTokenInfoPromise = this._dxInfoService.getTokenInfo(buyToken)
+    const lastNotifiedAuctionIndex = this._lastNotificationAuctionIndex[sellToken + '-' + buyToken]
+    const auctionIndex = await this._dxInfoService.getAuctionIndex({ sellToken, buyToken })
 
-    const sellVolumePromise = this._dxInfoService.getSellVolume({
-      sellToken, buyToken
-    })
-
-    const buyTokenBalancePromise = this._dxInfoService.getAccountBalanceForToken({
-      token: buyToken, address: from
-    })
-
-    const externalPricePromise = this._marketService.getPrice({
-      tokenA: sellToken, tokenB: buyToken
-    })
-
-    const [
-      sellVolume,
-      buyTokenBalance,
-      estimatedPrice,
-      { decimals: sellTokenDecimals },
-      { decimals: buyTokenDecimals }
-    ] = await Promise.all([
-      sellVolumePromise,
-      buyTokenBalancePromise,
-      externalPricePromise,
-      sellTokenInfoPromise,
-      buyTokenInfoPromise
-    ])
-
-    const estimatedBuyVolumeInEth = formatFromWei(sellVolume, sellTokenDecimals).mul(numberUtil.toBigNumber(estimatedPrice))
-    const estimatedBuyVolume = formatToWei(estimatedBuyVolumeInEth, buyTokenDecimals)
-    logger.debug('Auction sell volume is %s %s and we have %s %s. With last available price %s %s/%s that should mean we need %s %s',
-      formatFromWei(sellVolume, sellTokenDecimals),
-      sellToken,
-      formatFromWei(buyTokenBalance, buyTokenDecimals),
-      buyToken,
-      estimatedPrice,
-      sellToken,
-      buyToken,
-      formatFromWei(estimatedBuyVolume, buyTokenDecimals),
-      buyToken
-    )
-
-    if (estimatedBuyVolume.mul(BALANCE_MARGIN_FACTOR).greaterThan(buyTokenBalance)) {
-      logger.debug('We estimate we won`t be able to buy everything')
-      this._notifyBalanceBelowEstimate({
-        sellToken, buyToken, from, balanceInEth: formatFromWei(buyTokenBalance, buyTokenDecimals), estimatedBuyVolumeInEth
-      })
+    let checkSellVolume
+    if (lastNotifiedAuctionIndex) {
+      checkSellVolume = lastNotifiedAuctionIndex < auctionIndex
+      logger.debug('Check sell volume for %s-%s? %s. AuctionIndex=%d, LastNotifiedAuctionIndex=%d', sellToken, buyToken, checkSellVolume, auctionIndex, lastNotifiedAuctionIndex)
     } else {
-      logger.debug('We will be able to buy everything')
+      checkSellVolume = true
+      logger.debug('Checking volume for %s-%s', sellToken, buyToken)
+    }
+
+    if (checkSellVolume) {
+      logger.debug('Checking if sell volume for %s-%s can be bought by %s', sellToken, buyToken, from)
+      const sellTokenInfoPromise = this._dxInfoService.getTokenInfo(sellToken)
+      const buyTokenInfoPromise = this._dxInfoService.getTokenInfo(buyToken)
+
+      const sellVolumePromise = this._dxInfoService.getSellVolume({
+        sellToken, buyToken
+      })
+
+      const buyTokenBalancePromise = this._dxInfoService.getAccountBalanceForToken({
+        token: buyToken, address: from
+      })
+
+      const externalPricePromise = this._marketService.getPrice({
+        tokenA: sellToken, tokenB: buyToken
+      })
+
+      const [
+        sellVolume,
+        buyTokenBalance,
+        estimatedPrice,
+        { decimals: sellTokenDecimals },
+        { decimals: buyTokenDecimals }
+      ] = await Promise.all([
+        sellVolumePromise,
+        buyTokenBalancePromise,
+        externalPricePromise,
+        sellTokenInfoPromise,
+        buyTokenInfoPromise
+      ])
+
+      const estimatedBuyVolumeInEth = formatFromWei(sellVolume, sellTokenDecimals).mul(numberUtil.toBigNumber(estimatedPrice))
+      const estimatedBuyVolume = formatToWei(estimatedBuyVolumeInEth, buyTokenDecimals)
+      logger.debug('Auction sell volume is %s %s and we have %s %s. With last available price %s %s/%s that should mean we need %s %s',
+        formatFromWei(sellVolume, sellTokenDecimals),
+        sellToken,
+        formatFromWei(buyTokenBalance, buyTokenDecimals),
+        buyToken,
+        estimatedPrice,
+        sellToken,
+        buyToken,
+        formatFromWei(estimatedBuyVolume, buyTokenDecimals),
+        buyToken
+      )
+
+      if (estimatedBuyVolume.mul(BALANCE_MARGIN_FACTOR).greaterThan(buyTokenBalance)) {
+        logger.debug('We estimate we won`t be able to buy everything')
+        this._notifyBalanceBelowEstimate({
+          sellToken, buyToken, from, balanceInEth: formatFromWei(buyTokenBalance, buyTokenDecimals), estimatedBuyVolumeInEth
+        })
+      } else {
+        logger.debug('We would be able to buy everything')
+      }
     }
   }
 
