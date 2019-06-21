@@ -10,6 +10,8 @@ const sendTxWithUniqueNonce = require('../sendTxWithUniqueNonce')
 
 const environment = process.env.NODE_ENV
 const isLocal = environment === 'local'
+const DEFAULT_GAS_TX = 30000
+const DEFAULT_EXTRA_GAS_SAFE_TX = 50000
 
 const logger = new Logger('dx-service:web3Providers:safe')
 
@@ -36,7 +38,8 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     shareNonce = true,
     blockForNonceCalculation = 'pending',
     safes = [],
-    defaultGas = 300000
+    defaultGas = DEFAULT_GAS_TX,
+    defaultExtraGasSafeTx = DEFAULT_EXTRA_GAS_SAFE_TX
   }) {
     const accountCredentials = privateKeys || mnemonic
     let numAddresses = privateKeys ? privateKeys.length : numAddressesAux
@@ -54,6 +57,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
     // Configure all the safes, and construct some handy maps
     this._safesByOperator = this._loadSafesByOperator(safes)
+
     this._safesByAddress = Object.values(this._safesByOperator).reduce((acc, safes) => {
       safes.forEach(safe => {
         acc[safe.safeAddress] = safe
@@ -64,6 +68,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
 
     this._blockForNonceCalculation = blockForNonceCalculation
     this._defaultGas = defaultGas
+    this._defaultExtraGasSafeTx = defaultExtraGasSafeTx
     this._defaultFrom = this.getAccounts()[0]
     this._web3 = new Web3(this)
   }
@@ -78,36 +83,48 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         safeModuleAddress
       } = safe
       assert(operatorAddressIndex >= 0, `"operatorAddressIndex" is mandatory for running in Safe mode. Offending safe: ${index}`)
-      assert(that.addresses.length >= operatorAddressIndex, `"operatorAddressIndex" cannot be ${operatorAddressIndex}, there's only ${that.addresses.length} addresses in the waller. Offending safe: ${index}`)
-      assert(safeAddress, `"safeAddress" is mandatory for running in Safe mode. Offending safe: ${index}`)
-      assert(safeModuleType, `"moduleType" is mandatory for running in Safe mode. Offending safe: ${index}`)
-      assert(safeModuleAddress, `"safeModuleAddress" is mandatory for running in Safe mode. Offending safe: ${index}`)
+      assert(that.addresses.length > operatorAddressIndex, `"operatorAddressIndex" cannot be ${operatorAddressIndex}, there's only ${that.addresses.length} addresses in the waller. Offending safe: ${index}`)
 
-      const operatorAddress = this.addresses[operatorAddressIndex] // use 1st account in HDWallet
-      logger.debug(`Configuring safe ${index + 1} of ${safes.length}:
-        safeAddress: ${safeAddress}
-        operatorAddress: ${operatorAddress}
-        safeModuleAddress: ${safeModuleAddress}
-        moduleType: ${safeModuleType}`)
+      const operatorAddress = that.addresses[operatorAddressIndex]
+      assert(operatorAddress, `"operatorAddress" cannot get the address number ${operatorAddressIndex}. Offending safe: ${index}`)
 
-      const moduleContract = that._loadSafeModuleContract({
-        moduleType: safeModuleType,
-        safeModuleAddress
-      })
+      if (safeAddress) {
+        assert(safeModuleType, `"moduleType" is mandatory for running in Safe mode. Offending safe: ${index}`)
+        assert(safeModuleAddress, `"safeModuleAddress" is mandatory for running in Safe mode. Offending safe: ${index}`)
 
-      const safeDetails = {
-        id: index,
-        operatorAddress,
-        safeAddress,
-        moduleType: safeModuleType,
-        safeModuleAddress,
-        moduleContract
-      }
+        logger.debug(`Configuring Safe account: ${index + 1} of ${safes.length}:
+          safeAddress: ${safeAddress}
+          operatorAddress: ${operatorAddress}
+          safeModuleAddress: ${safeModuleAddress}
+          moduleType: ${safeModuleType}`)
 
-      if (acc[operatorAddress]) {
-        acc[operatorAddress].push(safeDetails)
+        const moduleContract = that._loadSafeModuleContract({
+          moduleType: safeModuleType,
+          safeModuleAddress
+        })
+
+        const safeDetails = {
+          id: index,
+          operatorAddress,
+          safeAddress,
+          moduleType: safeModuleType,
+          safeModuleAddress,
+          moduleContract
+        }
+
+        if (acc[operatorAddress]) {
+          acc[operatorAddress].push(safeDetails)
+        } else {
+          acc[operatorAddress] = [safeDetails]
+        }
       } else {
-        acc[operatorAddress] = [safeDetails]
+        logger.debug(`Configuring a NON Safe account: ${index + 1} of ${safes.length}
+          operatorAddress: ${operatorAddress}`)
+
+        if (!acc[operatorAddress]) {
+          // Add operator, but without safe
+          acc[operatorAddress] = []
+        }
       }
 
       return acc
@@ -131,7 +148,7 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
         default:
           throw new Error('Unknown safe module type: ' + moduleType)
       }
-      const moduleABI = require('gnosis-safe-modules/build/contracts/' + contractName)
+      const moduleABI = require('@gnosis.pm/safe-modules/build/contracts/' + contractName)
       SafeModuleContract = truffleContract(moduleABI)
       // SafeModuleContract.setProvider(this)
 
@@ -222,64 +239,24 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
       const [txDetails, ...extraParams] = txObject.params
 
       const {
-        from,
-        to,
-        value = 0,
-        data
+        from
       } = txDetails
 
       const safe = this._safesByAddress[from]
+      const operator = this._safesByOperator[from]
 
       // TODO: Allow to send transaction directly with the operator
       //  - Normally transactions with the mulstisig as the "from" address
       //  - It might be an interesting adition to allow to provide the operator
       //    as the "from". In this case, the tx is sent without the module
 
-      if (!safe) {
-        throw new Error(`Unknown safe with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
-      }
-
-      const {
-        moduleContract,
-        safeModuleAddress,
-        operatorAddress
-      } = safe
-
-      const executeWhitelistedCallData = moduleContract.executeWhitelisted.request(to, value, data)
-      const moduleData = executeWhitelistedCallData.params[0].data
-      logger.debug(`Send transaction using the safe module:
-        Original tx:
-          To: ${to}
-          Value: ${value}
-          Original Data: ${data}
-        Safe Module: ${safeModuleAddress}
-          Operator: ${operatorAddress}
-          Data: ${moduleData}`)
-
-      // Rewrite the transaction so it's sent to the safe instead
-      const safeTxArguments = [{
-        ...txObject,
-
-        // Override params
-        params: [{
-          'from': operatorAddress,
-          'to': safeModuleAddress,
-          'value': 0,
-          'data': moduleData,
-          'gas': this._defaultGas // TODO: Add gas on top of the one in the TX
-        }, ...extraParams]
-      }, ...extraArguments]
-
-      // TODO: Remove
-      logger.debug('Send transaction: %O', safeTxArguments)
-      logger.debug('Transaction - params: ', safeTxArguments[0].params)
-
-      if (!NONCE_LOCK_DISABLED) {
-        return this._sendTxWithUniqueNonce(...safeTxArguments)
+      if (safe) {
+        return this._rewriteSendTransactionForSafe({ safe, txArguments: arguments })
+      } else if (operator) {
+        // It's a known operator trying to perform a transaction
+        return super.sendAsync(...arguments)
       } else {
-        logger.trace('Send transaction: %o', safeTxArguments)
-        this._resetNonceCache()
-        return super.sendAsync(...safeTxArguments)
+        throw new Error(`Unknown safe/operator with address ${from}. Known safes are: ${this._safeAddresses.join(', ')}`)
       }
     } else if (method === 'eth_accounts') {
       logger.trace('Get accounts')
@@ -298,6 +275,66 @@ class HDWalletSafeProvider extends TruffleHDWalletProvider {
     } else {
       logger.trace('Do async call "%s": %o', method, args)
       return super.sendAsync(...arguments)
+    }
+  }
+
+  _rewriteSendTransactionForSafe ({ safe, txArguments }) {
+    // Get Safe Module contract data
+    const [txObject, ...extraArguments] = txArguments
+    const [txDetails, ...extraParams] = txObject.params
+
+    const {
+      moduleContract,
+      safeModuleAddress,
+      operatorAddress
+    } = safe
+
+    const {
+      to,
+      gas: originalGas = this._defaultGas,
+      value = 0,
+      data
+    } = txDetails
+
+    let gas = (typeof originalGas === 'string') ? parseInt(originalGas) : originalGas
+    gas += this._defaultExtraGasSafeTx
+
+    const executeWhitelistedCallData = moduleContract.executeWhitelisted.request(to, value, data)
+
+    const moduleData = executeWhitelistedCallData.params[0].data
+    logger.debug(`Send transaction using the safe module:
+      Original tx:
+        To: ${to}
+        Value: ${value}
+        Original Data: ${data}
+      Safe Module: ${safeModuleAddress}
+        Operator: ${operatorAddress}
+        Data: ${moduleData}`)
+
+    // Rewrite the transaction so it's sent to the safe instead
+    const safeTxArguments = [{
+      ...txObject,
+
+      // Override params
+      params: [{
+        'from': operatorAddress,
+        'to': safeModuleAddress,
+        'value': 0,
+        'data': moduleData,
+        'gas': gas
+      }, ...extraParams]
+    }, ...extraArguments]
+
+    // TODO: Remove
+    logger.debug('Send transaction: %O', safeTxArguments)
+    logger.debug('Transaction - params: ', safeTxArguments[0].params)
+
+    if (!NONCE_LOCK_DISABLED) {
+      return this._sendTxWithUniqueNonce(...safeTxArguments)
+    } else {
+      logger.trace('Send transaction: %o', safeTxArguments)
+      this._resetNonceCache()
+      return super.sendAsync(...safeTxArguments)
     }
   }
 

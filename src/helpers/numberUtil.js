@@ -2,8 +2,12 @@ const BigNumber = require('bignumber.js')
 
 const ZERO = new BigNumber(0)
 const ONE = new BigNumber(1)
+const TEN = new BigNumber(10)
 const HUNDRED = new BigNumber(100)
 const TEN_EXP_18 = new BigNumber(1e18)
+
+const DEFAULT_TOKEN_DECIMALS = 18
+const DEFAULT_DECIMALS = 2
 
 function toBigNumber (num) {
   return isBigNumber(num) ? num : new BigNumber(num.toString())
@@ -27,18 +31,22 @@ function toBigNumberFraction (fraction, inDecimal = true) {
   }
 }
 
+function toDecimal (num, decimal) {
+  return toBigNumber(num).div(10 ** decimal)
+}
+
 function isBigNumber (n) {
   // The current version of bignumber is too old and doesn't have isBigNumber method
   // It cannot be updated due to web3
   return n instanceof BigNumber
 }
 
-function toWei (num) {
-  return toBigNumber(num).mul(TEN_EXP_18)
+function toWei (num, decimals) {
+  return toBigNumber(num).mul(TEN.toPower(decimals || DEFAULT_TOKEN_DECIMALS))
 }
 
-function fromWei (num) {
-  return toBigNumber(num).div(TEN_EXP_18)
+function fromWei (num, decimals) {
+  return toBigNumber(num).div(TEN.toPower(decimals || DEFAULT_TOKEN_DECIMALS))
 }
 
 function getPercentage ({ part, total }) {
@@ -68,18 +76,18 @@ function getIncrement ({ oldValue, newValue }) {
   }
 }
 
-function round (number, decimals = 2) {
-  return roundAux(number, decimals, 'round')
+function round (number, decimals) {
+  return roundAux(number, decimals || DEFAULT_DECIMALS, 'round')
 }
-function roundUp (number, decimals = 2) {
-  return roundAux(number, decimals, 'ceil')
+function roundUp (number, decimals) {
+  return roundAux(number, decimals || DEFAULT_DECIMALS, 'ceil')
 }
-function roundDown (number, decimals = 2) {
-  return roundAux(number, decimals, 'floor')
+function roundDown (number, decimals) {
+  return roundAux(number, decimals || DEFAULT_DECIMALS, 'floor')
 }
 
-function roundAux (number, decimals = 2, roundFnName) {
-  const factor = 10 ** decimals
+function roundAux (number, decimals, roundFnName) {
+  const factor = 10 ** (decimals || DEFAULT_DECIMALS)
 
   return toBigNumber(number)
     .mul(factor)[roundFnName]()
@@ -97,10 +105,12 @@ module.exports = {
   roundDown,
   toWei,
   fromWei,
+  toDecimal,
 
   // some convenience constants
   ONE,
   ZERO,
+  TEN,
   HUNDRED,
   TEN_EXP_18
 }

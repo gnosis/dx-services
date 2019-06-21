@@ -1,7 +1,8 @@
 const testSetup = require('../helpers/testSetup')
 const AuctionRepoMock = require('../../src/repositories/AuctionRepo/AuctionRepoMock')
 const auctionRepoMock = new AuctionRepoMock({})
-
+const EthereumRepoMock = require('../../src/repositories/EthereumRepo/EthereumRepoMock')
+const ethereumRepoMock = new EthereumRepoMock({})
 const PriceRepoMock = require('../../src/repositories/PriceRepo/PriceRepoMock')
 const priceRepo = new PriceRepoMock()
 
@@ -19,16 +20,19 @@ test('It should ensureSellLiquidity', async () => {
   liquidityService._auctionRepo = new AuctionRepoMock({
     auctions: _getAuctionsWithUnderFundingEthOmg()
   })
+  // we mock the ethereum repo
+  liquidityService._ethereumRepo = ethereumRepoMock
 
   async function _isUnderFundingAuction ({ tokenA, tokenB }) {
     const auctionIndex = await liquidityService._auctionRepo.getAuctionIndex({
-      sellToken: tokenA, buyToken: tokenB })
+      sellToken: tokenA, buyToken: tokenB
+    })
     const { fundingA, fundingB } = await liquidityService._auctionRepo.getFundingInUSD({
       tokenA, tokenB, auctionIndex
     })
 
     return fundingA.lessThan(MINIMUM_SELL_VOLUME) &&
-    fundingB.lessThan(MINIMUM_SELL_VOLUME)
+      fundingB.lessThan(MINIMUM_SELL_VOLUME)
   }
 
   function _isValidSellVolume (sellVolume, fundingSellVolume) {
@@ -41,7 +45,8 @@ test('It should ensureSellLiquidity', async () => {
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN bot sells in both sides, WETH-OMG and OMG-WETH, the pair market we expect
   const expectedBotSell = [{
@@ -70,7 +75,8 @@ test('It should ensureBuyLiquidity', async () => {
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
-    auctions: _getAuctionsWhereBotShouldBuyEthRdn()
+    auctions: _getAuctionsWhereBotShouldBuyEthRdn(),
+    balances: BALANCES
   })
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
@@ -83,7 +89,8 @@ test('It should ensureBuyLiquidity', async () => {
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN bot buys in WETH-RDN market, the pair market we expect
   const expectedBotBuy = [{
@@ -104,7 +111,8 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
-    auctions: _getAuctionsWhereBotShouldBuyEthRdn()
+    auctions: _getAuctionsWhereBotShouldBuyEthRdn(),
+    balances: BALANCES
   })
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
@@ -113,7 +121,8 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
   // Ensure with sellToken: RDN and buyToken: WETH on purpose
   // It shouldn't matter the order
   await liquidityService.ensureBuyLiquidity({
-    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+  })
   expect(await _hasLowBuyVolume(
     { sellToken: 'WETH', buyToken: 'RDN' },
     liquidityService._auctionRepo
@@ -121,7 +130,8 @@ test('It should not ensureBuyLiquidity if enough buy volume', async () => {
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityStateWethRdn = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN the bot don't buy anything
   const expectedBotBuy = []
@@ -146,7 +156,8 @@ test('It should not ensureBuyLiquidity if auction has closed', async () => {
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN the bot don't buy anything
   const expectedBotBuy = []
@@ -158,7 +169,8 @@ test('It should ensureBuyLiquidity if auction has only one side closed', async (
 
   // we mock the auction repo
   liquidityService._auctionRepo = new AuctionRepoMock({
-    auctions: _getAuctionsWithOneSideTheoreticalClosed()
+    auctions: _getAuctionsWithOneSideTheoreticalClosed(),
+    balances: BALANCES
   })
   // we mock the exchange price repo
   liquidityService._priceRepo = priceRepo
@@ -171,7 +183,8 @@ test('It should ensureBuyLiquidity if auction has only one side closed', async (
 
   // WHEN we ensure buy liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'WETH', buyToken: 'RDN', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN bot buys in WETH-RDN market, the pair market we expect
   const expectedBotBuy = [{
@@ -199,9 +212,11 @@ test('It should detect concurrency when ensuring liquidiy', async () => {
 
   // WHEN we ensure sell liquidity twice
   let ensureLiquidityPromise1 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+  })
   let ensureLiquidityPromise2 = liquidityService.ensureSellLiquidity({
-    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+  })
 
   await Promise.all([
     ensureLiquidityPromise1,
@@ -222,7 +237,8 @@ test('It should not ensure sell liquidity if auction is not waiting for funding'
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureSellLiquidity({
-    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN we shouldn't be adding funds
   expect(ensureLiquidityState).toEqual([])
@@ -243,7 +259,8 @@ test('It should not ensure sell liquidity if auction has enough funds', async ()
   try {
     // WHEN we ensure sell liquidity
     await liquidityService.ensureSellLiquidity({
-      sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+      sellToken: 'OMG', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+    })
   } catch (e) {
     // THEN we get an error becuse we shouldn't ensure liquidity
     expect(e).toBeInstanceOf(Error)
@@ -264,7 +281,8 @@ test('It should not ensure buy liquidity if auction has not started yet', async 
 
   // WHEN we ensure sell liquidity
   const ensureLiquidityState = await liquidityService.ensureBuyLiquidity({
-    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false })
+    sellToken: 'RDN', buyToken: 'WETH', from: '0x123', waitToReleaseTheLock: false
+  })
 
   // THEN we shouldn't be adding a buy order
   expect(ensureLiquidityState).toEqual([])
@@ -279,7 +297,7 @@ test('It should return token balance for an account', async () => {
   // GIVEN
 
   // WHEN
-  let rdnEthAccountBalance = await liquidityService.getBalances({
+  let rdnEthAccountBalance = await liquidityService.getBalancesDx({
     tokens: ['RDN', 'WETH'],
     address: '0xAe6eCb2A4CdB1231B594cb66C2dA9277551f9ea7'
   })
@@ -288,11 +306,13 @@ test('It should return token balance for an account', async () => {
   let expectedRdnEthAccountBalance = [{
     amount: new BigNumber('601.112e18'),
     amountInUSD: new BigNumber('2473.57'), // 2473.57588
-    token: 'RDN'
+    token: 'RDN',
+    tokenDecimals: 18
   }, {
     amount: new BigNumber('4.01234e18'),
     amountInUSD: new BigNumber('4020.21'), // 4020.21221108
-    token: 'WETH'
+    token: 'WETH',
+    tokenDecimals: 18
   }]
   expect(rdnEthAccountBalance).toEqual(expectedRdnEthAccountBalance)
 })
@@ -304,8 +324,17 @@ const MINIMUM_SELL_VOLUME = 1000
 
 const UNDER_MINIMUM_FUNDING_WETH = new BigNumber('0.5e18')
 
+const BALANCES = {
+  'RDN': {
+    '0x123': new BigNumber('530.20e18')
+  },
+  'WETH': {
+    '0x123': new BigNumber('2.23154e18')
+  }
+}
+
 async function _hasLowBuyVolume ({ sellToken, buyToken }, auctionRepo) {
-  const [ buyVolume, sellVolume ] = await Promise.all([
+  const [buyVolume, sellVolume] = await Promise.all([
     auctionRepo.getBuyVolume({ buyToken, sellToken }),
     auctionRepo.getSellVolume({ buyToken, sellToken })
   ])
@@ -331,15 +360,19 @@ function _getAuctionsWhereBotShouldBuyEthRdn () {
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
   const currentAuctionEthRdnInMock = localAuctionsData.auctions['WETH-RDN'].length - 1
   const updatedAuctionEthRdn = Object.assign({}, localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
-    { price: {
-      numerator: new BigNumber('1000000'),
-      denominator: new BigNumber('4275') }
+    {
+      price: {
+        numerator: new BigNumber('1000000'),
+        denominator: new BigNumber('4275')
+      }
     })
   const currentAuctionRdnEthInMock = localAuctionsData.auctions['RDN-WETH'].length - 1
   const updatedAuctionRdnEth = Object.assign({}, localAuctionsData.auctions['RDN-WETH'][currentAuctionRdnEthInMock],
-    { price: {
-      numerator: new BigNumber('4275'),
-      denominator: new BigNumber('1000000') }
+    {
+      price: {
+        numerator: new BigNumber('4275'),
+        denominator: new BigNumber('1000000')
+      }
     })
   localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
 
@@ -386,17 +419,20 @@ function _getAuctionsWithOneSideTheoreticalClosed () {
   // GIVEN a RUNNING auction, nearly to close but many tokens to sold
   const currentAuctionEthRdnInMock = localAuctionsData.auctions['WETH-RDN'].length - 1
   const updatedAuctionEthRdn = Object.assign({}, localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
-    { price: {
-    // Forced very low price
-      numerator: new BigNumber('1000000'),
-      denominator: new BigNumber('999999999999') }
+    {
+      price: {
+        // Forced very low price
+        numerator: new BigNumber('1000000'),
+        denominator: new BigNumber('999999999999')
+      }
     })
   const currentAuctionRdnEthInMock = localAuctionsData.auctions['RDN-WETH'].length - 1
   const updatedAuctionRdnEth = Object.assign({}, localAuctionsData.auctions['RDN-WETH'][currentAuctionRdnEthInMock],
     {
       price: {
         numerator: new BigNumber('4275'),
-        denominator: new BigNumber('1000000') },
+        denominator: new BigNumber('1000000')
+      },
       buyVolume: new BigNumber('0.3272420335275e18')
     })
   localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
@@ -415,11 +451,12 @@ function _getClosedAuctions () {
 
   const currentAuctionEthRdnInMock = localAuctionsData.auctions['WETH-RDN'].length - 1
   const updatedAuctionEthRdn = Object.assign({}, localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock],
-    { price: {
-      numerator: new BigNumber('1000000'),
-      denominator: new BigNumber('4275')
-    },
-    buyVolume: new BigNumber('67.7034e18')
+    {
+      price: {
+        numerator: new BigNumber('1000000'),
+        denominator: new BigNumber('4275')
+      },
+      buyVolume: new BigNumber('67.7034e18')
     })
   localAuctionsData.auctions['WETH-RDN'][currentAuctionEthRdnInMock] = updatedAuctionEthRdn
 

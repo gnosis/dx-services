@@ -58,7 +58,8 @@ module.exports = {
     'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat',
   PK: null,
   MARKETS,
-  TOKENS
+  TOKENS,
+  ARBITRAGE_CONTRACT_ADDRESS: '0xd54b47f8e6a1b97f3a84f63c867286272b273b7c'
   // TODO use only this default values when migration to latest version finished
   // MARKETS: [
   //   { tokenA: 'WETH', tokenB: 'RDN' },

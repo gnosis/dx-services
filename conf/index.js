@@ -15,7 +15,8 @@ const defaultConf = {
   ...require('./config-contracts'),
   ...require('./config-notification'),
   ...require('./config-repos'),
-  ...require('./config-web3')
+  ...require('./config-web3'),
+  ...require('./developConstants')
 }
 
 // Load env conf
@@ -108,7 +109,11 @@ function getConfiguredTokenList (markets) {
     }
   }
 
-  markets.forEach(({ tokenA, tokenB }) => {
+  markets.forEach(({ tokenA, tokenB }, index) => {
+    if (!tokenA || !tokenB) {
+      throw new Error(`Error in market: ${tokenA}-${tokenB}. Index: ` + index)
+    }
+
     addToken(tokenA)
     addToken(tokenB)
   })
@@ -122,6 +127,10 @@ function getTokenAddresParamName (token) {
 
 function getTokenAddresses (tokens, config) {
   return tokens.reduce((tokenAddresses, token) => {
+    if (!token) {
+      throw new Error('One of the token is not specified: [' + tokens.join(', ') + ']')
+    }
+
     const paramName = getTokenAddresParamName(token)
     const address = process.env[paramName] || config[paramName]
     if (address) {

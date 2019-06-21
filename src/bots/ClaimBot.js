@@ -5,6 +5,7 @@ const logger = new Logger(loggerNamespace)
 const assert = require('assert')
 
 const schedule = require('node-schedule')
+const CLAIM_EVERY_4H = '00  02,06,10,14,18,22  *  *  *'
 
 const BOT_TYPE = 'ClaimBot'
 const getEthereumClient = require('../helpers/ethereumClient')
@@ -16,11 +17,12 @@ class ClaimBot extends Bot {
   constructor ({
     name,
     botAddress,
+    claimAddress,
     accountIndex,
     markets,
     notifications,
-    cronSchedule,
-    autoClaimAuctions
+    cronSchedule = CLAIM_EVERY_4H,
+    autoClaimAuctions = 90
   }) {
     super(name, BOT_TYPE)
     assert(markets, 'markets is required')
@@ -28,6 +30,7 @@ class ClaimBot extends Bot {
     assert(cronSchedule, 'cronSchedule is required')
     assert(autoClaimAuctions, 'autoClaimAuctions are required')
 
+    this._claimAddress = claimAddress
     if (botAddress) {
       // Config using bot address
       assert(botAddress, 'botAddress is required')
@@ -74,6 +77,9 @@ class ClaimBot extends Bot {
 
     // Get bot address
     await this.setAddress()
+    if (!this._claimAddress) {
+      this._claimAddress = this._botAddress
+    }
   }
 
   async _doStart () {
@@ -93,7 +99,11 @@ class ClaimBot extends Bot {
 
   async _doClaim () {
     // Execute the claim
-    logger.info('Claiming from markets %O using address %s', this._markets, this._botAddress)
+    logger.info('Claiming markets %O for account %s%s',
+      this._markets,
+      this._claimAddress,
+      this._botAddress !== this._claimAddress ? ' using operator ' + this._botAddress : ''
+    )
 
     const tokenPairs = this._markets.reduce((markets, { tokenA, tokenB }) => {
       markets.push(
@@ -103,7 +113,8 @@ class ClaimBot extends Bot {
     }, [])
     return this._dxTradeService.claimAll({
       tokenPairs,
-      address: this._botAddress,
+      address: this._claimAddress,
+      fromAddress: this._botAddress,
       lastNAuctions: this._autoClaimAuctions
     }).then(result => {
       const {
@@ -112,7 +123,6 @@ class ClaimBot extends Bot {
         claimBuyerTransactionResult
       } = result
       this._lastClaim = new Date()
-      logger.info('Claimed for address %s. Result: %o', this._botAddress, claimAmounts)
       if (claimSellerTransactionResult) {
         logger.info('Claim as seller transaction: %s', claimSellerTransactionResult.tx)
       }
@@ -120,25 +130,25 @@ class ClaimBot extends Bot {
         logger.info('Claim as buyer transaction: %s', claimBuyerTransactionResult.tx)
       }
 
-      claimAmounts.forEach(amount => {
-        if (amount) {
-          this._notifyClaimedTokens(amount, this._markets, this._botAddress)
+      claimAmounts.forEach(amountDetails => {
+        if (amountDetails) {
+          this._notifyClaimedTokens(amountDetails, this._claimAddress)
         }
       })
       return result
     }).catch(error => {
-      this._handleError(tokenPairs, this._botAddress, error)
+      this._handleError(tokenPairs, this._claimAddress, error)
       return 0
     })
   }
 
-  _notifyClaimedTokens (amount, token, account) {
+  _notifyClaimedTokens (amount, account) {
     const { tokenA, tokenB, totalSellerClaims, totalBuyerClaims } = amount
     const tokenPairString = tokenA + '-' + tokenB
 
-    const message = 'The bot claimed for ' + tokenPairString + ': ' +
+    const message = 'Claimed for ' + tokenPairString + ': ' +
       totalSellerClaims + ' tokens as seller, ' +
-      totalBuyerClaims + ' tokens as buyer'
+      totalBuyerClaims + ' tokens as buyer for ' + account
 
     // Log message
     logger.info({
@@ -223,7 +233,7 @@ class ClaimBot extends Bot {
   _handleError (tokenPairs, account, error) {
     // Log message
     logger.error({
-      msg: 'There was an error claiming %O with the account %s',
+      msg: 'There was an error claiming %O for account %s',
       params: [tokenPairs, account],
       error
     })
@@ -232,6 +242,7 @@ class ClaimBot extends Bot {
   async getInfo () {
     return {
       botAddress: this._botAddress,
+      claimAddress: this._claimAddress,
       markets: this._markets,
       lastCheck: this._lastCheck,
       lastClaim: this._lastClaim,

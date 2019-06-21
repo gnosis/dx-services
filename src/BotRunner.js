@@ -5,7 +5,6 @@ const assert = require('assert')
 const path = require('path')
 
 const getDxInfoService = require('./services/DxInfoService')
-const getBotsService = require('./services/BotsService')
 
 // Bot Api
 const getBotsApiServer = require('./web/bots/BotsApiServer')
@@ -19,21 +18,19 @@ class BotRunner {
     this._environment = environment
     this._runApiServer = runApiServer
     this._initBots = initBots
+    this._bots = null
   }
 
   async init () {
-    const [dxInfoService, botsService] = await Promise.all([
-      getDxInfoService(),
-      getBotsService()
-    ])
-
-    this._dxInfoService = dxInfoService
+    this._dxInfoService = await getDxInfoService()
 
     // Initialize Bots and API
-    this._bots = await this._createBots()
-    botsService.setBots(this._bots)
+    if (this._initBots) {
+      this._bots = await this._createBots()
+    }
 
     // Check if the WatchEventBot is defined (is required for some bots)
+    // botsService.setBots(this._bots)
     const watchEventsBotExists = this._bots.some(bot => {
       return bot.type === 'WatchEventsBot'
     })
@@ -94,16 +91,14 @@ class BotRunner {
     })
 
     // Init all the bots
-    if (this._initBots) {
-      bots = await Promise.all(
-        bots.map(async bot => {
-          if (bot.init) {
-            await bot.init()
-          }
-          return bot
-        })
-      )
-    }
+    bots = await Promise.all(
+      bots.map(async bot => {
+        if (bot.init) {
+          await bot.init()
+        }
+        return bot
+      })
+    )
 
     return bots
   }

@@ -26,7 +26,8 @@ class DepositBot extends Bot {
     tokens,
     notifications,
     checkTimeInMilliseconds = DEPOSIT_PERIODIC_CHECK_MILLISECONDS,
-    inactivityPeriods = []
+    inactivityPeriods = [],
+    etherReserveAmount = ETHER_RESERVE_AMOUNT
   }) {
     super(name, BOT_TYPE)
     assert(tokens, 'tokens is required')
@@ -54,6 +55,7 @@ class DepositBot extends Bot {
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
     this._inactivityPeriods = inactivityPeriods
+    this._etherReserveAmount = etherReserveAmount
 
     this._lastCheck = null
     this._lastDeposit = null
@@ -115,8 +117,8 @@ class DepositBot extends Bot {
       balanceOfTokensPromise
     ])
 
-    logger.debug('Balances of ether: %O', balanceOfEther)
-    logger.debug('Balances of tokens: %O', balanceOfTokens)
+    logger.debug('Balances of ether: %s', balanceOfEther)
+    logger.debug('Balances of tokens: %O', balanceOfTokens.map(({ token, amount }) => `${token}: ${amount}`).join(', '))
 
     return [balanceOfEther, balanceOfTokens]
   }
@@ -149,7 +151,7 @@ class DepositBot extends Bot {
         token: 'ETH',
         amount: balanceOfEther,
         accountAddress: account,
-        threshold: ETHER_RESERVE_AMOUNT
+        threshold: this._etherReserveAmount
       })
 
       // Deposit TOKENS
@@ -182,14 +184,22 @@ class DepositBot extends Bot {
     accountAddress,
     threshold
   }) {
-    const weiReserveAmount = numberUtil.toWei(threshold)
-    logger.debug('Wei reserve amount for token %s: %O', token, weiReserveAmount)
+    let tokenDecimals
+    if (token !== 'ETH') {
+      const tokenInfo = await this._dxInfoService.getTokenInfo(token)
+      tokenDecimals = tokenInfo.decimals
+    } else {
+      tokenDecimals = 18
+    }
+
+    const weiReserveAmount = numberUtil.toWei(threshold, tokenDecimals)
+    logger.debug('Wei reserve amount for token %s: %s', token, weiReserveAmount)
     if (amount.greaterThan(weiReserveAmount)) {
       // We have tokens to deposit
       const amountToDeposit = amount.minus(weiReserveAmount)
       const tokenToDeposit = token === 'ETH' ? 'WETH' : token
       logger.info('I have to deposit %d %s for account %s',
-        numberUtil.fromWei(amountToDeposit),
+        numberUtil.fromWei(amountToDeposit, tokenDecimals),
         token,
         accountAddress
       )
@@ -202,7 +212,7 @@ class DepositBot extends Bot {
         })
         .then(result => {
           // Notify deposited token
-          this._notifyDepositedTokens(amount, token, accountAddress)
+          this._notifyDepositedTokens(amount, token, accountAddress, tokenDecimals)
           return amount
         })
         .catch(error => {
@@ -215,8 +225,8 @@ class DepositBot extends Bot {
     }
   }
 
-  _notifyDepositedTokens (amount, token, account) {
-    const balance = amount.div(1e18).valueOf()
+  _notifyDepositedTokens (amount, token, account, tokenDecimals) {
+    const balance = numberUtil.fromWei(amount, tokenDecimals).valueOf()
     const depositedTokensString = balance + ' ' + token
 
     const message = 'The bot deposited ' + depositedTokensString + ' into the DutchX'

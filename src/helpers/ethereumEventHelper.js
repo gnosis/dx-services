@@ -1,5 +1,7 @@
 const debug = require('debug')('DEBUG-dx-service:helpers:ethereumEventHelper')
 const assert = require('assert')
+const getEthereumClient = require('./ethereumClient')
+let ethereumClient
 
 /**
  * Return a promise with the events that match the criteria
@@ -8,11 +10,23 @@ async function filter ({
   contract,
   filters = null,
   fromBlock = 0,
-  toBlock = 'latest',
+  toBlock: toBlockAux = -5,
   events = null
 }) {
   // require events
   assert(events, '"events" is a required param')
+
+  if (!ethereumClient) {
+    ethereumClient = await getEthereumClient()
+  }
+
+  let toBlock
+  if (Number.isInteger(toBlockAux) && toBlockAux < 0) {
+    // A negative number, means the number of confirmation blocks
+    toBlock = await ethereumClient.getBlockNumber() + toBlockAux
+  } else {
+    toBlock = toBlockAux
+  }
 
   debug('Filtering contract\'s %s events: %s',
     contract.address,
@@ -102,7 +116,7 @@ function watch ({
     stopWatching = async () => {
       // Stop listening all events
       debug('Stop listening all events')
-      
+
       return Promise.all(
         stopWatchingFunctions.map(stopWatchingAux => new Promise((resolve, reject) => {
           stopWatchingAux((error, result) => {

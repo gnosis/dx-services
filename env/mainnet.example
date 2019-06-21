@@ -1,3 +1,6 @@
+# Config file
+#CONFIG_FILE=<path-to-config-file>
+
 # Network
 NETWORK=mainnet
 #ETHEREUM_RPC_URL=https://mainnet.infura.io

@@ -12,7 +12,9 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
     auctionIndex,
     auctionStart,
     auction,
-    auctionOpp
+    auctionOpp,
+    sellTokenInfo,
+    buyTokenInfo
   } = marketDetails
 
   logger.info(`\tToken pair: ${sellToken}-${buyToken}\n`)
@@ -50,8 +52,8 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
   if (auction) {
     _printAuctionDetails({
       auction,
-      tokenA: sellToken,
-      tokenB: buyToken,
+      tokenA: sellTokenInfo,
+      tokenB: buyTokenInfo,
       auctionIndex,
       state,
       logger
@@ -61,8 +63,8 @@ module.exports = function ({ logger, sellToken, buyToken, now, marketDetails }) 
   if (auction) {
     _printAuctionDetails({
       auction: auctionOpp,
-      tokenA: buyToken,
-      tokenB: sellToken,
+      tokenA: buyTokenInfo,
+      tokenB: sellTokenInfo,
       auctionIndex,
       state,
       logger
@@ -85,7 +87,7 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
   } = auction
 
   logger.info('')
-  logger.info(`\tAuction ${tokenA}-${tokenB}:`)
+  logger.info(`\tAuction ${tokenA.symbol}-${tokenB.symbol}:`)
 
   // printProps('\t\t', auctionProps, auction, formatters)
   let closedStatus
@@ -104,7 +106,7 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
 
   if (!sellVolume.isZero()) {
     logger.info('\t\tSell volume:')
-    logger.info(`\t\t\tsellVolume: %d %s`, formatUtil.formatFromWei(sellVolume), tokenA)
+    logger.info(`\t\t\tsellVolume: %d %s`, formatUtil.formatFromWei(sellVolume, tokenA.decimals), tokenA.symbol)
     if (auction.fundingInUSD) {
       logger.info(`\t\t\tsellVolume: %d USD`, auction.fundingInUSD)
     }
@@ -113,11 +115,11 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
       logger.info(`\t\tPrice:`)
       logger.info(
         `\t\t\tCurrent Price: %s %s/%s`,
-        formatUtil.formatFraction(price), tokenA, tokenB
+        formatUtil.formatFraction({ fraction: price, tokenBDecimals: tokenB.decimals, tokenADecimals: tokenA.decimals }), tokenA.symbol, tokenB.symbol
       )
       if (closingPrice) {
         logger.info(`\t\t\tPrevious closing Price: %s %s/%s`,
-          formatUtil.formatFraction(closingPrice), tokenA, tokenB
+          formatUtil.formatFraction({ fraction: closingPrice, tokenBDecimals: tokenB.decimals, tokenADecimals: tokenA.decimals }), tokenA.symbol, tokenB.symbol
         )
 
         logger.info(`\t\t\tPrice relation: %s`,
@@ -131,13 +133,13 @@ function _printAuctionDetails ({ auction, tokenA, tokenB, auctionIndex, state, l
 
   if (!sellVolume.isZero()) {
     logger.info('\t\tBuy volume:')
-    logger.info(`\t\t\tbuyVolume: %d %s`, formatUtil.formatFromWei(buyVolume), tokenB)
+    logger.info(`\t\t\tbuyVolume: %d %s`, formatUtil.formatFromWei(buyVolume, tokenB.decimals), tokenB.symbol)
     logger.info(`\t\t\tBought percentage: %s %`, boughtPercentage.toFixed(4))
 
     const isNotInWaitingPeriod = (state.indexOf('WAITING') === -1)
     if (isNotInWaitingPeriod) {
       logger.info(`\t\t\tOutstanding volume: %d %s`,
-        formatUtil.formatFromWei(outstandingVolume), tokenB)
+        formatUtil.formatFromWei(outstandingVolume, tokenB.decimals), tokenB.symbol)
     }
   }
 }

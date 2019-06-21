@@ -8,11 +8,13 @@ const logger = new Logger(loggerNamespace)
 const auctionLogger = new AuctionLogger(loggerNamespace)
 const events = require('../helpers/events')
 
+const formatUtil = require('../helpers/formatUtil')
+const { formatFromWei } = formatUtil
+
 const ENSURE_LIQUIDITY_PERIODIC_CHECK_MILLISECONDS =
   process.env.SELL_LIQUIDITY_BOT_CHECK_TIME_MS || (60 * 1000) // 1 min
 
 const BOT_TYPE = 'SellLiquidityBot'
-const getAddress = require('../helpers/getAddress')
 const getEthereumClient = require('../helpers/ethereumClient')
 const getEventBus = require('../getEventBus')
 const getLiquidityService = require('../services/LiquidityService')
@@ -187,12 +189,13 @@ class SellLiquidityBot extends Bot {
     const {
       sellToken,
       buyToken,
+      sellTokenDecimals,
       amount,
       amountInUSD,
       auctionIndex
     } = sellOrder
     // Log sold tokens
-    const amountInTokens = amount.div(1e18)
+    const amountInTokens = formatFromWei(amount, sellTokenDecimals)
     const soldTokensString = amountInTokens + ' ' + sellToken
 
     auctionLogger.info({

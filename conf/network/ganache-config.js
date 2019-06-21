@@ -1,7 +1,16 @@
 const CONTRACTS_BASE_DIR = 'build/contracts' // 'node_modules/@gnosis.pm/dx-contracts/build/contracts' // 'build/contracts'
+const CONTRACTS_ARBITRAGE_DIR = 'build/contracts'
 
 const CONTRACT_DEFINITIONS = {
+
+  ArbitrageContract: CONTRACTS_ARBITRAGE_DIR + '/ArbitrageLocal',
+  UniswapFactory: CONTRACTS_ARBITRAGE_DIR + '/IUniswapFactory',
+  UniswapExchange: CONTRACTS_ARBITRAGE_DIR + '/IUniswapExchange',
+  UniToken: CONTRACTS_BASE_DIR + '/EtherToken',
+
   GnosisStandardToken: CONTRACTS_BASE_DIR + '/GnosisStandardToken',
+
+  StandardToken: CONTRACTS_BASE_DIR + '/StandardToken',
   DutchExchange: CONTRACTS_BASE_DIR + '/DutchExchange',
   PriceOracleInterface: CONTRACTS_BASE_DIR + '/PriceOracleInterface',
   DutchExchangeProxy: CONTRACTS_BASE_DIR + '/DutchExchangeProxy',
@@ -18,5 +27,8 @@ const CONTRACT_DEFINITIONS = {
 module.exports = {
   NETWORK: 'ganache',
   CONTRACTS_BASE_DIR,
-  CONTRACT_DEFINITIONS
+  CONTRACTS_ARBITRAGE_DIR,
+  CONTRACT_DEFINITIONS,
+  UNI_TOKEN_ADDRESS: '0x9f544a3fc3d1045e6ec49d4ecef6dcd700457165',
+  SAFE_MODULE_ADDRESSES: null
 }

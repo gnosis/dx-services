@@ -9,7 +9,6 @@ const Cacheable = require('../../helpers/Cacheable')
 // const sendTxWithUniqueNonce = require('../../helpers/sendTxWithUniqueNonce')
 
 const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
-
 const assert = require('assert')
 
 const AUCTION_START_FOR_WAITING_FOR_FUNDING = 1
@@ -27,8 +26,6 @@ class AuctionRepoImpl extends Cacheable {
     contracts,
     // Cache
     cacheConf,
-    // Gas
-    defaultGas = 6700000,
     gasPriceDefault = 'fast', // safeLow, average, fast
     // Retry
     transactionRetryTime = 5 * 60 * 1000, // 5 minutes,
@@ -44,7 +41,6 @@ class AuctionRepoImpl extends Cacheable {
     assert(contracts, '"contracts" is required')
 
     this._ethereumClient = ethereumClient
-    this._defaultGas = defaultGas
     this._transactionRetryTime = transactionRetryTime
     this._gasRetryIncrement = gasRetryIncrement
     this._overFastPriceFactor = overFastPriceFactor
@@ -80,6 +76,10 @@ class AuctionRepoImpl extends Cacheable {
         params: [token, contract.address]
       })
     })
+  }
+
+  async ethToken () {
+    return this._doCall({ operation: 'ethToken', params: [] })
   }
 
   async getAbout () {
@@ -347,7 +347,7 @@ class AuctionRepoImpl extends Cacheable {
       sellToken: tokenA,
       buyToken: tokenB
     })
-    // auctionLogger.debug(tokenA, tokenB, msg: 'isValidTokenPair? auctionIndex=%s', params: [ auctionIndex ])
+    // auctionLogger.info({tokenA, tokenB, msg: 'isValidTokenPair? auctionIndex=%s', params: [ auctionIndex ]})
 
     return auctionIndex > 0
   }
@@ -363,14 +363,14 @@ class AuctionRepoImpl extends Cacheable {
 
   // TODO: getCurrencies?
 
-  async getSellVolume ({ sellToken, buyToken }) {
+  async getSellVolume ({ sellToken, buyToken, cacheTime }) {
     assertPair(sellToken, buyToken)
 
     return this._callForPair({
       operation: 'sellVolumesCurrent',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeAverage
+      cacheTime: cacheTime || this._cacheTimeAverage
     })
   }
 
@@ -385,14 +385,14 @@ class AuctionRepoImpl extends Cacheable {
     })
   }
 
-  async getBuyVolume ({ sellToken, buyToken }) {
+  async getBuyVolume ({ sellToken, buyToken, cacheTime }) {
     assertPair(sellToken, buyToken)
 
     return this._callForPair({
       operation: 'buyVolumes',
       sellToken,
       buyToken,
-      cacheTime: this._cacheTimeShort
+      cacheTime: cacheTime || this._cacheTimeShort
     })
   }
 
@@ -824,12 +824,12 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
     if (auctionStart !== null && auctionStart <= now) {
       // The auction is running
-      assert.equal(auctionIndex, lastAuctionIndex + 1,
+      assert.strictEqual(auctionIndex, lastAuctionIndex + 1,
         'The auction index should be set to the next auction (the auction is running)'
       )
     } else {
       // We are waiting (to start or for funding
-      assert.equal(auctionIndex, lastAuctionIndex,
+      assert.strictEqual(auctionIndex, lastAuctionIndex,
         'The auction index should be set to the current auction (we are in a waiting period)'
       )
     }
@@ -844,7 +844,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     // assert(auctionStart <= now, "The auction hasn't started yet")
     //
     //
-    // assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+    // assert.strictEqual(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
     //
     // const sellVolume = await this.getSellVolume({ sellToken, buyToken })
     // assert(sellVolume > 0, "There's not selling volume")
@@ -892,7 +892,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     assert(auctionStart <= now, "The auction hasn't started yet")
 
     const lastAuctionIndex = await this.getAuctionIndex({ sellToken, buyToken })
-    assert.equal(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
+    assert.strictEqual(auctionIndex, lastAuctionIndex, 'The provided index is not the index of the running auction')
 
     const sellVolume = await this.getSellVolume({ sellToken, buyToken })
     assert(sellVolume > 0, "There's not selling volume")
@@ -980,7 +980,7 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
     assert(initialClosingPrice, 'The initialClosingPrice is required')
     assert(initialClosingPrice.numerator >= 0, 'The initialClosingPrice numerator is incorrect')
     assert(initialClosingPrice.denominator >= 0, 'The initialClosingPrice denominator is incorrect')
-    assert.notEqual(tokenA, tokenB)
+    assert.notStrictEqual(tokenA, tokenB)
     assert(initialClosingPrice.numerator > 0, 'Initial price numerator must be positive')
     assert(initialClosingPrice.denominator > 0, 'Initial price denominator must be positive')
 
@@ -1067,12 +1067,12 @@ just ${balance.div(1e18)} WETH (not able to unwrap ${amountBigNumber.div(1e18)} 
   async _assertMinimumFundingForAddToken ({ tokenA, actualAFunding, tokenB, actualBFunding }) {
     // get the funded value in USD
     let fundedValueUSD
-    if (tokenA === 'WETH') {
+    if (this.isTokenEth(tokenA)) {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenA,
         amount: actualAFunding
       })
-    } else if (tokenB === 'WETH') {
+    } else if (this.isTokenEth(tokenB)) {
       fundedValueUSD = await this.getPriceInUSD({
         token: tokenB,
         amount: actualBFunding
@@ -1146,7 +1146,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
       params: [token, ethUsdPrice]
     })
     let amountInETH
-    if (token === 'WETH') {
+    if (this.isTokenEth(token)) {
       amountInETH = amountBN
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
@@ -1173,7 +1173,7 @@ currentAuctionIndex=${currentAuctionIndex}`)
     let amountInETH = amountOfUsd.div(ethUsdPrice)
 
     let amountInToken
-    if (token === 'WETH') {
+    if (this.isTokenEth(token)) {
       amountInToken = amountInETH
     } else {
       const priceTokenETH = await this.getPriceInEth({ token })
@@ -1244,7 +1244,6 @@ volume: ${state}`)
 
   async getFeeRatio ({ address }) {
     assert(address, 'The address is required')
-
     return this
       ._doCall({
         operation: 'getFeeRatio',
@@ -1253,9 +1252,75 @@ volume: ${state}`)
       })
   }
 
-  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex }) {
-    assertAuction(sellToken, buyToken, auctionIndex)
+  async getCurrentAuctionPriceWithFees ({ sellToken, buyToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice }) {
+    const cacheTime = 15
+    const { numerator, denominator } = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex, cacheTime })
+    const sellVolume = await this.getSellVolume({ sellToken, buyToken, cacheTime })
+    const buyVolume = await this.getBuyVolume({ sellToken, buyToken, cacheTime })
 
+    // 10^30 * 10^37 = 10^67
+    let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
+    outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
+    let amountAfterFee = amount
+    let closesAuction = false
+    if (amount.lt(outstandingVolume)) {
+      if (amount.gt(0)) {
+        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice)
+      }
+    } else {
+      amountAfterFee = outstandingVolume
+      closesAuction = true
+    }
+
+    return {
+      closesAuction,
+      amountAfterFee
+    }
+  }
+
+  async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice) {
+    const [numerator, denominator] = await this.getFeeRatio({ address: from })
+
+    // 10^30 * 10^3 / 10^4 = 10^29
+    let fee = amount.mul(numerator).div(denominator)
+
+    if (fee > 0) {
+      fee = await this.settleFeeSecondPart(primaryToken, fee, from, owlAllowance, owlBalance, ethUSDPrice)
+    }
+
+    return amount.sub(fee)
+  }
+
+  async settleFeeSecondPart (primaryToken, fee, from, owlAllowance, owlBalance, ethUSDPrice) {
+    const cacheTime = 15
+    // Allow user to reduce up to half of the fee with owlToken
+
+    const { numerator, denominator } = await this.getPriceInEth({ token: primaryToken, cacheTime })
+
+    // Convert fee to ETH, then USD
+    // 10^29 * 10^30 / 10^30 = 10^29
+    let feeInETH = fee.mul(numerator).div(denominator)
+    // 10^29 * 10^6 = 10^35
+    // Uses 18 decimal places <> exactly as owlToken tokens: 10**18 owlToken == 1 USD
+    let feeInUSD = feeInETH.mul(ethUSDPrice)
+
+    let halfFee = feeInUSD.div(2)
+    let amountOfowlTokenBurned = owlAllowance.lt(halfFee) ? owlAllowance : halfFee
+    amountOfowlTokenBurned = amountOfowlTokenBurned.lt(owlBalance) ? amountOfowlTokenBurned : owlBalance
+    let newFee
+    if (amountOfowlTokenBurned.gt(0)) {
+      // Adjust fee
+      // 10^35 * 10^29 = 10^64
+      let adjustment = amountOfowlTokenBurned.mul(fee).div(feeInUSD)
+      newFee = fee.sub(adjustment)
+    } else {
+      newFee = fee
+    }
+    return newFee
+  }
+
+  async getCurrentAuctionPrice ({ sellToken, buyToken, auctionIndex, cacheTime }) {
+    assertAuction(sellToken, buyToken, auctionIndex)
     // let currentAuctionPrice
     return this
       ._callForAuction({
@@ -1263,10 +1328,9 @@ volume: ${state}`)
         sellToken,
         buyToken,
         auctionIndex,
-        cacheTime: this._cacheTimeShort
+        cacheTime: cacheTime || this._cacheTimeShort
       })
       .then(toFraction)
-
     // TODO: breaking many places for now
     // if (!currentAuctionPrice) {
     //   // Handle the sellVolume=0 case
@@ -1312,7 +1376,7 @@ volume: ${state}`)
 
   async getSellOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1331,7 +1395,7 @@ volume: ${state}`)
 
   async getBuyOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1402,7 +1466,7 @@ volume: ${state}`)
 
   async getFees ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     primaryToken,
     secondarToken,
     auctionIndex,
@@ -1532,7 +1596,7 @@ volume: ${state}`)
 
   async _getOrders ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     user,
     sellToken,
     buyToken,
@@ -1569,7 +1633,7 @@ volume: ${state}`)
 
   async _getTokenPairs ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     event
@@ -1593,7 +1657,7 @@ volume: ${state}`)
 
   async getClearedAuctions ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex
@@ -1621,7 +1685,7 @@ volume: ${state}`)
 
   async getClaimedFundsSeller ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1640,7 +1704,7 @@ volume: ${state}`)
 
   async getClaimedFundsBuyer ({
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1660,7 +1724,7 @@ volume: ${state}`)
   async _getClaimedFundsAux ({
     eventName,
     fromBlock = 0,
-    toBlock = 'latest',
+    toBlock = -5,
     sellToken,
     buyToken,
     auctionIndex,
@@ -1691,23 +1755,34 @@ volume: ${state}`)
     return claimedFundsList
   }
 
-  async getPriceInEth ({ token }) {
+  async getPriceInEth ({ token, cacheTime }) {
     assert(token, 'The token is required')
+
+    if (this.isTokenEth(token)) {
+      return {
+        numerator: numberUtil.toBigNumber(1),
+        denominator: numberUtil.toBigNumber(1)
+      }
+    }
+
     // If none of the token are WETH, we make sure the market <token>/WETH exists
     const tokenEthMarketExists = await this.isValidTokenPair({
       tokenA: token,
       tokenB: 'WETH'
     })
+
     assert(tokenEthMarketExists, `The market ${token}-WETH doesn't exists`)
 
-    return this
+    let foo = await this
       ._callForToken({
         operation: 'getPriceOfTokenInLastAuction',
         token,
-        checkToken: false
+        checkToken: false,
+        cacheTime
       })
       .then(toFraction)
 
+    return foo
     // // Removed the use of getPriceOfTokenInLastAuction
     // //     * The implementation doesn't look in the current auction ¿¿??
     // //     * It involves changing the smart contract, so we have to do a hack in
@@ -1888,6 +1963,7 @@ volume: ${state}`)
     return {
       buyVolume,
       sellVolume,
+      auctionStart,
       hasAuctionStarted,
       closingPrice,
       isClosed,
@@ -1897,6 +1973,11 @@ volume: ${state}`)
 
   async getMagnoliaToken () {
     return this._tokens['MGN']
+  }
+
+  isTokenEth (token) {
+    return token === 'WETH' ||
+      token.toLowerCase() === this._tokens.WETH.address.toLowerCase()
   }
 
   _hasClosingPrice ({ sellToken, buyToken, auctionIndex }) {
@@ -1915,8 +1996,7 @@ volume: ${state}`)
   _getTokenContractBySymbol (token) {
     const tokenContract = this._tokens[token]
     if (!tokenContract) {
-      const knownTokens = Object.keys(this._tokens)
-      const error = new Error(`Unknown token ${token}. Known tokens are ${knownTokens}. Otherwise use the token address`)
+      const error = new Error(`Unknown token ${token}. For convenience only WETH symbol is supported. Otherwise use the token address`)
       error.type = 'UNKNOWN_TOKEN'
       error.status = 404
       throw error
@@ -1933,24 +2013,28 @@ volume: ${state}`)
     })
   }
 
-  _getTokenContractByAddress (tokenAddress) {
-    const tokenSymbol = this._getTokenSymbolByAddress(tokenAddress)
-
-    return tokenSymbol ? this._tokens[tokenSymbol] : null
-  }
-
   async _getTokenAddress (token, check = false) {
+    let tokenAddress
     if (HEXADECIMAL_REGEX.test(token)) {
-      return token
+      tokenAddress = token
+    } else {
+      tokenAddress = this._getTokenContractBySymbol(token).address
+      if (check) {
+        const isApprovedToken = await this.isApprovedToken({ tokenAddress })
+
+        if (!isApprovedToken) {
+          throw Error(`${token} is not an approved token`)
+        }
+      }
     }
 
-    const tokenAddress = this._getTokenContractBySymbol(token).address
-    if (check) {
-      const isApprovedToken = await this.isApprovedToken({ token })
-
-      if (!isApprovedToken) {
-        throw Error(`${token} is not an approved token`)
-      }
+    // Check that the address returns some code. Parity returns a hard error if no contract in given address: VM Execution error
+    const code = await this._ethereumClient.getCode(tokenAddress)
+    if (code === '0x') {
+      const error = new Error(`Token address ${tokenAddress} is not valid. Check that it is a token address.`)
+      error.type = 'TOKEN_ADDRESS_NOT_FOUND'
+      error.status = 404
+      throw error
     }
 
     return tokenAddress
@@ -2006,11 +2090,9 @@ volume: ${state}`)
     checkTokens = false,
     cacheTime
   }) {
-    /*
-    debug('Get %s for auction %d of pair %s-%s',
-      operation, auctionIndex, sellToken, buyToken
-    )
-    */
+    // console.log('Get %s for auction %d of pair %s-%s',
+    //   operation, auctionIndex, sellToken, buyToken
+    // )
     const sellTokenAddress = await this._getTokenAddress(sellToken, checkTokens)
     const buyTokenAddress = await this._getTokenAddress(buyToken, checkTokens)
     const params = [sellTokenAddress, buyTokenAddress, auctionIndex, ...args]
@@ -2147,7 +2229,7 @@ volume: ${state}`)
 
   async _doTransaction ({ operation, from, gasPrice: gasPriceParam, params }) {
     logger.debug({
-      msg: '_doTransaction: %o',
+      msg: '_doTransaction: \n%O',
       params: [
         operation,
         from,
@@ -2366,6 +2448,7 @@ volume: ${state}`)
 }
 
 function toFraction ([numerator, denominator]) {
+  // console.log('toFracton', numerator.toString(10), denominator.toString(10))
   // the contract return 0/0 when something is undetermined
   if (numerator.isZero() && denominator.isZero()) {
     return null

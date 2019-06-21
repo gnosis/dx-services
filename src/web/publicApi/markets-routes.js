@@ -1,4 +1,5 @@
 const formatUtil = require('../../helpers/formatUtil')
+const { ONE } = require('../../helpers/numberUtil')
 const _tokenPairSplit = formatUtil.tokenPairSplit
 
 const addCacheHeader = require('../helpers/addCacheHeader')
@@ -35,6 +36,15 @@ function createRoutes ({ dxInfoService, reportService },
       let tokenPair = _tokenPairSplit(req.params.tokenPair)
       addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
       return dxInfoService.getState(tokenPair)
+    }
+  })
+
+  routes.push({
+    path: '/:tokenPair/state-details',
+    get (req, res) {
+      let tokenPair = _tokenPairSplit(req.params.tokenPair)
+      addCacheHeader({ res, time: CACHE_TIMEOUT_AVERAGE })
+      return dxInfoService.getMarketDetails(tokenPair)
     }
   })
 
@@ -123,62 +133,121 @@ function createRoutes ({ dxInfoService, reportService },
     }
   })
 
+  function _safeMedian (req, res, token) {
+    addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+    return dxInfoService.getOraclePrice({ token })
+  }
+
+  function _throwMissingWethError () {
+    const error = new Error('Invalid `tokenPair`. At least one of the tokens must be WETH.')
+    error.type = 'INVALID_TOKEN_PAIR'
+    error.status = 412
+    throw error
+  }
+
   routes.push({
-    path: '/:token-WETH/prices/safe-median',
+    path: '/:tokenPair/prices/safe-median',
     get (req, res) {
-      const token = req.params.token
-      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
-      return dxInfoService.getOraclePrice({ token })
+      const { sellToken, buyToken } = _tokenPairSplit(req.params.tokenPair)
+      const isSellTokenEth = dxInfoService.isTokenEth(sellToken)
+      const isBuyTokenEth = dxInfoService.isTokenEth(buyToken)
+
+      if (isSellTokenEth) {
+        // Price oracle always returns tokenA-WETH.
+        // We do inverse of result to return WETH-tokenA for convenience
+        return _safeMedian(req, res, buyToken).then(result => {
+          return ONE.div(result)
+        })
+      } else if (isBuyTokenEth) {
+        return _safeMedian(req, res, sellToken)
+      } else {
+        _throwMissingWethError()
+      }
     }
   })
 
-  routes.push({
-    path: '/:token-WETH/prices/custom-median',
-    get (req, res) {
-      const token = req.params.token
-      const time = req.query.time !== undefined
-        ? req.query.time : DEFAULT_ORACLE_TIME
-      const maximumTimePeriod = req.query.maximumTimePeriod !== undefined
-        ? req.query.maximumTimePeriod : DEFAULT_MAXIMUM_TIME_PERIOD
-      const requireWhitelisted = req.query.requireWhitelisted !== undefined
-        ? req.query.requireWhitelisted : DEFAULT_REQUIRED_WHITELISTED
-      const numberOfAuctions = req.query.numberOfAuctions !== undefined
-        ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+  function _customMedian (req, res, token) {
+    const time = req.query.time !== undefined
+      ? formatUtil.parseDateIso(req.query.time).getTime() / 1000
+      : DEFAULT_ORACLE_TIME
+    const maximumTimePeriod = req.query.maximumTimePeriod !== undefined
+      ? req.query.maximumTimePeriod : DEFAULT_MAXIMUM_TIME_PERIOD
+    const requireWhitelisted = req.query.requireWhitelisted !== undefined
+      ? req.query.requireWhitelisted === 'true' : DEFAULT_REQUIRED_WHITELISTED
+    const numberOfAuctions = req.query.numberOfAuctions !== undefined
+      ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
 
-      if (!_isValueInRange(maximumTimePeriod, 0, TWO_WEEKS_IN_SECONDS)) {
-        const error = new Error('Invalid `maximumTimePeriod`. This value should be between 1 and 1296000, equivalent to 2 weeks in seconds.')
-        error.type = 'INVALID_MAXIMUM_TIME_PERIOD'
-        error.status = 412
-        throw error
+    if (!_isValueInRange(maximumTimePeriod, 0, TWO_WEEKS_IN_SECONDS)) {
+      const error = new Error('Invalid `maximumTimePeriod`. This value should be between 1 and 1296000, equivalent to 2 weeks in seconds.')
+      error.type = 'INVALID_MAXIMUM_TIME_PERIOD'
+      error.status = 412
+      throw error
+    }
+    if (!_isValueInRange(numberOfAuctions, 1, DEFAULT_MAX_NUMBER_OF_AUCTIONS)) {
+      const error = new Error('Invalid `numberOfAuctions`. This value should be between 1 and ' +
+        DEFAULT_MAX_NUMBER_OF_AUCTIONS + ', equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.')
+      error.type = 'INVALID_NUMBER_OF_AUCTIONS'
+      error.status = 412
+      throw error
+    }
+    addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+    return dxInfoService.getOraclePriceCustom({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
+  }
+
+  routes.push({
+    path: '/:tokenPair/prices/custom-median',
+    get (req, res) {
+      const { sellToken, buyToken } = _tokenPairSplit(req.params.tokenPair)
+      const isSellTokenEth = dxInfoService.isTokenEth(sellToken)
+      const isBuyTokenEth = dxInfoService.isTokenEth(buyToken)
+
+      if (isSellTokenEth) {
+        // Price oracle always returns tokenA-WETH.
+        // We do inverse of result to return WETH-tokenA for convenience
+        return _customMedian(req, res, buyToken).then(result => {
+          return ONE.div(result)
+        })
+      } else if (isBuyTokenEth) {
+        return _customMedian(req, res, sellToken)
+      } else {
+        _throwMissingWethError()
       }
-      if (!_isValueInRange(numberOfAuctions, 1, DEFAULT_MAX_NUMBER_OF_AUCTIONS)) {
-        const error = new Error('Invalid `numberOfAuctions`. This value should be between 1 and ' +
-          DEFAULT_MAX_NUMBER_OF_AUCTIONS + ', equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.')
-        error.type = 'INVALID_NUMBER_OF_AUCTIONS'
-        error.status = 412
-        throw error
-      }
-      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
-      return dxInfoService.getOraclePriceCustom({ token, time, maximumTimePeriod, requireWhitelisted, numberOfAuctions })
     }
   })
 
+  function _simpleMedian (req, res, token) {
+    const auctionIndex = req.query.auctionIndex
+    const numberOfAuctions = req.query.numberOfAuctions !== undefined
+      ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
+    if (!_isValueInRange(numberOfAuctions, 1, DEFAULT_MAX_NUMBER_OF_AUCTIONS)) {
+      const error = new Error('Invalid `numberOfAuctions`. This value should be between 1 and ' +
+        DEFAULT_MAX_NUMBER_OF_AUCTIONS + ', equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.')
+      error.type = 'INVALID_NUMBER_OF_AUCTIONS'
+      error.status = 412
+      throw error
+    }
+    addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
+    return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
+  }
+
   routes.push({
-    path: '/:token-WETH/prices/simple-median',
+    path: '/:tokenPair/prices/simple-median',
     get (req, res) {
-      const token = req.params.token
-      const auctionIndex = req.query.auctionIndex
-      const numberOfAuctions = req.query.numberOfAuctions !== undefined
-        ? req.query.numberOfAuctions : DEFAULT_NUMBER_OF_AUCTIONS
-      if (!_isValueInRange(numberOfAuctions, 1, DEFAULT_MAX_NUMBER_OF_AUCTIONS)) {
-        const error = new Error('Invalid `numberOfAuctions`. This value should be between 1 and ' +
-          DEFAULT_MAX_NUMBER_OF_AUCTIONS + ', equivalent to 2 weeks of auctions running continously + 1 to make it odd as required by contract.')
-        error.type = 'INVALID_NUMBER_OF_AUCTIONS'
-        error.status = 412
-        throw error
+      const { sellToken, buyToken } = _tokenPairSplit(req.params.tokenPair)
+      const isSellTokenEth = dxInfoService.isTokenEth(sellToken)
+      const isBuyTokenEth = dxInfoService.isTokenEth(buyToken)
+
+      if (isSellTokenEth) {
+        // Price oracle always returns tokenA-WETH.
+        // We do inverse of result to return WETH-tokenA for convenience
+        return _simpleMedian(req, res, buyToken).then(result => {
+          return ONE.div(result)
+        })
+      } else if (isBuyTokenEth) {
+        return _simpleMedian(req, res, sellToken)
+      } else {
+        _throwMissingWethError()
       }
-      addCacheHeader({ res, time: CACHE_TIMEOUT_SHORT })
-      return dxInfoService.getOraclePricesAndMedian({ token, numberOfAuctions, auctionIndex })
     }
   })
 

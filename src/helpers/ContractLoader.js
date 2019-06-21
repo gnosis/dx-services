@@ -102,6 +102,8 @@ class ContractLoader {
   }
 
   async _loadERC20tokenContract (token, tokenContract) {
+    assert(token, '"token" is required in _loadERC20tokenContract')
+
     let address = this._erc20TokenAddresses[token]
     if (!address) {
       if (isLocal) {

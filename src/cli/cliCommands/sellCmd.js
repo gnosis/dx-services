@@ -52,11 +52,13 @@ function registerCommand ({ cli, logger }) {
         'auction ' + auctionIndex,
         address
       )
+      const { decimals } = await dxInfoService.getTokenInfo(sellToken)
+
       const buyResult = await dxTradeService.sell({
         sellToken,
         buyToken,
         auctionIndex,
-        amount: toWei(amount),
+        amount: toWei(amount, decimals),
         from: address
       })
       logger.info('The sell was succesful. Transaction: %s', buyResult.tx)

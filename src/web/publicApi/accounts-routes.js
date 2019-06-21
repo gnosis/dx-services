@@ -100,9 +100,11 @@ function createRoutes ({ dxInfoService },
   })
 
   routes.push({
-    path: '/:accountAddress/tokens/:tokenSymbol',
+    path: '/:accountAddress/tokens/:tokenAddress',
     get (req, res) {
-      let token = req.params.tokenSymbol.toUpperCase()
+      let token = formatUtil.isHexAddress({ token: req.params.tokenAddress })
+        ? req.params.tokenAddress
+        : req.params.tokenAddress.toUpperCase()
       let params = Object.assign({
         token,
         address: req.params.accountAddress

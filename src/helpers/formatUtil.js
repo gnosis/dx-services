@@ -1,6 +1,8 @@
 const numberUtil = require('./numberUtil')
 const moment = require('moment')
 
+const HEXADECIMAL_REGEX = /0[xX][0-9a-fA-F]+/
+
 const DATE_FORMAT = 'D/MM/YY'
 const DATE_FORMAT_FOR_PARSING = 'D/MM/YYYY' // Accepts 2 and 4 digits years
 const TIME_FORMAT = 'H:mm'
@@ -84,27 +86,51 @@ function formatBoolean (flag) {
   return flag ? 'Yes' : 'No'
 }
 
-function formatFromWei (wei) {
-  if (wei) {
-    return numberUtil.toBigNumber(wei).div(1e18)
+function formatToWei (eth, decimals = 18) {
+  if (eth) {
+    return numberUtil.toWei(eth, decimals)
   } else {
     return null
   }
 }
 
-function formatFraction (fraction, inDecimal = true) {
+function formatFromWei (wei, decimals = 18) {
+  if (wei) {
+    return numberUtil.fromWei(wei, decimals)
+  } else {
+    return null
+  }
+}
+
+function formatPriceWithDecimals ({ price, tokenBDecimals = 18, tokenADecimals = 18 }) {
+  if (!price) {
+    return null
+  } else {
+    const max = Math.max(tokenBDecimals, tokenADecimals)
+    return {
+      numerator: price.numerator.mul(numberUtil.TEN.toPower(max - tokenBDecimals)),
+      denominator: price.denominator.mul(numberUtil.TEN.toPower(max - tokenADecimals))
+    }
+  }
+}
+
+function formatFraction ({ fraction, inDecimal = true, tokenBDecimals = 18, tokenADecimals = 18 }) {
   if (!fraction) {
     return null
   } else {
+    const fractionInBn = numberUtil.toBigNumberFraction(fraction, false)
+    const { numerator, denominator } = formatPriceWithDecimals({
+      price: fractionInBn, tokenBDecimals, tokenADecimals
+    })
     if (inDecimal) {
       // In decimal format
-      const decimalumber = numberUtil.toBigNumberFraction(fraction, true)
+      const decimalumber = numberUtil.toBigNumberFraction({ numerator, denominator }, true)
       return formatNumber(decimalumber)
     } else {
       // In fractional format
-      return formatNumber(fraction.numerator) +
+      return formatNumber(numerator) +
         ' / ' +
-        formatNumber(fraction.denominator)
+        formatNumber(denominator)
     }
   }
 }
@@ -115,26 +141,53 @@ function formatMarketDescriptor ({ tokenA, tokenB }) {
 }
 
 function tokenPairSplit (tokenPair) {
-  // Split and set uppercase just in case is set with symbols
-  let splittedPair = tokenPair.startsWith('0x')
-    ? tokenPair.split('-')
-    : tokenPair.toUpperCase().split('-')
+  // Split token pair string
+  let splittedPair = tokenPair.split('-')
+
+  const _handleSymbolOrHexToken = splitted => {
+    return splitted.map(token => {
+      let parsedToken = token
+      if (isHexAddress({ token })) {
+        // In case is HEX make sure 0x is lowercase (parity issues)
+        parsedToken = token.replace('0X', '0x')
+      } else {
+        // In case is symbol set to uppercase
+        parsedToken = token.toUpperCase()
+      }
+      return parsedToken
+    })
+  }
+
   if (splittedPair.length === 2) {
-    const [sellToken, buyToken] = splittedPair
+    const [sellToken, buyToken] = _handleSymbolOrHexToken(splittedPair)
     return {
       sellToken,
       buyToken
     }
   } else {
-    const error = new Error('Invalid token pair format. Valid format is <sellToken>-<buyToken>')
+    const error = new Error('Invalid token pair format. Valid format is <sellTokenAddress>-<buyTokenAddress>')
     error.type = 'INVALID_TOKEN_FORMAT'
     error.status = 412
     throw error
   }
 }
 
+function isHexAddress ({ token, forceError = false }) {
+  if (HEXADECIMAL_REGEX.test(token)) {
+    return true
+  } else {
+    if (forceError) {
+      const error = new Error('Invalid token format. Expected Hex Address')
+      error.type = 'INVALID_TOKEN_FORMAT'
+      error.status = 412
+      throw error
+    }
+    return false
+  }
+}
+
 function _parseDate (dateStr, format, errorMessage) {
-  const date = format ? moment(dateStr, format) : moment(dateStr)
+  const date = format ? moment(dateStr, format) : moment(dateStr, moment.ISO_8601)
 
   if (!date.isValid()) {
     const error = new Error('Invalid date format' + errorMessage)
@@ -164,11 +217,14 @@ module.exports = {
   formatDatesDifference,
   formatDateFromNow,
   formatBoolean,
+  isHexAddress,
   parseDate,
   parseDateTime,
   parseDateIso,
   formatFromWei,
+  formatToWei,
   formatFraction,
+  formatPriceWithDecimals,
   formatMarketDescriptor,
   tokenPairSplit
 }

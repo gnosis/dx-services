@@ -33,19 +33,31 @@ function registerCommand ({ cli, logger }) {
         account = accountFromConfig
       }
 
+      const tokenOwl = {
+        symbol: 'OWL',
+        tokenAddress: contracts.owl.address
+      }
+
       logger.info(`\n**********  Balance for ${account}  **********\n`)
-      const [ balanceETH, lockedFrt, currentLiqContributionLevel ] = await Promise.all([
+      const [balanceETH, lockedFrt, currentLiqContributionLevel, owlBalances] = await Promise.all([
         dxInfoService.getBalanceOfEther({ account }),
         contracts.mgn.lockedTokenBalances(account),
-        dxInfoService.getCurrentFeeRatio({ address: account })
+        dxInfoService.getCurrentFeeRatio({ address: account }),
+        _getBalance({
+          account,
+          token: tokenOwl,
+          dxInfoService,
+          dxAddress: contracts.dx.address
+        })
       ])
 
       logger.info('\tACCOUNT: %s', account)
       logger.info('\tBALANCE: %d ETH', formatUtil.formatFromWei(balanceETH))
+      logger.info('\tOWL BALANCE: %d OWL', formatUtil.formatFromWei(owlBalances.amount))
       logger.info('\tLocked FRT: %d MGN', formatUtil.formatFromWei(lockedFrt))
       logger.info('\tLiquidity Contribution Level: %d % ', currentLiqContributionLevel.mul(100))
 
-      const [ configuredMarketsTokenList, magnoliaToken ] = await Promise.all([
+      const [configuredMarketsTokenList, magnoliaToken] = await Promise.all([
         dxInfoService.getConfiguredTokenList(),
         dxInfoService.getMagnoliaToken()
       ])
@@ -92,18 +104,18 @@ function registerCommand ({ cli, logger }) {
         logger.info('\n\tBalances %s (%s):', balance.token, balance.tokenAddress)
         logger.info(
           '\t\t- Balance in DX: %s%s',
-          formatUtil.formatFromWei(balance.amountInDx),
+          formatUtil.formatFromWei(balance.amountInDx, balance.decimals),
           (balance.amountInDx.greaterThan(0) && balance.priceUsdInDx) ? ` (${balance.priceUsdInDx} USD)` : ''
         )
         logger.info(
           '\t\t- Balance of user: %s%s',
-          formatUtil.formatFromWei(balance.amount),
+          formatUtil.formatFromWei(balance.amount, balance.decimals),
           (balance.amount.greaterThan(0) && balance.priceUsd) ? ` (${balance.priceUsd} USD)` : ''
         )
 
         if (verbose) {
-          logger.info('\t\t- Approved for DX: ' + formatUtil.formatFromWei(balance.allowance))
-          logger.info('\t\t- Token Supply: ' + formatUtil.formatFromWei(balance.totalSupply))
+          logger.info('\t\t- Approved for DX: ' + formatUtil.formatFromWei(balance.allowance, balance.decimals))
+          logger.info('\t\t- Token Supply: ' + formatUtil.formatFromWei(balance.totalSupply, balance.decimals))
           // console.log('\t\t- Token address: ' + balance.tokenAddress)
         }
       })
@@ -138,6 +150,8 @@ async function _getBalance ({
     dxInfoService
   })
 
+  const { decimals } = await dxInfoService.getTokenInfo(tokenAddress)
+
   return {
     tokenAddress,
     token: symbol,
@@ -146,7 +160,8 @@ async function _getBalance ({
     totalSupply,
     amountInDx,
     priceUsdInDx,
-    priceUsd
+    priceUsd,
+    decimals
   }
 }
 
@@ -203,7 +218,7 @@ async function _getUsdEstimation ({
     .then(price => price.toFixed(2))
     .catch(() => null)
 
-  const [ priceUsdInDx, priceUsd ] = await Promise.all([
+  const [priceUsdInDx, priceUsd] = await Promise.all([
     priceUsdInDxPromise,
     priceUsdPromise
   ])

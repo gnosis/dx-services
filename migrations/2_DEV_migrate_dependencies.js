@@ -2,6 +2,7 @@
 /* eslint no-undef: "error" */
 
 const migrationsDx = require('@gnosis.pm/dx-contracts/src/migrations-truffle-4')
+const migrateArbitrage = require('@gnosis.pm/dx-uniswap-arbitrage/src/migrations-truffle-5/2_deploy_uniswap.js')
 
 function migrate (deployer, network, accounts) {
   if (network === 'development') {
@@ -25,7 +26,6 @@ function migrate (deployer, network, accounts) {
       .then(() => migrationsDx(deployParams))
       .then(() => deployer.deploy(TokenRDN, accounts[0]))
       .then(() => deployer.deploy(TokenOMG, accounts[0]))
-
     // Get dependencies to deploy DutchXPriceOracle
     const {
       EtherToken,
@@ -39,6 +39,10 @@ function migrate (deployer, network, accounts) {
         DutchExchangeProxy.deployed()
       ]))
       .then(() => deployer.deploy(DxPriceOracle, DutchExchangeProxy.address, EtherToken.address))
+      .then(() => {
+        deployParams.DutchExchangeProxy = DutchExchangeProxy.address
+        return migrateArbitrage(deployParams)
+      })
   } else {
     throw new Error(
       'Migrations are just for development. Current network is %s',

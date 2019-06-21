@@ -1,4 +1,5 @@
 const cliUtils = require('../helpers/cliUtils')
+const { fromWei } = require('../../helpers/numberUtil')
 
 const getDxInfoService = require('../../services/DxInfoService')
 
@@ -20,8 +21,10 @@ function registerCommand ({ cli, logger }) {
       address: account
     })
 
+    const { decimals } = await dxInfoService.getTokenInfo(sellToken)
+
     logger.info('Seller balance for %s-%d: %s %s',
-      tokenPair, auctionIndex, sellerBalance.div(1e18).valueOf(), sellToken
+      tokenPair, auctionIndex, fromWei(sellerBalance, decimals).valueOf(), sellToken
     )
   })
 }
