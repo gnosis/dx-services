@@ -213,7 +213,7 @@ test('It should return the expected dutch spend amount', async () => {
 
   // GIVEN a not RUNNING auction, without enough sell liquidiy
   // we mock the auction repo
-  arbitrageService._auctionRepo.getCurrentAuctionPriceWithFees =
+  arbitrageService.getCurrentAuctionPriceWithFees =
     jest.fn(async ({ amount }) => {
       return {
         closesAuction: false,

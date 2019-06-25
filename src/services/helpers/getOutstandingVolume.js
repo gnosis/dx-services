@@ -1,20 +1,25 @@
 const assert = require('assert')
 const { formatPriceWithDecimals } = require('../../helpers/formatUtil')
-const { TEN } = require('../../helpers/numberUtil')
+const { ZERO, TEN } = require('../../helpers/numberUtil')
 
 async function getOutstandingVolume ({
   auctionRepo,
   ethereumRepo,
   sellToken,
   buyToken,
-  auctionIndex
+  auctionIndex,
+  assertState = true,
+  cacheTimeShort,
+  cacheTimeAverage
 }) {
-  const state = await auctionRepo.getState({ sellToken, buyToken, auctionIndex })
-  assert(
-    state !== 'WAITING_FOR_FUNDING' &&
-    state !== 'WAITING_FOR_AUCTION_TO_START',
-    `The auction can't be in a waiting period for getting the outstanding \
-volume: ${state}`)
+  if (assertState) {
+    const state = await auctionRepo.getState({ sellToken, buyToken, auctionIndex })
+    assert(
+      state !== 'WAITING_FOR_FUNDING' &&
+      state !== 'WAITING_FOR_AUCTION_TO_START',
+      `The auction can't be in a waiting period for getting the outstanding \
+      volume: ${state}`)
+  }
 
   const [
     sellVolume,
@@ -24,11 +29,11 @@ volume: ${state}`)
     buyTokenAddress
   ] = await Promise.all([
     auctionRepo.getSellVolume({
-      sellToken, buyToken }),
+      sellToken, buyToken, cacheTime: cacheTimeAverage }),
     auctionRepo.getBuyVolume({
-      sellToken, buyToken }),
+      sellToken, buyToken, cacheTime: cacheTimeShort }),
     auctionRepo.getCurrentAuctionPrice({
-      sellToken, buyToken, auctionIndex }),
+      sellToken, buyToken, auctionIndex, cacheTime: cacheTimeShort }),
     auctionRepo.getTokenAddress({ token: sellToken }),
     auctionRepo.getTokenAddress({ token: buyToken })
   ])
@@ -51,7 +56,7 @@ volume: ${state}`)
     .div(priceWithDecimals.denominator)
 
   const outstandingVolume = sellVolumeInBuyTokens.minus(buyVolume)
-  return outstandingVolume.lessThan(0) ? 0 : outstandingVolume
+  return outstandingVolume.lessThan(ZERO) ? ZERO : outstandingVolume
 }
 
 module.exports = getOutstandingVolume

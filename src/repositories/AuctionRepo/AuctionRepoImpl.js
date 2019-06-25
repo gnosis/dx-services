@@ -1247,32 +1247,6 @@ volume: ${state}`)
       })
   }
 
-  async getCurrentAuctionPriceWithFees ({ sellToken, buyToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice }) {
-    const cacheTime = 15
-    const { numerator, denominator } = await this.getCurrentAuctionPrice({ sellToken, buyToken, auctionIndex, cacheTime })
-    const sellVolume = await this.getSellVolume({ sellToken, buyToken, cacheTime })
-    const buyVolume = await this.getBuyVolume({ sellToken, buyToken, cacheTime })
-
-    // 10^30 * 10^37 = 10^67
-    let outstandingVolume = sellVolume.mul(numerator).div(denominator).sub(buyVolume)
-    outstandingVolume = outstandingVolume.lt(0) ? outstandingVolume.mul(0) : outstandingVolume
-    let amountAfterFee = amount
-    let closesAuction = false
-    if (amount.lt(outstandingVolume)) {
-      if (amount.gt(0)) {
-        amountAfterFee = await this.settleFee(buyToken, sellToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice)
-      }
-    } else {
-      amountAfterFee = outstandingVolume
-      closesAuction = true
-    }
-
-    return {
-      closesAuction,
-      amountAfterFee
-    }
-  }
-
   async settleFee (primaryToken, secondaryToken, auctionIndex, amount, from, owlAllowance, owlBalance, ethUSDPrice) {
     const [numerator, denominator] = await this.getFeeRatio({ address: from })
 
