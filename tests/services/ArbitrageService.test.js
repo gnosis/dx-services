@@ -245,6 +245,8 @@ test('It should return the expected dutch spend amount', async () => {
     outputBalance: OUTPUT_BALANCEA, // buyToken balance
     dutchPrice: DUTCHX_PRICEA,
     maximizeVolume: true,
+    sellTokenDecimals: 18,
+    buyTokenDecimals: 18,
     // Params to check user fee
     from: '0x123',
     sellToken: '',
@@ -261,6 +263,8 @@ test('It should return the expected dutch spend amount', async () => {
     outputBalance: OUTPUT_BALANCEB, // buyToken balance
     dutchPrice: DUTCHX_PRICEB,
     maximizeVolume: true,
+    sellTokenDecimals: 18,
+    buyTokenDecimals: 18,
     // Params to check user fee
     from: '0x123',
     sellToken: '',
