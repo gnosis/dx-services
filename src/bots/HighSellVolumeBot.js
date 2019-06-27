@@ -42,7 +42,6 @@ class HighSellVolumeBot extends Bot {
     if (thresholdInUsd) {
       // In thresholdInUsd mode, it'll notify if the sell volue surplus the threshold
       this._thresholdInUsd = thresholdInUsd
-      this._lastNotificationAuctionIndex = {}
     } else if (botAddress) {
       // Config using bot address we'll use to check if it has enough balance
       this._botAddress = botAddress
@@ -62,6 +61,7 @@ class HighSellVolumeBot extends Bot {
     this._markets = markets
     this._notifications = notifications
     this._checkTimeInMilliseconds = checkTimeInMilliseconds
+    this._lastNotificationAuctionIndex = {}
 
     this._lastCheck = null
     this._lastError = null
